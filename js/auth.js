@@ -1,5 +1,5 @@
-const poolDomain = "YOUR_COGNITO_DOMAIN"; // e.g. theweer.auth.us-east-1.amazoncognito.com
-const clientId = "YOUR_APP_CLIENT_ID";
+const poolDomain = "https://auth.theweer.com"; // e.g. theweer.auth.us-east-1.amazoncognito.com
+const clientId = "7irso7dmmnp793egs9bhkl0t81";
 const redirectUri = window.location.href;
 const region = "us-east-1";
 
