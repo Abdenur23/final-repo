@@ -1,11 +1,51 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Product 2</title>
-    <script src="js/auth.js" defer></script>
-  </head>
-  <body>
-    <h1>Product 2</h1>
-    <p>This page requires login.</p>
-  </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product 2 - Enterprise Solution</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .back-link { color: #007bff; text-decoration: none; }
+        .product-content { margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Home</a>
+        <h1>Product 2 - Enterprise Solution</h1>
+        
+        <div id="auth-message" style="display: none;">
+            <p>Checking authentication...</p>
+        </div>
+        
+        <div id="product-content" class="product-content" style="display: none;">
+            <h2>Enterprise Solution Details</h2>
+            <p>Our enterprise-grade solution for large organizations:</p>
+            <ul>
+                <li>Unlimited users and data</li>
+                <li>Dedicated account manager</li>
+                <li>Custom SLA agreements</li>
+                <li>On-premise deployment options</li>
+                <li>24/7 premium support</li>
+            </ul>
+            <p><strong>Price: Custom pricing (Contact sales)</strong></p>
+            <button onclick="purchaseProduct(2)">Contact Sales</button>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        // Show product content once authenticated
+        if (idToken) {
+            document.getElementById('auth-message').style.display = 'none';
+            document.getElementById('product-content').style.display = 'block';
+        }
+        
+        function purchaseProduct(productId) {
+            alert(`Thank you for your interest in Product ${productId}! Our sales team will contact you shortly.`);
+        }
+    </script>
+</body>
 </html>
