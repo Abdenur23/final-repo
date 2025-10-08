@@ -1,12 +1,37 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>The Weer</title>
-  </head>
-  <body>
-    <h1>Welcome to The Weer</h1>
-    <p>Landing page — no login required.</p>
-    <a href="product1.html">Go to Product 1</a> |
-    <a href="product2.html">Go to Product 2</a>
-  </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Our Products</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .product-links { margin: 30px 0; }
+        .product-link { 
+            display: block; 
+            padding: 15px; 
+            margin: 10px 0; 
+            background: #007bff; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px;
+            text-align: center;
+        }
+        .product-link:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Our Store</h1>
+        <p>Explore our amazing products below:</p>
+        
+        <div class="product-links">
+            <a href="product1.html" class="product-link">Product 1 - Premium Service</a>
+            <a href="product2.html" class="product-link">Product 2 - Enterprise Solution</a>
+        </div>
+        
+        <p>Click on any product to learn more (login required).</p>
+    </div>
+</body>
 </html>
