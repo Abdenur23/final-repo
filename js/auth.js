@@ -1,7 +1,4 @@
 const poolDomain = "auth.theweer.com";
-// Temporary fix - use Cognito domain while DNS propagates
-const poolDomain = "us-east-1tjdoamtpp.auth.us-east-1.amazoncognito.com";
-// OR keep your custom domain but be patient for DNS
 const clientId = "7irso7dmmnp793egs9bhkl0t81";
 const redirectUri = window.location.href;
 const region = "us-east-1";
