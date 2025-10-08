@@ -1,68 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product 2 - Enterprise Solution</title>
+    <title>Product 2 - The Weer</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .back-link { color: #007bff; text-decoration: none; }
-        .product-content { margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px; }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .container { margin: 20px 0; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        .auth-section { background: #f5f5f5; padding: 15px; border-radius: 5px; }
+        .user-info { background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .protected { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0; }
     </style>
 </head>
 <body>
+    <h1>Product 2</h1>
+    
     <div class="container">
-        <a href="index.html" class="back-link">← Back to Home</a>
-        <h1>Product 2 - Enterprise Solution</h1>
+        <a href="index.html">Home</a> | 
+        <a href="product1.html">Product 1</a> | 
+        <a href="product2.html">Product 2</a>
+    </div>
+
+    <div id="auth-section" class="auth-section">
+        <p>Checking authentication status...</p>
+    </div>
+
+    <div id="content">
+        <h2>Product 2 Details</h2>
+        <p>This is our premium product with advanced features.</p>
         
-        <div id="auth-message" style="display: none;">
-            <p>Checking authentication...</p>
-        </div>
-        
-        <div id="product-content" class="product-content" style="display: none;">
-            <h2>Enterprise Solution Details</h2>
-            <p>Our enterprise-grade solution for large organizations:</p>
-            <ul>
-                <li>Unlimited users and data</li>
-                <li>Dedicated account manager</li>
-                <li>Custom SLA agreements</li>
-                <li>On-premise deployment options</li>
-                <li>24/7 premium support</li>
-            </ul>
-            <p><strong>Price: Custom pricing (Contact sales)</strong></p>
-            <button onclick="purchaseProduct(2)">Contact Sales</button>
+        <div id="protected-content" class="protected">
+            <h3>Premium Features</h3>
+            <p id="access-message">Checking your access level...</p>
         </div>
     </div>
 
     <script src="auth.js"></script>
-<script>
-    // Check if user is authenticated (either from URL or localStorage)
-    const storedToken = localStorage.getItem('idToken');
-    const urlToken = new URLSearchParams(window.location.hash.substring(1)).get('id_token');
-    const isAuthenticated = storedToken || urlToken;
-    
-    if (isAuthenticated) {
-        document.getElementById('auth-message').style.display = 'none';
-        document.getElementById('product-content').style.display = 'block';
+    <script>
+        checkAuthStatus();
         
-        // Add logout button
-        const logoutBtn = document.createElement('button');
-        logoutBtn.textContent = 'Logout';
-        logoutBtn.onclick = function() {
-            localStorage.removeItem('idToken');
-            window.location.href = 'index.html';
-        };
-        logoutBtn.style.marginLeft = '10px';
-        document.querySelector('h1').appendChild(logoutBtn);
-    } else {
-        document.getElementById('auth-message').style.display = 'block';
-        document.getElementById('product-content').style.display = 'none';
-    }
-    
-    function purchaseProduct(productId) {
-        alert(`Thank you for purchasing Product ${productId}!`);
-    }
-</script>
+        function updateProductContent(isAuthenticated) {
+            const message = document.getElementById('access-message');
+            if (isAuthenticated) {
+                message.innerHTML = '✅ <strong>Premium Access Active!</strong><br>You have full access to all Product 2 premium features.';
+            } else {
+                message.innerHTML = '🔒 <strong>Authentication Required</strong><br>Sign in to unlock premium Product 2 features.';
+            }
+        }
+    </script>
 </body>
 </html>
