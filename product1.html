@@ -35,16 +35,33 @@
     </div>
 
     <script src="auth.js"></script>
-    <script>
-        // Show product content once authenticated
-        if (idToken) {
-            document.getElementById('auth-message').style.display = 'none';
-            document.getElementById('product-content').style.display = 'block';
-        }
+<script>
+    // Check if user is authenticated (either from URL or localStorage)
+    const storedToken = localStorage.getItem('idToken');
+    const urlToken = new URLSearchParams(window.location.hash.substring(1)).get('id_token');
+    const isAuthenticated = storedToken || urlToken;
+    
+    if (isAuthenticated) {
+        document.getElementById('auth-message').style.display = 'none';
+        document.getElementById('product-content').style.display = 'block';
         
-        function purchaseProduct(productId) {
-            alert(`Thank you for purchasing Product ${productId}!`);
-        }
-    </script>
+        // Add logout button
+        const logoutBtn = document.createElement('button');
+        logoutBtn.textContent = 'Logout';
+        logoutBtn.onclick = function() {
+            localStorage.removeItem('idToken');
+            window.location.href = 'index.html';
+        };
+        logoutBtn.style.marginLeft = '10px';
+        document.querySelector('h1').appendChild(logoutBtn);
+    } else {
+        document.getElementById('auth-message').style.display = 'block';
+        document.getElementById('product-content').style.display = 'none';
+    }
+    
+    function purchaseProduct(productId) {
+        alert(`Thank you for purchasing Product ${productId}!`);
+    }
+</script>
 </body>
 </html>
