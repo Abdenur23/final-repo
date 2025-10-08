@@ -9,7 +9,7 @@ const idToken = params.get("id_token");
 
 // If no token, redirect to login
 if (!idToken) {
-  const loginUrl = `https://${poolDomain}/login?client_id=${clientId}&response_type=token&scope=email+openid+profile&redirect_uri=${encodeURIComponent(redirectUri)}`;
+  const loginUrl = `https://${poolDomain}/oauth2/authorize?client_id=${clientId}&response_type=token&scope=email+openid+profile&redirect_uri=${encodeURIComponent(redirectUri)}`;
   window.location.href = loginUrl;
 } else {
   console.log("User logged in with token:", idToken);
