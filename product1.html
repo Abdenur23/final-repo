@@ -36,28 +36,40 @@
 
     <script src="auth.js"></script>
 <script>
-    // Check if user is authenticated (either from URL or localStorage)
-    const storedToken = localStorage.getItem('idToken');
-    const urlToken = new URLSearchParams(window.location.hash.substring(1)).get('id_token');
-    const isAuthenticated = storedToken || urlToken;
-    
-    if (isAuthenticated) {
-        document.getElementById('auth-message').style.display = 'none';
-        document.getElementById('product-content').style.display = 'block';
+    // Check authentication status after auth.js runs
+    function checkAuthStatus() {
+        const storedToken = localStorage.getItem('idToken');
+        const authMessage = document.getElementById('auth-message');
+        const productContent = document.getElementById('product-content');
         
-        // Add logout button
-        const logoutBtn = document.createElement('button');
-        logoutBtn.textContent = 'Logout';
-        logoutBtn.onclick = function() {
-            localStorage.removeItem('idToken');
-            window.location.href = 'index.html';
-        };
-        logoutBtn.style.marginLeft = '10px';
-        document.querySelector('h1').appendChild(logoutBtn);
-    } else {
-        document.getElementById('auth-message').style.display = 'block';
-        document.getElementById('product-content').style.display = 'none';
+        if (storedToken) {
+            // User is authenticated
+            authMessage.style.display = 'none';
+            productContent.style.display = 'block';
+            
+            // Add logout button if not already there
+            if (!document.getElementById('logout-btn')) {
+                const logoutBtn = document.createElement('button');
+                logoutBtn.id = 'logout-btn';
+                logoutBtn.textContent = 'Logout';
+                logoutBtn.onclick = function() {
+                    localStorage.removeItem('idToken');
+                    localStorage.removeItem('accessToken');
+                    window.location.href = 'index.html';
+                };
+                logoutBtn.style.marginLeft = '10px';
+                document.querySelector('h1').appendChild(logoutBtn);
+            }
+        } else {
+            // Not authenticated - auth.js should redirect
+            authMessage.style.display = 'block';
+            productContent.style.display = 'none';
+            console.log("Waiting for authentication redirect...");
+        }
     }
+    
+    // Check auth status when page loads
+    document.addEventListener('DOMContentLoaded', checkAuthStatus);
     
     function purchaseProduct(productId) {
         alert(`Thank you for purchasing Product ${productId}!`);
