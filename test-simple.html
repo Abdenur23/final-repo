@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cognito Test - The Weer</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; background: #2563eb; color: white; border: none; border-radius: 4px; }
+        .info { background: #dbeafe; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .success { background: #dcfce7; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .error { background: #fee2e2; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Cognito Auth Test - The Weer</h1>
+    
+    <div class="info">
+        <h3>Test Authentication</h3>
+        <button onclick="signIn()">Sign In</button>
+        <button onclick="signUp()">Sign Up</button>
+        <button onclick="showUrls()">Show URLs</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        const clientId = '7irso7dmmnp793egs9bhkl0t81';
+        const domain = 'auth.theweer.com';
+        const redirectUri = encodeURIComponent('https://theweer.com/');
+
+        function signIn() {
+            // CORRECT Sign In URL
+            const url = `https://${domain}/oauth2/authorize?client_id=${clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
+            
+            document.getElementById('result').innerHTML = `
+                <div class="info">
+                    <h4>Redirecting to Sign In...</h4>
+                    <p><strong>URL:</strong> ${url}</p>
+                    <p>You should be redirected to Cognito Hosted UI.</p>
+                </div>
+            `;
+            
+            console.log('Redirecting to:', url);
+            window.location.href = url;
+        }
+
+        function signUp() {
+            // CORRECT Sign Up URL (same endpoint, Cognito will show signup option)
+            const url = `https://${domain}/oauth2/authorize?client_id=${clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
+            
+            document.getElementById('result').innerHTML = `
+                <div class="info">
+                    <h4>Redirecting to Sign Up...</h4>
+                    <p><strong>URL:</strong> ${url}</p>
+                    <p>You should be redirected to Cognito Hosted UI where you can choose "Sign Up".</p>
+                </div>
+            `;
+            
+            console.log('Redirecting to:', url);
+            window.location.href = url;
+        }
+
+        function showUrls() {
+            const urls = {
+                'Sign In': `https://${domain}/oauth2/authorize?client_id=${clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`,
+                'Sign Up (direct)': `https://${domain}/signup?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}`,
+                'Login (direct)': `https://${domain}/login?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}`
+            };
+
+            let html = '<h3>Generated URLs:</h3>';
+            for (const [name, url] of Object.entries(urls)) {
+                html += `
+                    <div style="margin: 10px 0; padding: 10px; border: 1px solid #ccc;">
+                        <strong>${name}:</strong><br>
+                        <code style="word-break: break-all; display: block; margin: 5px 0;">${url}</code>
+                        <button onclick="window.location.href='${url}'">Test ${name}</button>
+                    </div>
+                `;
+            }
+            document.getElementById('result').innerHTML = html;
+        }
+
+        // Check for callback
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+
+        if (code) {
+            document.getElementById('result').innerHTML = `
+                <div class="success">
+                    <h4>✅ SUCCESS! Authentication Working!</h4>
+                    <p>Received authorization code: <code>${code}</code></p>
+                    <p>Your Cognito setup is working correctly!</p>
+                </div>
+            `;
+        }
+
+        if (error) {
+            document.getElementById('result').innerHTML = `
+                <div class="error">
+                    <h4>❌ Error from Cognito</h4>
+                    <p><strong>Error:</strong> ${error}</p>
+                    <p><strong>Description:</strong> ${urlParams.get('error_description') || 'No description'}</p>
+                </div>
+            `;
+        }
+
+        // Show current page info
+        document.getElementById('result').innerHTML += `
+            <div class="info">
+                <h4>Current Page Info:</h4>
+                <p><strong>URL:</strong> ${window.location.href}</p>
+                <p><strong>Has Code Param:</strong> ${!!code}</p>
+                <p><strong>Has Error Param:</strong> ${!!error}</p>
+            </div>
+        `;
+    </script>
+</body>
+</html>
