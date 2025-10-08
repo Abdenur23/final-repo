@@ -1,4 +1,4 @@
-const poolDomain = "https://auth.theweer.com";
+const poolDomain = "auth.theweer.com";
 const clientId = "7irso7dmmnp793egs9bhkl0t81";
 const redirectUri = window.location.href;
 const region = "us-east-1";
