@@ -1,12 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>The Weer</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<html>
+<head>
+    <title>The Weer Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .container { margin: 20px 0; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        .auth-section { background: #f5f5f5; padding: 15px; border-radius: 5px; }
+        .user-info { background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>The Weer - Auth Test</h1>
+    
+    <div class="container">
+        <a href="index.html">Home</a> | 
+        <a href="product1.html">Product 1</a> | 
+        <a href="product2.html">Product 2</a>
+    </div>
+
+    <div id="auth-section" class="auth-section">
+        <p>Checking authentication status...</p>
+    </div>
+
+    <div id="content">
+        <h2>Home Page</h2>
+        <p>Welcome to The Weer! This is a simple authentication test.</p>
+        <p>Visit the product pages to see auth in action.</p>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        // Check auth status on page load
+        checkAuthStatus();
+    </script>
+</body>
 </html>
