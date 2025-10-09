@@ -120,7 +120,8 @@
 
     <script src="auth.js"></script>
     <script>
-        const API_ENDPOINT = "https://2zv7gblrv5.execute-api.us-east-1.amazonaws.com/first_stage/generate-presigned-url";
+        // UPDATED API ENDPOINT - Use your new API Gateway URL
+        const API_ENDPOINT = "https://2nsvsi07p3.execute-api.us-east-1.amazonaws.com/default/image-upload-presigned-url";
 
         function toggleUploadInput() {
             const check = document.getElementById("privacyCheck").checked;
@@ -151,13 +152,24 @@
                     contentType: f.type
                 }));
 
+                console.log("Sending request to:", API_ENDPOINT);
+                console.log("Payload:", filePayload);
+
                 const response = await fetch(API_ENDPOINT, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ files: filePayload })
                 });
 
+                console.log("Response status:", response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
+                console.log("Response data:", data);
+                
                 if (!data.urls || data.urls.length !== files.length) {
                     throw new Error(data.error || "Unexpected response from server.");
                 }
@@ -182,7 +194,8 @@
                         statusDiv.innerHTML += ` ✅`;
                         successCount++;
                     } else {
-                        statusDiv.innerHTML += ` ❌ (Failed)`;
+                        statusDiv.innerHTML += ` ❌ (Failed - Status: ${upload.status})`;
+                        console.error(`Upload failed for ${file.name}:`, upload.status, upload.statusText);
                     }
                 }
 
@@ -200,7 +213,7 @@
                 }
                 
             } catch (err) {
-                console.error(err);
+                console.error("Upload error:", err);
                 statusDiv.innerHTML = "❌ Error: " + err.message;
                 statusDiv.className = "upload-error";
             }
