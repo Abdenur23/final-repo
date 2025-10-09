@@ -13,6 +13,50 @@
         .user-info { background: #d1fae5; padding: 15px; border-radius: 6px; }
         .protected-content { background: #fff3cd; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #ffc107; }
         .content { padding: 30px 0; }
+        
+        /* Upload Section Styles */
+        .upload-section { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+            margin: 30px 0;
+            border: 2px solid #e5e7eb;
+        }
+        .upload-box {
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        input[type=file] {
+            margin: 15px 0;
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+        }
+        .privacy-box {
+            margin-top: 15px;
+            text-align: left;
+            font-size: 0.9em;
+            color: #444;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        #upload-status {
+            margin-top: 20px;
+            color: green;
+            font-size: 0.95em;
+            line-height: 1.4;
+            text-align: left;
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2563eb;
+        }
+        .upload-success { color: #059669; }
+        .upload-error { color: #dc2626; }
     </style>
 </head>
 <body>
@@ -38,6 +82,29 @@
             <div id="access-message">Checking your access level...</div>
         </div>
 
+        <!-- Image Upload Section - Only shown when authenticated -->
+        <div id="upload-section" class="upload-section" style="display: none;">
+            <div class="upload-box">
+                <h3>📁 Upload Data Images</h3>
+                <p>Upload up to 3 images for analysis with our advanced analytics platform.</p>
+
+                <div class="privacy-box">
+                    <p><strong>Privacy Policy</strong></p>
+                    <p>Your uploaded images are processed securely and stored privately in our system. We do not share, sell, or publish your data. By checking this box, you acknowledge and consent to our terms.</p>
+                    <label>
+                        <input type="checkbox" id="privacyCheck" onchange="toggleUploadInput()" />
+                        I have read and agree to the Privacy Policy.
+                    </label>
+                </div>
+
+                <input type="file" id="fileInput" accept="image/*" multiple disabled />
+                <p><small>Select 1-3 images for analysis</small></p>
+
+                <button id="uploadBtn" onclick="uploadImages()" disabled class="btn-primary">Upload Images for Analysis</button>
+                <div id="upload-status"></div>
+            </div>
+        </div>
+
         <div style="margin-top: 30px;">
             <h3>Core Features:</h3>
             <ul>
@@ -45,16 +112,167 @@
                 <li>Custom reporting dashboards</li>
                 <li>Predictive analytics</li>
                 <li>Data export capabilities</li>
+                <li>Image data analysis</li>
+                <li>Automated insights generation</li>
             </ul>
         </div>
     </div>
 
     <script src="auth.js"></script>
     <script>
-        checkAuthStatus();
-        
+        const API_ENDPOINT = "https://2zv7gblrv5.execute-api.us-east-1.amazonaws.com/first_stage/generate-presigned-url";
+
+        function toggleUploadInput() {
+            const check = document.getElementById("privacyCheck").checked;
+            document.getElementById("fileInput").disabled = !check;
+            document.getElementById("uploadBtn").disabled = !check;
+        }
+
+        async function uploadImages() {
+            const fileInput = document.getElementById("fileInput");
+            const statusDiv = document.getElementById("upload-status");
+            const files = Array.from(fileInput.files);
+
+            statusDiv.innerHTML = "";
+            statusDiv.className = "";
+
+            if (files.length === 0 || files.length > 3) {
+                statusDiv.innerHTML = "❌ Please select 1 to 3 images.";
+                statusDiv.className = "upload-error";
+                return;
+            }
+
+            statusDiv.innerHTML = "🔄 Requesting upload URLs...";
+
+            try {
+                // Step 1: Request presigned URLs for all images
+                const filePayload = files.map(f => ({
+                    fileName: f.name,
+                    contentType: f.type
+                }));
+
+                const response = await fetch(API_ENDPOINT, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ files: filePayload })
+                });
+
+                const data = await response.json();
+                if (!data.urls || data.urls.length !== files.length) {
+                    throw new Error(data.error || "Unexpected response from server.");
+                }
+
+                // Step 2: Upload each file to its presigned URL
+                statusDiv.innerHTML += `<br>📤 Uploading ${files.length} image(s)...`;
+                
+                let successCount = 0;
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const urlData = data.urls[i];
+                    
+                    statusDiv.innerHTML += `<br>• ${file.name}...`;
+
+                    const upload = await fetch(urlData.uploadURL, {
+                        method: "PUT",
+                        headers: { "Content-Type": file.type },
+                        body: file
+                    });
+
+                    if (upload.status === 200) {
+                        statusDiv.innerHTML += ` ✅`;
+                        successCount++;
+                    } else {
+                        statusDiv.innerHTML += ` ❌ (Failed)`;
+                    }
+                }
+
+                if (successCount === files.length) {
+                    statusDiv.innerHTML += `<br><br>🎉 All ${successCount} images uploaded successfully! Our analytics platform will now process your data.`;
+                    statusDiv.className = "upload-success";
+                    
+                    // Clear the form
+                    document.getElementById("fileInput").value = "";
+                    document.getElementById("privacyCheck").checked = false;
+                    toggleUploadInput();
+                } else {
+                    statusDiv.innerHTML += `<br><br>⚠️ ${successCount}/${files.length} images uploaded. Some uploads failed.`;
+                    statusDiv.className = "upload-error";
+                }
+                
+            } catch (err) {
+                console.error(err);
+                statusDiv.innerHTML = "❌ Error: " + err.message;
+                statusDiv.className = "upload-error";
+            }
+        }
+
+        function checkAuthStatus() {
+            const authSection = document.getElementById('auth-section');
+            const uploadSection = document.getElementById('upload-section');
+            
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                
+                if (code) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    localStorage.setItem('cognitoToken', 'authenticated-' + Date.now());
+                    authSection.innerHTML = `
+                        <div class="user-info">
+                            <p>✅ Successfully authenticated! Welcome back.</p>
+                            <button onclick="signOut()" class="btn-secondary">Sign Out</button>
+                        </div>
+                    `;
+                    uploadSection.style.display = 'block';
+                    if (typeof updateProductContent === 'function') {
+                        updateProductContent(true);
+                    }
+                    return;
+                }
+
+                const token = localStorage.getItem('cognitoToken');
+                
+                if (token) {
+                    authSection.innerHTML = `
+                        <div class="user-info">
+                            <p>✅ You are signed in</p>
+                            <button onclick="signOut()" class="btn-secondary">Sign Out</button>
+                        </div>
+                    `;
+                    uploadSection.style.display = 'block';
+                    if (typeof updateProductContent === 'function') {
+                        updateProductContent(true);
+                    }
+                } else {
+                    authSection.innerHTML = `
+                        <div>
+                            <p>🔒 You are not signed in</p>
+                            <button onclick="signIn()" class="btn-primary">Sign In</button>
+                            <button onclick="signUp()" class="btn-primary">Sign Up</button>
+                        </div>
+                    `;
+                    uploadSection.style.display = 'none';
+                    if (typeof updateProductContent === 'function') {
+                        updateProductContent(false);
+                    }
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                authSection.innerHTML = `
+                    <div>
+                        <p>❌ Error checking authentication status</p>
+                        <button onclick="signIn()" class="btn-primary">Sign In</button>
+                        <button onclick="signUp()" class="btn-primary">Sign Up</button>
+                    </div>
+                `;
+                uploadSection.style.display = 'none';
+            }
+        }
+
         function updateProductContent(isAuthenticated) {
             const message = document.getElementById('access-message');
+            const uploadSection = document.getElementById('upload-section');
+            
             if (isAuthenticated) {
                 message.innerHTML = `
                     <div style="color: #059669;">
@@ -65,9 +283,11 @@
                             <li>Custom API integrations</li>
                             <li>Priority support</li>
                             <li>Team collaboration tools</li>
+                            <li>Image data analysis</li>
                         </ul>
                     </div>
                 `;
+                uploadSection.style.display = 'block';
             } else {
                 message.innerHTML = `
                     <div style="color: #dc2626;">
@@ -75,8 +295,12 @@
                         <p>Please sign in to unlock all Product 1 features including advanced analytics and custom reports.</p>
                     </div>
                 `;
+                uploadSection.style.display = 'none';
             }
         }
+
+        // Initialize auth check
+        checkAuthStatus();
     </script>
 </body>
 </html>
