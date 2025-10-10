@@ -1,146 +1,405 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>330 Image Upload</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background: #f5f5f5;
-    }
-    .upload-box {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      text-align: center;
-      width: 350px;
-    }
-    input[type=file] {
-      margin: 15px 0;
-    }
-    button {
-      background: #0073bb;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
-    button:hover:enabled {
-      background: #005fa3;
-    }
-    #status {
-      margin-top: 20px;
-      color: green;
-      font-size: 0.95em;
-      line-height: 1.4;
-      text-align: left;
-    }
-    .privacy-box {
-      margin-top: 10px;
-      text-align: left;
-      font-size: 0.9em;
-      color: #444;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload to S3</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .upload-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .upload-header {
+            margin-bottom: 30px;
+        }
+
+        .upload-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .upload-header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #666;
+            font-size: 14px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .browse-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .browse-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            width: 100%;
+            display: none;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .upload-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
-  <div class="upload-box">
-    <h2>Upload 3 Images to S3</h2>
+    <div class="upload-container">
+        <div class="upload-header">
+            <h1>Upload Your Files</h1>
+            <p>Secure upload to AWS S3 bucket</p>
+        </div>
 
-    <div class="privacy-box">
-      <p><strong>Privacy Policy</strong></p>
-      <p>Your uploaded images are processed securely and stored privately in our system. We do not share, sell, or publish your data. By checking this box, you acknowledge and consent to our terms.</p>
-      <label>
-        <input type="checkbox" id="privacyCheck" onchange="toggleInput()" />
-        I have read and agree to the Privacy Policy.
-      </label>
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Drag & Drop your files here</div>
+            <div class="upload-subtext">or</div>
+            <button class="browse-btn" onclick="document.getElementById('fileInput').click()">
+                Browse Files
+            </button>
+            <input type="file" id="fileInput" onchange="handleFileSelect(event)">
+        </div>
+
+        <div class="file-info" id="fileInfo">
+            <div class="file-name" id="fileName"></div>
+            <div class="file-size" id="fileSize"></div>
+        </div>
+
+        <button class="upload-btn" id="uploadBtn" onclick="uploadFile()">
+            Upload to S3
+        </button>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">0%</div>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            ✅ File uploaded successfully!
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            ❌ Error uploading file. Please try again.
+        </div>
     </div>
 
-    <input type="file" id="fileInput" accept="image/*" multiple disabled />
-    <p><small>Please select exactly 3 images.</small></p>
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
 
-    <button id="uploadBtn" onclick="uploadImages()" disabled>Upload All</button>
-    <div id="status"></div>
-  </div>
+        let selectedFile = null;
 
-  <script>
-    const API_ENDPOINT = "https://7nkqp219z5.execute-api.us-east-1.amazonaws.com/first_stage/upload";
-
-    function toggleInput() {
-      const check = document.getElementById("privacyCheck").checked;
-      document.getElementById("fileInput").disabled = !check;
-      document.getElementById("uploadBtn").disabled = !check;
-    }
-
-    async function uploadImages() {
-      const fileInput = document.getElementById("fileInput");
-      const statusDiv = document.getElementById("status");
-      const files = Array.from(fileInput.files);
-
-      statusDiv.textContent = "";
-
-      if (files.length !== 3) {
-        alert("You must select exactly 3 images.");
-        return;
-      }
-
-      statusDiv.textContent = "Requesting upload URLs...";
-
-      try {
-        // Step 1: Request presigned URLs for all 3 images
-        const filePayload = files.map(f => ({
-          fileName: f.name,
-          contentType: f.type
-        }));
-
-        const response = await fetch(API_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ files: filePayload })
+        // Drag and drop event handlers
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
         });
 
-        const data = await response.json();
-        if (!data.urls || data.urls.length !== 3) {
-          throw new Error(data.error || "Unexpected response from server.");
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
         }
 
-        // Step 2: Upload each file to its presigned URL
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-          const urlData = data.urls[i];
-          statusDiv.textContent += `\nUploading ${file.name}...`;
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'), false);
+        });
 
-          const upload = await fetch(urlData.uploadURL, {
-            method: "PUT",
-            headers: { "Content-Type": file.type },
-            body: file
-          });
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'), false);
+        });
 
-          if (upload.status === 200) {
-            statusDiv.textContent += ` ✅ (${file.name} uploaded)\n`;
-          } else {
-            statusDiv.textContent += ` ❌ (${file.name} failed - ${upload.status})\n`;
-          }
+        uploadArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                handleFiles(files[0]);
+            }
         }
 
-        statusDiv.textContent += "\nAll uploads attempted.";
-      } catch (err) {
-        console.error(err);
-        statusDiv.textContent = "Error: " + err.message;
-      }
-    }
-  </script>
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleFiles(file);
+            }
+        }
+
+        function handleFiles(file) {
+            selectedFile = file;
+            
+            // Display file info
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.add('show');
+            
+            // Show upload button
+            uploadBtn.style.display = 'block';
+            
+            // Hide previous messages
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function uploadFile() {
+            if (!selectedFile) return;
+
+            // Disable upload button and show progress
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+            progressContainer.style.display = 'block';
+            errorMessage.style.display = 'none';
+
+            try {
+                // Get presigned URL from API Gateway
+                const response = await fetch('https://7nkqp219z5.execute-api.us-east-1.amazonaws.com/first_stage/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        fileName: selectedFile.name,
+                        fileType: selectedFile.type
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to get presigned URL');
+                }
+
+                const { uploadUrl, key } = await response.json();
+
+                // Upload file to S3 using presigned URL
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        progressFill.style.width = percentComplete + '%';
+                        progressText.textContent = Math.round(percentComplete) + '%';
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        // Upload successful
+                        successMessage.style.display = 'block';
+                        progressFill.style.width = '100%';
+                        progressText.textContent = '100%';
+                        
+                        // Reset form
+                        setTimeout(() => {
+                            resetForm();
+                        }, 2000);
+                    } else {
+                        throw new Error('Upload failed');
+                    }
+                });
+
+                xhr.addEventListener('error', () => {
+                    throw new Error('Upload failed');
+                });
+
+                // Start upload
+                xhr.open('PUT', uploadUrl);
+                xhr.setRequestHeader('Content-Type', selectedFile.type);
+                xhr.send(selectedFile);
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                errorMessage.style.display = 'block';
+                resetUploadButton();
+            }
+        }
+
+        function resetForm() {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.remove('show');
+            uploadBtn.style.display = 'none';
+            progressContainer.style.display = 'none';
+            resetUploadButton();
+        }
+
+        function resetUploadButton() {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Upload to S3';
+        }
+    </script>
 </body>
 </html>
