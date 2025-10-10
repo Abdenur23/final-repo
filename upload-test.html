@@ -515,7 +515,7 @@
             if (selectedFiles.size !== MAX_FILES || !consentCheckbox.checked) {
                 return;
             }
-
+        
             // Check if user is authenticated
             const token = localStorage.getItem('cognitoToken');
             if (!token) {
@@ -523,13 +523,14 @@
                 errorMessage.style.display = 'block';
                 return;
             }
-
+        
             // Disable upload button and show progress
             uploadBtn.disabled = true;
             progressContainer.style.display = 'block';
             successMessage.style.display = 'none';
             errorMessage.style.display = 'none';
-
+            progressText.textContent = 'Requesting upload URLs...';
+        
             try {
                 // Prepare files data for API
                 const filesData = Array.from(selectedFiles.entries()).map(([fileId, file]) => ({
@@ -537,10 +538,10 @@
                     fileName: file.name,
                     fileType: file.type
                 }));
-
+        
                 console.log("Sending request to:", API_ENDPOINT);
                 console.log("Files data:", filesData);
-
+        
                 // Get presigned URLs from API Gateway
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
@@ -551,24 +552,24 @@
                         files: filesData
                     })
                 });
-
+        
                 const data = await response.json();
                 console.log("Response data:", data);
-
+        
                 if (!response.ok) {
-                    throw new Error(data.error || data.message || 'Failed to get presigned URLs');
+                    throw new Error(data.error || data.message || `Server returned ${response.status}`);
                 }
-
-                const { uploadUrls } = data;
-
+        
+                const uploadUrls = data.uploadUrls || data.urls;
+        
                 if (!uploadUrls || uploadUrls.length === 0) {
                     throw new Error('No upload URLs received from server');
                 }
-
+        
                 // Create progress bars for each file
                 fileProgressContainer.innerHTML = '';
                 const fileProgressMap = new Map();
-
+        
                 uploadUrls.forEach((urlData, index) => {
                     const fileProgress = document.createElement('div');
                     fileProgress.className = 'file-progress';
@@ -587,18 +588,20 @@
                         percent: fileProgress.querySelector('.progress-percent')
                     });
                 });
-
+        
+                progressText.textContent = 'Uploading files to S3...';
+        
                 // Upload all files
                 const uploadPromises = uploadUrls.map(async (urlData) => {
                     const file = selectedFiles.get(urlData.fileId);
                     if (!file) {
                         throw new Error(`File not found: ${urlData.fileName}`);
                     }
-
+        
                     return new Promise((resolve, reject) => {
                         const xhr = new XMLHttpRequest();
                         const progressData = fileProgressMap.get(urlData.fileId);
-
+        
                         xhr.upload.addEventListener('progress', (e) => {
                             if (e.lengthComputable && progressData) {
                                 const percentComplete = (e.loaded / e.total) * 100;
@@ -606,37 +609,37 @@
                                 progressData.percent.textContent = Math.round(percentComplete) + '%';
                             }
                         });
-
+        
                         xhr.addEventListener('load', () => {
                             if (xhr.status === 200) {
                                 resolve(urlData.fileName);
                             } else {
-                                reject(new Error(`Upload failed for ${urlData.fileName}`));
+                                reject(new Error(`Upload failed for ${urlData.fileName} (Status: ${xhr.status})`));
                             }
                         });
-
+        
                         xhr.addEventListener('error', () => {
                             reject(new Error(`Upload failed for ${urlData.fileName}`));
                         });
-
+        
                         xhr.open('PUT', urlData.uploadUrl);
                         xhr.setRequestHeader('Content-Type', file.type);
                         xhr.send(file);
                     });
                 });
-
+        
                 // Wait for all uploads to complete
                 await Promise.all(uploadPromises);
-
+        
                 // All uploads successful
                 progressText.textContent = 'All uploads completed!';
                 successMessage.style.display = 'block';
-
+        
                 // Reset form after delay
                 setTimeout(() => {
                     resetForm();
                 }, 3000);
-
+        
             } catch (error) {
                 console.error('Upload error:', error);
                 errorMessage.textContent = `Error: ${error.message}`;
