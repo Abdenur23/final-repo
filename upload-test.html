@@ -1,110 +1,215 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Upload 3 Images</title>
-    <style>
-        .upload-box { border: 2px dashed #ccc; padding: 20px; margin: 10px; cursor: pointer; }
-        .upload-box.active { border-color: blue; }
-        button { margin: 10px; padding: 10px 20px; }
-        button:disabled { opacity: 0.5; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload 3 Images</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .upload-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .upload-box {
+      border: 2px dashed #bbb;
+      border-radius: 10px;
+      padding: 40px 20px;
+      background: white;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .upload-box.active {
+      border-color: #0073bb;
+      background: #f0f8ff;
+    }
+
+    .upload-box.dragover {
+      border-color: #005fa3;
+      background: #e8f4ff;
+      transform: scale(1.03);
+    }
+
+    .upload-box h3 {
+      margin: 0;
+      color: #444;
+    }
+
+    .upload-box span {
+      display: block;
+      margin-top: 10px;
+      color: #777;
+      font-size: 0.9em;
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 12px 30px;
+      background: #0073bb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.3s ease;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    button:hover:enabled {
+      background: #005fa3;
+    }
+
+    #status {
+      margin-top: 20px;
+      font-size: 0.95em;
+      color: #333;
+      white-space: pre-line;
+      text-align: left;
+      width: 100%;
+      max-width: 800px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
 <body>
-    <h1>Upload 3 Images to S3</h1>
-    
-    <div class="upload-box" onclick="document.getElementById('file1').click()">
-        <h3>Click Here to select Image 1</h3>
-        <span id="name1">No file selected</span>
+
+  <h1>Upload 3 Images to S3</h1>
+
+  <div class="upload-container">
+    <div class="upload-box" onclick="selectFile(0)" ondragover="handleDrag(event, 0)" ondragleave="handleDragLeave(event, 0)" ondrop="handleDrop(event, 0)">
+      <h3>Image 1</h3>
+      <span id="name1">Click or drag image here</span>
     </div>
-    
-    <div class="upload-box" onclick="document.getElementById('file2').click()">
-        <h3>Click Here to select Image 2</h3>
-        <span id="name2">No file selected</span>
+    <div class="upload-box" onclick="selectFile(1)" ondragover="handleDrag(event, 1)" ondragleave="handleDragLeave(event, 1)" ondrop="handleDrop(event, 1)">
+      <h3>Image 2</h3>
+      <span id="name2">Click or drag image here</span>
     </div>
-    
-    <div class="upload-box" onclick="document.getElementById('file3').click()">
-        <h3>Click Here to select Image 3</h3>
-        <span id="name3">No file selected</span>
+    <div class="upload-box" onclick="selectFile(2)" ondragover="handleDrag(event, 2)" ondragleave="handleDragLeave(event, 2)" ondrop="handleDrop(event, 2)">
+      <h3>Image 3</h3>
+      <span id="name3">Click or drag image here</span>
     </div>
+  </div>
 
-    <input type="file" id="file1" style="display:none" onchange="handleFile(0, this.files[0])">
-    <input type="file" id="file2" style="display:none" onchange="handleFile(1, this.files[0])">
-    <input type="file" id="file3" style="display:none" onchange="handleFile(2, this.files[0])">
+  <input type="file" id="file1" accept="image/*" hidden onchange="handleFile(0, this.files[0])">
+  <input type="file" id="file2" accept="image/*" hidden onchange="handleFile(1, this.files[0])">
+  <input type="file" id="file3" accept="image/*" hidden onchange="handleFile(2, this.files[0])">
 
-    <button onclick="resetAll()">Reset All</button>
-    <button id="uploadBtn" onclick="uploadAll()" disabled>Click Here to Upload All</button>
+  <button id="resetBtn" onclick="resetAll()">Reset All</button>
+  <button id="uploadBtn" onclick="uploadAll()" disabled>Upload All</button>
 
-    <div id="status"></div>
+  <div id="status"></div>
 
-    <script>
-        const API_URL = 'https://17dh48xerc.execute-api.us-east-1.amazonaws.com/first_stage/upload'; // Replace with your actual API Gateway URL
-        const files = [null, null, null];
+  <script>
+    const API_URL = 'https://17dh48xerc.execute-api.us-east-1.amazonaws.com/first_stage/upload';
+    const files = [null, null, null];
 
-        function handleFile(index, file) {
-            files[index] = file;
-            document.getElementById(`name${index+1}`).textContent = file.name;
-            document.querySelectorAll('.upload-box')[index].classList.add('active');
-            
-            // Enable upload button when all 3 files are selected
-            if (files[0] && files[1] && files[2]) {
-                document.getElementById('uploadBtn').disabled = false;
-            }
+    function selectFile(index) {
+      document.getElementById(`file${index + 1}`).click();
+    }
+
+    function handleFile(index, file) {
+      if (!file) return;
+      files[index] = file;
+      const box = document.querySelectorAll('.upload-box')[index];
+      box.classList.add('active');
+      document.getElementById(`name${index + 1}`).textContent = file.name;
+
+      document.getElementById('uploadBtn').disabled = !(files[0] && files[1] && files[2]);
+    }
+
+    function handleDrag(e, index) {
+      e.preventDefault();
+      document.querySelectorAll('.upload-box')[index].classList.add('dragover');
+    }
+
+    function handleDragLeave(e, index) {
+      e.preventDefault();
+      document.querySelectorAll('.upload-box')[index].classList.remove('dragover');
+    }
+
+    function handleDrop(e, index) {
+      e.preventDefault();
+      document.querySelectorAll('.upload-box')[index].classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(index, file);
+    }
+
+    function resetAll() {
+      files.fill(null);
+      document.querySelectorAll('.upload-box').forEach((box, i) => {
+        box.classList.remove('active');
+        document.getElementById(`name${i + 1}`).textContent = 'Click or drag image here';
+      });
+      document.querySelectorAll('input[type=file]').forEach(inp => inp.value = '');
+      document.getElementById('uploadBtn').disabled = true;
+      document.getElementById('status').textContent = '';
+    }
+
+    async function uploadAll() {
+      const status = document.getElementById('status');
+      status.textContent = 'Starting upload...\n';
+
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          status.textContent += `Uploading ${file.name}...\n`;
+
+          const reader = new FileReader();
+          const base64 = await new Promise(resolve => {
+            reader.onload = e => resolve(e.target.result.split(',')[1]);
+            reader.readAsDataURL(file);
+          });
+
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              file: base64,
+              fileName: file.name,
+              fileIndex: i,
+              contentType: file.type
+            })
+          });
+
+          if (!response.ok) throw new Error(`Failed to upload ${file.name}`);
+          status.textContent += `✅ ${file.name} uploaded successfully.\n`;
         }
 
-        function resetAll() {
-            files.fill(null);
-            for (let i = 1; i <= 3; i++) {
-                document.getElementById(`file${i}`).value = '';
-                document.getElementById(`name${i}`).textContent = 'No file selected';
-                document.querySelectorAll('.upload-box')[i-1].classList.remove('active');
-            }
-            document.getElementById('uploadBtn').disabled = true;
-            document.getElementById('status').textContent = '';
-        }
+        status.textContent += '\n🎉 All images uploaded successfully!';
+        document.getElementById('uploadBtn').disabled = true;
+      } catch (err) {
+        status.textContent += `\n❌ Error: ${err.message}`;
+      }
+    }
+  </script>
 
-        async function uploadAll() {
-            const status = document.getElementById('status');
-            status.textContent = 'Uploading...';
-            
-            try {
-                for (let i = 0; i < files.length; i++) {
-                    status.textContent = `Uploading image ${i+1}...`;
-                    
-                    const file = files[i];
-                    const reader = new FileReader();
-                    
-                    // Convert file to base64
-                    const fileData = await new Promise((resolve) => {
-                        reader.onload = (e) => resolve(e.target.result.split(',')[1]);
-                        reader.readAsDataURL(file);
-                    });
-                    
-                    // Send to Lambda
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            file: fileData,
-                            fileName: file.name,
-                            fileIndex: i,
-                            contentType: file.type
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`Failed to upload image ${i+1}`);
-                    }
-                }
-                
-                status.textContent = 'All images uploaded successfully!';
-                document.getElementById('uploadBtn').disabled = true;
-                
-            } catch (error) {
-                status.textContent = `Error: ${error.message}`;
-            }
-        }
-    </script>
 </body>
 </html>
