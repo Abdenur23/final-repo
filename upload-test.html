@@ -1,95 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Upload 3 Images</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f7f9fb; color: #333; text-align: center; padding: 40px; }
-    .upload-box { border: 3px dashed #a0a0a0; border-radius: 10px; background: #fff; padding: 40px; margin: 20px auto; width: 350px; cursor: pointer; transition: border-color 0.3s, background 0.3s; }
-    .upload-box.active { border-color: #007bff; background: #f0f8ff; }
-    #fileList { list-style: none; padding: 0; margin-top: 10px; }
-    #fileList li { text-align: left; font-size: 14px; margin: 3px 0; }
-    button { background: #007bff; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; font-size: 16px; cursor: pointer; margin: 10px; transition: background 0.3s; }
-    button:hover:not(:disabled) { background: #0056b3; }
-    button:disabled { background: #ccc; cursor: not-allowed; }
-    #status { margin-top: 20px; font-weight: bold; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Upload 3 Images</title>
+<style>
+body { font-family: Arial; background: #f7f9fb; color: #333; text-align: center; padding: 40px; }
+.upload-box { border: 3px dashed #a0a0a0; border-radius: 10px; background: #fff; padding: 40px; width: 350px; margin: 20px auto; cursor: pointer; transition: border-color 0.3s, background 0.3s; }
+.upload-box.active { border-color: #007bff; background: #f0f8ff; }
+#fileList { list-style: none; padding: 0; margin-top: 10px; }
+#fileList li { text-align: left; font-size: 14px; margin: 3px 0; }
+button { background: #007bff; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; font-size: 16px; cursor: pointer; margin: 10px; transition: background 0.3s; }
+button:hover:not(:disabled) { background: #0056b3; }
+button:disabled { background: #ccc; cursor: not-allowed; }
+#status { margin-top: 20px; font-weight: bold; }
+</style>
 </head>
 <body>
-  <h1>Upload 3 Images to S3</h1>
+<h1>Upload 3 Images to S3</h1>
 
-  <div id="dropZone" class="upload-box" onclick="document.getElementById('fileInput').click()">
-    <h3>Click or Drop up to 3 Images Here</h3>
-    <input type="file" id="fileInput" accept="image/*" multiple style="display: none" onchange="handleFiles(this.files)" />
-    <ul id="fileList"><li>No files selected</li></ul>
-  </div>
+<div id="dropZone" class="upload-box" onclick="document.getElementById('fileInput').click()">
+<h3>Click or Drop up to 3 Images Here</h3>
+<input type="file" id="fileInput" accept="image/*" multiple style="display: none" onchange="handleFiles(this.files)" />
+<ul id="fileList"><li>No files selected</li></ul>
+</div>
 
-  <button id="resetBtn" onclick="resetAll()">Reset</button>
-  <button id="uploadBtn" onclick="uploadAll()" disabled>Upload All</button>
+<button id="resetBtn" onclick="resetAll()">Reset</button>
+<button id="uploadBtn" onclick="uploadAll()" disabled>Upload All</button>
 
-  <div id="status"></div>
+<div id="status"></div>
 
-  <script>
-    const API_URL = "https://izitp58cti.execute-api.us-east-1.amazonaws.com/prod/upload"; // existing endpoint
-    let files = [];
+<script>
+const API_URL = "https://izitp58cti.execute-api.us-east-1.amazonaws.com/prod/upload"; // replace with your API endpoint
+let files = [];
 
-    const fileListEl = document.getElementById("fileList");
-    const uploadBtn = document.getElementById("uploadBtn");
-    const dropZone = document.getElementById("dropZone");
+const fileListEl = document.getElementById("fileList");
+const uploadBtn = document.getElementById("uploadBtn");
+const dropZone = document.getElementById("dropZone");
 
-    function handleFiles(selectedFiles) {
-      files = Array.from(selectedFiles).slice(0, 3);
-      fileListEl.innerHTML = files.map(f => `<li>${f.name}</li>`).join("");
-      dropZone.classList.add("active");
-      uploadBtn.disabled = files.length !== 3;
+function handleFiles(selectedFiles) {
+  files = Array.from(selectedFiles).slice(0, 3);
+  fileListEl.innerHTML = files.map(f => `<li>${f.name}</li>`).join("");
+  dropZone.classList.add("active");
+  uploadBtn.disabled = files.length !== 3;
+}
+
+function resetAll() {
+  files = [];
+  document.getElementById("fileInput").value = "";
+  fileListEl.innerHTML = "<li>No files selected</li>";
+  dropZone.classList.remove("active");
+  uploadBtn.disabled = true;
+  document.getElementById("status").textContent = "";
+}
+
+async function uploadAll() {
+  if (files.length !== 3) { alert("Please select exactly 3 images."); return; }
+  const statusEl = document.getElementById("status");
+  statusEl.textContent = "Uploading...";
+
+  try {
+    for (let i = 0; i < files.length; i++) {
+      statusEl.textContent = `Getting upload URL for image ${i+1} of 3...`;
+      const presignResp = await fetch(`${API_URL}?filename=${encodeURIComponent(files[i].name)}`);
+      if (!presignResp.ok) throw new Error("Failed to get pre-signed URL");
+      const { uploadUrl } = await presignResp.json();
+
+      statusEl.textContent = `Uploading image ${i+1} of 3...`;
+      const uploadResp = await fetch(uploadUrl, { method: "PUT", body: files[i] });
+      if (!uploadResp.ok) throw new Error(`Upload failed for ${files[i].name}`);
     }
+    statusEl.textContent = "✅ All images uploaded successfully!";
+    uploadBtn.disabled = true;
+  } catch (err) {
+    statusEl.textContent = `❌ Error: ${err.message}`;
+  }
+}
 
-    function resetAll() {
-      files = [];
-      document.getElementById("fileInput").value = "";
-      fileListEl.innerHTML = "<li>No files selected</li>";
-      dropZone.classList.remove("active");
-      uploadBtn.disabled = true;
-      document.getElementById("status").textContent = "";
-    }
-
-    async function uploadAll() {
-      if (files.length !== 3) {
-        alert("Please select exactly 3 images.");
-        return;
-      }
-
-      const statusEl = document.getElementById("status");
-      statusEl.textContent = "Uploading...";
-
-      try {
-        for (let i = 0; i < files.length; i++) {
-          statusEl.textContent = `Getting upload URL for image ${i + 1} of 3...`;
-
-          // 1️⃣ Request pre-signed URL from Lambda
-          const presignResp = await fetch(`${API_URL}?filename=${encodeURIComponent(files[i].name)}`);
-          if (!presignResp.ok) throw new Error("Failed to get pre-signed URL");
-          const { uploadUrl } = await presignResp.json();
-
-          statusEl.textContent = `Uploading image ${i + 1} of 3...`;
-
-          // 2️⃣ Upload directly to S3
-          const uploadResp = await fetch(uploadUrl, { method: "PUT", body: files[i] });
-          if (!uploadResp.ok) throw new Error(`Upload failed for ${files[i].name}`);
-        }
-
-        statusEl.textContent = "✅ All images uploaded successfully!";
-        uploadBtn.disabled = true;
-
-      } catch (err) {
-        statusEl.textContent = `❌ Error: ${err.message}`;
-      }
-    }
-
-    dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("active"); });
-    dropZone.addEventListener("dragleave", e => { e.preventDefault(); if (!files.length) dropZone.classList.remove("active"); });
-    dropZone.addEventListener("drop", e => { e.preventDefault(); handleFiles(e.dataTransfer.files); });
-  </script>
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("active"); });
+dropZone.addEventListener("dragleave", e => { e.preventDefault(); if (!files.length) dropZone.classList.remove("active"); });
+dropZone.addEventListener("drop", e => { e.preventDefault(); handleFiles(e.dataTransfer.files); });
+</script>
 </body>
 </html>
