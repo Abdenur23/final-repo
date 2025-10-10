@@ -6,210 +6,149 @@
   <title>Upload 3 Images</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f6f8;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 40px 20px;
-    }
-
-    h1 {
+      font-family: Arial, sans-serif;
+      background: #f7f9fb;
       color: #333;
-      margin-bottom: 30px;
       text-align: center;
+      padding: 40px;
     }
-
-    .upload-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      width: 100%;
-      max-width: 800px;
-    }
-
     .upload-box {
-      border: 2px dashed #bbb;
+      border: 3px dashed #a0a0a0;
       border-radius: 10px;
-      padding: 40px 20px;
-      background: white;
-      text-align: center;
+      background: #fff;
+      padding: 40px;
+      margin: 20px auto;
+      width: 350px;
+      transition: border-color 0.3s, background 0.3s;
       cursor: pointer;
-      transition: all 0.25s ease;
     }
-
     .upload-box.active {
-      border-color: #0073bb;
+      border-color: #007bff;
       background: #f0f8ff;
     }
-
-    .upload-box.dragover {
-      border-color: #005fa3;
-      background: #e8f4ff;
-      transform: scale(1.03);
-    }
-
-    .upload-box h3 {
-      margin: 0;
-      color: #444;
-    }
-
-    .upload-box span {
-      display: block;
+    #fileList {
+      list-style: none;
+      padding: 0;
       margin-top: 10px;
-      color: #777;
-      font-size: 0.9em;
     }
-
+    #fileList li {
+      text-align: left;
+      font-size: 14px;
+      margin: 3px 0;
+    }
     button {
-      margin-top: 30px;
-      padding: 12px 30px;
-      background: #0073bb;
-      color: white;
+      background: #007bff;
+      color: #fff;
       border: none;
-      border-radius: 8px;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 16px;
       cursor: pointer;
-      font-size: 1em;
-      transition: background 0.3s ease;
+      margin: 10px;
+      transition: background 0.3s;
     }
-
+    button:hover:not(:disabled) {
+      background: #0056b3;
+    }
     button:disabled {
       background: #ccc;
       cursor: not-allowed;
     }
-
-    button:hover:enabled {
-      background: #005fa3;
-    }
-
     #status {
       margin-top: 20px;
-      font-size: 0.95em;
-      color: #333;
-      white-space: pre-line;
-      text-align: left;
-      width: 100%;
-      max-width: 800px;
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-
   <h1>Upload 3 Images to S3</h1>
 
-  <div class="upload-container">
-    <div class="upload-box" onclick="selectFile(0)" ondragover="handleDrag(event, 0)" ondragleave="handleDragLeave(event, 0)" ondrop="handleDrop(event, 0)">
-      <h3>Image 1</h3>
-      <span id="name1">Click or drag image here</span>
-    </div>
-    <div class="upload-box" onclick="selectFile(1)" ondragover="handleDrag(event, 1)" ondragleave="handleDragLeave(event, 1)" ondrop="handleDrop(event, 1)">
-      <h3>Image 2</h3>
-      <span id="name2">Click or drag image here</span>
-    </div>
-    <div class="upload-box" onclick="selectFile(2)" ondragover="handleDrag(event, 2)" ondragleave="handleDragLeave(event, 2)" ondrop="handleDrop(event, 2)">
-      <h3>Image 3</h3>
-      <span id="name3">Click or drag image here</span>
-    </div>
+  <div id="dropZone" class="upload-box" onclick="document.getElementById('fileInput').click()">
+    <h3>Click or Drop up to 3 Images Here</h3>
+    <input type="file" id="fileInput" accept="image/*" multiple style="display: none" onchange="handleFiles(this.files)" />
+    <ul id="fileList"><li>No files selected</li></ul>
   </div>
 
-  <input type="file" id="file1" accept="image/*" hidden onchange="handleFile(0, this.files[0])">
-  <input type="file" id="file2" accept="image/*" hidden onchange="handleFile(1, this.files[0])">
-  <input type="file" id="file3" accept="image/*" hidden onchange="handleFile(2, this.files[0])">
-
-  <button id="resetBtn" onclick="resetAll()">Reset All</button>
+  <button id="resetBtn" onclick="resetAll()">Reset</button>
   <button id="uploadBtn" onclick="uploadAll()" disabled>Upload All</button>
 
   <div id="status"></div>
 
   <script>
-    const API_URL = 'https://17dh48xerc.execute-api.us-east-1.amazonaws.com/first_stage/upload';
-    const files = [null, null, null];
+    const API_URL = "https://17dh48xerc.execute-api.us-east-1.amazonaws.com/first_stage/upload"; // ✅ your actual endpoint
+    let files = [];
 
-    function selectFile(index) {
-      document.getElementById(`file${index + 1}`).click();
-    }
+    const fileListEl = document.getElementById("fileList");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const dropZone = document.getElementById("dropZone");
 
-    function handleFile(index, file) {
-      if (!file) return;
-      files[index] = file;
-      const box = document.querySelectorAll('.upload-box')[index];
-      box.classList.add('active');
-      document.getElementById(`name${index + 1}`).textContent = file.name;
-
-      document.getElementById('uploadBtn').disabled = !(files[0] && files[1] && files[2]);
-    }
-
-    function handleDrag(e, index) {
-      e.preventDefault();
-      document.querySelectorAll('.upload-box')[index].classList.add('dragover');
-    }
-
-    function handleDragLeave(e, index) {
-      e.preventDefault();
-      document.querySelectorAll('.upload-box')[index].classList.remove('dragover');
-    }
-
-    function handleDrop(e, index) {
-      e.preventDefault();
-      document.querySelectorAll('.upload-box')[index].classList.remove('dragover');
-      const file = e.dataTransfer.files[0];
-      if (file) handleFile(index, file);
+    function handleFiles(selectedFiles) {
+      files = Array.from(selectedFiles).slice(0, 3); // allow only 3
+      fileListEl.innerHTML = files.map(f => `<li>${f.name}</li>`).join("");
+      dropZone.classList.add("active");
+      uploadBtn.disabled = files.length !== 3;
     }
 
     function resetAll() {
-      files.fill(null);
-      document.querySelectorAll('.upload-box').forEach((box, i) => {
-        box.classList.remove('active');
-        document.getElementById(`name${i + 1}`).textContent = 'Click or drag image here';
-      });
-      document.querySelectorAll('input[type=file]').forEach(inp => inp.value = '');
-      document.getElementById('uploadBtn').disabled = true;
-      document.getElementById('status').textContent = '';
+      files = [];
+      document.getElementById("fileInput").value = "";
+      fileListEl.innerHTML = "<li>No files selected</li>";
+      dropZone.classList.remove("active");
+      uploadBtn.disabled = true;
+      document.getElementById("status").textContent = "";
     }
 
     async function uploadAll() {
-      const status = document.getElementById('status');
-      status.textContent = 'Starting upload...\n';
+      if (files.length !== 3) {
+        alert("Please select exactly 3 images.");
+        return;
+      }
+
+      const statusEl = document.getElementById("status");
+      statusEl.textContent = "Uploading...";
 
       try {
         for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-          status.textContent += `Uploading ${file.name}...\n`;
+          statusEl.textContent = `Uploading image ${i + 1} of 3...`;
 
-          const reader = new FileReader();
-          const base64 = await new Promise(resolve => {
-            reader.onload = e => resolve(e.target.result.split(',')[1]);
-            reader.readAsDataURL(file);
-          });
+          const formData = new FormData();
+          formData.append("file", files[i]);
+          formData.append("filename", files[i].name);
+          formData.append("fileIndex", i);
 
           const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              file: base64,
-              fileName: file.name,
-              fileIndex: i,
-              contentType: file.type
-            })
+            method: "POST",
+            body: formData
           });
 
-          if (!response.ok) throw new Error(`Failed to upload ${file.name}`);
-          status.textContent += `✅ ${file.name} uploaded successfully.\n`;
+          if (!response.ok) {
+            throw new Error(`Upload failed for ${files[i].name}`);
+          }
         }
 
-        status.textContent += '\n🎉 All images uploaded successfully!';
-        document.getElementById('uploadBtn').disabled = true;
+        statusEl.textContent = "✅ All images uploaded successfully!";
+        uploadBtn.disabled = true;
+
       } catch (err) {
-        status.textContent += `\n❌ Error: ${err.message}`;
+        statusEl.textContent = `❌ Error: ${err.message}`;
       }
     }
-  </script>
 
+    // Optional: drag-and-drop support
+    dropZone.addEventListener("dragover", e => {
+      e.preventDefault();
+      dropZone.classList.add("active");
+    });
+
+    dropZone.addEventListener("dragleave", e => {
+      e.preventDefault();
+      if (!files.length) dropZone.classList.remove("active");
+    });
+
+    dropZone.addEventListener("drop", e => {
+      e.preventDefault();
+      handleFiles(e.dataTransfer.files);
+    });
+  </script>
 </body>
 </html>
