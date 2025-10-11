@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BloomCase - Create Your Floral Phone Case</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>🌸 BloomCase</h1>
+                <span class="tagline">Floral Phone Cases & Jewelry</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="hero-content">
+                    <h2 class="hero-title">Create Your Custom Floral Design</h2>
+                    <p class="hero-subtitle">Upload your favorite flower images to create a unique phone case or jewelry piece</p>
+                </div>
+            </section>
+
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <div class="upload-container">
+                    <div class="upload-header">
+                        <h3>Design Your Masterpiece</h3>
+                        <p>Select 3 distinct floral images to create your custom design</p>
+                    </div>
+
+                    <!-- Upload Area -->
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">🌺</div>
+                        <div class="upload-text">Drag & Drop your floral images here</div>
+                        <div class="upload-subtext">or</div>
+                        <button class="browse-btn" id="browseBtn">
+                            Choose Images
+                        </button>
+                        <input type="file" id="fileInput" accept="image/*" multiple>
+                    </div>
+
+                    <!-- Selected Files -->
+                    <div class="selected-files">
+                        <h4>Your Floral Selection</h4>
+                        <div class="warning-message" id="warningMessage"></div>
+                        <div class="files-grid" id="filesGrid"></div>
+                    </div>
+
+                    <!-- Consent Section -->
+                    <div class="consent-section">
+                        <div class="consent-checkbox">
+                            <input type="checkbox" id="consentCheckbox">
+                            <label for="consentCheckbox" class="consent-text">
+                                I confirm that I have selected 3 distinct images and have the right to use them. 
+                                I understand these images will be used to create my custom floral design.
+                                <a href="privacy-policy.html" class="privacy-link">View Privacy Policy</a>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Upload Button -->
+                    <button class="upload-btn" id="uploadBtn" disabled>
+                        Create My Design
+                    </button>
+
+                    <!-- Progress Section -->
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-text" id="progressText">Preparing your design...</div>
+                        <div class="file-progress" id="fileProgressContainer"></div>
+                    </div>
+
+                    <!-- Messages -->
+                    <div class="success-message" id="successMessage">
+                        <div class="message-icon">✨</div>
+                        <div class="message-content">
+                            <h4>Design Created Successfully!</h4>
+                            <p>Your floral masterpiece is being prepared. You'll receive a preview shortly.</p>
+                        </div>
+                    </div>
+
+                    <div class="error-message" id="errorMessage">
+                        <div class="message-icon">❌</div>
+                        <div class="message-content">
+                            <h4>Upload Error</h4>
+                            <p id="errorText">Please try again or contact support if the issue persists.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="features">
+                <h3>Why Choose BloomCase?</h3>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🌷</div>
+                        <h4>Custom Floral Designs</h4>
+                        <p>Transform your favorite flower photos into beautiful phone cases</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💎</div>
+                        <h4>Premium Quality</h4>
+                        <p>High-quality materials with vibrant, long-lasting prints</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🚚</div>
+                        <h4>Fast Shipping</h4>
+                        <p>Receive your custom design within 3-5 business days</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 BloomCase. All rights reserved. <a href="privacy-policy.html">Privacy Policy</a></p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/fileManager.js"></script>
+    <script src="js/uploadManager.js"></script>
+    <script src="js/uiManager.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
