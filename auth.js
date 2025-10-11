@@ -94,6 +94,3 @@ function signOut() {
     window.location.href = logoutUrl;
 }
 Cognito configuration
-Cognito configuration
-Cognito configuration
-Cognito configuration
