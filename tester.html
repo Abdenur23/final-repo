@@ -75,32 +75,42 @@
         });
 
         // Get presigned URL from API Gateway
+        // Get presigned URL from API Gateway
         async function generatePresignedUrl() {
             if (!selectedFile) {
                 showMessage('Please select a file first', 'error');
                 return;
             }
-
+        
             try {
-                const token = localStorage.getItem('cognitoToken');
+                // Get the actual JWT token
+                const token = localStorage.getItem('cognitoAccessToken'); 
+                
                 if (!token) {
                     showMessage('Please sign in first', 'error');
                     return;
                 }
-
-                // Replace with your actual API Gateway URL
-                const apiUrl = 'https://j8yw89doyh.execute-api.us-east-1.amazonaws.com/prod/presigned-url';
+        
+                // Your HTTP API URL (no stage name in path)
+                const apiUrl = 'https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/presigned-url';
                 
                 const response = await fetch(apiUrl, {
+                    method: 'GET',
                     headers: {
-                        'Authorization': token
+                        'Authorization': `Bearer ${token}`
                     }
                 });
-
-                if (!response.ok) {
-                    throw new Error('Failed to get presigned URL');
+        
+                if (response.status === 401) {
+                    showMessage('Authentication failed. Please sign in again.', 'error');
+                    signOut();
+                    return;
                 }
-
+        
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+        
                 const data = await response.json();
                 presignedUrl = data.presignedUrl;
                 
@@ -112,7 +122,6 @@
                 showMessage('Failed to generate upload URL: ' + error.message, 'error');
             }
         }
-
         // Upload image to S3 using presigned URL
         async function uploadImage() {
             if (!presignedUrl || !selectedFile) {
