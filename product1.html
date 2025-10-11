@@ -68,6 +68,8 @@
             <a href="product2.html">Product 2</a>
         </div>
     </div>
+    <!-- Add this inside <body> right after the header -->
+<div id="cid-display" style="background: #f0fdf4; padding: 10px 20px; border-radius: 6px; margin: 10px 0; font-weight: bold; display: none;"></div>
 
     <div id="auth-section" class="auth-section">
         <p>Checking authentication status...</p>
@@ -222,14 +224,30 @@
         function checkAuthStatus() {
             const authSection = document.getElementById('auth-section');
             const uploadSection = document.getElementById('upload-section');
+            const cidDisplay = document.getElementById('cid-display');
             
             try {
                 const urlParams = new URLSearchParams(window.location.search);
                 const code = urlParams.get('code');
+                const cidFromQuery = urlParams.get('cid'); // If Lambda passes CID via redirect query
                 
                 if (code) {
+                    // Clear URL
                     window.history.replaceState({}, document.title, window.location.pathname);
+                    
+                    // Store token
                     localStorage.setItem('cognitoToken', 'authenticated-' + Date.now());
+                    
+                    // Store CID
+                    if (cidFromQuery) localStorage.setItem('cid', cidFromQuery);
+                    const cid = cidFromQuery || localStorage.getItem('cid');
+        
+                    // Show CID
+                    if (cid) {
+                        cidDisplay.style.display = 'block';
+                        cidDisplay.innerHTML = `🆔 Your Customer ID: ${cid}`;
+                    }
+        
                     authSection.innerHTML = `
                         <div class="user-info">
                             <p>✅ Successfully authenticated! Welcome back.</p>
@@ -237,14 +255,13 @@
                         </div>
                     `;
                     uploadSection.style.display = 'block';
-                    if (typeof updateProductContent === 'function') {
-                        updateProductContent(true);
-                    }
+                    if (typeof updateProductContent === 'function') updateProductContent(true);
                     return;
                 }
-
+        
                 const token = localStorage.getItem('cognitoToken');
-                
+                const storedCid = localStorage.getItem('cid');
+        
                 if (token) {
                     authSection.innerHTML = `
                         <div class="user-info">
@@ -253,9 +270,13 @@
                         </div>
                     `;
                     uploadSection.style.display = 'block';
-                    if (typeof updateProductContent === 'function') {
-                        updateProductContent(true);
+                    
+                    if (storedCid) {
+                        cidDisplay.style.display = 'block';
+                        cidDisplay.innerHTML = `🆔 Your Customer ID: ${storedCid}`;
                     }
+        
+                    if (typeof updateProductContent === 'function') updateProductContent(true);
                 } else {
                     authSection.innerHTML = `
                         <div>
@@ -265,9 +286,8 @@
                         </div>
                     `;
                     uploadSection.style.display = 'none';
-                    if (typeof updateProductContent === 'function') {
-                        updateProductContent(false);
-                    }
+                    cidDisplay.style.display = 'none';
+                    if (typeof updateProductContent === 'function') updateProductContent(false);
                 }
             } catch (error) {
                 console.error('Auth check error:', error);
@@ -279,8 +299,10 @@
                     </div>
                 `;
                 uploadSection.style.display = 'none';
+                cidDisplay.style.display = 'none';
             }
         }
+
 
         function updateProductContent(isAuthenticated) {
             const message = document.getElementById('access-message');
