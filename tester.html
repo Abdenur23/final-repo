@@ -3,164 +3,192 @@
 <head>
     <title>Image Upload</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .container { margin: 20px 0; }
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
         button { padding: 10px 15px; margin: 5px; cursor: pointer; }
-        .upload-section { display: none; margin: 20px 0; }
-        #preview { max-width: 300px; margin: 10px 0; }
+        #upload-section { display: none; }
+        #preview { max-width: 200px; margin: 10px 0; display: none; }
         .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
         .success { background: #d4edda; color: #155724; }
         .error { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
-    <h1>Image Upload Demo</h1>
+    <h1>Image Upload</h1>
     
-    <!-- Auth Section (your existing code) -->
-    <div id="auth-section"></div>
+    <div class="section" id="auth-section">
+        <p>Loading...</p>
+    </div>
     
-    <!-- Upload Section -->
-    <div id="upload-section" class="upload-section">
-        <div class="container">
-            <h2>Upload Image</h2>
-            <input type="file" id="image-input" accept="image/*">
-            <button onclick="generatePresignedUrl()">Get Upload URL</button>
-            <button onclick="uploadImage()" id="upload-btn" disabled>Upload Image</button>
-        </div>
-        
-        <div id="preview-container">
-            <img id="preview" style="display:none;">
-        </div>
-        
+    <div class="section" id="upload-section">
+        <h3>Upload Image</h3>
+        <input type="file" id="image-input" accept="image/*">
+        <button onclick="generatePresignedUrl()">Get Upload URL</button>
+        <button onclick="uploadImage()" id="upload-btn" disabled>Upload Image</button>
+        <img id="preview">
         <div id="message"></div>
     </div>
 
     <script>
-        // Your existing auth.js code here
         const cognitoConfig = {
             clientId: '7irso7dmmnp793egs9bhkl0t81',
             domain: 'auth.theweer.com',
-            redirectUri: window.location.origin
+            redirectUri: window.location.origin,
+            apiUrl: 'https://j8yw89doyh.execute-api.us-east-1.amazonaws.com/prod/presigned-url' // REPLACE THIS
         };
 
-        // Add your existing auth functions here...
-        // checkAuthStatus(), signIn(), signOut(), etc.
-
-        // NEW: Upload functionality
         let presignedUrl = '';
         let selectedFile = null;
 
-        // Update auth check to show upload section
+        // Auth functions
         async function checkAuthStatus() {
-            // Your existing auth check code...
-            
-            // ADD THIS: Show upload section if authenticated
+            const authSection = document.getElementById('auth-section');
             const uploadSection = document.getElementById('upload-section');
-            const token = localStorage.getItem('cognitoToken');
-            if (token) {
-                uploadSection.style.display = 'block';
-            } else {
-                uploadSection.style.display = 'none';
+            
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                
+                if (code) {
+                    const tokens = await exchangeCodeForTokens(code);
+                    localStorage.setItem('cognitoAccessToken', tokens.access_token);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    showAuthState(true);
+                    uploadSection.style.display = 'block';
+                    return;
+                }
+
+                const token = localStorage.getItem('cognitoAccessToken');
+                if (token) {
+                    showAuthState(true);
+                    uploadSection.style.display = 'block';
+                } else {
+                    showAuthState(false);
+                    uploadSection.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                showAuthState(false);
             }
         }
 
-        // File input handler
+        function showAuthState(isAuthenticated) {
+            const authSection = document.getElementById('auth-section');
+            if (isAuthenticated) {
+                authSection.innerHTML = `<p>✅ Signed in</p><button onclick="signOut()">Sign Out</button>`;
+            } else {
+                authSection.innerHTML = `
+                    <p>🔒 Not signed in</p>
+                    <button onclick="signIn()">Sign In</button>
+                    <button onclick="signUp()">Sign Up</button>
+                `;
+            }
+        }
+
+        async function exchangeCodeForTokens(code) {
+            const tokenUrl = `https://${cognitoConfig.domain}/oauth2/token`;
+            const response = await fetch(tokenUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    grant_type: 'authorization_code',
+                    client_id: cognitoConfig.clientId,
+                    code: code,
+                    redirect_uri: cognitoConfig.redirectUri
+                })
+            });
+            if (!response.ok) throw new Error('Token exchange failed');
+            return await response.json();
+        }
+
+        function signIn() {
+            const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
+            window.location.href = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
+        }
+
+        function signUp() {
+            const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
+            window.location.href = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
+        }
+
+        function signOut() {
+            localStorage.removeItem('cognitoAccessToken');
+            const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
+            window.location.href = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${redirectUri}`;
+        }
+
+        // Upload functions
         document.getElementById('image-input').addEventListener('change', function(e) {
             selectedFile = e.target.files[0];
+            const preview = document.getElementById('preview');
             if (selectedFile) {
-                const preview = document.getElementById('preview');
                 preview.src = URL.createObjectURL(selectedFile);
                 preview.style.display = 'block';
             }
         });
 
-        // Get presigned URL from API Gateway
-        // Get presigned URL from API Gateway
         async function generatePresignedUrl() {
             if (!selectedFile) {
-                showMessage('Please select a file first', 'error');
+                showMessage('Please select a file', 'error');
                 return;
             }
-        
+
             try {
-                // Get the actual JWT token
-                const token = localStorage.getItem('cognitoAccessToken'); 
-                
+                const token = localStorage.getItem('cognitoAccessToken');
                 if (!token) {
-                    showMessage('Please sign in first', 'error');
+                    showMessage('Please sign in', 'error');
                     return;
                 }
-        
-                // Your HTTP API URL (no stage name in path)
-                const apiUrl = 'https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/presigned-url';
-                
-                const response = await fetch(apiUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+
+                const response = await fetch(cognitoConfig.apiUrl, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-        
-                if (response.status === 401) {
-                    showMessage('Authentication failed. Please sign in again.', 'error');
-                    signOut();
-                    return;
-                }
-        
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-        
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
                 const data = await response.json();
                 presignedUrl = data.presignedUrl;
-                
                 document.getElementById('upload-btn').disabled = false;
-                showMessage('Presigned URL generated! Click "Upload Image" to upload.', 'success');
+                showMessage('Upload URL ready! Click "Upload Image"', 'success');
                 
             } catch (error) {
-                console.error('Error:', error);
-                showMessage('Failed to generate upload URL: ' + error.message, 'error');
+                showMessage('Failed: ' + error.message, 'error');
             }
         }
-        // Upload image to S3 using presigned URL
+
         async function uploadImage() {
-            if (!presignedUrl || !selectedFile) {
-                showMessage('Please generate URL and select file first', 'error');
-                return;
-            }
+            if (!presignedUrl || !selectedFile) return;
 
             try {
                 const response = await fetch(presignedUrl, {
                     method: 'PUT',
                     body: selectedFile,
-                    headers: {
-                        'Content-Type': selectedFile.type
-                    }
+                    headers: { 'Content-Type': selectedFile.type }
                 });
 
                 if (response.status === 200) {
-                    showMessage('Image uploaded successfully!', 'success');
-                    // Reset form
-                    document.getElementById('image-input').value = '';
-                    document.getElementById('preview').style.display = 'none';
-                    document.getElementById('upload-btn').disabled = true;
-                    presignedUrl = '';
-                    selectedFile = null;
+                    showMessage('Upload successful!', 'success');
+                    resetUploadForm();
                 } else {
                     throw new Error('Upload failed');
                 }
             } catch (error) {
-                console.error('Upload error:', error);
                 showMessage('Upload failed: ' + error.message, 'error');
             }
+        }
+
+        function resetUploadForm() {
+            document.getElementById('image-input').value = '';
+            document.getElementById('preview').style.display = 'none';
+            document.getElementById('upload-btn').disabled = true;
+            presignedUrl = '';
+            selectedFile = null;
         }
 
         function showMessage(text, type) {
             const messageDiv = document.getElementById('message');
             messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
-            setTimeout(() => {
-                messageDiv.innerHTML = '';
-            }, 5000);
+            setTimeout(() => messageDiv.innerHTML = '', 5000);
         }
 
         // Initialize
