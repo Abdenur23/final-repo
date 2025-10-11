@@ -1,0 +1,322 @@
+/* Upload Container */
+.upload-container {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 3rem;
+    margin: 2rem 0;
+}
+
+.upload-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.upload-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--primary-purple);
+    margin-bottom: 0.5rem;
+}
+
+.upload-header p {
+    color: var(--text-light);
+    font-size: 1.1rem;
+}
+
+/* Upload Area */
+.upload-area {
+    border: 3px dashed var(--secondary-pink);
+    border-radius: var(--border-radius);
+    padding: 3rem 2rem;
+    margin-bottom: 2rem;
+    transition: var(--transition);
+    cursor: pointer;
+    background: linear-gradient(135deg, #fff5f7 0%, #f8f7ff 100%);
+    text-align: center;
+}
+
+.upload-area:hover {
+    border-color: var(--primary-pink);
+    background: linear-gradient(135deg, #ffeef2 0%, #f3efff 100%);
+}
+
+.upload-area.dragover {
+    border-color: var(--primary-pink);
+    background: linear-gradient(135deg, #ffe4ec 0%, #eee6ff 100%);
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.upload-text {
+    color: var(--text-dark);
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.upload-subtext {
+    color: var(--text-light);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Buttons */
+.browse-btn, .upload-btn {
+    background: linear-gradient(135deg, var(--primary-pink) 0%, var(--primary-purple) 100%);
+    color: var(--white);
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-block;
+}
+
+.browse-btn:hover, .upload-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 107, 157, 0.3);
+}
+
+.upload-btn:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+#fileInput {
+    display: none;
+}
+
+/* File Selection */
+.selected-files {
+    margin: 2rem 0;
+}
+
+.selected-files h4 {
+    color: var(--primary-purple);
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.file-card {
+    border: 2px solid #e2e8f0;
+    border-radius: 15px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    background: var(--white);
+    transition: var(--transition);
+    position: relative;
+}
+
+.file-card:hover {
+    border-color: var(--secondary-pink);
+    transform: translateY(-2px);
+}
+
+.file-preview {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    border: 2px solid #e2e8f0;
+}
+
+.file-name {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    word-break: break-word;
+}
+
+.file-size {
+    color: var(--text-light);
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+}
+
+.remove-btn {
+    background: var(--error);
+    color: var(--white);
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.remove-btn:hover {
+    background: #e53e3e;
+}
+
+/* Consent Section */
+.consent-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f0f9ff 0%, #fdf2ff 100%);
+    border-radius: 15px;
+    border-left: 4px solid var(--primary-pink);
+}
+
+.consent-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.consent-checkbox input {
+    margin-top: 0.25rem;
+    accent-color: var(--primary-pink);
+}
+
+.consent-text {
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.privacy-link {
+    color: var(--primary-purple);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.privacy-link:hover {
+    text-decoration: underline;
+}
+
+/* Progress and Messages */
+.progress-container {
+    margin-top: 2rem;
+    display: none;
+}
+
+.progress-text {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.file-progress {
+    margin: 1rem 0;
+}
+
+.file-progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.file-progress-bar {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.file-progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary-pink), var(--primary-purple));
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* Message Styles */
+.success-message, .error-message {
+    display: none;
+    padding: 1.5rem;
+    border-radius: 15px;
+    margin-top: 1.5rem;
+    align-items: center;
+    gap: 1rem;
+}
+
+.success-message {
+    background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+    border-left: 4px solid var(--success);
+}
+
+.error-message {
+    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+    border-left: 4px solid var(--error);
+}
+
+.message-icon {
+    font-size: 2rem;
+}
+
+.message-content h4 {
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+.warning-message {
+    background: #fffaf0;
+    color: var(--warning);
+    padding: 1rem;
+    border-radius: 10px;
+    margin-top: 1rem;
+    border-left: 4px solid var(--warning);
+    display: none;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .upload-container {
+        padding: 2rem 1.5rem;
+    }
+    
+    .upload-header h3 {
+        font-size: 1.5rem;
+    }
+    
+    .upload-area {
+        padding: 2rem 1rem;
+    }
+    
+    .upload-icon {
+        font-size: 3rem;
+    }
+    
+    .upload-text {
+        font-size: 1.1rem;
+    }
+    
+    .files-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .file-card {
+        padding: 1rem 0.5rem;
+    }
+    
+    .file-preview {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .consent-checkbox {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}
