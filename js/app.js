@@ -11,8 +11,6 @@ const fileInput = document.getElementById('fileInput');
 const browseBtn = document.getElementById('browseBtn');
 const uploadBtn = document.getElementById('uploadBtn');
 const consentCheckbox = document.getElementById('consentCheckbox');
-const backToUploadBtn = document.getElementById('backToUpload');
-const checkoutBtn = document.getElementById('checkoutBtn');
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
@@ -27,7 +25,48 @@ function initializeApp() {
     initializeEventListeners();
 }
 
-// ... (keep existing drag & drop and file handling functions)
+function initializeDragAndDrop() {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'), false);
+    });
+
+    uploadArea.addEventListener('drop', handleDrop, false);
+}
+
+function initializeEventListeners() {
+    browseBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileSelect);
+    consentCheckbox.addEventListener('change', () => uiManager.validateUpload(fileManager.selectedFiles.size === fileManager.MAX_FILES));
+    uploadBtn.addEventListener('click', handleUpload);
+}
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = Array.from(dt.files).filter(file => file.type.startsWith('image/'));
+    if (files.length > 0) {
+        fileManager.handleFiles(files);
+    }
+}
+
+function handleFileSelect(event) {
+    const files = Array.from(event.target.files).filter(file => file.type.startsWith('image/'));
+    if (files.length > 0) {
+        fileManager.handleFiles(files);
+    }
+}
 
 async function handleUpload() {
     if (fileManager.selectedFiles.size !== fileManager.MAX_FILES || !consentCheckbox.checked) {
@@ -61,21 +100,14 @@ async function handleUpload() {
 
         await Promise.all(uploadPromises);
 
-        // Simulate design generation (replace with actual API call)
-        uiManager.progressText.textContent = 'Generating your designs...';
+        // Files uploaded successfully - show processing state
+        uiManager.progressContainer.style.display = 'none';
+        uiManager.showSuccess();
         
-        // Mock designs - replace with actual API response
-        const mockDesigns = [
-            { imageUrl: 'assets/images/design-1.jpg', designId: 'design-1' },
-            { imageUrl: 'assets/images/design-2.jpg', designId: 'design-2' },
-            { imageUrl: 'assets/images/design-3.jpg', designId: 'design-3' }
-        ];
-
-        // Show designs after a short delay to simulate processing
+        // Show design processing (placeholder for now)
         setTimeout(() => {
-            designManager.displayDesigns(mockDesigns);
-            uiManager.progressContainer.style.display = 'none';
-        }, 2000);
+            designManager.showProcessingState();
+        }, 1000);
 
     } catch (error) {
         console.error('Upload error:', error);
@@ -83,45 +115,6 @@ async function handleUpload() {
     }
 }
 
-function initializeEventListeners() {
-    browseBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', handleFileSelect);
-    consentCheckbox.addEventListener('change', () => uiManager.validateUpload(fileManager.selectedFiles.size === fileManager.MAX_FILES));
-    uploadBtn.addEventListener('click', handleUpload);
-    
-    // New event listeners for design selection
-    if (backToUploadBtn) {
-        backToUploadBtn.addEventListener('click', () => {
-            document.getElementById('designSelection').style.display = 'none';
-            designManager.resetSelection();
-        });
-    }
-    
-    if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', handleCheckout);
-    }
-}
-
-function handleCheckout() {
-    const selectedDesigns = designManager.getSelectedDesigns();
-    const product = productManager.getCurrentProduct();
-    
-    if (selectedDesigns.length === 0) {
-        alert('Please select at least one design');
-        return;
-    }
-
-    // Here you would typically redirect to checkout page
-    // For now, just show a confirmation
-    alert(`Proceeding to checkout with ${selectedDesigns.length} ${product.name}(s)`);
-    
-    // Example checkout data structure:
-    const checkoutData = {
-        product: product.name,
-        designs: selectedDesigns,
-        quantity: selectedDesigns.length,
-        total: selectedDesigns.length * product.price
-    };
-    
-    console.log('Checkout data:', checkoutData);
-}
+// Export for global access
+window.fileManager = fileManager;
+window.designManager = designManager;
