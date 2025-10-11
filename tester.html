@@ -13,6 +13,9 @@
     <h1>Welcome to Auth Demo</h1>
     <div id="auth-section"></div>
 
+    <h2>Access user info from other UI</h2>
+    <button onclick="alert(JSON.stringify(getCognitoUserInfo(), null, 2))">Show Stored User Info</button>
+
     <script src="auth.js"></script>
 </body>
 </html>
