@@ -95,77 +95,34 @@
 // }
 // Cognito configuration
 // Cognito configuration
+// Cognito configuration
 const cognitoConfig = {
     clientId: '7irso7dmmnp793egs9bhkl0t81',
     domain: 'auth.theweer.com',
     redirectUri: window.location.origin
 };
 
-// Decode JWT token payload
-function parseJwt(token) {
-    try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => 
-            '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-        ).join(''));
-        return JSON.parse(jsonPayload);
-    } catch (e) {
-        console.error('Failed to parse JWT', e);
-        return null;
-    }
-}
-
-// Get current user sub
-function getCurrentUserSub() {
-    const token = localStorage.getItem('cognitoToken');
-    if (!token) return null;
-    const payload = parseJwt(token);
-    return payload ? payload.sub : null;
-}
-
 // Check if user is authenticated
 async function checkAuthStatus() {
     const authSection = document.getElementById('auth-section');
-    
+
     try {
-        // Check for authentication code in URL (callback from Cognito)
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
-        
+
         if (code) {
-            // Exchange code for tokens
-            const body = new URLSearchParams();
-            body.append('grant_type', 'authorization_code');
-            body.append('client_id', cognitoConfig.clientId);
-            body.append('code', code);
-            body.append('redirect_uri', cognitoConfig.redirectUri);
-
-            const tokenResponse = await fetch(`https://${cognitoConfig.domain}/oauth2/token`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: body.toString()
-            });
-
-            const tokenData = await tokenResponse.json();
-            const idToken = tokenData.id_token;
-
-            if (!idToken) throw new Error('Failed to get ID token from Cognito');
-
-            localStorage.setItem('cognitoToken', idToken);
-
-            // Clean URL
+            // User returned from Cognito login
             window.history.replaceState({}, document.title, window.location.pathname);
+            localStorage.setItem('cognitoToken', 'signed-in-' + Date.now()); // simple marker
         }
 
         const token = localStorage.getItem('cognitoToken');
-        
+
         if (token) {
-            const userSub = getCurrentUserSub();
             authSection.innerHTML = `
                 <div class="user-info">
                     <p>✅ You are signed in</p>
-                    <p>🆔 Your user sub: ${userSub}</p>
+                    <p>🆔 Your user sub: unknown (use Lambda for real sub)</p>
                     <button onclick="signOut()" class="btn-secondary">Sign Out</button>
                 </div>
             `;
@@ -178,8 +135,8 @@ async function checkAuthStatus() {
                 </div>
             `;
         }
-    } catch (error) {
-        console.error('Auth check error:', error);
+    } catch (err) {
+        console.error(err);
         authSection.innerHTML = `
             <div>
                 <p>❌ Error checking authentication status</p>
@@ -199,10 +156,10 @@ function signIn() {
 
 // Redirect to Cognito Hosted UI for sign up
 function signUp() {
-    signIn(); // Using the same Hosted UI link
+    signIn(); // same link
 }
 
-// Sign out function
+// Sign out
 function signOut() {
     localStorage.removeItem('cognitoToken');
     const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
