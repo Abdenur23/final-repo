@@ -298,60 +298,136 @@
             font-size: 14px;
             display: none;
         }
+
+        /* Auth Section Styles */
+        .auth-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .user-info {
+            background: #d1fae5;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .auth-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .auth-btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .auth-btn-secondary {
+            background: #dc2626;
+            color: white;
+        }
+
+        .auth-btn-secondary:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        .protected-content {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="upload-container">
-        <div class="upload-header">
-            <h1>Upload 3 Distinct Images</h1>
-            <p>Please select exactly 3 different images to upload</p>
+        <!-- Auth Section -->
+        <div id="auth-section" class="auth-section">
+            <p>Checking authentication status...</p>
         </div>
 
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">📁</div>
-            <div class="upload-text">Drag & Drop your images here</div>
-            <div class="upload-subtext">or</div>
-            <button class="browse-btn" onclick="document.getElementById('fileInput').click()">
-                Browse Images
-            </button>
-            <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFileSelect(event)">
-        </div>
-
-        <div class="selected-files">
-            <h3>Selected Images (3 required)</h3>
-            <div class="warning-message" id="warningMessage"></div>
-            <div class="files-grid" id="filesGrid"></div>
-        </div>
-
-        <div class="consent-section">
-            <div class="consent-checkbox">
-                <input type="checkbox" id="consentCheckbox" onchange="validateUpload()">
-                <label for="consentCheckbox" class="consent-text">
-                    I confirm that I have selected 3 distinct images and have the right to upload these images.
-                    I understand that these images will be stored securely in AWS S3.
-                </label>
+        <!-- Protected Content (only shown when authenticated) -->
+        <div id="protected-content" class="protected-content">
+            <div class="upload-header">
+                <h1>Upload 3 Distinct Images</h1>
+                <p>Please select exactly 3 different images to upload</p>
             </div>
-        </div>
 
-        <button class="upload-btn" id="uploadBtn" onclick="uploadFiles()" disabled>
-            Upload All Images
-        </button>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Drag & Drop your images here</div>
+                <div class="upload-subtext">or</div>
+                <button class="browse-btn" onclick="document.getElementById('fileInput').click()">
+                    Browse Images
+                </button>
+                <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFileSelect(event)">
+            </div>
 
-        <div class="progress-container" id="progressContainer">
-            <div class="progress-text" id="progressText">Preparing upload...</div>
-            <div class="file-progress" id="fileProgressContainer"></div>
-        </div>
+            <div class="selected-files">
+                <h3>Selected Images (3 required)</h3>
+                <div class="warning-message" id="warningMessage"></div>
+                <div class="files-grid" id="filesGrid"></div>
+            </div>
 
-        <div class="success-message" id="successMessage">
-            ✅ All images uploaded successfully!
-        </div>
+            <div class="consent-section">
+                <div class="consent-checkbox">
+                    <input type="checkbox" id="consentCheckbox" onchange="validateUpload()">
+                    <label for="consentCheckbox" class="consent-text">
+                        I confirm that I have selected 3 distinct images and have the right to upload these images.
+                        I understand that these images will be stored securely in AWS S3.
+                    </label>
+                </div>
+            </div>
 
-        <div class="error-message" id="errorMessage">
-            ❌ Error uploading images. Please try again.
+            <button class="upload-btn" id="uploadBtn" onclick="uploadFiles()" disabled>
+                Upload All Images
+            </button>
+
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-text" id="progressText">Preparing upload...</div>
+                <div class="file-progress" id="fileProgressContainer"></div>
+            </div>
+
+            <div class="success-message" id="successMessage">
+                ✅ All images uploaded successfully!
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                ❌ Error uploading images. Please try again.
+            </div>
         </div>
     </div>
 
     <script>
+        // Cognito configuration
+        const cognitoConfig = {
+            clientId: '7irso7dmmnp793egs9bhkl0t81',
+            domain: 'auth.theweer.com',
+            redirectUri: window.location.origin
+        };
+
+        // DOM Elements
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const filesGrid = document.getElementById('filesGrid');
@@ -363,11 +439,97 @@
         const successMessage = document.getElementById('successMessage');
         const errorMessage = document.getElementById('errorMessage');
         const warningMessage = document.getElementById('warningMessage');
+        const authSection = document.getElementById('auth-section');
+        const protectedContent = document.getElementById('protected-content');
 
-        let selectedFiles = new Map(); // Use Map to maintain order and track duplicates
+        let selectedFiles = new Map();
         const MAX_FILES = 3;
 
-        // Drag and drop event handlers
+        // Authentication Functions
+        async function checkAuthStatus() {
+            try {
+                // Check for authentication code in URL (callback from Cognito)
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                
+                if (code) {
+                    // User just returned from Cognito - clear URL and show success
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    localStorage.setItem('cognitoToken', 'authenticated-' + Date.now());
+                    showAuthenticatedUI();
+                    return;
+                }
+
+                // Check if we have a token in localStorage
+                const token = localStorage.getItem('cognitoToken');
+                
+                if (token) {
+                    showAuthenticatedUI();
+                } else {
+                    showUnauthenticatedUI();
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                showErrorUI();
+            }
+        }
+
+        function showAuthenticatedUI() {
+            authSection.innerHTML = `
+                <div class="user-info">
+                    <p>✅ You are signed in</p>
+                    <button onclick="signOut()" class="auth-btn auth-btn-secondary">Sign Out</button>
+                </div>
+            `;
+            protectedContent.style.display = 'block';
+        }
+
+        function showUnauthenticatedUI() {
+            authSection.innerHTML = `
+                <div style="text-align: center;">
+                    <p style="margin-bottom: 15px; color: #666;">🔒 Sign in to upload images</p>
+                    <div class="auth-buttons">
+                        <button onclick="signIn()" class="auth-btn auth-btn-primary">Sign In</button>
+                        <button onclick="signUp()" class="auth-btn auth-btn-primary">Sign Up</button>
+                    </div>
+                </div>
+            `;
+            protectedContent.style.display = 'none';
+        }
+
+        function showErrorUI() {
+            authSection.innerHTML = `
+                <div style="text-align: center;">
+                    <p style="margin-bottom: 15px; color: #dc2626;">❌ Error checking authentication status</p>
+                    <div class="auth-buttons">
+                        <button onclick="signIn()" class="auth-btn auth-btn-primary">Sign In</button>
+                        <button onclick="signUp()" class="auth-btn auth-btn-primary">Sign Up</button>
+                    </div>
+                </div>
+            `;
+            protectedContent.style.display = 'none';
+        }
+
+        function signIn() {
+            const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
+            const loginUrl = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
+            window.location.href = loginUrl;
+        }
+
+        function signUp() {
+            const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
+            const signupUrl = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
+            window.location.href = signupUrl;
+        }
+
+        function signOut() {
+            localStorage.removeItem('cognitoToken');
+            const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
+            const logoutUrl = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${redirectUri}`;
+            window.location.href = logoutUrl;
+        }
+
+        // File Upload Functions (existing code)
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             uploadArea.addEventListener(eventName, preventDefaults, false);
         });
@@ -403,6 +565,13 @@
         }
 
         function handleFiles(newFiles) {
+            // Check if user is authenticated
+            const token = localStorage.getItem('cognitoToken');
+            if (!token) {
+                showWarning('Please sign in to upload files');
+                return;
+            }
+
             // Check if adding new files would exceed maximum
             const availableSlots = MAX_FILES - selectedFiles.size;
             const filesToAdd = newFiles.slice(0, availableSlots);
@@ -433,7 +602,6 @@
         }
 
         function generateFileId(file) {
-            // Create a unique ID based on file name and size to detect duplicates
             return `${file.name}-${file.size}-${file.lastModified}`;
         }
 
@@ -514,6 +682,14 @@
         }
 
         async function uploadFiles() {
+            // Check authentication before upload
+            const token = localStorage.getItem('cognitoToken');
+            if (!token) {
+                errorMessage.textContent = 'Please sign in to upload files';
+                errorMessage.style.display = 'block';
+                return;
+            }
+        
             if (selectedFiles.size !== MAX_FILES || !consentCheckbox.checked) {
                 return;
             }
@@ -525,6 +701,12 @@
             errorMessage.style.display = 'none';
         
             try {
+                // Get user CID - you'll need to implement this function
+                const userCid = await getUserCid();
+                if (!userCid) {
+                    throw new Error('Unable to retrieve user CID. Please sign in again.');
+                }
+        
                 // Prepare files data for API
                 const filesData = Array.from(selectedFiles.entries()).map(([fileId, file]) => ({
                     fileId: fileId,
@@ -539,7 +721,8 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        files: filesData
+                        files: filesData,
+                        userCid: userCid  // Send CID in the request body
                     })
                 });
         
@@ -635,7 +818,41 @@
                 uploadBtn.textContent = 'Retry Upload';
             }
         }
-
+        
+        // Add this function to get user CID (you'll need to implement based on your setup)
+        async function getUserCid() {
+            // Option 1: Store CID in localStorage after login
+            const storedCid = localStorage.getItem('userCid');
+            if (storedCid) {
+                return storedCid;
+            }
+        
+            // Option 2: Get from your backend API
+            try {
+                const response = await fetch('/api/get-user-cid', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('cognitoToken')}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('userCid', data.cid);
+                    return data.cid;
+                }
+            } catch (error) {
+                console.error('Error getting user CID:', error);
+            }
+        
+            // Option 3: Extract from Cognito token (if you store CID in the token)
+            const token = localStorage.getItem('cognitoToken');
+            if (token && token.includes('authenticated-')) {
+                // If you store CID in the token format, extract it
+                // For example: "authenticated-abc123" where abc123 is the CID
+                return token.replace('authenticated-', '');
+            }
+        
+            return null;
+        }
         function resetForm() {
             selectedFiles.clear();
             fileInput.value = '';
@@ -646,6 +863,9 @@
             errorMessage.style.display = 'none';
             validateUpload();
         }
+
+        // Initialize authentication check
+        checkAuthStatus();
     </script>
 </body>
 </html>
