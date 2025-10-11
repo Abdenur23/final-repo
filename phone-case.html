@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Phone Cases - The Weer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header with Navigation -->
+    <header class="header">
+        <div class="container">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1><a href="index.html">🌿 The Weer</a></h1>
+                </div>
+                <nav class="main-nav">
+                    <a href="phone-case.html" class="nav-link active">Phone Cases</a>
+                    <a href="watch-band.html" class="nav-link">Watch Bands</a>
+                    <a href="bag-decoration.html" class="nav-link">Bag Decorations</a>
+                    <a href="backpack-patches.html" class="nav-link">Backpack Patches</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <!-- Product-specific Hero -->
+            <section class="hero product-hero">
+                <div class="hero-content">
+                    <div class="product-badge">Phone Case</div>
+                    <h2 class="hero-title">Create Your Custom Floral Phone Case</h2>
+                    <p class="hero-subtitle">Upload 3 images to generate unique phone case designs with matching wallpapers</p>
+                    <div class="product-features">
+                        <span>✓ Premium Quality</span>
+                        <span>✓ Matching Wallpaper</span>
+                        <span>✓ 3 Design Options</span>
+                    </div>
+                </div>
+                <div class="product-preview">
+                    <img src="assets/images/phone-case-preview.png" alt="Phone Case Preview" class="preview-image">
+                </div>
+            </section>
+
+            <!-- Upload Section (same structure but with product context) -->
+            <section class="upload-section">
+                <div class="upload-container">
+                    <div class="upload-header">
+                        <h3>Design Your Phone Case</h3>
+                        <p>Select 3 distinct images to create your custom phone case design</p>
+                    </div>
+                    <!-- ... rest of upload section remains the same ... -->
+                </div>
+            </section>
+
+            <!-- Design Selection Section (new) -->
+            <section class="design-selection" id="designSelection" style="display: none;">
+                <div class="designs-container">
+                    <h3>Choose Your Favorite Design</h3>
+                    <p>Select one or multiple designs for your phone case</p>
+                    <div class="designs-grid" id="designsGrid">
+                        <!-- Designs will be populated by JavaScript -->
+                    </div>
+                    <div class="selection-actions">
+                        <button class="btn-secondary" id="backToUpload">Upload Different Images</button>
+                        <button class="btn-primary" id="checkoutBtn">Proceed to Checkout</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/fileManager.js"></script>
+    <script src="js/uploadManager.js"></script>
+    <script src="js/uiManager.js"></script>
+    <script src="js/designManager.js"></script>
+    <script src="js/productManager.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
