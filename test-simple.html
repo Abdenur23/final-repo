@@ -1,118 +1,847 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Cognito Test - The Weer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload 3 Distinct Images</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        button { padding: 10px 15px; margin: 5px; cursor: pointer; background: #2563eb; color: white; border: none; border-radius: 4px; }
-        .info { background: #dbeafe; padding: 15px; border-radius: 5px; margin: 10px 0; }
-        .success { background: #dcfce7; padding: 15px; border-radius: 5px; margin: 10px 0; }
-        .error { background: #fee2e2; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .upload-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .upload-header {
+            margin-bottom: 30px;
+        }
+
+        .upload-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .upload-header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* Auth Section Styles */
+        .auth-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid #2563eb;
+        }
+
+        .user-info {
+            background: #d1fae5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #666;
+            font-size: 14px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .browse-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .browse-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .selected-files {
+            margin: 25px 0;
+            text-align: left;
+        }
+
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .file-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .file-card.duplicate {
+            border-color: #ff4444;
+            background: #ffeaea;
+        }
+
+        .file-preview {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 2px solid #ddd;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .remove-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: #cc0000;
+        }
+
+        .consent-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .consent-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .consent-checkbox input {
+            margin-top: 3px;
+        }
+
+        .consent-text {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .upload-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .upload-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .file-progress {
+            margin: 10px 0;
+        }
+
+        .file-progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .file-progress-bar {
+            height: 6px;
+            background: #f0f0f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .file-progress-fill {
+            height: 100%;
+            background: #667eea;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .customer-info {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+            border-left: 4px solid #0284c7;
+        }
     </style>
 </head>
 <body>
-    <h1>🔐 Cognito Auth Test - The Weer</h1>
-    
-    <div class="info">
-        <h3>Test Authentication</h3>
-        <button onclick="signIn()">Sign In</button>
-        <button onclick="signUp()">Sign Up</button>
-        <button onclick="showUrls()">Show URLs</button>
+    <div class="upload-container">
+        <!-- Auth Section -->
+        <div id="auth-section" class="auth-section">
+            <p>Checking authentication status...</p>
+        </div>
+
+        <div class="upload-header">
+            <h1>Upload 3 Distinct Images</h1>
+            <p>Please select exactly 3 different images to upload</p>
+        </div>
+
+        <!-- Customer Info (shown when authenticated) -->
+        <div id="customer-info" class="customer-info" style="display: none;">
+            <strong>Customer ID:</strong> <span id="customer-id">Loading...</span>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Drag & Drop your images here</div>
+            <div class="upload-subtext">or</div>
+            <button class="browse-btn" onclick="document.getElementById('fileInput').click()">
+                Browse Images
+            </button>
+            <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFileSelect(event)">
+        </div>
+
+        <div class="selected-files">
+            <h3>Selected Images (3 required)</h3>
+            <div class="warning-message" id="warningMessage"></div>
+            <div class="files-grid" id="filesGrid"></div>
+        </div>
+
+        <div class="consent-section">
+            <div class="consent-checkbox">
+                <input type="checkbox" id="consentCheckbox" onchange="validateUpload()">
+                <label for="consentCheckbox" class="consent-text">
+                    I confirm that I have selected 3 distinct images and have the right to upload these images.
+                    I understand that these images will be stored securely in AWS S3.
+                </label>
+            </div>
+        </div>
+
+        <button class="upload-btn" id="uploadBtn" onclick="uploadFiles()" disabled>
+            Upload All Images
+        </button>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-text" id="progressText">Preparing upload...</div>
+            <div class="file-progress" id="fileProgressContainer"></div>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            ✅ All images uploaded successfully!
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            ❌ Error uploading images. Please try again.
+        </div>
     </div>
 
-    <div id="result"></div>
-
     <script>
-        const clientId = '7irso7dmmnp793egs9bhkl0t81';
-        const domain = 'auth.theweer.com';
-        const redirectUri = encodeURIComponent('https://theweer.com/');
+        // Cognito configuration
+        const cognitoConfig = {
+            clientId: '7irso7dmmnp793egs9bhkl0t81',
+            domain: 'auth.theweer.com',
+            redirectUri: window.location.origin
+        };
 
-        function signIn() {
-            // CORRECT Sign In URL
-            const url = `https://${domain}/oauth2/authorize?client_id=${clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
-            
-            document.getElementById('result').innerHTML = `
-                <div class="info">
-                    <h4>Redirecting to Sign In...</h4>
-                    <p><strong>URL:</strong> ${url}</p>
-                    <p>You should be redirected to Cognito Hosted UI.</p>
+        // API Gateway endpoint
+        const API_ENDPOINT = 'https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload';
+
+        // DOM elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const filesGrid = document.getElementById('filesGrid');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const consentCheckbox = document.getElementById('consentCheckbox');
+        const progressContainer = document.getElementById('progressContainer');
+        const fileProgressContainer = document.getElementById('fileProgressContainer');
+        const progressText = document.getElementById('progressText');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const warningMessage = document.getElementById('warningMessage');
+        const authSection = document.getElementById('auth-section');
+        const customerInfo = document.getElementById('customer-info');
+        const customerIdSpan = document.getElementById('customer-id');
+
+        let selectedFiles = new Map();
+        const MAX_FILES = 3;
+        let isAuthenticated = false;
+
+        // Initialize authentication
+        checkAuthStatus();
+
+        // Auth functions
+        async function checkAuthStatus() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                
+                if (code) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    localStorage.setItem('cognitoToken', 'authenticated-' + Date.now());
+                    showAuthenticatedUI();
+                    return;
+                }
+
+                const token = localStorage.getItem('cognitoToken');
+                
+                if (token) {
+                    showAuthenticatedUI();
+                } else {
+                    showUnauthenticatedUI();
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                showUnauthenticatedUI();
+            }
+        }
+
+        function showAuthenticatedUI() {
+            isAuthenticated = true;
+            authSection.innerHTML = `
+                <div class="user-info">
+                    <p>✅ You are signed in</p>
+                    <div class="auth-buttons">
+                        <button onclick="signOut()" class="btn-secondary">Sign Out</button>
+                    </div>
                 </div>
             `;
-            
-            console.log('Redirecting to:', url);
-            window.location.href = url;
+            customerInfo.style.display = 'block';
+            customerIdSpan.textContent = 'Retrieving...';
+            // In a real implementation, you might want to call an API to get the actual CID
+        }
+
+        function showUnauthenticatedUI() {
+            isAuthenticated = false;
+            authSection.innerHTML = `
+                <div>
+                    <p>🔒 You are not signed in</p>
+                    <div class="auth-buttons">
+                        <button onclick="signIn()" class="btn-primary">Sign In</button>
+                        <button onclick="signUp()" class="btn-primary">Sign Up</button>
+                    </div>
+                </div>
+            `;
+            customerInfo.style.display = 'none';
+            disableUploadUI();
+        }
+
+        function disableUploadUI() {
+            uploadArea.style.opacity = '0.6';
+            uploadArea.style.cursor = 'not-allowed';
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Please sign in to upload';
+        }
+
+        function enableUploadUI() {
+            uploadArea.style.opacity = '1';
+            uploadArea.style.cursor = 'pointer';
+            validateUpload();
+        }
+
+        function signIn() {
+            const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
+            const loginUrl = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
+            window.location.href = loginUrl;
         }
 
         function signUp() {
-            // CORRECT Sign Up URL (same endpoint, Cognito will show signup option)
-            const url = `https://${domain}/oauth2/authorize?client_id=${clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
-            
-            document.getElementById('result').innerHTML = `
-                <div class="info">
-                    <h4>Redirecting to Sign Up...</h4>
-                    <p><strong>URL:</strong> ${url}</p>
-                    <p>You should be redirected to Cognito Hosted UI where you can choose "Sign Up".</p>
-                </div>
-            `;
-            
-            console.log('Redirecting to:', url);
-            window.location.href = url;
+            const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
+            const signupUrl = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
+            window.location.href = signupUrl;
         }
 
-        function showUrls() {
-            const urls = {
-                'Sign In': `https://${domain}/oauth2/authorize?client_id=${clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`,
-                'Sign Up (direct)': `https://${domain}/signup?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}`,
-                'Login (direct)': `https://${domain}/login?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}`
-            };
+        function signOut() {
+            localStorage.removeItem('cognitoToken');
+            const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
+            const logoutUrl = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${redirectUri}`;
+            window.location.href = logoutUrl;
+        }
 
-            let html = '<h3>Generated URLs:</h3>';
-            for (const [name, url] of Object.entries(urls)) {
-                html += `
-                    <div style="margin: 10px 0; padding: 10px; border: 1px solid #ccc;">
-                        <strong>${name}:</strong><br>
-                        <code style="word-break: break-all; display: block; margin: 5px 0;">${url}</code>
-                        <button onclick="window.location.href='${url}'">Test ${name}</button>
-                    </div>
-                `;
+        // Drag and drop event handlers
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => {
+                if (isAuthenticated) {
+                    uploadArea.classList.add('dragover');
+                }
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'), false);
+        });
+
+        uploadArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            if (!isAuthenticated) return;
+            
+            const dt = e.dataTransfer;
+            const files = Array.from(dt.files).filter(file => file.type.startsWith('image/'));
+            if (files.length > 0) {
+                handleFiles(files);
             }
-            document.getElementById('result').innerHTML = html;
         }
 
-        // Check for callback
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const error = urlParams.get('error');
-
-        if (code) {
-            document.getElementById('result').innerHTML = `
-                <div class="success">
-                    <h4>✅ SUCCESS! Authentication Working!</h4>
-                    <p>Received authorization code: <code>${code}</code></p>
-                    <p>Your Cognito setup is working correctly!</p>
-                </div>
-            `;
+        function handleFileSelect(event) {
+            if (!isAuthenticated) return;
+            
+            const files = Array.from(event.target.files).filter(file => file.type.startsWith('image/'));
+            if (files.length > 0) {
+                handleFiles(files);
+            }
         }
 
-        if (error) {
-            document.getElementById('result').innerHTML = `
-                <div class="error">
-                    <h4>❌ Error from Cognito</h4>
-                    <p><strong>Error:</strong> ${error}</p>
-                    <p><strong>Description:</strong> ${urlParams.get('error_description') || 'No description'}</p>
-                </div>
-            `;
+        function handleFiles(newFiles) {
+            if (!isAuthenticated) return;
+
+            const availableSlots = MAX_FILES - selectedFiles.size;
+            const filesToAdd = newFiles.slice(0, availableSlots);
+
+            if (filesToAdd.length === 0) {
+                showWarning(`Maximum ${MAX_FILES} images allowed. Remove some images first.`);
+                return;
+            }
+
+            if (newFiles.length > availableSlots) {
+                showWarning(`Only ${availableSlots} more image(s) can be added.`);
+            }
+
+            filesToAdd.forEach(file => {
+                const fileId = generateFileId(file);
+                
+                if (selectedFiles.has(fileId)) {
+                    showWarning(`Duplicate image detected: ${file.name}`);
+                    return;
+                }
+
+                selectedFiles.set(fileId, file);
+            });
+
+            updateFileDisplay();
+            validateUpload();
         }
 
-        // Show current page info
-        document.getElementById('result').innerHTML += `
-            <div class="info">
-                <h4>Current Page Info:</h4>
-                <p><strong>URL:</strong> ${window.location.href}</p>
-                <p><strong>Has Code Param:</strong> ${!!code}</p>
-                <p><strong>Has Error Param:</strong> ${!!error}</p>
-            </div>
-        `;
+        function generateFileId(file) {
+            return `${file.name}-${file.size}-${file.lastModified}`;
+        }
+
+        function removeFile(fileId) {
+            selectedFiles.delete(fileId);
+            updateFileDisplay();
+            validateUpload();
+            hideWarning();
+        }
+
+        function updateFileDisplay() {
+            filesGrid.innerHTML = '';
+            
+            selectedFiles.forEach((file, fileId) => {
+                const fileCard = document.createElement('div');
+                fileCard.className = 'file-card';
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    fileCard.innerHTML = `
+                        <img src="${e.target.result}" alt="${file.name}" class="file-preview">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${formatFileSize(file.size)}</div>
+                        <button class="remove-btn" onclick="removeFile('${fileId}')">Remove</button>
+                    `;
+                };
+                reader.readAsDataURL(file);
+                
+                filesGrid.appendChild(fileCard);
+            });
+
+            const remainingSlots = MAX_FILES - selectedFiles.size;
+            if (remainingSlots > 0) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'file-card';
+                placeholder.innerHTML = `
+                    <div style="font-size: 24px; color: #ccc; margin: 15px 0;">+</div>
+                    <div class="file-name" style="color: #999;">Add Image</div>
+                    <div class="file-size" style="color: #999;">${remainingSlots} remaining</div>
+                `;
+                if (isAuthenticated) {
+                    placeholder.onclick = () => fileInput.click();
+                    placeholder.style.cursor = 'pointer';
+                }
+                filesGrid.appendChild(placeholder);
+            }
+        }
+
+        function showWarning(message) {
+            warningMessage.textContent = message;
+            warningMessage.style.display = 'block';
+        }
+
+        function hideWarning() {
+            warningMessage.style.display = 'none';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function validateUpload() {
+            if (!isAuthenticated) {
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = 'Please sign in to upload';
+                return;
+            }
+
+            const hasRequiredFiles = selectedFiles.size === MAX_FILES;
+            const hasConsent = consentCheckbox.checked;
+            
+            uploadBtn.disabled = !(hasRequiredFiles && hasConsent);
+            
+            if (!hasRequiredFiles) {
+                uploadBtn.textContent = `Upload All Images (${selectedFiles.size}/${MAX_FILES})`;
+            } else if (!hasConsent) {
+                uploadBtn.textContent = 'Please give consent to upload';
+            } else {
+                uploadBtn.textContent = 'Upload All Images';
+            }
+        }
+
+        async function uploadFiles() {
+            if (!isAuthenticated || selectedFiles.size !== MAX_FILES || !consentCheckbox.checked) {
+                return;
+            }
+        
+            uploadBtn.disabled = true;
+            progressContainer.style.display = 'block';
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+        
+            try {
+                const token = localStorage.getItem('cognitoToken');
+                if (!token) {
+                    throw new Error("User not authenticated. Please sign in again.");
+                }
+
+                const filesData = Array.from(selectedFiles.entries()).map(([fileId, file]) => ({
+                    fileId: fileId,
+                    fileName: file.name,
+                    fileType: file.type
+                }));
+
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        files: filesData
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || data.message || 'Failed to get presigned URLs');
+                }
+
+                const { uploadUrls, customerId } = data;
+
+                if (!uploadUrls || uploadUrls.length === 0) {
+                    throw new Error('No upload URLs received from server');
+                }
+
+                // Update customer ID display
+                if (customerId) {
+                    customerIdSpan.textContent = customerId;
+                }
+
+                fileProgressContainer.innerHTML = '';
+                const fileProgressMap = new Map();
+
+                uploadUrls.forEach((urlData, index) => {
+                    const fileProgress = document.createElement('div');
+                    fileProgress.className = 'file-progress';
+                    fileProgress.innerHTML = `
+                        <div class="file-progress-info">
+                            <span>${urlData.fileName}</span>
+                            <span class="progress-percent">0%</span>
+                        </div>
+                        <div class="file-progress-bar">
+                            <div class="file-progress-fill" data-file="${urlData.fileId}"></div>
+                        </div>
+                    `;
+                    fileProgressContainer.appendChild(fileProgress);
+                    fileProgressMap.set(urlData.fileId, {
+                        element: fileProgress.querySelector('.file-progress-fill'),
+                        percent: fileProgress.querySelector('.progress-percent')
+                    });
+                });
+
+                const uploadPromises = uploadUrls.map(async (urlData) => {
+                    const file = selectedFiles.get(urlData.fileId);
+                    if (!file) {
+                        throw new Error(`File not found: ${urlData.fileName}`);
+                    }
+
+                    return new Promise((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        const progressData = fileProgressMap.get(urlData.fileId);
+
+                        xhr.upload.addEventListener('progress', (e) => {
+                            if (e.lengthComputable && progressData) {
+                                const percentComplete = (e.loaded / e.total) * 100;
+                                progressData.element.style.width = percentComplete + '%';
+                                progressData.percent.textContent = Math.round(percentComplete) + '%';
+                            }
+                        });
+
+                        xhr.addEventListener('load', () => {
+                            if (xhr.status === 200) {
+                                resolve(urlData.fileName);
+                            } else {
+                                reject(new Error(`Upload failed for ${urlData.fileName}`));
+                            }
+                        });
+
+                        xhr.addEventListener('error', () => {
+                            reject(new Error(`Upload failed for ${urlData.fileName}`));
+                        });
+
+                        xhr.open('PUT', urlData.uploadUrl);
+                        xhr.setRequestHeader('Content-Type', file.type);
+                        xhr.send(file);
+                    });
+                });
+
+                await Promise.all(uploadPromises);
+
+                progressText.textContent = 'All uploads completed!';
+                successMessage.style.display = 'block';
+
+                setTimeout(() => {
+                    resetForm();
+                }, 3000);
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                errorMessage.textContent = `Error: ${error.message}`;
+                errorMessage.style.display = 'block';
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Retry Upload';
+            }
+        }
+
+        function resetForm() {
+            selectedFiles.clear();
+            fileInput.value = '';
+            consentCheckbox.checked = false;
+            filesGrid.innerHTML = '';
+            progressContainer.style.display = 'none';
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+            validateUpload();
+        }
     </script>
 </body>
 </html>
