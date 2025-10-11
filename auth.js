@@ -96,33 +96,64 @@
 // Cognito configuration
 // Cognito configuration
 // Cognito configuration
+// Cognito configuration
 const cognitoConfig = {
     clientId: '7irso7dmmnp793egs9bhkl0t81',
     domain: 'auth.theweer.com',
     redirectUri: window.location.origin
 };
 
+// Store user info after signin/signup
+function storeUserInfo(info) {
+    localStorage.setItem('cognitoUserInfo', JSON.stringify(info));
+}
+
+// Get stored user info
+function getUserInfo() {
+    const info = localStorage.getItem('cognitoUserInfo');
+    return info ? JSON.parse(info) : null;
+}
+
 // Check if user is authenticated
 async function checkAuthStatus() {
     const authSection = document.getElementById('auth-section');
 
     try {
+        // Check for authentication code in URL (callback from Cognito)
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
 
         if (code) {
-            // User returned from Cognito login
+            // User just returned from Cognito - clear URL and store info
             window.history.replaceState({}, document.title, window.location.pathname);
-            localStorage.setItem('cognitoToken', 'signed-in-' + Date.now()); // simple marker
+
+            // For demo, we store a simple object; later replace with real ID token info
+            const demoUserInfo = {
+                signedInAt: Date.now(),
+                sub: 'demo-sub-1234', // placeholder sub
+                email: 'demo@example.com'
+            };
+            storeUserInfo(demoUserInfo);
+
+            authSection.innerHTML = `
+                <div class="user-info">
+                    <p>✅ Successfully authenticated! Welcome back.</p>
+                    <p>🆔 Your user sub: ${demoUserInfo.sub}</p>
+                    <p>📧 Email: ${demoUserInfo.email}</p>
+                    <button onclick="signOut()" class="btn-secondary">Sign Out</button>
+                </div>
+            `;
+            return;
         }
 
-        const token = localStorage.getItem('cognitoToken');
+        const userInfo = getUserInfo();
 
-        if (token) {
+        if (userInfo) {
             authSection.innerHTML = `
                 <div class="user-info">
                     <p>✅ You are signed in</p>
-                    <p>🆔 Your user sub: unknown (use Lambda for real sub)</p>
+                    <p>🆔 Your user sub: ${userInfo.sub}</p>
+                    <p>📧 Email: ${userInfo.email}</p>
                     <button onclick="signOut()" class="btn-secondary">Sign Out</button>
                 </div>
             `;
@@ -135,8 +166,8 @@ async function checkAuthStatus() {
                 </div>
             `;
         }
-    } catch (err) {
-        console.error(err);
+    } catch (error) {
+        console.error('Auth check error:', error);
         authSection.innerHTML = `
             <div>
                 <p>❌ Error checking authentication status</p>
@@ -156,16 +187,19 @@ function signIn() {
 
 // Redirect to Cognito Hosted UI for sign up
 function signUp() {
-    signIn(); // same link
+    signIn();
 }
 
-// Sign out
+// Sign out function
 function signOut() {
-    localStorage.removeItem('cognitoToken');
+    localStorage.removeItem('cognitoUserInfo'); // remove stored user info
     const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
     const logoutUrl = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${redirectUri}`;
     window.location.href = logoutUrl;
 }
+
+// Make user info accessible globally
+window.getCognitoUserInfo = getUserInfo;
 
 // Run auth check on page load
 window.onload = checkAuthStatus;
