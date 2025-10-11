@@ -96,19 +96,30 @@
 
 async function checkAuthStatus() {
     const authSection = document.getElementById('auth-section');
+    const uploadSection = document.getElementById('upload-section');
+    const cidDisplay = document.getElementById('cid-display');
 
     try {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
-        const cid = urlParams.get('cid'); // New: read CID from query string if passed
 
         if (code) {
-            // Clear URL
-            window.history.replaceState({}, document.title, window.location.pathname);
+            // Exchange code for token + get CID from backend
+            const response = await fetch('https://YOUR_API_GATEWAY/callback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
 
-            // Store token and CID
-            localStorage.setItem('cognitoToken', 'authenticated-' + Date.now());
-            if (cid) localStorage.setItem('cid', cid);
+            const data = await response.json();
+            if (data.cid) {
+                localStorage.setItem('cid', data.cid);
+                cidDisplay.style.display = 'block';
+                cidDisplay.innerHTML = `🆔 Your Customer ID: ${data.cid}`;
+            }
+
+            localStorage.setItem('cognitoToken', data.token || 'authenticated-' + Date.now());
+            window.history.replaceState({}, document.title, window.location.pathname);
 
             authSection.innerHTML = `
                 <div class="user-info">
@@ -116,6 +127,7 @@ async function checkAuthStatus() {
                     <button onclick="signOut()" class="btn-secondary">Sign Out</button>
                 </div>
             `;
+            uploadSection.style.display = 'block';
             if (typeof updateProductContent === 'function') updateProductContent(true);
             return;
         }
@@ -127,10 +139,16 @@ async function checkAuthStatus() {
             authSection.innerHTML = `
                 <div class="user-info">
                     <p>✅ You are signed in</p>
-                    ${storedCid ? `<p>Your CID: ${storedCid}</p>` : ''}
                     <button onclick="signOut()" class="btn-secondary">Sign Out</button>
                 </div>
             `;
+            uploadSection.style.display = 'block';
+
+            if (storedCid) {
+                cidDisplay.style.display = 'block';
+                cidDisplay.innerHTML = `🆔 Your Customer ID: ${storedCid}`;
+            }
+
             if (typeof updateProductContent === 'function') updateProductContent(true);
         } else {
             authSection.innerHTML = `
@@ -140,6 +158,8 @@ async function checkAuthStatus() {
                     <button onclick="signUp()" class="btn-primary">Sign Up</button>
                 </div>
             `;
+            uploadSection.style.display = 'none';
+            cidDisplay.style.display = 'none';
             if (typeof updateProductContent === 'function') updateProductContent(false);
         }
     } catch (error) {
@@ -151,5 +171,7 @@ async function checkAuthStatus() {
                 <button onclick="signUp()" class="btn-primary">Sign Up</button>
             </div>
         `;
+        uploadSection.style.display = 'none';
+        cidDisplay.style.display = 'none';
     }
 }
