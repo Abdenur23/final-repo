@@ -689,7 +689,7 @@
                 errorMessage.style.display = 'block';
                 return;
             }
-
+        
             if (selectedFiles.size !== MAX_FILES || !consentCheckbox.checked) {
                 return;
             }
@@ -701,6 +701,12 @@
             errorMessage.style.display = 'none';
         
             try {
+                // Get user CID - you'll need to implement this function
+                const userCid = await getUserCid();
+                if (!userCid) {
+                    throw new Error('Unable to retrieve user CID. Please sign in again.');
+                }
+        
                 // Prepare files data for API
                 const filesData = Array.from(selectedFiles.entries()).map(([fileId, file]) => ({
                     fileId: fileId,
@@ -715,7 +721,8 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        files: filesData
+                        files: filesData,
+                        userCid: userCid  // Send CID in the request body
                     })
                 });
         
@@ -811,7 +818,41 @@
                 uploadBtn.textContent = 'Retry Upload';
             }
         }
-
+        
+        // Add this function to get user CID (you'll need to implement based on your setup)
+        async function getUserCid() {
+            // Option 1: Store CID in localStorage after login
+            const storedCid = localStorage.getItem('userCid');
+            if (storedCid) {
+                return storedCid;
+            }
+        
+            // Option 2: Get from your backend API
+            try {
+                const response = await fetch('/api/get-user-cid', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('cognitoToken')}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('userCid', data.cid);
+                    return data.cid;
+                }
+            } catch (error) {
+                console.error('Error getting user CID:', error);
+            }
+        
+            // Option 3: Extract from Cognito token (if you store CID in the token)
+            const token = localStorage.getItem('cognitoToken');
+            if (token && token.includes('authenticated-')) {
+                // If you store CID in the token format, extract it
+                // For example: "authenticated-abc123" where abc123 is the CID
+                return token.replace('authenticated-', '');
+            }
+        
+            return null;
+        }
         function resetForm() {
             selectedFiles.clear();
             fileInput.value = '';
