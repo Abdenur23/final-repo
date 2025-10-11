@@ -1,21 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Auth Demo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload 3 Distinct Images</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 50px; }
-        .btn-primary { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
-        .btn-secondary { padding: 10px 20px; margin: 5px; background: #6c757d; color: white; border: none; cursor: pointer; }
-        .user-info { margin-top: 20px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .upload-container { background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); padding: 40px; width: 100%; max-width: 800px; text-align: center; }
+        .upload-header h1 { color: #333; font-size: 28px; margin-bottom: 10px; }
+        .upload-header p { color: #666; font-size: 16px; margin-bottom: 30px; }
+        .upload-area { border: 3px dashed #667eea; border-radius: 15px; padding: 40px 20px; margin-bottom: 25px; cursor: pointer; background: #f8f9ff; transition: all 0.3s ease; }
+        .upload-area.dragover { border-color: #764ba2; background: #e8ebff; transform: scale(1.02); }
+        .upload-icon { font-size: 48px; color: #667eea; margin-bottom: 15px; }
+        .browse-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 16px; cursor: pointer; margin-top: 15px; }
+        .selected-files { margin: 25px 0; text-align: left; }
+        .files-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 15px; margin-top: 15px; }
+        .file-card { border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px; text-align: center; background: #f8f9fa; transition: all 0.3s ease; }
+        .file-card.duplicate { border-color: #ff4444; background: #ffeaea; }
+        .file-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; border: 2px solid #ddd; }
+        .file-name { font-weight: bold; color: #333; font-size: 14px; margin-bottom: 5px; word-break: break-word; }
+        .file-size { color: #666; font-size: 12px; margin-bottom: 8px; }
+        .remove-btn { background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; }
+        .consent-section { margin: 25px 0; padding: 20px; background: #f8f9fa; border-radius: 10px; text-align: left; }
+        .upload-btn { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 16px; cursor: pointer; margin-top: 20px; width: 100%; }
+        .upload-btn:disabled { background: #cccccc; cursor: not-allowed; }
+        .progress-container { margin-top: 20px; display: none; }
+        .file-progress { margin: 10px 0; }
+        .file-progress-info { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+        .file-progress-bar { height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; }
+        .file-progress-fill { height: 100%; background: #667eea; width: 0%; transition: width 0.3s ease; }
+        .success-message { background: #d4edda; color: #155724; padding: 15px; border-radius: 10px; margin-top: 20px; display: none; }
+        .error-message { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 10px; margin-top: 20px; display: none; }
+        .warning-message { background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 14px; display: none; }
+        .auth-section { background: #f8fafc; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-left: 4px solid #667eea; }
+        .user-info { background: #d1fae5; padding: 15px; border-radius: 8px; }
+        .auth-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .auth-btn { padding: 10px 20px; border: none; border-radius: 20px; font-size: 14px; cursor: pointer; }
+        .auth-btn-primary { background: #667eea; color: white; }
+        .auth-btn-secondary { background: #dc2626; color: white; }
+        .protected-content { background: #fff3cd; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #ffc107; display: none; }
     </style>
 </head>
 <body>
-    <h1>Welcome to Auth Demo</h1>
-    <div id="auth-section"></div>
+<div class="upload-container">
+    <div id="auth-section" class="auth-section">
+        <p>Checking authentication status...</p>
+    </div>
 
-    <h2>Access user info from other UI</h2>
-    <button onclick="alert(JSON.stringify(getCognitoUserInfo(), null, 2))">Show Stored User Info</button>
+    <div id="protected-content" class="protected-content">
+        <div class="upload-header">
+            <h1>Upload 3 Distinct Images</h1>
+            <p>Please select exactly 3 different images to upload</p>
+        </div>
 
-    <script src="auth.js"></script>
-</body>
-</html>
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Drag & Drop your images here</div>
+            <div class="upload-subtext">or</div>
+            <button class="browse-btn" onclick="document.getElementById('fileInput').click()">Browse Images</button>
+            <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFileSelect(event)">
+        </div>
+
+        <div class="selected-files">
+            <h3>Selected Images (3 required)</h3>
+            <div class="warning-message" id="warningMessage"></div>
+            <div class="files-grid" id="filesGrid"></div>
+        </div>
+
+        <div class="consent-section">
+            <div class="consent-checkbox">
+                <input type="checkbox" id="consentCheckbox" onchange="validateUpload()">
+                <label for="consentCheckbox">
+                    I confirm that I have selected 3 distinct images and have the right to upload these images.
+                    I understand that these images will be stored securely in AWS S3.
+                </label>
+            </div>
+        </div>
+
+        <button class="upload-btn" id="uploadBtn" onclick="uploadFiles()" disabled>Upload All Images</button>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-text" id="progressText">Preparing upload...</div>
+            <div class="file-progress" id="fileProgressContainer"></div>
+        </div>
+
+        <div class="success-message" id="successMessage">✅ All images uploaded successfully!</div>
+        <div class="error-message" id="errorMessage">❌ Error uploading images. Please try again.</div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/aws-amplify@5.1.0/dist/aws-amplify.min.js"></script>
+<script>
+    Amplify.configure({
+        Auth: {
+            region: 'us-east-1',
+            userPoolId: 'us-east-1_TJDOamTpp',
+            userPoolWebClientId: '7irso7dmmnp793egs9bhkl0t81',
+            oauth: {
+                domain: 'auth.theweer.com',
+                redirectSignIn: window.location.origin,
+                redirectSignOut: window.location.origin,
+                responseType: 'code'
+            }
+        }
+    });
+
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const filesGrid = document.getElementById('files
