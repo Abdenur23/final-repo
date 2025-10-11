@@ -94,6 +94,7 @@
 //     window.location.href = logoutUrl;
 // }
 // Cognito configuration
+// Cognito configuration
 const cognitoConfig = {
     clientId: '7irso7dmmnp793egs9bhkl0t81',
     domain: 'auth.theweer.com',
@@ -117,7 +118,7 @@ function parseJwt(token) {
 
 // Get current user sub
 function getCurrentUserSub() {
-    const token = localStorage.getItem('cognitoToken'); // your ID token
+    const token = localStorage.getItem('cognitoToken');
     if (!token) return null;
     const payload = parseJwt(token);
     return payload ? payload.sub : null;
@@ -128,26 +129,39 @@ async function checkAuthStatus() {
     const authSection = document.getElementById('auth-section');
     
     try {
+        // Check for authentication code in URL (callback from Cognito)
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         
         if (code) {
+            // Exchange code for tokens
+            const body = new URLSearchParams();
+            body.append('grant_type', 'authorization_code');
+            body.append('client_id', cognitoConfig.clientId);
+            body.append('code', code);
+            body.append('redirect_uri', cognitoConfig.redirectUri);
+
+            const tokenResponse = await fetch(`https://${cognitoConfig.domain}/oauth2/token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            });
+
+            const tokenData = await tokenResponse.json();
+            const idToken = tokenData.id_token;
+
+            if (!idToken) throw new Error('Failed to get ID token from Cognito');
+
+            localStorage.setItem('cognitoToken', idToken);
+
+            // Clean URL
             window.history.replaceState({}, document.title, window.location.pathname);
-            // Store a dummy token for demo; in real usage, exchange code for ID token
-            localStorage.setItem('cognitoToken', 'DUMMY.ID.TOKEN'); 
-            authSection.innerHTML = `
-                <div class="user-info">
-                    <p>✅ Successfully authenticated!</p>
-                    <button onclick="signOut()" class="btn-secondary">Sign Out</button>
-                </div>
-            `;
-            return;
         }
 
         const token = localStorage.getItem('cognitoToken');
         
         if (token) {
-            const userSub = getCurrentUserSub() || 'demo-sub-1234';
+            const userSub = getCurrentUserSub();
             authSection.innerHTML = `
                 <div class="user-info">
                     <p>✅ You are signed in</p>
@@ -166,6 +180,13 @@ async function checkAuthStatus() {
         }
     } catch (error) {
         console.error('Auth check error:', error);
+        authSection.innerHTML = `
+            <div>
+                <p>❌ Error checking authentication status</p>
+                <button onclick="signIn()" class="btn-primary">Sign In</button>
+                <button onclick="signUp()" class="btn-primary">Sign Up</button>
+            </div>
+        `;
     }
 }
 
@@ -178,10 +199,10 @@ function signIn() {
 
 // Redirect to Cognito Hosted UI for sign up
 function signUp() {
-    signIn(); // Using the same Hosted UI link for simplicity
+    signIn(); // Using the same Hosted UI link
 }
 
-// Sign out
+// Sign out function
 function signOut() {
     localStorage.removeItem('cognitoToken');
     const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
