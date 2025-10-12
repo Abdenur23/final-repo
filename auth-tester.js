@@ -1,14 +1,14 @@
-// Cognito configuration
-const cognitoConfig = {
+// Standalone Auth System for API Testing
+const authTesterConfig = {
     clientId: '7irso7dmmnp793egs9bhkl0t81',
     domain: 'auth.theweer.com',
-    redirectUri: window.location.origin
+    redirectUri: window.location.origin + window.location.pathname
 };
 
-// Function to exchange authorization code for tokens
+// Exchange authorization code for JWT tokens
 async function exchangeCodeForTokens(code) {
     try {
-        const tokenUrl = `https://${cognitoConfig.domain}/oauth2/token`;
+        const tokenUrl = `https://${authTesterConfig.domain}/oauth2/token`;
         
         const response = await fetch(tokenUrl, {
             method: 'POST',
@@ -17,9 +17,9 @@ async function exchangeCodeForTokens(code) {
             },
             body: new URLSearchParams({
                 grant_type: 'authorization_code',
-                client_id: cognitoConfig.clientId,
+                client_id: authTesterConfig.clientId,
                 code: code,
-                redirect_uri: cognitoConfig.redirectUri
+                redirect_uri: authTesterConfig.redirectUri
             })
         });
 
@@ -35,9 +35,9 @@ async function exchangeCodeForTokens(code) {
     }
 }
 
-// Check authentication status and get proper tokens
-async function checkAuthStatus() {
-    const authSection = document.getElementById('auth-status');
+// Check authentication status for API testing
+async function checkTesterAuthStatus() {
+    const authSection = document.getElementById('auth-section');
     
     try {
         // Check for authentication code in URL (callback from Cognito)
@@ -45,84 +45,91 @@ async function checkAuthStatus() {
         const code = urlParams.get('code');
         
         if (code) {
-            // Exchange code for real tokens
+            // Exchange code for real JWT tokens
             const tokens = await exchangeCodeForTokens(code);
             
-            // Store the real tokens
-            localStorage.setItem('idToken', tokens.id_token);
-            localStorage.setItem('accessToken', tokens.access_token);
-            localStorage.setItem('refreshToken', tokens.refresh_token);
-            localStorage.setItem('cognitoToken', 'authenticated');
+            // Store real tokens for API Gateway
+            localStorage.setItem('testerIdToken', tokens.id_token);
+            localStorage.setItem('testerAccessToken', tokens.access_token);
+            localStorage.setItem('testerAuth', 'authenticated-' + Date.now());
             
             // Clear the code from URL
             window.history.replaceState({}, document.title, window.location.pathname);
             
             authSection.innerHTML = `
-                <div class="success">✅ Successfully authenticated! Tokens stored.</div>
+                <div class="user-info">
+                    <p>✅ API Authentication Successful!</p>
+                    <p><small>JWT tokens stored for API calls</small></p>
+                    <button onclick="testerSignOut()" class="btn-secondary">Sign Out</button>
+                </div>
             `;
-            enableApiButton();
+            if (typeof updateTesterContent === 'function') {
+                updateTesterContent(true);
+            }
             return;
         }
 
-        // Check if we have a real JWT token
-        const idToken = localStorage.getItem('idToken');
-        const hasAuthFlag = localStorage.getItem('cognitoToken');
+        // Check if we have API tokens
+        const idToken = localStorage.getItem('testerIdToken');
+        const authFlag = localStorage.getItem('testerAuth');
         
-        if (idToken && hasAuthFlag) {
+        if (idToken && authFlag) {
+            // User is signed in with API tokens
             authSection.innerHTML = `
-                <div class="success">✅ Authenticated with valid JWT token</div>
+                <div class="user-info">
+                    <p>✅ Ready for API Testing</p>
+                    <p><small>JWT tokens available for API calls</small></p>
+                    <button onclick="testerSignOut()" class="btn-secondary">Sign Out</button>
+                </div>
             `;
-            enableApiButton();
-            
-            // Show user info from token
-            try {
-                const payload = JSON.parse(atob(idToken.split('.')[1]));
-                authSection.innerHTML += `<div><small>User: ${payload.email || payload.username || 'Unknown'}</small></div>`;
-            } catch (e) {
-                console.log('Could not decode token:', e);
+            if (typeof updateTesterContent === 'function') {
+                updateTesterContent(true);
             }
-        } else if (hasAuthFlag) {
-            // Has the placeholder but no real token - need to re-authenticate
-            authSection.innerHTML = `
-                <div class="warning">⚠️ Session expired. Please sign in again.</div>
-                <button onclick="signIn()" class="btn-primary">Sign In</button>
-            `;
-            disableApiButton();
         } else {
-            // Not authenticated at all
+            // User is not signed in for API testing
             authSection.innerHTML = `
-                <div class="error">❌ Not authenticated</div>
-                <button onclick="signIn()" class="btn-primary">Sign In</button>
+                <div>
+                    <p>🔒 API Authentication Required</p>
+                    <p><small>Sign in to get JWT tokens for API Gateway</small></p>
+                    <button onclick="testerSignIn()" class="btn-primary">Sign In for API Test</button>
+                </div>
             `;
-            disableApiButton();
+            if (typeof updateTesterContent === 'function') {
+                updateTesterContent(false);
+            }
         }
     } catch (error) {
         console.error('Auth check error:', error);
         authSection.innerHTML = `
-            <div class="error">❌ Error checking authentication</div>
-            <button onclick="signIn()" class="btn-primary">Sign In</button>
+            <div>
+                <p>❌ API Authentication Error</p>
+                <button onclick="testerSignIn()" class="btn-primary">Sign In for API Test</button>
+            </div>
         `;
-        disableApiButton();
     }
 }
 
 // Redirect to Cognito Hosted UI for sign in
-function signIn() {
-    const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
-    const loginUrl = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
+function testerSignIn() {
+    const redirectUri = encodeURIComponent(authTesterConfig.redirectUri);
+    const loginUrl = `https://${authTesterConfig.domain}/oauth2/authorize?client_id=${authTesterConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
     window.location.href = loginUrl;
 }
 
-function enableApiButton() {
-    const apiButton = document.getElementById('apiButton');
-    if (apiButton) {
-        apiButton.disabled = false;
-    }
+// Sign out function
+function testerSignOut() {
+    // Clear tester auth data
+    localStorage.removeItem('testerIdToken');
+    localStorage.removeItem('testerAccessToken');
+    localStorage.removeItem('testerAuth');
+    
+    // Redirect to Cognito logout
+    const redirectUri = encodeURIComponent(authTesterConfig.redirectUri);
+    const logoutUrl = `https://${authTesterConfig.domain}/logout?client_id=${authTesterConfig.clientId}&logout_uri=${redirectUri}`;
+    window.location.href = logoutUrl;
 }
 
-function disableApiButton() {
-    const apiButton = document.getElementById('apiButton');
-    if (apiButton) {
-        apiButton.disabled = true;
-    }
+// Get JWT token for API calls
+function getTesterToken() {
+    return localStorage.getItem('testerIdToken');
 }
