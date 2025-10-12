@@ -3,35 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cognito Auth Tester</title>
+<title>Cognito Auth with Real-time Updates</title>
 <style>
 body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
 .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 h1,h2,h3 { color:#333; }
 #auth-action { margin-bottom: 20px; }
-#auth-action button { padding:10px 20px; font-size:16px; background-color:#f90; color:white; border:none; border-radius:5px; cursor:pointer; }
+#auth-action button { padding:10px 20px; font-size:16px; background-color:#f90; color:white; border:none; border-radius:5px; cursor:pointer; margin:5px; }
 #token-display pre { background:#eee; padding:10px; border-radius:4px; overflow-x:auto; }
-#token-display textarea { width:100%; height:100px; padding:10px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; resize:none; font-family:monospace; }
-#uploadSection { margin-top:20px; }
-#uploadSection input { margin-bottom:10px; }
-#uploadSection button { padding:10px 20px; font-size:16px; background-color:#28a745; color:white; border:none; border-radius:5px; cursor:pointer; }
-#uploadResult { margin-top:10px; font-weight:bold; }
+.status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+.connected { background: #d4edda; color: #155724; }
+.disconnected { background: #f8d7da; color: #721c24; }
+.message { background: #e2e3e5; padding: 8px; margin: 5px 0; border-radius: 4px; }
 </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>AWS Cognito Authentication Status</h1>
+    <h1>AWS Cognito Authentication with Real-time Updates</h1>
     <div id="auth-action"></div>
 
     <div id="token-display"><h2>Not signed in</h2></div>
 
-    <div id="uploadSection" style="display:none;">
-        <h2>Upload 3 Images</h2>
-        <input type="file" id="fileInput" multiple accept="image/*">
-        <br>
-        <button onclick="uploadFiles()">Upload</button>
-        <div id="uploadResult"></div>
+    <div id="subscriptionSection" style="display:none;">
+        <h2>Real-time Updates</h2>
+        <div id="connectionStatus" class="status disconnected">Disconnected</div>
+        <div id="messages"></div>
     </div>
 </div>
 
@@ -41,6 +38,14 @@ const cognitoConfig = {
     domain: 'auth.theweer.com',
     redirectUri: window.location.origin + window.location.pathname
 };
+
+// WebSocket configuration - YOU'LL NEED TO UPDATE THIS
+const websocketConfig = {
+    // Replace with your WebSocket API URL
+    endpoint: 'wss://your-websocket-api-id.execute-api.us-east-1.amazonaws.com/prod'
+};
+
+let websocket = null;
 
 function saveSession(tokens){ localStorage.setItem('cognitoSession', JSON.stringify(tokens)); }
 function getSession(){ return JSON.parse(localStorage.getItem('cognitoSession')); }
@@ -59,6 +64,10 @@ function signin(){
 
 function signout(){
     localStorage.removeItem('cognitoSession');
+    if (websocket) {
+        websocket.close();
+        websocket = null;
+    }
     location.reload();
 }
 
@@ -80,56 +89,97 @@ function showSessionInfo(){
     const tokenDiv = document.getElementById('token-display');
     if(session && session.id_token){
         const payload = JSON.parse(atob(session.id_token.split('.')[1]));
-        tokenDiv.innerHTML = `<h2>Signed in as ${payload.sub}</h2>
+        tokenDiv.innerHTML = `<h2>Signed in as ${payload.email || payload.sub}</h2>
         <pre>${JSON.stringify(payload, null, 2)}</pre>`;
-        document.getElementById('uploadSection').style.display = 'block';
+        document.getElementById('subscriptionSection').style.display = 'block';
+        
+        // Automatically connect to WebSocket after sign in
+        connectWebSocket();
     } else {
         tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
-        document.getElementById('uploadSection').style.display = 'none';
+        document.getElementById('subscriptionSection').style.display = 'none';
     }
 }
 
+function connectWebSocket() {
+    const session = getSession();
+    if (!session || !session.id_token) return;
+
+    try {
+        // Close existing connection if any
+        if (websocket) {
+            websocket.close();
+        }
+
+        // Connect to WebSocket with authentication token
+        websocket = new WebSocket(`${websocketConfig.endpoint}?token=${session.id_token}`);
+        
+        websocket.onopen = () => {
+            updateConnectionStatus('connected', 'Connected to real-time updates');
+            console.log('WebSocket connected');
+            
+            // Send subscription message for this user
+            const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+            const subscribeMessage = {
+                action: 'subscribe',
+                sub: payload.sub
+            };
+            websocket.send(JSON.stringify(subscribeMessage));
+        };
+
+        websocket.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            addMessage(`Received: ${JSON.stringify(message)}`);
+            
+            // Handle image creation events
+            if (message.type === 'imageCreated') {
+                addMessage(`🎉 New image ready! URL: ${message.imageUrl}`);
+                // Here you would render the image in your UI
+            }
+        };
+
+        websocket.onclose = () => {
+            updateConnectionStatus('disconnected', 'Disconnected from real-time updates');
+            console.log('WebSocket disconnected');
+            
+            // Attempt to reconnect after 3 seconds
+            setTimeout(() => {
+                if (getSession()) {
+                    connectWebSocket();
+                }
+            }, 3000);
+        };
+
+        websocket.onerror = (error) => {
+            updateConnectionStatus('disconnected', 'Connection error');
+            console.error('WebSocket error:', error);
+        };
+
+    } catch (error) {
+        console.error('Failed to connect WebSocket:', error);
+        addMessage(`❌ WebSocket connection failed: ${error.message}`);
+    }
+}
+
+function updateConnectionStatus(status, message) {
+    const statusDiv = document.getElementById('connectionStatus');
+    statusDiv.textContent = message;
+    statusDiv.className = `status ${status}`;
+}
+
+function addMessage(text) {
+    const messagesDiv = document.getElementById('messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message';
+    messageDiv.textContent = `${new Date().toLocaleTimeString()}: ${text}`;
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// Initialize
 parseHashTokens();
 showAuthUI();
 showSessionInfo();
-
-let selectedFiles = [];
-document.getElementById('fileInput').addEventListener('change', (e)=>{
-    selectedFiles = Array.from(e.target.files);
-    if(selectedFiles.length !== 3) alert("Please select exactly 3 images");
-});
-
-async function uploadFiles(){
-    const token = getSession()?.id_token;
-    if(!token || selectedFiles.length !==3) return alert('Sign in and select exactly 3 images');
-
-    const filesData = selectedFiles.map((f,i)=>({fileId:i+1, fileName:f.name, fileType:f.type}));
-
-    // Step 1: Get presigned URLs from Lambda
-    const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':token},
-        body: JSON.stringify({ files: filesData })
-    });
-
-    const data = await res.json();
-    const resultDiv = document.getElementById('uploadResult');
-
-    if(!res.ok || !data.uploadUrls){ 
-        resultDiv.innerHTML = `❌ Upload failed: ${data.error || JSON.stringify(data)}`;
-        return;
-    }
-
-    // Step 2: Upload files to S3 using presigned URLs
-    try{
-        await Promise.all(data.uploadUrls.map((u, idx)=>
-            fetch(u.uploadUrl, { method:'PUT', body:selectedFiles[idx], headers:{'Content-Type':selectedFiles[idx].type} })
-        ));
-        resultDiv.innerHTML = `✅ All 3 files uploaded successfully!`;
-    } catch(e){
-        resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
-    }
-}
 </script>
 
 </body>
