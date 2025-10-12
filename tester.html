@@ -1,93 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Add Record Demo</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background: #f7f7f7;
-        }
-        h1 {
-            color: #333;
-        }
-        .btn {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .btn:hover { background-color: #0056b3; }
-        .message {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-        #record-section {
-            margin-top: 30px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Auth Test - Record My Sub</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: #fafafa;
+      color: #333;
+    }
+    .btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+    .message {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    #record-section {
+      margin-top: 40px;
+    }
+    .token-box {
+      margin-top: 20px;
+      padding: 10px;
+      background: #eee;
+      font-size: 13px;
+      word-wrap: break-word;
+      border-radius: 6px;
+    }
+  </style>
 </head>
-<body onload="checkAuthStatus()">
-    <h1>Record My Sub Demo</h1>
-    <div id="auth-section"></div>
+<body onload="initAuthTest()">
+  <h1>Record My Sub (Auth Test)</h1>
 
-    <div id="record-section" style="display:none;">
-        <button class="btn" onclick="addRecord()">Record My Sub</button>
-        <div class="message" id="response-message"></div>
-    </div>
+  <div id="auth-status">Checking authentication...</div>
 
-    <script src="auth.js"></script>
-    <script>
-        const API_ENDPOINT = 'https://rd8hnh5ch6.execute-api.us-east-1.amazonaws.com/prod/add-record';
+  <div id="record-section" style="display:none;">
+    <button class="btn" onclick="addRecord()">Record My Sub</button>
+    <div class="message" id="response-message"></div>
+    <div id="token-info" class="token-box"></div>
+  </div>
 
-        // Called after authentication check in auth.js
-        function updateProductContent(isAuthenticated) {
-            const recordSection = document.getElementById('record-section');
-            recordSection.style.display = isAuthenticated ? 'block' : 'none';
-        }
-
-        async function addRecord() {
-            const messageEl = document.getElementById('response-message');
-            messageEl.textContent = '⏳ Sending request...';
-
-            try {
-                // In real setup, you should store and send the actual Cognito ID token.
-                const token = localStorage.getItem('cognitoToken');
-                if (!token) {
-                    messageEl.textContent = '❌ You are not authenticated.';
-                    return;
-                }
-
-                const response = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        // Replace this with real ID token if available:
-                        'Authorization': token
-                    },
-                    body: JSON.stringify({ action: 'record' })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    messageEl.innerHTML = `✅ Record added successfully!<br>
-                    <b>Sub:</b> ${data.user_sub}<br>
-                    <b>Time:</b> ${data.timestamp}`;
-                } else {
-                    messageEl.innerHTML = `❌ Error: ${data.message || 'Failed to add record'}`;
-                }
-            } catch (err) {
-                console.error(err);
-                messageEl.textContent = '❌ Request failed: ' + err.message;
-            }
-        }
-    </script>
+  <script src="auth-test.js"></script>
 </body>
 </html>
