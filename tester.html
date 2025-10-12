@@ -1,345 +1,142 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Independent API Test - The Weer</title>
+    <title>API Tester - The Weer</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .header { border-bottom: 2px solid #007bff; padding-bottom: 20px; margin-bottom: 30px; }
-        button { 
-            padding: 12px 24px; 
-            font-size: 16px; 
-            background: #007bff; 
-            color: white; 
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            margin: 5px;
-        }
-        button:hover { background: #0056b3; }
-        button:disabled { background: #6c757d; cursor: not-allowed; }
-        button.secondary { background: #28a745; }
-        button.danger { background: #dc3545; }
-        
-        .status-box { 
-            padding: 15px; 
-            margin: 15px 0; 
-            border-radius: 5px; 
-            border-left: 4px solid #007bff;
-        }
-        .success { background: #d4edda; border-color: #28a745; color: #155724; }
-        .error { background: #f8d7da; border-color: #dc3545; color: #721c24; }
-        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
-        .info { background: #d1ecf1; border-color: #17a2b8; color: #0c5460; }
-        
-        .token-display { 
-            background: #f8f9fa; 
-            padding: 15px; 
-            margin: 15px 0; 
-            border-radius: 5px; 
-            border: 1px solid #dee2e6;
-            font-family: monospace;
-            font-size: 12px;
-            word-break: break-all;
-        }
-        
-        .debug { 
-            background: #e9ecef; 
-            padding: 10px; 
-            margin: 10px 0; 
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 11px;
-        }
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #ddd; }
+        .nav a { margin: 0 15px; text-decoration: none; color: #2563eb; font-weight: 500; }
+        .auth-section { background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-secondary { background: #dc2626; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .user-info { background: #d1fae5; padding: 15px; border-radius: 6px; }
+        .api-section { background: #e0f2fe; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #0369a1; }
+        .token-info { background: #fff3cd; padding: 15px; border-radius: 6px; margin: 15px 0; font-family: monospace; font-size: 12px; }
+        .content { padding: 30px 0; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🔐 Independent API Test</h1>
-        <p>Complete authentication and API testing solution</p>
+        <h1><a href="index.html" style="text-decoration: none; color: inherit;">The Weer</a> / API Tester</h1>
+        <div class="nav">
+            <a href="index.html">Home</a>
+            <a href="product1.html">Product 1</a>
+            <a href="product2.html">Product 2</a>
+        </div>
     </div>
 
-    <div id="auth-status" class="status-box info">
-        Initializing authentication system...
+    <div id="auth-section" class="auth-section">
+        <p>Checking API authentication status...</p>
     </div>
 
-    <div class="controls">
-        <button onclick="authSystem.startAuth()" id="authButton">Start Authentication</button>
-        <button onclick="authSystem.callApi()" id="apiButton" disabled>Test API Call</button>
-        <button onclick="authSystem.clearAuth()" id="clearButton" class="danger">Clear Auth</button>
-        <button onclick="authSystem.toggleDebug()" id="debugButton" class="secondary">Toggle Debug</button>
+    <div class="content">
+        <h2>API Gateway Tester</h2>
+        <p>Test your API Gateway endpoints with proper JWT authentication.</p>
+        
+        <div id="api-content" class="api-section">
+            <h3>🚀 API Test Panel</h3>
+            <div id="api-message">Checking your API access...</div>
+            
+            <div id="token-display" class="token-info" style="display: none;">
+                <strong>JWT Token Available:</strong><br>
+                <span id="token-preview"></span>
+            </div>
+            
+            <button onclick="testApiCall()" id="apiButton" class="btn-success" disabled>Test API Call</button>
+            <div id="api-result" style="margin-top: 20px;"></div>
+        </div>
     </div>
 
-    <div id="token-info" class="token-display" style="display: none;">
-        <strong>JWT Token:</strong><br>
-        <span id="token-preview"></span>
-    </div>
-
-    <div id="debug-info" class="debug" style="display: none;">
-        <strong>Debug Information:</strong><br>
-        <div id="debug-content"></div>
-    </div>
-
-    <div id="api-result" class="status-box">
-        API results will appear here...
-    </div>
-
+    <!-- Use the standalone auth-tester.js -->
+    <script src="auth-tester.js"></script>
     <script>
-        // Independent Auth System
-        const authSystem = {
-            config: {
-                clientId: '7irso7dmmnp793egs9bhkl0t81',
-                domain: 'auth.theweer.com',
-                apiUrl: 'https://rd8hnh5ch6.execute-api.us-east-1.amazonaws.com/prod/add-record'
-            },
-
-            debugMode: false,
-
-            init() {
-                this.debug('Independent auth system initialized');
-                this.checkAuthStatus();
-            },
-
-            debug(message) {
-                if (this.debugMode) {
-                    const debugContent = document.getElementById('debug-content');
-                    debugContent.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${message}</div>`;
-                    console.log(`[AuthSystem] ${message}`);
-                }
-            },
-
-            checkAuthStatus() {
-                this.debug('Checking authentication status...');
+        // Initialize tester auth
+        checkTesterAuthStatus();
+        
+        function updateTesterContent(isAuthenticated) {
+            const message = document.getElementById('api-message');
+            const apiButton = document.getElementById('apiButton');
+            const tokenDisplay = document.getElementById('token-display');
+            const tokenPreview = document.getElementById('token-preview');
+            
+            if (isAuthenticated) {
+                const token = getTesterToken();
+                message.innerHTML = `
+                    <div style="color: #0369a1;">
+                        <p><strong>✅ API Access Ready!</strong></p>
+                        <p>You have valid JWT tokens for API Gateway calls.</p>
+                    </div>
+                `;
+                apiButton.disabled = false;
                 
-                // Check for tokens in URL (callback from Cognito)
-                const urlToken = this.checkUrlForToken();
-                if (urlToken) {
-                    this.debug('Found token in URL');
-                    this.updateUI('authenticated');
-                    return;
-                }
-
-                // Check for stored token
-                const storedToken = this.getStoredToken();
-                if (storedToken) {
-                    this.debug('Found stored token');
-                    this.updateUI('authenticated');
-                    return;
-                }
-
-                // No token found
-                this.debug('No authentication found');
-                this.updateUI('unauthenticated');
-            },
-
-            checkUrlForToken() {
-                const hash = window.location.hash.substring(1);
-                this.debug(`URL hash: ${hash}`);
+                // Show token preview
+                tokenDisplay.style.display = 'block';
+                tokenPreview.textContent = token.substring(0, 50) + '...';
                 
-                if (hash && (hash.includes('id_token') || hash.includes('access_token'))) {
-                    const params = new URLSearchParams(hash);
-                    const idToken = params.get('id_token');
-                    const accessToken = params.get('access_token');
-                    
-                    this.debug(`Found tokens - id_token: ${!!idToken}, access_token: ${!!accessToken}`);
-                    
-                    // Prefer id_token for API Gateway
-                    const tokenToUse = idToken || accessToken;
-                    
-                    if (tokenToUse) {
-                        this.storeToken(tokenToUse);
-                        
-                        // Clean URL - remove tokens from address bar
-                        window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-                        
-                        this.debug('Token stored and URL cleaned');
-                        return tokenToUse;
-                    }
-                }
-                
-                return null;
-            },
-
-            getStoredToken() {
-                const token = localStorage.getItem('independentAuthToken');
-                if (token) {
-                    // Basic JWT validation
-                    if (token.split('.').length === 3) {
-                        const payload = JSON.parse(atob(token.split('.')[1]));
-                        const expiry = payload.exp * 1000; // Convert to milliseconds
-                        
-                        if (Date.now() < expiry) {
-                            this.debug('Valid stored token found');
-                            return token;
-                        } else {
-                            this.debug('Stored token expired');
-                            this.clearAuth();
-                        }
-                    } else {
-                        this.debug('Stored token is not a valid JWT');
-                        this.clearAuth();
-                    }
-                }
-                return null;
-            },
-
-            storeToken(token) {
-                localStorage.setItem('independentAuthToken', token);
-                localStorage.setItem('independentAuthTime', new Date().toISOString());
-                this.debug('Token stored in localStorage');
-            },
-
-            startAuth() {
-                this.debug('Starting authentication flow...');
-                this.updateUI('redirecting');
-                
-                const redirectUri = encodeURIComponent(window.location.href.split('#')[0]);
-                this.debug(`Redirect URI: ${redirectUri}`);
-                
-                const authUrl = `https://${this.config.domain}/oauth2/authorize` +
-                    `?client_id=${this.config.clientId}` +
-                    `&response_type=token` +  // Implicit flow - get token directly
-                    `&scope=email+openid` +
-                    `&redirect_uri=${redirectUri}` +
-                    `&state=independent_${Date.now()}`;
-                
-                this.debug(`Redirecting to: ${authUrl}`);
-                window.location.href = authUrl;
-            },
-
-            async callApi() {
-                this.debug('Starting API call...');
-                this.updateUI('calling_api');
-                
-                const token = this.getStoredToken();
-                if (!token) {
-                    this.showResult('error', 'No authentication token found');
-                    this.updateUI('unauthenticated');
-                    return;
-                }
-
-                try {
-                    this.debug(`Calling API: ${this.config.apiUrl}`);
-                    
-                    const response = await fetch(this.config.apiUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': token
-                        }
-                    });
-
-                    const data = await response.json();
-                    this.debug(`API response status: ${response.status}`);
-                    
-                    if (response.ok) {
-                        this.showResult('success', 
-                            `✅ API Call Successful!<br><br>
-                            <strong>Response:</strong><br>
-                            <pre>${JSON.stringify(data, null, 2)}</pre>`);
-                    } else {
-                        throw new Error(`API returned ${response.status}: ${data.message || JSON.stringify(data)}`);
-                    }
-
-                } catch (error) {
-                    this.debug(`API call failed: ${error.message}`);
-                    this.showResult('error', 
-                        `❌ API Call Failed<br><br>
-                        <strong>Error:</strong> ${error.message}<br><br>
-                        <em>Check browser console for detailed logs</em>`);
-                } finally {
-                    this.updateUI('authenticated');
-                }
-            },
-
-            clearAuth() {
-                this.debug('Clearing authentication data...');
-                localStorage.removeItem('independentAuthToken');
-                localStorage.removeItem('independentAuthTime');
-                this.updateUI('unauthenticated');
-                this.showResult('info', 'Authentication data cleared');
-            },
-
-            updateUI(state) {
-                const authStatus = document.getElementById('auth-status');
-                const authButton = document.getElementById('authButton');
-                const apiButton = document.getElementById('apiButton');
-                const tokenInfo = document.getElementById('token-info');
-                const tokenPreview = document.getElementById('token-preview');
-
-                switch(state) {
-                    case 'unauthenticated':
-                        authStatus.className = 'status-box error';
-                        authStatus.innerHTML = '❌ Not authenticated<br><small>Click "Start Authentication" to begin</small>';
-                        authButton.disabled = false;
-                        apiButton.disabled = true;
-                        tokenInfo.style.display = 'none';
-                        break;
-
-                    case 'redirecting':
-                        authStatus.className = 'status-box warning';
-                        authStatus.innerHTML = '🔄 Redirecting to authentication...';
-                        authButton.disabled = true;
-                        apiButton.disabled = true;
-                        tokenInfo.style.display = 'none';
-                        break;
-
-                    case 'authenticated':
-                        const token = this.getStoredToken();
-                        let userInfo = 'User: Unknown';
-                        
-                        try {
-                            const payload = JSON.parse(atob(token.split('.')[1]));
-                            userInfo = `User: ${payload.email || payload.username || payload.sub || 'Unknown'}`;
-                            this.debug(`User identified: ${userInfo}`);
-                        } catch (e) {
-                            this.debug('Could not decode token payload');
-                        }
-
-                        authStatus.className = 'status-box success';
-                        authStatus.innerHTML = `✅ Authenticated!<br><small>${userInfo}</small>`;
-                        authButton.disabled = true;
-                        apiButton.disabled = false;
-                        
-                        // Show token preview
-                        tokenInfo.style.display = 'block';
-                        tokenPreview.textContent = token.substring(0, 50) + '...';
-                        break;
-
-                    case 'calling_api':
-                        authStatus.className = 'status-box info';
-                        authStatus.innerHTML = '🔄 Calling API...';
-                        authButton.disabled = true;
-                        apiButton.disabled = true;
-                        break;
-                }
-            },
-
-            showResult(type, message) {
-                const resultDiv = document.getElementById('api-result');
-                resultDiv.className = `status-box ${type}`;
-                resultDiv.innerHTML = message;
-            },
-
-            toggleDebug() {
-                this.debugMode = !this.debugMode;
-                const debugInfo = document.getElementById('debug-info');
-                const debugButton = document.getElementById('debugButton');
-                
-                if (this.debugMode) {
-                    debugInfo.style.display = 'block';
-                    debugButton.textContent = 'Hide Debug';
-                    this.debug('Debug mode enabled');
-                } else {
-                    debugInfo.style.display = 'none';
-                    debugButton.textContent = 'Show Debug';
-                }
+            } else {
+                message.innerHTML = `
+                    <div style="color: #dc2626;">
+                        <p><strong>🔒 API Authentication Required</strong></p>
+                        <p>Sign in to get JWT tokens for testing API Gateway endpoints.</p>
+                    </div>
+                `;
+                apiButton.disabled = true;
+                tokenDisplay.style.display = 'none';
             }
-        };
+        }
+        
+        async function testApiCall() {
+            const button = document.getElementById('apiButton');
+            const resultDiv = document.getElementById('api-result');
+            
+            button.disabled = true;
+            button.textContent = 'Calling API...';
+            resultDiv.innerHTML = '<div style="color: #856404;">🔄 Making API call...</div>';
 
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            authSystem.init();
-        });
+            try {
+                const token = getTesterToken();
+                if (!token) {
+                    throw new Error('No JWT token found');
+                }
+
+                const API_URL = 'https://rd8hnh5ch6.execute-api.us-east-1.amazonaws.com/prod/add-record';
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div style="color: #155724; background: #d4edda; padding: 15px; border-radius: 5px;">
+                            <strong>✅ API Call Successful!</strong>
+                            <pre style="background: white; padding: 10px; margin: 10px 0; border-radius: 3px;">${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(`API error ${response.status}: ${data.message || JSON.stringify(data)}`);
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div style="color: #721c24; background: #f8d7da; padding: 15px; border-radius: 5px;">
+                        <strong>❌ API Call Failed</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+                console.error('API call failed:', error);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Test API Call';
+            }
+        }
     </script>
 </body>
 </html>
