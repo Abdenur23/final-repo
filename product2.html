@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <head>
     <title>Product 2 - The Weer</title>
@@ -75,6 +75,148 @@
                         <p>Please sign in to unlock all Product 2 premium features including unlimited teams and advanced security.</p>
                     </div>
                 `;
+            }
+        }
+    </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Tester - The Weer</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #ddd; }
+        .nav a { margin: 0 15px; text-decoration: none; color: #2563eb; font-weight: 500; }
+        .auth-section { background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-secondary { background: #dc2626; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .user-info { background: #d1fae5; padding: 15px; border-radius: 6px; }
+        .api-section { background: #e0f2fe; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #0369a1; }
+        .token-info { background: #fff3cd; padding: 15px; border-radius: 6px; margin: 15px 0; font-family: monospace; font-size: 12px; }
+        .content { padding: 30px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><a href="index.html" style="text-decoration: none; color: inherit;">The Weer</a> / API Tester</h1>
+        <div class="nav">
+            <a href="index.html">Home</a>
+            <a href="product1.html">Product 1</a>
+            <a href="product2.html">Product 2</a>
+        </div>
+    </div>
+
+    <div id="auth-section" class="auth-section">
+        <p>Checking API authentication status...</p>
+    </div>
+
+    <div class="content">
+        <h2>API Gateway Tester</h2>
+        <p>Test your API Gateway endpoints with proper JWT authentication.</p>
+        
+        <div id="api-content" class="api-section">
+            <h3>🚀 API Test Panel</h3>
+            <div id="api-message">Checking your API access...</div>
+            
+            <div id="token-display" class="token-info" style="display: none;">
+                <strong>JWT Token Available:</strong><br>
+                <span id="token-preview"></span>
+            </div>
+            
+            <button onclick="testApiCall()" id="apiButton" class="btn-success" disabled>Test API Call</button>
+            <div id="api-result" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <!-- Use the standalone auth-tester.js -->
+    <script src="auth-tester.js"></script>
+    <script>
+        // Initialize tester auth
+        checkTesterAuthStatus();
+        
+        function updateTesterContent(isAuthenticated) {
+            const message = document.getElementById('api-message');
+            const apiButton = document.getElementById('apiButton');
+            const tokenDisplay = document.getElementById('token-display');
+            const tokenPreview = document.getElementById('token-preview');
+            
+            if (isAuthenticated) {
+                const token = getTesterToken();
+                message.innerHTML = `
+                    <div style="color: #0369a1;">
+                        <p><strong>✅ API Access Ready!</strong></p>
+                        <p>You have valid JWT tokens for API Gateway calls.</p>
+                    </div>
+                `;
+                apiButton.disabled = false;
+                
+                // Show token preview
+                tokenDisplay.style.display = 'block';
+                tokenPreview.textContent = token.substring(0, 50) + '...';
+                
+            } else {
+                message.innerHTML = `
+                    <div style="color: #dc2626;">
+                        <p><strong>🔒 API Authentication Required</strong></p>
+                        <p>Sign in to get JWT tokens for testing API Gateway endpoints.</p>
+                    </div>
+                `;
+                apiButton.disabled = true;
+                tokenDisplay.style.display = 'none';
+            }
+        }
+        
+        async function testApiCall() {
+            const button = document.getElementById('apiButton');
+            const resultDiv = document.getElementById('api-result');
+            
+            button.disabled = true;
+            button.textContent = 'Calling API...';
+            resultDiv.innerHTML = '<div style="color: #856404;">🔄 Making API call...</div>';
+
+            try {
+                const token = getTesterToken();
+                if (!token) {
+                    throw new Error('No JWT token found');
+                }
+
+                const API_URL = 'https://rd8hnh5ch6.execute-api.us-east-1.amazonaws.com/prod/add-record';
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div style="color: #155724; background: #d4edda; padding: 15px; border-radius: 5px;">
+                            <strong>✅ API Call Successful!</strong>
+                            <pre style="background: white; padding: 10px; margin: 10px 0; border-radius: 3px;">${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(`API error ${response.status}: ${data.message || JSON.stringify(data)}`);
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div style="color: #721c24; background: #f8d7da; padding: 15px; border-radius: 5px;">
+                        <strong>❌ API Call Failed</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+                console.error('API call failed:', error);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Test API Call';
             }
         }
     </script>
