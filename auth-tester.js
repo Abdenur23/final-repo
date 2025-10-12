@@ -9,15 +9,30 @@ const cognitoConfig = {
 function saveSession(tokens) {
     localStorage.setItem('cognitoSession', JSON.stringify(tokens));
 }
+
 function getSession() {
     return JSON.parse(localStorage.getItem('cognitoSession') || 'null');
 }
+
 function clearSession() {
     localStorage.removeItem('cognitoSession');
 }
+
 function getAccessToken() {
     const s = getSession();
     return s?.access_token || null;
+}
+
+// Decode JWT and check expiration
+function isTokenValid(token) {
+    if (!token) return false;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        // exp is in seconds
+        return payload.exp > Math.floor(Date.now() / 1000);
+    } catch (e) {
+        return false;
+    }
 }
 
 // --- Exchange code for tokens ---
@@ -37,10 +52,7 @@ async function exchangeCodeForToken(code) {
             body: body
         });
 
-        if (!response.ok) {
-            throw new Error(`Token exchange failed: ${response.status}`);
-        }
-
+        if (!response.ok) throw new Error(`Token exchange failed: ${response.status}`);
         const tokens = await response.json();
         saveSession(tokens);
         return tokens;
@@ -54,12 +66,11 @@ async function exchangeCodeForToken(code) {
 async function checkAuthStatus() {
     const authSection = document.getElementById('auth-section');
 
-    // 1️⃣ Check URL for "code" from Cognito
+    // 1️⃣ Handle redirect with code
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
 
     if (code) {
-        // Exchange code for tokens
         const tokens = await exchangeCodeForToken(code);
         window.history.replaceState({}, document.title, window.location.pathname);
         if (tokens) {
@@ -70,9 +81,10 @@ async function checkAuthStatus() {
 
     // 2️⃣ Check existing session
     const session = getSession();
-    if (session?.access_token) {
+    if (session?.access_token && isTokenValid(session.id_token)) {
         showLoggedInUI(authSection);
     } else {
+        clearSession();
         showLoginUI(authSection);
     }
 }
@@ -89,9 +101,13 @@ function showLoginUI(container) {
 }
 
 function showLoggedInUI(container) {
+    const session = getSession();
+    const payload = session ? JSON.parse(atob(session.id_token.split('.')[1])) : {};
+    const email = payload.email || 'Unknown';
+
     container.innerHTML = `
         <div style="text-align:center; background:#d1fae5; padding:15px; border-radius:8px;">
-            <p>✅ Logged in with Cognito</p>
+            <p>✅ Logged in as <strong>${email}</strong></p>
             <button id="logoutBtn">Logout</button>
         </div>
     `;
@@ -101,7 +117,7 @@ function showLoggedInUI(container) {
 // --- Cognito actions ---
 function signIn() {
     const { domain, clientId, redirectUri } = cognitoConfig;
-    const url = `https://${domain}/oauth2/authorize?client_id=${clientId}&response_type=code&scope=email+openid+profile&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    const url = `https://${domain}/oauth2/authorize?client_id=${clientId}&response_type=code&scope=email+openid+phone&redirect_uri=${encodeURIComponent(redirectUri)}`;
     window.location.href = url;
 }
 
