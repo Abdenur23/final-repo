@@ -25,7 +25,6 @@
             padding: 15px; 
             background: #f0f0f0; 
             border-radius: 5px; 
-            border-left: 4px solid #007bff;
         }
     </style>
 </head>
@@ -37,27 +36,37 @@
     <button onclick="callApi()" id="apiButton" disabled>Click to Call API</button>
     <div id="result"></div>
 
-    <!-- Use the modified auth script -->
-    <script src="auth-tester.js"></script>
+    <!-- Use your existing auth.js -->
+    <script src="auth.js"></script>
 
     <script>
         const API_URL = 'https://rd8hnh5ch6.execute-api.us-east-1.amazonaws.com/prod/add-record';
 
-        // Function to get the JWT token
-        function getJwtToken() {
-            return localStorage.getItem('idToken');
-        }
-
-        // Clear existing placeholder tokens and start fresh
-        function clearPlaceholderTokens() {
-            const token = localStorage.getItem('cognitoToken');
-            if (token && token.startsWith('authenticated-')) {
-                localStorage.removeItem('cognitoToken');
-                console.log('Cleared placeholder token');
+        // Modified checkAuthStatus for tester page
+        function checkAuthForTester() {
+            const authStatus = document.getElementById('auth-status');
+            const apiButton = document.getElementById('apiButton');
+            
+            // Check if we have the cognitoToken (your existing auth system)
+            const cognitoToken = localStorage.getItem('cognitoToken');
+            
+            if (cognitoToken) {
+                authStatus.innerHTML = `
+                    <div class="success">✅ You are signed in</div>
+                    <div><small>Using existing authentication</small></div>
+                    <button onclick="signOut()" class="btn-secondary">Sign Out</button>
+                `;
+                apiButton.disabled = false;
+            } else {
+                authStatus.innerHTML = `
+                    <div class="error">❌ Not authenticated</div>
+                    <button onclick="signIn()" class="btn-primary">Sign In</button>
+                `;
+                apiButton.disabled = true;
             }
         }
 
-        // Main API call function
+        // Modified API call that works with your current setup
         async function callApi() {
             const button = document.getElementById('apiButton');
             const resultDiv = document.getElementById('result');
@@ -67,9 +76,12 @@
             resultDiv.innerHTML = '';
 
             try {
-                const token = getJwtToken();
+                // Since your current auth doesn't store real JWT tokens,
+                // we need to get a fresh token using the implicit grant flow
+                const token = await getFreshToken();
+                
                 if (!token) {
-                    throw new Error('No valid JWT token found. Please sign in.');
+                    throw new Error('Could not get authentication token');
                 }
 
                 console.log('Making API call with token...');
@@ -100,10 +112,68 @@
             }
         }
 
-        // Clear placeholder tokens and check auth on load
+        // Function to get a fresh token using implicit grant
+        async function getFreshToken() {
+            // Since your current system doesn't store JWT tokens,
+            // we'll redirect to Cognito to get a fresh token
+            return new Promise((resolve) => {
+                // Store the current URL to return here after auth
+                localStorage.setItem('returnUrl', window.location.href);
+                
+                // Redirect to Cognito with implicit grant to get token directly
+                const cognitoConfig = {
+                    clientId: '7irso7dmmnp793egs9bhkl0t81',
+                    domain: 'auth.theweer.com',
+                    redirectUri: window.location.origin + window.location.pathname
+                };
+                
+                const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
+                const implicitUrl = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=token&scope=email+openid&redirect_uri=${redirectUri}`;
+                
+                window.location.href = implicitUrl;
+            });
+        }
+
+        // Check for token in URL (implicit grant callback)
+        function checkForTokenInURL() {
+            const urlParams = new URLSearchParams(window.location.hash.substring(1));
+            const accessToken = urlParams.get('access_token');
+            const idToken = urlParams.get('id_token');
+            
+            if (accessToken || idToken) {
+                // We got tokens! Store them and clean up URL
+                if (idToken) {
+                    localStorage.setItem('idToken', idToken);
+                }
+                if (accessToken) {
+                    localStorage.setItem('accessToken', accessToken);
+                }
+                
+                // Clear the tokens from URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // Enable API button
+                document.getElementById('apiButton').disabled = false;
+                document.getElementById('auth-status').innerHTML = 
+                    '<div class="success">✅ Got fresh tokens! Ready to call API.</div>';
+                
+                return idToken || accessToken;
+            }
+            return null;
+        }
+
+        // Initialize
         window.addEventListener('load', function() {
-            clearPlaceholderTokens();
-            checkAuthStatus();
+            // First check if we have tokens in URL (implicit grant callback)
+            const token = checkForTokenInURL();
+            
+            if (token) {
+                // We have fresh tokens from implicit flow
+                console.log('Got fresh token from implicit flow');
+            } else {
+                // Use your existing auth system
+                checkAuthForTester();
+            }
         });
     </script>
 </body>
