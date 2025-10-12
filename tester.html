@@ -16,18 +16,26 @@
         }
         button:hover { background: #0056b3; }
         button:disabled { background: #ccc; cursor: not-allowed; }
-        #result { margin-top: 20px; padding: 10px; }
+        #result { margin-top: 20px; padding: 10px; border: 1px solid #ddd; }
         .success { color: green; }
         .error { color: red; }
         .info { color: blue; }
+        .debug { background: #f5f5f5; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px; }
     </style>
 </head>
 <body>
     <h1>API Gateway Test</h1>
+    
+    <div id="debug" class="debug"></div>
+    
     <div id="auth-status">
-        <p>Checking authentication...</p>
+        <p>Initializing...</p>
     </div>
+    
+    <button onclick="startAuth()" id="authButton">Start Authentication</button>
     <button onclick="callApi()" id="apiButton" disabled>Test API Call</button>
+    <button onclick="clearAll()" id="clearButton">Clear All</button>
+    
     <div id="result"></div>
 
     <script>
@@ -37,94 +45,138 @@
             domain: 'auth.theweer.com'
         };
 
-        // Check if we have a token in the URL (implicit flow callback)
-        function checkForTokenInURL() {
-            const hash = window.location.hash.substring(1);
-            const params = new URLSearchParams(hash);
+        function debug(message) {
+            const debugDiv = document.getElementById('debug');
+            debugDiv.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            console.log(message);
+        }
+
+        // Check for token in URL (callback from Cognito)
+        function checkUrlForToken() {
+            debug('Checking URL for tokens...');
+            const hash = window.location.hash;
+            debug('URL hash: ' + hash);
             
-            const accessToken = params.get('access_token');
-            const idToken = params.get('id_token');
-            
-            if (idToken) {
-                // Store the token
-                localStorage.setItem('apiTestToken', idToken);
-                // Clear the URL
-                window.history.replaceState({}, document.title, window.location.pathname);
+            if (hash && hash.includes('access_token') || hash.includes('id_token')) {
+                const params = new URLSearchParams(hash.substring(1));
+                const accessToken = params.get('access_token');
+                const idToken = params.get('id_token');
                 
-                document.getElementById('auth-status').innerHTML = 
-                    '<div class="success">✅ Got authentication token! Ready to test API.</div>';
-                document.getElementById('apiButton').disabled = false;
+                debug('Found tokens in URL - access_token: ' + (accessToken ? 'yes' : 'no'));
+                debug('Found tokens in URL - id_token: ' + (idToken ? 'yes' : 'no'));
                 
-                return idToken;
+                if (idToken) {
+                    localStorage.setItem('apiTestToken', idToken);
+                    localStorage.setItem('apiTestTokenTime', new Date().toISOString());
+                    
+                    // Clean URL
+                    window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+                    
+                    updateUI('authenticated');
+                    debug('Token stored and URL cleaned');
+                    return idToken;
+                }
             }
+            debug('No tokens found in URL');
             return null;
         }
 
-        // Check if we have a stored token
+        // Check for stored token
         function checkStoredToken() {
+            debug('Checking localStorage for token...');
             const token = localStorage.getItem('apiTestToken');
             if (token) {
-                document.getElementById('auth-status').innerHTML = 
-                    '<div class="success">✅ Using stored authentication token.</div>';
-                document.getElementById('apiButton').disabled = false;
-                return token;
+                const storedTime = localStorage.getItem('apiTestTokenTime');
+                debug('Found stored token from: ' + storedTime);
+                
+                // Basic token validation (check if it's a JWT)
+                if (token.split('.').length === 3) {
+                    updateUI('authenticated');
+                    return token;
+                } else {
+                    debug('Stored token does not appear to be a valid JWT');
+                    localStorage.removeItem('apiTestToken');
+                }
             }
+            debug('No valid stored token found');
             return null;
         }
 
-        // Get authentication token
-        function getAuthToken() {
-            // First check URL (for callback)
-            const urlToken = checkForTokenInURL();
-            if (urlToken) return urlToken;
+        // Start authentication
+        function startAuth() {
+            debug('Starting authentication...');
             
-            // Then check stored token
-            const storedToken = checkStoredToken();
-            if (storedToken) return storedToken;
+            // Use the current page as redirect URI
+            const redirectUri = window.location.href.split('#')[0]; // Remove existing hash
+            debug('Redirect URI: ' + redirectUri);
             
-            // No token found
-            document.getElementById('auth-status').innerHTML = `
-                <div class="error">
-                    ❌ Not authenticated for API testing
-                    <br><br>
-                    <button onclick="authenticateForAPI()" class="btn-primary">Authenticate for API Test</button>
-                    <br><br>
-                    <small>This uses a different authentication flow specifically for API testing</small>
-                </div>
-            `;
-            return null;
-        }
-
-        // Authenticate specifically for API testing
-        function authenticateForAPI() {
-            const redirectUri = encodeURIComponent(window.location.href);
-            const authUrl = `https://${COGNITO_CONFIG.domain}/oauth2/authorize?` +
-                `client_id=${COGNITO_CONFIG.clientId}` +
+            const authUrl = `https://${COGNITO_CONFIG.domain}/oauth2/authorize` +
+                `?client_id=${COGNITO_CONFIG.clientId}` +
                 `&response_type=token` +
                 `&scope=email+openid` +
-                `&redirect_uri=${redirectUri}` +
-                `&state=api_test`;
+                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                `&state=api_test_${Date.now()}`;
+            
+            debug('Redirecting to: ' + authUrl);
+            updateUI('redirecting');
             
             window.location.href = authUrl;
         }
 
-        // Clear authentication
-        function clearAuth() {
-            localStorage.removeItem('apiTestToken');
-            document.getElementById('auth-status').innerHTML = 
-                '<div class="info">Authentication cleared. Refresh to re-authenticate.</div>';
-            document.getElementById('apiButton').disabled = true;
-            document.getElementById('result').innerHTML = '';
+        // Update UI based on state
+        function updateUI(state) {
+            const authStatus = document.getElementById('auth-status');
+            const authButton = document.getElementById('authButton');
+            const apiButton = document.getElementById('apiButton');
+            
+            switch(state) {
+                case 'initial':
+                    authStatus.innerHTML = '<div class="info">Ready to authenticate</div>';
+                    authButton.disabled = false;
+                    apiButton.disabled = true;
+                    break;
+                case 'redirecting':
+                    authStatus.innerHTML = '<div class="info">🔄 Redirecting to Cognito...</div>';
+                    authButton.disabled = true;
+                    apiButton.disabled = true;
+                    break;
+                case 'authenticated':
+                    const token = localStorage.getItem('apiTestToken');
+                    let userInfo = 'User: Unknown';
+                    
+                    try {
+                        const payload = JSON.parse(atob(token.split('.')[1]));
+                        userInfo = `User: ${payload.email || payload.username || 'Unknown'}`;
+                        debug('Decoded token: ' + userInfo);
+                    } catch (e) {
+                        debug('Could not decode token: ' + e.message);
+                    }
+                    
+                    authStatus.innerHTML = `
+                        <div class="success">
+                            ✅ Authenticated!<br>
+                            <small>${userInfo}</small>
+                        </div>
+                    `;
+                    authButton.disabled = true;
+                    apiButton.disabled = false;
+                    break;
+                case 'error':
+                    authStatus.innerHTML = '<div class="error">❌ Authentication failed</div>';
+                    authButton.disabled = false;
+                    apiButton.disabled = true;
+                    break;
+            }
         }
 
-        // Main API call function
+        // Call API
         async function callApi() {
             const button = document.getElementById('apiButton');
             const resultDiv = document.getElementById('result');
             
             button.disabled = true;
             button.textContent = 'Calling API...';
-            resultDiv.innerHTML = '';
+            resultDiv.innerHTML = '<div class="info">Making API call...</div>';
 
             try {
                 const token = localStorage.getItem('apiTestToken');
@@ -132,7 +184,8 @@
                     throw new Error('No authentication token found');
                 }
 
-                console.log('Calling API with token...');
+                debug('Making API call to: ' + API_URL);
+                debug('Using token: ' + token.substring(0, 50) + '...');
                 
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -143,41 +196,65 @@
                 });
 
                 const data = await response.json();
+                debug('API response status: ' + response.status);
                 
                 if (response.ok) {
                     resultDiv.innerHTML = `
                         <div class="success">
-                            ✅ Success! API call completed.
+                            ✅ API Call Successful!<br>
                             <pre>${JSON.stringify(data, null, 2)}</pre>
                         </div>
                     `;
                 } else {
-                    throw new Error(data.message || `API returned ${response.status}`);
+                    throw new Error(`API error ${response.status}: ${data.message || JSON.stringify(data)}`);
                 }
 
             } catch (error) {
+                debug('API call failed: ' + error.message);
                 resultDiv.innerHTML = `
                     <div class="error">
-                        ❌ API Call Failed: ${error.message}
-                        <br><br>
-                        <button onclick="clearAuth()">Clear Authentication & Retry</button>
+                        ❌ API Call Failed<br>
+                        <strong>${error.message}</strong><br><br>
+                        <small>Check browser console for details</small>
                     </div>
                 `;
-                console.error('API call failed:', error);
             } finally {
                 button.disabled = false;
                 button.textContent = 'Test API Call';
             }
         }
 
+        // Clear everything
+        function clearAll() {
+            debug('Clearing all data...');
+            localStorage.removeItem('apiTestToken');
+            localStorage.removeItem('apiTestTokenTime');
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('debug').innerHTML = '';
+            updateUI('initial');
+            debug('Cleared - ready to start fresh');
+        }
+
         // Initialize
         window.addEventListener('load', function() {
-            const token = getAuthToken();
-            if (token) {
-                // Add a clear button
-                document.getElementById('auth-status').innerHTML += 
-                    '<br><button onclick="clearAuth()" style="background: #dc2626;">Clear Auth</button>';
+            debug('Page loaded - initializing...');
+            debug('Current URL: ' + window.location.href);
+            
+            // First check if we're returning from Cognito with tokens
+            const urlToken = checkUrlForToken();
+            if (urlToken) {
+                return;
             }
+            
+            // Then check for stored token
+            const storedToken = checkStoredToken();
+            if (storedToken) {
+                return;
+            }
+            
+            // No token found
+            updateUI('initial');
+            debug('Initialization complete - no authentication found');
         });
     </script>
 </body>
