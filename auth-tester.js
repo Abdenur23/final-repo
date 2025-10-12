@@ -5,78 +5,80 @@ const cognitoConfig = {
     redirectUri: window.location.origin,
 };
 
-function getStoredSession() {
+// --- Helpers ---
+function saveSession(tokens) {
+    localStorage.setItem('cognitoSession', JSON.stringify(tokens));
+}
+function getSession() {
     return JSON.parse(localStorage.getItem('cognitoSession') || 'null');
 }
-
-function saveSession(session) {
-    localStorage.setItem('cognitoSession', JSON.stringify(session));
-}
-
 function clearSession() {
     localStorage.removeItem('cognitoSession');
 }
-
 function getAccessToken() {
-    const session = getStoredSession();
-    return session ? session.access_token : null;
+    const s = getSession();
+    return s?.access_token || null;
 }
 
-async function checkAuthStatus() {
-    const urlParams = new URLSearchParams(window.location.hash.substring(1));
-    const idToken = urlParams.get('id_token');
-    const accessToken = urlParams.get('access_token');
+// --- Main Auth Check ---
+function checkAuthStatus() {
+    const authSection = document.getElementById('auth-section');
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const idToken = hashParams.get('id_token');
+    const accessToken = hashParams.get('access_token');
 
+    // 1️⃣ Handle redirect from Cognito
     if (idToken && accessToken) {
-        // Save tokens
-        const session = {
+        saveSession({
             id_token: idToken,
             access_token: accessToken,
-            obtainedAt: Date.now(),
-        };
-        saveSession(session);
-
-        // Clean URL
+            timestamp: Date.now(),
+        });
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    const session = getStoredSession();
-
-    if (!session) {
-        showLoginPrompt();
+    const session = getSession();
+    if (session?.access_token) {
+        showLoggedInUI(authSection);
     } else {
-        showUser(session);
+        showLoginUI(authSection);
     }
 }
 
-function showLoginPrompt() {
-    const authSection = document.getElementById('auth-section');
-    authSection.innerHTML = `
+// --- UI Builders ---
+function showLoginUI(container) {
+    container.innerHTML = `
         <div style="text-align:center;">
-            <h3>Welcome to The Weer</h3>
-            <p>Please sign in or sign up to continue.</p>
-            <button id="loginBtn">Sign In / Sign Up</button>
+            <p>🔒 You are not signed in</p>
+            <button id="signInBtn">Sign In / Sign Up</button>
         </div>
     `;
-
-    document.getElementById('loginBtn').onclick = () => {
-        const loginUrl = `https://${cognitoConfig.domain}/login?client_id=${cognitoConfig.clientId}&response_type=token&scope=email+openid+profile&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`;
-        window.location.href = loginUrl;
-    };
+    document.getElementById('signInBtn').onclick = signIn;
 }
 
-function showUser(session) {
-    const authSection = document.getElementById('auth-section');
-    authSection.innerHTML = `
-        <p style="color:green;">✅ Logged in</p>
-        <button id="logoutBtn">Logout</button>
+function showLoggedInUI(container) {
+    container.innerHTML = `
+        <div style="text-align:center; background:#d1fae5; padding:15px; border-radius:8px;">
+            <p>✅ Logged in with Cognito</p>
+            <button id="logoutBtn">Logout</button>
+        </div>
     `;
-
-    document.getElementById('logoutBtn').onclick = () => {
-        clearSession();
-        location.reload();
-    };
+    document.getElementById('logoutBtn').onclick = signOut;
 }
 
-// Expose helper functions globally
-window.authTester = { getAccessToken, checkAuthStatus };
+// --- Cognito actions ---
+function signIn() {
+    const { domain, clientId, redirectUri } = cognitoConfig;
+    const url = `https://${domain}/oauth2/authorize?client_id=${clientId}&response_type=token&scope=email+openid+profile&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    window.location.href = url;
+}
+
+function signOut() {
+    clearSession();
+    const { domain, clientId, redirectUri } = cognitoConfig;
+    const url = `https://${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
+    window.location.href = url;
+}
+
+// --- Export helpers globally ---
+window.authTester = { checkAuthStatus, getAccessToken, signOut };
