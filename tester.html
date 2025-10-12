@@ -1,198 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Image Upload</title>
+    <title>Simple API Test</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
-        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
-        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
-        #upload-section { display: none; }
-        #preview { max-width: 200px; margin: 10px 0; display: none; }
-        .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
-        .success { background: #d4edda; color: #155724; }
-        .error { background: #f8d7da; color: #721c24; }
+        body { font-family: Arial; margin: 40px; }
+        button { 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #result { margin-top: 20px; padding: 10px; }
     </style>
 </head>
 <body>
-    <h1>Image Upload</h1>
-    
-    <div class="section" id="auth-section">
-        <p>Loading...</p>
-    </div>
-    
-    <div class="section" id="upload-section">
-        <h3>Upload Image</h3>
-        <input type="file" id="image-input" accept="image/*">
-        <button onclick="generatePresignedUrl()">Get Upload URL</button>
-        <button onclick="uploadImage()" id="upload-btn" disabled>Upload Image</button>
-        <img id="preview">
-        <div id="message"></div>
-    </div>
+    <h1>Simple API Test</h1>
+    <button onclick="callApi()" id="apiButton">Click to Call API</button>
+    <div id="result"></div>
 
     <script>
-        const cognitoConfig = {
-            clientId: '7irso7dmmnp793egs9bhkl0t81',
-            domain: 'auth.theweer.com',
-            redirectUri: window.location.origin,
-            apiUrl: 'https://j8yw89doyh.execute-api.us-east-1.amazonaws.com/prod/presigned-url' // REPLACE THIS
-        };
+        // Update this with your actual API Gateway URL
+        const API_URL = 'https://rd8hnh5ch6.execute-api.us-east-1.amazonaws.com/prod/add-record';
 
-        let presignedUrl = '';
-        let selectedFile = null;
-
-        // Auth functions
-        async function checkAuthStatus() {
-            const authSection = document.getElementById('auth-section');
-            const uploadSection = document.getElementById('upload-section');
+        async function callApi() {
+            const button = document.getElementById('apiButton');
+            const resultDiv = document.getElementById('result');
             
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const code = urlParams.get('code');
-                
-                if (code) {
-                    const tokens = await exchangeCodeForTokens(code);
-                    localStorage.setItem('cognitoAccessToken', tokens.access_token);
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    showAuthState(true);
-                    uploadSection.style.display = 'block';
-                    return;
-                }
-
-                const token = localStorage.getItem('cognitoAccessToken');
-                if (token) {
-                    showAuthState(true);
-                    uploadSection.style.display = 'block';
-                } else {
-                    showAuthState(false);
-                    uploadSection.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Auth error:', error);
-                showAuthState(false);
-            }
-        }
-
-        function showAuthState(isAuthenticated) {
-            const authSection = document.getElementById('auth-section');
-            if (isAuthenticated) {
-                authSection.innerHTML = `<p>✅ Signed in</p><button onclick="signOut()">Sign Out</button>`;
-            } else {
-                authSection.innerHTML = `
-                    <p>🔒 Not signed in</p>
-                    <button onclick="signIn()">Sign In</button>
-                    <button onclick="signUp()">Sign Up</button>
-                `;
-            }
-        }
-
-        async function exchangeCodeForTokens(code) {
-            const tokenUrl = `https://${cognitoConfig.domain}/oauth2/token`;
-            const response = await fetch(tokenUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
-                    grant_type: 'authorization_code',
-                    client_id: cognitoConfig.clientId,
-                    code: code,
-                    redirect_uri: cognitoConfig.redirectUri
-                })
-            });
-            if (!response.ok) throw new Error('Token exchange failed');
-            return await response.json();
-        }
-
-        function signIn() {
-            const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
-            window.location.href = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
-        }
-
-        function signUp() {
-            const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
-            window.location.href = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
-        }
-
-        function signOut() {
-            localStorage.removeItem('cognitoAccessToken');
-            const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
-            window.location.href = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${redirectUri}`;
-        }
-
-        // Upload functions
-        document.getElementById('image-input').addEventListener('change', function(e) {
-            selectedFile = e.target.files[0];
-            const preview = document.getElementById('preview');
-            if (selectedFile) {
-                preview.src = URL.createObjectURL(selectedFile);
-                preview.style.display = 'block';
-            }
-        });
-
-        async function generatePresignedUrl() {
-            if (!selectedFile) {
-                showMessage('Please select a file', 'error');
-                return;
-            }
+            button.disabled = true;
+            button.textContent = 'Calling API...';
+            resultDiv.innerHTML = '';
 
             try {
-                const token = localStorage.getItem('cognitoAccessToken');
-                if (!token) {
-                    showMessage('Please sign in', 'error');
-                    return;
-                }
-
-                const response = await fetch(cognitoConfig.apiUrl, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
                 });
-
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
                 const data = await response.json();
-                presignedUrl = data.presignedUrl;
-                document.getElementById('upload-btn').disabled = false;
-                showMessage('Upload URL ready! Click "Upload Image"', 'success');
                 
-            } catch (error) {
-                showMessage('Failed: ' + error.message, 'error');
-            }
-        }
-
-        async function uploadImage() {
-            if (!presignedUrl || !selectedFile) return;
-
-            try {
-                const response = await fetch(presignedUrl, {
-                    method: 'PUT',
-                    body: selectedFile,
-                    headers: { 'Content-Type': selectedFile.type }
-                });
-
-                if (response.status === 200) {
-                    showMessage('Upload successful!', 'success');
-                    resetUploadForm();
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div style="color: green;">✅ Success! Record added for user: ${data.user_sub}</div>`;
                 } else {
-                    throw new Error('Upload failed');
+                    throw new Error(data.message || 'API call failed');
                 }
+
             } catch (error) {
-                showMessage('Upload failed: ' + error.message, 'error');
+                resultDiv.innerHTML = `<div style="color: red;">❌ Error: ${error.message}</div>`;
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Click to Call API';
             }
         }
-
-        function resetUploadForm() {
-            document.getElementById('image-input').value = '';
-            document.getElementById('preview').style.display = 'none';
-            document.getElementById('upload-btn').disabled = true;
-            presignedUrl = '';
-            selectedFile = null;
-        }
-
-        function showMessage(text, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
-            setTimeout(() => messageDiv.innerHTML = '', 5000);
-        }
-
-        // Initialize
-        checkAuthStatus();
     </script>
 </body>
 </html>
