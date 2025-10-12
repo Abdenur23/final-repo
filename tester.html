@@ -1,82 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Product 2 - The Weer</title>
+    <meta charset="UTF-8">
+    <title>The Weer Auth Tester</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #ddd; }
-        .nav a { margin: 0 15px; text-decoration: none; color: #2563eb; font-weight: 500; }
-        .auth-section { background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
-        .btn-primary { background: #2563eb; color: white; }
-        .btn-secondary { background: #dc2626; color: white; }
-        .user-info { background: #d1fae5; padding: 15px; border-radius: 6px; }
-        .protected-content { background: #e0f2fe; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #0369a1; }
-        .content { padding: 30px 0; }
+        body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
+        button {
+            background: #007bff; color: #fff; border: none;
+            padding: 10px 18px; border-radius: 6px; cursor: pointer;
+        }
+        button:hover { background: #0056b3; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1><a href="index.html" style="text-decoration: none; color: inherit;">The Weer</a> / Product 2</h1>
-        <div class="nav">
-            <a href="index.html">Home</a>
-            <a href="product1.html">Product 1</a>
-            <a href="product2.html">Product 2</a>
-        </div>
-    </div>
-
-    <div id="auth-section" class="auth-section">
-        <p>Checking authentication status...</p>
-    </div>
-
-    <div class="content">
-        <h2>Product 2: Team Collaboration Suite</h2>
-        <p>Enhance team productivity with our comprehensive collaboration tools.</p>
-        
-        <div id="protected-content" class="protected-content">
-            <h3>🚀 Premium Features</h3>
-            <div id="access-message">Checking your access level...</div>
-        </div>
-
-        <div style="margin-top: 30px;">
-            <h3>Core Features:</h3>
-            <ul>
-                <li>Real-time messaging</li>
-                <li>File sharing and storage</li>
-                <li>Project management</li>
-                <li>Video conferencing</li>
-            </ul>
-        </div>
-    </div>
+    <h2>The Weer – Auth Test</h2>
+    <div id="auth-section">Loading...</div>
 
     <script src="auth-tester.js"></script>
     <script>
-        checkAuthStatus();
-        
-        function updateProductContent(isAuthenticated) {
-            const message = document.getElementById('access-message');
-            if (isAuthenticated) {
-                message.innerHTML = `
-                    <div style="color: #0369a1;">
-                        <p><strong>✅ Premium Access Active!</strong></p>
-                        <p>Welcome! You now have access to:</p>
-                        <ul>
-                            <li>Unlimited team members</li>
-                            <li>Advanced security features</li>
-                            <li>Custom workflow automation</li>
-                            <li>24/7 premium support</li>
-                        </ul>
-                    </div>
-                `;
-            } else {
-                message.innerHTML = `
-                    <div style="color: #dc2626;">
-                        <p><strong>🔒 Authentication Required</strong></p>
-                        <p>Please sign in to unlock all Product 2 premium features including unlimited teams and advanced security.</p>
-                    </div>
-                `;
-            }
-        }
+        window.addEventListener('load', () => {
+            authTester.checkAuthStatus();
+        });
     </script>
 </body>
 </html>
