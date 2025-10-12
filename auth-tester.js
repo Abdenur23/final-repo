@@ -1,132 +1,210 @@
-// ===== auth-tester.js =====
-const cognitoConfig = {
-    clientId: '7irso7dmmnp793egs9bhkl0t81',
-    domain: 'auth.theweer.com',
-    redirectUri: window.location.origin,
+// Cognito Configuration
+const poolData = {
+    UserPoolId: 'us-east-1_TJDOamTpp', // Extract from your domain info
+    ClientId: '7irso7dmmnp793egs9bhkl0t81'
 };
 
-// --- Helpers ---
-function saveSession(tokens) {
-    localStorage.setItem('cognitoSession', JSON.stringify(tokens));
+const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
+// DOM Elements
+let currentUser = null;
+
+// Show/Hide sections
+function showLogin() {
+    document.getElementById('login-section').classList.remove('hidden');
+    document.getElementById('signup-section').classList.add('hidden');
+    document.getElementById('user-section').classList.add('hidden');
+    clearMessage();
 }
 
-function getSession() {
-    return JSON.parse(localStorage.getItem('cognitoSession') || 'null');
+function showSignup() {
+    document.getElementById('login-section').classList.add('hidden');
+    document.getElementById('signup-section').classList.remove('hidden');
+    document.getElementById('user-section').classList.add('hidden');
+    clearMessage();
 }
 
-function clearSession() {
-    localStorage.removeItem('cognitoSession');
+function showUserSection() {
+    document.getElementById('login-section').classList.add('hidden');
+    document.getElementById('signup-section').classList.add('hidden');
+    document.getElementById('user-section').classList.remove('hidden');
 }
 
-function getAccessToken() {
-    const s = getSession();
-    return s?.access_token || null;
+// Message handling
+function showMessage(message, type) {
+    const messageDiv = document.getElementById('message');
+    messageDiv.textContent = message;
+    messageDiv.className = `message ${type}`;
+    messageDiv.classList.remove('hidden');
 }
 
-// Decode JWT and check expiration
-function isTokenValid(token) {
-    if (!token) return false;
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        // exp is in seconds
-        return payload.exp > Math.floor(Date.now() / 1000);
-    } catch (e) {
-        return false;
+function clearMessage() {
+    document.getElementById('message').classList.add('hidden');
+}
+
+// Login function
+function login() {
+    const username = document.getElementById('login-username').value;
+    const password = document.getElementById('login-password').value;
+
+    if (!username || !password) {
+        showMessage('Please enter both username and password', 'error');
+        return;
     }
-}
 
-// --- Exchange code for tokens ---
-async function exchangeCodeForToken(code) {
-    const url = `https://${cognitoConfig.domain}/oauth2/token`;
-    const body = new URLSearchParams({
-        grant_type: 'authorization_code',
-        client_id: cognitoConfig.clientId,
-        code: code,
-        redirect_uri: cognitoConfig.redirectUri
+    const authenticationData = {
+        Username: username,
+        Password: password,
+    };
+
+    const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+
+    const userData = {
+        Username: username,
+        Pool: userPool
+    };
+
+    const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+
+    cognitoUser.authenticateUser(authenticationDetails, {
+        onSuccess: function (result) {
+            currentUser = cognitoUser;
+            const idToken = result.getIdToken().getJwtToken();
+            const accessToken = result.getAccessToken().getJwtToken();
+            const refreshToken = result.getRefreshToken().getToken();
+            
+            // Store tokens for later use
+            localStorage.setItem('idToken', idToken);
+            localStorage.setItem('accessToken', accessToken);
+            localStorage.setItem('refreshToken', refreshToken);
+            
+            showMessage('Login successful!', 'success');
+            displayUserInfo(result.getIdToken().payload);
+            showUserSection();
+        },
+        onFailure: function (err) {
+            showMessage('Login failed: ' + err.message, 'error');
+        },
+        newPasswordRequired: function (userAttributes, requiredAttributes) {
+            // Handle case where user needs to set new password
+            showMessage('New password required', 'error');
+        }
     });
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: body
-        });
-
-        if (!response.ok) throw new Error(`Token exchange failed: ${response.status}`);
-        const tokens = await response.json();
-        saveSession(tokens);
-        return tokens;
-    } catch (err) {
-        console.error('Token exchange error:', err);
-        return null;
-    }
 }
 
-// --- Main Auth Check ---
-async function checkAuthStatus() {
-    const authSection = document.getElementById('auth-section');
+// Signup function
+function signup() {
+    const username = document.getElementById('signup-username').value;
+    const password = document.getElementById('signup-password').value;
+    const email = document.getElementById('signup-email').value;
 
-    // 1️⃣ Handle redirect with code
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
+    if (!username || !password || !email) {
+        showMessage('Please fill all fields', 'error');
+        return;
+    }
 
-    if (code) {
-        const tokens = await exchangeCodeForToken(code);
-        window.history.replaceState({}, document.title, window.location.pathname);
-        if (tokens) {
-            showLoggedInUI(authSection);
+    const attributeList = [];
+
+    const emailAttribute = {
+        Name: 'email',
+        Value: email
+    };
+
+    const emailAttr = new AmazonCognitoIdentity.CognitoUserAttribute(emailAttribute);
+    attributeList.push(emailAttr);
+
+    userPool.signUp(username, password, attributeList, null, function (err, result) {
+        if (err) {
+            showMessage('Signup failed: ' + err.message, 'error');
             return;
         }
+        currentUser = result.user;
+        showMessage('Signup successful! Please check your email for verification code.', 'success');
+        
+        // After signup, you might want to automatically switch to verification
+        // or keep the user logged in if auto-confirm is enabled
+        setTimeout(() => {
+            showLogin();
+        }, 2000);
+    });
+}
+
+// Display user information
+function displayUserInfo(userData) {
+    const userInfoDiv = document.getElementById('user-info');
+    userInfoDiv.innerHTML = `
+        <p><strong>Username:</strong> ${userData['cognito:username'] || userData.username}</p>
+        <p><strong>Email:</strong> ${userData.email}</p>
+        <p><strong>User ID:</strong> ${userData.sub}</p>
+    `;
+}
+
+// Call protected API (example)
+function callProtectedAPI() {
+    const idToken = localStorage.getItem('idToken');
+    
+    if (!idToken) {
+        showMessage('No authentication token found', 'error');
+        return;
     }
 
-    // 2️⃣ Check existing session
-    const session = getSession();
-    if (session?.access_token && isTokenValid(session.id_token)) {
-        showLoggedInUI(authSection);
+    // Example API call with authorization header
+    fetch('/your-protected-endpoint', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('API call failed');
+        }
+        return response.json();
+    })
+    .then(data => {
+        showMessage('Protected API call successful!', 'success');
+        console.log('API response:', data);
+    })
+    .catch(error => {
+        showMessage('API call failed: ' + error.message, 'error');
+    });
+}
+
+// Logout function
+function logout() {
+    if (currentUser) {
+        currentUser.signOut();
+    }
+    
+    // Clear stored tokens
+    localStorage.removeItem('idToken');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    
+    currentUser = null;
+    showMessage('Logged out successfully', 'success');
+    showLogin();
+}
+
+// Check if user is already logged in on page load
+window.onload = function() {
+    const cognitoUser = userPool.getCurrentUser();
+    
+    if (cognitoUser) {
+        cognitoUser.getSession(function (err, session) {
+            if (err || !session.isValid()) {
+                showLogin();
+            } else {
+                currentUser = cognitoUser;
+                const idToken = session.getIdToken().getJwtToken();
+                localStorage.setItem('idToken', idToken);
+                displayUserInfo(session.getIdToken().payload);
+                showUserSection();
+                showMessage('Welcome back!', 'success');
+            }
+        });
     } else {
-        clearSession();
-        showLoginUI(authSection);
+        showLogin();
     }
-}
-
-// --- UI Builders ---
-function showLoginUI(container) {
-    container.innerHTML = `
-        <div style="text-align:center;">
-            <p>🔒 You are not signed in</p>
-            <button id="signInBtn">Sign In / Sign Up</button>
-        </div>
-    `;
-    document.getElementById('signInBtn').onclick = signIn;
-}
-
-function showLoggedInUI(container) {
-    const session = getSession();
-    const payload = session ? JSON.parse(atob(session.id_token.split('.')[1])) : {};
-    const email = payload.email || 'Unknown';
-
-    container.innerHTML = `
-        <div style="text-align:center; background:#d1fae5; padding:15px; border-radius:8px;">
-            <p>✅ Logged in as <strong>${email}</strong></p>
-            <button id="logoutBtn">Logout</button>
-        </div>
-    `;
-    document.getElementById('logoutBtn').onclick = signOut;
-}
-
-// --- Cognito actions ---
-function signIn() {
-    const { domain, clientId, redirectUri } = cognitoConfig;
-    const url = `https://${domain}/oauth2/authorize?client_id=${clientId}&response_type=code&scope=email+openid+phone&redirect_uri=${encodeURIComponent(redirectUri)}`;
-    window.location.href = url;
-}
-
-function signOut() {
-    clearSession();
-    const { domain, clientId, redirectUri } = cognitoConfig;
-    const url = `https://${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
-    window.location.href = url;
-}
-
-// --- Export helpers globally ---
-window.authTester = { checkAuthStatus, getAccessToken, signOut };
+};
