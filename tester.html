@@ -5,106 +5,132 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cognito Auth Tester</title>
 <style>
-body { font-family: Arial; margin: 20px; background:#f4f4f9; }
-.container { max-width:900px;margin:0 auto;background:white;padding:20px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
-button { padding:8px 16px;margin:5px; cursor:pointer;}
-#fileInput { display:none; }
-#filesList div { margin:5px 0; }
+body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
+.container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+h1,h2,h3 { color:#333; }
+#auth-action { margin-bottom: 20px; }
+#auth-action button { padding:10px 20px; font-size:16px; background-color:#f90; color:white; border:none; border-radius:5px; cursor:pointer; }
+#token-display pre { background:#eee; padding:10px; border-radius:4px; overflow-x:auto; }
+#token-display textarea { width:100%; height:100px; padding:10px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; resize:none; font-family:monospace; }
+#uploadSection { margin-top:20px; }
+#uploadSection input { margin-bottom:10px; }
+#uploadSection button { padding:10px 20px; font-size:16px; background-color:#28a745; color:white; border:none; border-radius:5px; cursor:pointer; }
+#uploadResult { margin-top:10px; font-weight:bold; }
 </style>
 </head>
 <body>
+
 <div class="container">
-<h1>Cognito Auth Tester</h1>
-<div id="auth-action"></div>
-<hr>
-<div id="upload-section" style="display:none;">
-    <input type="file" id="fileInput" accept="image/*" multiple>
-    <button onclick="fileInput.click()">Select 3 Images</button>
-    <button id="uploadBtn" onclick="uploadFiles()" disabled>Upload</button>
-    <div id="filesList"></div>
-    <div id="uploadResult"></div>
-</div>
+    <h1>AWS Cognito Authentication Status</h1>
+    <div id="auth-action"></div>
+
+    <div id="token-display"><h2>Not signed in</h2></div>
+
+    <div id="uploadSection" style="display:none;">
+        <h2>Upload 3 Images</h2>
+        <input type="file" id="fileInput" multiple accept="image/*">
+        <br>
+        <button onclick="uploadFiles()">Upload</button>
+        <div id="uploadResult"></div>
+    </div>
 </div>
 
 <script>
 const cognitoConfig = {
     clientId: '7irso7dmmnp793egs9bhkl0t81',
     domain: 'auth.theweer.com',
-    redirectUri: window.location.origin
+    redirectUri: window.location.origin + window.location.pathname
 };
 
-let selectedFiles = [];
+function saveSession(tokens){ localStorage.setItem('cognitoSession', JSON.stringify(tokens)); }
+function getSession(){ return JSON.parse(localStorage.getItem('cognitoSession')); }
 
-async function checkAuthStatus() {
-    const authAction = document.getElementById('auth-action');
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
+function showAuthUI(){ 
+    const authDiv = document.getElementById('auth-action');
+    authDiv.innerHTML = `
+        <button onclick="signin()">Sign In / Sign Up</button>
+        <button onclick="signout()">Sign Out</button>
+    `;
+}
 
-    if (code) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-        localStorage.setItem('cognitoToken', 'authenticated-' + Date.now());
-        showAuthenticatedUI();
-        return;
+function signin(){
+    window.location.href = `https://${cognitoConfig.domain}/login?client_id=${cognitoConfig.clientId}&response_type=token&scope=email+openid+profile&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`;
+}
+
+function signout(){
+    localStorage.removeItem('cognitoSession');
+    location.reload();
+}
+
+function parseHashTokens(){
+    if(location.hash){
+        const hash = location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const id_token = params.get('id_token');
+        const access_token = params.get('access_token');
+        if(id_token && access_token){
+            saveSession({id_token, access_token});
+            location.hash = '';
+        }
     }
-
-    if (localStorage.getItem('cognitoToken')) showAuthenticatedUI();
-    else showUnauthenticatedUI();
 }
 
-function showAuthenticatedUI() {
-    document.getElementById('auth-action').innerHTML = `
-        ✅ Signed in <button onclick="signOut()">Sign Out</button>
-    `;
-    document.getElementById('upload-section').style.display = 'block';
+function showSessionInfo(){
+    const session = getSession();
+    const tokenDiv = document.getElementById('token-display');
+    if(session && session.id_token){
+        const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+        tokenDiv.innerHTML = `<h2>Signed in as ${payload.sub}</h2>
+        <pre>${JSON.stringify(payload, null, 2)}</pre>`;
+        document.getElementById('uploadSection').style.display = 'block';
+    } else {
+        tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
+        document.getElementById('uploadSection').style.display = 'none';
+    }
 }
 
-function showUnauthenticatedUI() {
-    document.getElementById('auth-action').innerHTML = `
-        🔒 Not signed in
-        <button onclick="signIn()">Sign In</button>
-        <button onclick="signUp()">Sign Up</button>
-    `;
-}
+parseHashTokens();
+showAuthUI();
+showSessionInfo();
 
-function signIn() {
-    const uri = encodeURIComponent(cognitoConfig.redirectUri);
-    window.location.href = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${uri}`;
-}
-
-function signUp() { signIn(); }
-function signOut() { localStorage.removeItem('cognitoToken'); window.location.reload(); }
-
-document.getElementById('fileInput').addEventListener('change', (e) => {
-    selectedFiles = Array.from(e.target.files).slice(0,3);
-    const list = document.getElementById('filesList');
-    list.innerHTML = '';
-    selectedFiles.forEach((f,i)=>{ list.innerHTML += `<div>${i+1}. ${f.name} (${Math.round(f.size/1024)} KB)</div>`; });
-    document.getElementById('uploadBtn').disabled = selectedFiles.length !== 3;
+let selectedFiles = [];
+document.getElementById('fileInput').addEventListener('change', (e)=>{
+    selectedFiles = Array.from(e.target.files);
+    if(selectedFiles.length !== 3) alert("Please select exactly 3 images");
 });
 
-async function uploadFiles() {
-    const token = localStorage.getItem('cognitoToken');
-    if (!token || selectedFiles.length !==3) return alert('Sign in and select exactly 3 images');
+async function uploadFiles(){
+    const token = getSession()?.id_token;
+    if(!token || selectedFiles.length !==3) return alert('Sign in and select exactly 3 images');
 
-    const filesData = selectedFiles.map((f,i)=>({
-        fileId: i+1,
-        fileName: f.name,
-        fileType: f.type
-    }));
+    const filesData = selectedFiles.map((f,i)=>({fileId:i+1, fileName:f.name, fileType:f.type}));
 
+    // Step 1: Get presigned URLs from Lambda
     const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
         method:'POST',
-        headers:{'Content-Type':'application/json'},
+        headers:{'Content-Type':'application/json','Authorization':token},
         body: JSON.stringify({ files: filesData })
     });
 
     const data = await res.json();
     const resultDiv = document.getElementById('uploadResult');
-    if(res.ok) resultDiv.innerHTML = `✅ Uploaded ${data.totalFiles} files successfully!`;
-    else resultDiv.innerHTML = `❌ Upload failed: ${data.error || JSON.stringify(data)}`;
-}
 
-checkAuthStatus();
+    if(!res.ok || !data.uploadUrls){ 
+        resultDiv.innerHTML = `❌ Upload failed: ${data.error || JSON.stringify(data)}`;
+        return;
+    }
+
+    // Step 2: Upload files to S3 using presigned URLs
+    try{
+        await Promise.all(data.uploadUrls.map((u, idx)=>
+            fetch(u.uploadUrl, { method:'PUT', body:selectedFiles[idx], headers:{'Content-Type':selectedFiles[idx].type} })
+        ));
+        resultDiv.innerHTML = `✅ All 3 files uploaded successfully!`;
+    } catch(e){
+        resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
+    }
+}
 </script>
+
 </body>
 </html>
