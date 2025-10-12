@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Simple API Test</title>
+    <title>API Test - The Weer</title>
     <style>
         body { font-family: Arial; margin: 40px; }
         button { 
@@ -17,56 +17,107 @@
         button:hover { background: #0056b3; }
         button:disabled { background: #ccc; cursor: not-allowed; }
         #result { margin-top: 20px; padding: 10px; }
-        .warning { color: orange; }
-        .error { color: red; }
         .success { color: green; }
-        .auth-section { 
-            margin-bottom: 20px; 
-            padding: 15px; 
-            background: #f0f0f0; 
-            border-radius: 5px; 
-        }
+        .error { color: red; }
+        .info { color: blue; }
     </style>
 </head>
 <body>
-    <h1>Simple API Test</h1>
-    <div id="auth-status" class="auth-section">
-        Checking authentication status...
+    <h1>API Gateway Test</h1>
+    <div id="auth-status">
+        <p>Checking authentication...</p>
     </div>
-    <button onclick="callApi()" id="apiButton" disabled>Click to Call API</button>
+    <button onclick="callApi()" id="apiButton" disabled>Test API Call</button>
     <div id="result"></div>
-
-    <!-- Use your existing auth.js -->
-    <script src="auth.js"></script>
 
     <script>
         const API_URL = 'https://rd8hnh5ch6.execute-api.us-east-1.amazonaws.com/prod/add-record';
+        const COGNITO_CONFIG = {
+            clientId: '7irso7dmmnp793egs9bhkl0t81',
+            domain: 'auth.theweer.com'
+        };
 
-        // Modified checkAuthStatus for tester page
-        function checkAuthForTester() {
-            const authStatus = document.getElementById('auth-status');
-            const apiButton = document.getElementById('apiButton');
+        // Check if we have a token in the URL (implicit flow callback)
+        function checkForTokenInURL() {
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
             
-            // Check if we have the cognitoToken (your existing auth system)
-            const cognitoToken = localStorage.getItem('cognitoToken');
+            const accessToken = params.get('access_token');
+            const idToken = params.get('id_token');
             
-            if (cognitoToken) {
-                authStatus.innerHTML = `
-                    <div class="success">✅ You are signed in</div>
-                    <div><small>Using existing authentication</small></div>
-                    <button onclick="signOut()" class="btn-secondary">Sign Out</button>
-                `;
-                apiButton.disabled = false;
-            } else {
-                authStatus.innerHTML = `
-                    <div class="error">❌ Not authenticated</div>
-                    <button onclick="signIn()" class="btn-primary">Sign In</button>
-                `;
-                apiButton.disabled = true;
+            if (idToken) {
+                // Store the token
+                localStorage.setItem('apiTestToken', idToken);
+                // Clear the URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                document.getElementById('auth-status').innerHTML = 
+                    '<div class="success">✅ Got authentication token! Ready to test API.</div>';
+                document.getElementById('apiButton').disabled = false;
+                
+                return idToken;
             }
+            return null;
         }
 
-        // Modified API call that works with your current setup
+        // Check if we have a stored token
+        function checkStoredToken() {
+            const token = localStorage.getItem('apiTestToken');
+            if (token) {
+                document.getElementById('auth-status').innerHTML = 
+                    '<div class="success">✅ Using stored authentication token.</div>';
+                document.getElementById('apiButton').disabled = false;
+                return token;
+            }
+            return null;
+        }
+
+        // Get authentication token
+        function getAuthToken() {
+            // First check URL (for callback)
+            const urlToken = checkForTokenInURL();
+            if (urlToken) return urlToken;
+            
+            // Then check stored token
+            const storedToken = checkStoredToken();
+            if (storedToken) return storedToken;
+            
+            // No token found
+            document.getElementById('auth-status').innerHTML = `
+                <div class="error">
+                    ❌ Not authenticated for API testing
+                    <br><br>
+                    <button onclick="authenticateForAPI()" class="btn-primary">Authenticate for API Test</button>
+                    <br><br>
+                    <small>This uses a different authentication flow specifically for API testing</small>
+                </div>
+            `;
+            return null;
+        }
+
+        // Authenticate specifically for API testing
+        function authenticateForAPI() {
+            const redirectUri = encodeURIComponent(window.location.href);
+            const authUrl = `https://${COGNITO_CONFIG.domain}/oauth2/authorize?` +
+                `client_id=${COGNITO_CONFIG.clientId}` +
+                `&response_type=token` +
+                `&scope=email+openid` +
+                `&redirect_uri=${redirectUri}` +
+                `&state=api_test`;
+            
+            window.location.href = authUrl;
+        }
+
+        // Clear authentication
+        function clearAuth() {
+            localStorage.removeItem('apiTestToken');
+            document.getElementById('auth-status').innerHTML = 
+                '<div class="info">Authentication cleared. Refresh to re-authenticate.</div>';
+            document.getElementById('apiButton').disabled = true;
+            document.getElementById('result').innerHTML = '';
+        }
+
+        // Main API call function
         async function callApi() {
             const button = document.getElementById('apiButton');
             const resultDiv = document.getElementById('result');
@@ -76,15 +127,12 @@
             resultDiv.innerHTML = '';
 
             try {
-                // Since your current auth doesn't store real JWT tokens,
-                // we need to get a fresh token using the implicit grant flow
-                const token = await getFreshToken();
-                
+                const token = localStorage.getItem('apiTestToken');
                 if (!token) {
-                    throw new Error('Could not get authentication token');
+                    throw new Error('No authentication token found');
                 }
 
-                console.log('Making API call with token...');
+                console.log('Calling API with token...');
                 
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -97,82 +145,38 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    resultDiv.innerHTML = `<div class="success">✅ Success! Record added for user: ${data.user_sub}</div>`;
-                    console.log('API response:', data);
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ Success! API call completed.
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
                 } else {
-                    throw new Error(data.message || `API call failed with status: ${response.status}`);
+                    throw new Error(data.message || `API returned ${response.status}`);
                 }
 
             } catch (error) {
-                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ API Call Failed: ${error.message}
+                        <br><br>
+                        <button onclick="clearAuth()">Clear Authentication & Retry</button>
+                    </div>
+                `;
                 console.error('API call failed:', error);
             } finally {
                 button.disabled = false;
-                button.textContent = 'Click to Call API';
+                button.textContent = 'Test API Call';
             }
-        }
-
-        // Function to get a fresh token using implicit grant
-        async function getFreshToken() {
-            // Since your current system doesn't store JWT tokens,
-            // we'll redirect to Cognito to get a fresh token
-            return new Promise((resolve) => {
-                // Store the current URL to return here after auth
-                localStorage.setItem('returnUrl', window.location.href);
-                
-                // Redirect to Cognito with implicit grant to get token directly
-                const cognitoConfig = {
-                    clientId: '7irso7dmmnp793egs9bhkl0t81',
-                    domain: 'auth.theweer.com',
-                    redirectUri: window.location.origin + window.location.pathname
-                };
-                
-                const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
-                const implicitUrl = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=token&scope=email+openid&redirect_uri=${redirectUri}`;
-                
-                window.location.href = implicitUrl;
-            });
-        }
-
-        // Check for token in URL (implicit grant callback)
-        function checkForTokenInURL() {
-            const urlParams = new URLSearchParams(window.location.hash.substring(1));
-            const accessToken = urlParams.get('access_token');
-            const idToken = urlParams.get('id_token');
-            
-            if (accessToken || idToken) {
-                // We got tokens! Store them and clean up URL
-                if (idToken) {
-                    localStorage.setItem('idToken', idToken);
-                }
-                if (accessToken) {
-                    localStorage.setItem('accessToken', accessToken);
-                }
-                
-                // Clear the tokens from URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-                
-                // Enable API button
-                document.getElementById('apiButton').disabled = false;
-                document.getElementById('auth-status').innerHTML = 
-                    '<div class="success">✅ Got fresh tokens! Ready to call API.</div>';
-                
-                return idToken || accessToken;
-            }
-            return null;
         }
 
         // Initialize
         window.addEventListener('load', function() {
-            // First check if we have tokens in URL (implicit grant callback)
-            const token = checkForTokenInURL();
-            
+            const token = getAuthToken();
             if (token) {
-                // We have fresh tokens from implicit flow
-                console.log('Got fresh token from implicit flow');
-            } else {
-                // Use your existing auth system
-                checkAuthForTester();
+                // Add a clear button
+                document.getElementById('auth-status').innerHTML += 
+                    '<br><button onclick="clearAuth()" style="background: #dc2626;">Clear Auth</button>';
             }
         });
     </script>
