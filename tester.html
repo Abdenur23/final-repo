@@ -1,26 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>The Weer Auth Tester</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
-        button {
-            background: #007bff; color: #fff; border: none;
-            padding: 10px 18px; border-radius: 6px; cursor: pointer;
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            text-align: center;
+            background: #f9fafb;
         }
-        button:hover { background: #0056b3; }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        button:hover { background: #1d4ed8; }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            margin: 60px auto;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
-    <h2>The Weer – Auth Test</h2>
-    <div id="auth-section">Loading...</div>
+    <h2>The Weer – Auth Tester</h2>
+    <div id="auth-section" class="card">Checking authentication...</div>
 
     <script src="auth-tester.js"></script>
     <script>
-        window.addEventListener('load', () => {
-            authTester.checkAuthStatus();
-        });
+        window.addEventListener('load', () => authTester.checkAuthStatus());
     </script>
 </body>
 </html>
