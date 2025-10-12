@@ -20,23 +20,55 @@ function getAccessToken() {
     return s?.access_token || null;
 }
 
-// --- Main Auth Check ---
-function checkAuthStatus() {
-    const authSection = document.getElementById('auth-section');
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const idToken = hashParams.get('id_token');
-    const accessToken = hashParams.get('access_token');
+// --- Exchange code for tokens ---
+async function exchangeCodeForToken(code) {
+    const url = `https://${cognitoConfig.domain}/oauth2/token`;
+    const body = new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: cognitoConfig.clientId,
+        code: code,
+        redirect_uri: cognitoConfig.redirectUri
+    });
 
-    // 1️⃣ Handle redirect from Cognito
-    if (idToken && accessToken) {
-        saveSession({
-            id_token: idToken,
-            access_token: accessToken,
-            timestamp: Date.now(),
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body
         });
+
+        if (!response.ok) {
+            throw new Error(`Token exchange failed: ${response.status}`);
+        }
+
+        const tokens = await response.json();
+        saveSession(tokens);
+        return tokens;
+    } catch (err) {
+        console.error('Token exchange error:', err);
+        return null;
+    }
+}
+
+// --- Main Auth Check ---
+async function checkAuthStatus() {
+    const authSection = document.getElementById('auth-section');
+
+    // 1️⃣ Check URL for "code" from Cognito
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+
+    if (code) {
+        // Exchange code for tokens
+        const tokens = await exchangeCodeForToken(code);
         window.history.replaceState({}, document.title, window.location.pathname);
+        if (tokens) {
+            showLoggedInUI(authSection);
+            return;
+        }
     }
 
+    // 2️⃣ Check existing session
     const session = getSession();
     if (session?.access_token) {
         showLoggedInUI(authSection);
@@ -69,7 +101,7 @@ function showLoggedInUI(container) {
 // --- Cognito actions ---
 function signIn() {
     const { domain, clientId, redirectUri } = cognitoConfig;
-    const url = `https://${domain}/oauth2/authorize?client_id=${clientId}&response_type=token&scope=email+openid+profile&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    const url = `https://${domain}/oauth2/authorize?client_id=${clientId}&response_type=code&scope=email+openid+profile&redirect_uri=${encodeURIComponent(redirectUri)}`;
     window.location.href = url;
 }
 
