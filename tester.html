@@ -36,10 +36,19 @@
             resultDiv.innerHTML = '';
 
             try {
+                // Get the current Cognito session token
+                const session = await getCurrentSession();
+                if (!session) {
+                    throw new Error('No active session. Please sign in.');
+                }
+
+                const token = session.getIdToken().getJwtToken();
+                
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': token
                     }
                 });
 
@@ -48,15 +57,42 @@
                 if (response.ok) {
                     resultDiv.innerHTML = `<div style="color: green;">✅ Success! Record added for user: ${data.user_sub}</div>`;
                 } else {
-                    throw new Error(data.message || 'API call failed');
+                    throw new Error(data.message || `API call failed with status: ${response.status}`);
                 }
 
             } catch (error) {
                 resultDiv.innerHTML = `<div style="color: red;">❌ Error: ${error.message}</div>`;
+                console.error('API call failed:', error);
             } finally {
                 button.disabled = false;
                 button.textContent = 'Click to Call API';
             }
+        }
+
+        // Function to get current Cognito session
+        async function getCurrentSession() {
+            // If using Amplify
+            if (window.Amplify?.Auth?.currentSession) {
+                try {
+                    return await window.Amplify.Auth.currentSession();
+                } catch (error) {
+                    console.error('No current session:', error);
+                    return null;
+                }
+            }
+            
+            // If using AWS SDK directly
+            if (window.awsmobile?.Auth?.currentSession) {
+                try {
+                    return await window.awsmobile.Auth.currentSession();
+                } catch (error) {
+                    console.error('No current session:', error);
+                    return null;
+                }
+            }
+            
+            console.error('No Auth library found');
+            return null;
         }
     </script>
 </body>
