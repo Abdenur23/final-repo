@@ -1,50 +1,54 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Auth Demo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognito Auth Tester</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
-        .container { border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
-        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
-        .hidden { display: none; }
-        .user-info { background: #f5f5f5; padding: 15px; margin: 15px 0; border-radius: 3px; }
-        .token-display { word-break: break-all; font-size: 12px; background: #fff; padding: 10px; border: 1px solid #ddd; }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1, h2, h3 { color: #333; }
+        #auth-action { margin-bottom: 20px; }
+        #auth-action button { 
+            padding: 10px 20px; 
+            font-size: 16px; 
+            background-color: #f90; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        #token-display pre { 
+            background: #eee; 
+            padding: 10px; 
+            border-radius: 4px; 
+            overflow-x: auto; 
+        }
+        #token-display textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <!-- Login Section -->
-        <div id="login-section">
-            <h2>Professional Auth Demo</h2>
-            <button onclick="redirectToHostedUI()">Login / Sign Up with Cognito Hosted UI</button>
-            <p><em>This will show all configured identity providers (Google, etc.) automatically</em></p>
-        </div>
+        <h1>AWS Cognito Authentication Status</h1>
+        <p>This page checks for an active session with the Cognito Hosted UI.</p>
 
-        <!-- User Dashboard -->
-        <div id="dashboard" class="hidden">
-            <h2>Welcome! <button onclick="logout()" style="float: right; background: #dc3545;">Logout</button></h2>
-            
-            <div class="user-info">
-                <h3>User Information</h3>
-                <div id="user-details"></div>
+        <div id="auth-action">
             </div>
 
-            <div class="user-info">
-                <h3>Token Information</h3>
-                <p><strong>ID Token:</strong></p>
-                <div class="token-display" id="id-token"></div>
-                
-                <p><strong>Access Token:</strong></p>
-                <div class="token-display" id="access-token"></div>
+        <hr>
 
-                <p><strong>Token Expiry:</strong> <span id="token-expiry"></span></p>
-            </div>
-
-            <div class="user-info">
-                <h3>API Demo</h3>
-                <button onclick="callProtectedAPI()">Test Protected API Call</button>
-                <div id="api-result"></div>
-            </div>
+        <div id="token-display">
+            <h2>Loading...</h2>
         </div>
     </div>
 
