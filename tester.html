@@ -1,57 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cognito Auth Tester</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1, h2, h3 { color: #333; }
-        #auth-action { margin-bottom: 20px; }
-        #auth-action button { 
-            padding: 10px 20px; 
-            font-size: 16px; 
-            background-color: #f90; 
-            color: white; 
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-        }
-        #token-display pre { 
-            background: #eee; 
-            padding: 10px; 
-            border-radius: 4px; 
-            overflow-x: auto; 
-        }
-        #token-display textarea {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            resize: none;
-            font-family: monospace;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cognito Auth Tester</title>
+<style>
+body { font-family: Arial; margin: 20px; background:#f4f4f9; }
+.container { max-width:900px;margin:0 auto;background:white;padding:20px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+button { padding:8px 16px;margin:5px; cursor:pointer;}
+#fileInput { display:none; }
+#filesList div { margin:5px 0; }
+</style>
 </head>
 <body>
+<div class="container">
+<h1>Cognito Auth Tester</h1>
+<div id="auth-action"></div>
+<hr>
+<div id="upload-section" style="display:none;">
+    <input type="file" id="fileInput" accept="image/*" multiple>
+    <button onclick="fileInput.click()">Select 3 Images</button>
+    <button id="uploadBtn" onclick="uploadFiles()" disabled>Upload</button>
+    <div id="filesList"></div>
+    <div id="uploadResult"></div>
+</div>
+</div>
 
-    <div class="container">
-        <h1>AWS Cognito Authentication Status</h1>
-        <p>This page checks for an active session with the Cognito Hosted UI.</p>
+<script>
+const cognitoConfig = {
+    clientId: '7irso7dmmnp793egs9bhkl0t81',
+    domain: 'auth.theweer.com',
+    redirectUri: window.location.origin
+};
 
-        <div id="auth-action">
-            </div>
+let selectedFiles = [];
 
-        <hr>
+async function checkAuthStatus() {
+    const authAction = document.getElementById('auth-action');
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
 
-        <div id="token-display">
-            <h2>Loading...</h2>
-        </div>
-    </div>
+    if (code) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        localStorage.setItem('cognitoToken', 'authenticated-' + Date.now());
+        showAuthenticatedUI();
+        return;
+    }
 
-    <script src="auth-tester.js"></script>
+    if (localStorage.getItem('cognitoToken')) showAuthenticatedUI();
+    else showUnauthenticatedUI();
+}
+
+function showAuthenticatedUI() {
+    document.getElementById('auth-action').innerHTML = `
+        ✅ Signed in <button onclick="signOut()">Sign Out</button>
+    `;
+    document.getElementById('upload-section').style.display = 'block';
+}
+
+function showUnauthenticatedUI() {
+    document.getElementById('auth-action').innerHTML = `
+        🔒 Not signed in
+        <button onclick="signIn()">Sign In</button>
+        <button onclick="signUp()">Sign Up</button>
+    `;
+}
+
+function signIn() {
+    const uri = encodeURIComponent(cognitoConfig.redirectUri);
+    window.location.href = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${uri}`;
+}
+
+function signUp() { signIn(); }
+function signOut() { localStorage.removeItem('cognitoToken'); window.location.reload(); }
+
+document.getElementById('fileInput').addEventListener('change', (e) => {
+    selectedFiles = Array.from(e.target.files).slice(0,3);
+    const list = document.getElementById('filesList');
+    list.innerHTML = '';
+    selectedFiles.forEach((f,i)=>{ list.innerHTML += `<div>${i+1}. ${f.name} (${Math.round(f.size/1024)} KB)</div>`; });
+    document.getElementById('uploadBtn').disabled = selectedFiles.length !== 3;
+});
+
+async function uploadFiles() {
+    const token = localStorage.getItem('cognitoToken');
+    if (!token || selectedFiles.length !==3) return alert('Sign in and select exactly 3 images');
+
+    const filesData = selectedFiles.map((f,i)=>({
+        fileId: i+1,
+        fileName: f.name,
+        fileType: f.type
+    }));
+
+    const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ files: filesData })
+    });
+
+    const data = await res.json();
+    const resultDiv = document.getElementById('uploadResult');
+    if(res.ok) resultDiv.innerHTML = `✅ Uploaded ${data.totalFiles} files successfully!`;
+    else resultDiv.innerHTML = `❌ Upload failed: ${data.error || JSON.stringify(data)}`;
+}
+
+checkAuthStatus();
+</script>
 </body>
 </html>
