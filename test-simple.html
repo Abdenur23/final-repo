@@ -358,6 +358,17 @@
             border-left: 4px solid #ffc107;
             display: none;
         }
+
+        .token-info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -366,6 +377,9 @@
         <div id="auth-section" class="auth-section">
             <p>Checking authentication status...</p>
         </div>
+
+        <!-- Token Debug Info -->
+        <div id="token-info" class="token-info"></div>
 
         <!-- Protected Content (only shown when authenticated) -->
         <div id="protected-content" class="protected-content">
@@ -424,7 +438,8 @@
         const cognitoConfig = {
             clientId: '7irso7dmmnp793egs9bhkl0t81',
             domain: 'auth.theweer.com',
-            redirectUri: window.location.origin
+            redirectUri: window.location.origin,
+            tokenEndpoint: 'https://auth.theweer.com/oauth2/token'
         };
 
         // DOM Elements
@@ -441,6 +456,7 @@
         const warningMessage = document.getElementById('warningMessage');
         const authSection = document.getElementById('auth-section');
         const protectedContent = document.getElementById('protected-content');
+        const tokenInfo = document.getElementById('token-info');
 
         let selectedFiles = new Map();
         const MAX_FILES = 3;
@@ -453,17 +469,16 @@
                 const code = urlParams.get('code');
                 
                 if (code) {
-                    // User just returned from Cognito - clear URL and show success
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    localStorage.setItem('cognitoToken', 'authenticated-' + Date.now());
-                    showAuthenticatedUI();
+                    // User just returned from Cognito - exchange code for tokens
+                    await exchangeCodeForTokens(code);
                     return;
                 }
 
-                // Check if we have a token in localStorage
-                const token = localStorage.getItem('cognitoToken');
+                // Check if we have tokens in localStorage
+                const accessToken = localStorage.getItem('cognitoAccessToken');
+                const idToken = localStorage.getItem('cognitoIdToken');
                 
-                if (token) {
+                if (accessToken && idToken) {
                     showAuthenticatedUI();
                 } else {
                     showUnauthenticatedUI();
@@ -474,14 +489,56 @@
             }
         }
 
+        async function exchangeCodeForTokens(code) {
+            try {
+                const response = await fetch(cognitoConfig.tokenEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        grant_type: 'authorization_code',
+                        client_id: cognitoConfig.clientId,
+                        code: code,
+                        redirect_uri: cognitoConfig.redirectUri
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Token exchange failed: ${response.status}`);
+                }
+
+                const tokens = await response.json();
+                
+                // Store tokens
+                localStorage.setItem('cognitoAccessToken', tokens.access_token);
+                localStorage.setItem('cognitoIdToken', tokens.id_token);
+                localStorage.setItem('cognitoTokenType', tokens.token_type);
+                
+                // Clear URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                showAuthenticatedUI();
+            } catch (error) {
+                console.error('Token exchange error:', error);
+                showErrorUI();
+            }
+        }
+
         function showAuthenticatedUI() {
+            const idToken = localStorage.getItem('cognitoIdToken');
             authSection.innerHTML = `
                 <div class="user-info">
                     <p>✅ You are signed in</p>
-                    <button onclick="signOut()" class="auth-btn auth-btn-secondary">Sign Out</button>
+                    <p style="font-size: 12px; margin-top: 5px; color: #666;">JWT token is ready for API calls</p>
+                    <button onclick="signOut()" class="auth-btn auth-btn-secondary" style="margin-top: 10px;">Sign Out</button>
                 </div>
             `;
             protectedContent.style.display = 'block';
+            
+            // Show token info for debugging
+            tokenInfo.innerHTML = `ID Token (first 50 chars): ${idToken ? idToken.substring(0, 50) + '...' : 'None'}`;
+            tokenInfo.style.display = 'block';
         }
 
         function showUnauthenticatedUI() {
@@ -495,6 +552,7 @@
                 </div>
             `;
             protectedContent.style.display = 'none';
+            tokenInfo.style.display = 'none';
         }
 
         function showErrorUI() {
@@ -508,6 +566,7 @@
                 </div>
             `;
             protectedContent.style.display = 'none';
+            tokenInfo.style.display = 'none';
         }
 
         function signIn() {
@@ -518,18 +577,20 @@
 
         function signUp() {
             const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
-            const signupUrl = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
+            const signupUrl = `https://${cognitoConfig.domain}/signup?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
             window.location.href = signupUrl;
         }
 
         function signOut() {
-            localStorage.removeItem('cognitoToken');
+            localStorage.removeItem('cognitoAccessToken');
+            localStorage.removeItem('cognitoIdToken');
+            localStorage.removeItem('cognitoTokenType');
             const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
             const logoutUrl = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${redirectUri}`;
             window.location.href = logoutUrl;
         }
 
-        // File Upload Functions (existing code)
+        // File Upload Functions
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             uploadArea.addEventListener(eventName, preventDefaults, false);
         });
@@ -566,8 +627,8 @@
 
         function handleFiles(newFiles) {
             // Check if user is authenticated
-            const token = localStorage.getItem('cognitoToken');
-            if (!token) {
+            const idToken = localStorage.getItem('cognitoIdToken');
+            if (!idToken) {
                 showWarning('Please sign in to upload files');
                 return;
             }
@@ -683,8 +744,8 @@
 
         async function uploadFiles() {
             // Check authentication before upload
-            const token = localStorage.getItem('cognitoToken');
-            if (!token) {
+            const idToken = localStorage.getItem('cognitoIdToken');
+            if (!idToken) {
                 errorMessage.textContent = 'Please sign in to upload files';
                 errorMessage.style.display = 'block';
                 return;
@@ -701,12 +762,6 @@
             errorMessage.style.display = 'none';
         
             try {
-                // Get user CID - you'll need to implement this function
-                const userCid = await getUserCid();
-                if (!userCid) {
-                    throw new Error('Unable to retrieve user CID. Please sign in again.');
-                }
-        
                 // Prepare files data for API
                 const filesData = Array.from(selectedFiles.entries()).map(([fileId, file]) => ({
                     fileId: fileId,
@@ -714,22 +769,34 @@
                     fileType: file.type
                 }));
         
-                // Get presigned URLs from API Gateway
+                console.log('Sending request with Authorization header...');
+                
+                // Get presigned URLs from API Gateway WITH JWT TOKEN
                 const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${idToken}`
                     },
                     body: JSON.stringify({
-                        files: filesData,
-                        userCid: userCid  // Send CID in the request body
+                        files: filesData
                     })
                 });
+
+                console.log('Response status:', response.status);
         
-                const data = await response.json();
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    throw new Error(`Invalid JSON response: ${responseText}`);
+                }
         
                 if (!response.ok) {
-                    throw new Error(data.error || data.message || 'Failed to get presigned URLs');
+                    throw new Error(data.error || data.message || `HTTP ${response.status}: Failed to get presigned URLs`);
                 }
         
                 const { uploadUrls } = data;
@@ -784,7 +851,7 @@
                             if (xhr.status === 200) {
                                 resolve(urlData.fileName);
                             } else {
-                                reject(new Error(`Upload failed for ${urlData.fileName}`));
+                                reject(new Error(`Upload failed for ${urlData.fileName}: ${xhr.status}`));
                             }
                         });
         
@@ -818,41 +885,7 @@
                 uploadBtn.textContent = 'Retry Upload';
             }
         }
-        
-        // Add this function to get user CID (you'll need to implement based on your setup)
-        async function getUserCid() {
-            // Option 1: Store CID in localStorage after login
-            const storedCid = localStorage.getItem('userCid');
-            if (storedCid) {
-                return storedCid;
-            }
-        
-            // Option 2: Get from your backend API
-            try {
-                const response = await fetch('/api/get-user-cid', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('cognitoToken')}`
-                    }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    localStorage.setItem('userCid', data.cid);
-                    return data.cid;
-                }
-            } catch (error) {
-                console.error('Error getting user CID:', error);
-            }
-        
-            // Option 3: Extract from Cognito token (if you store CID in the token)
-            const token = localStorage.getItem('cognitoToken');
-            if (token && token.includes('authenticated-')) {
-                // If you store CID in the token format, extract it
-                // For example: "authenticated-abc123" where abc123 is the CID
-                return token.replace('authenticated-', '');
-            }
-        
-            return null;
-        }
+
         function resetForm() {
             selectedFiles.clear();
             fileInput.value = '';
