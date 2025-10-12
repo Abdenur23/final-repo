@@ -3,8 +3,7 @@ class AuthManager {
         this.config = {
             clientId: '7irso7dmmnp793egs9bhkl0t81',
             cognitoDomain: 'https://auth.theweer.com',
-            redirectUri: 'https://theweer.com/',
-            userPoolId: 'us-east-1_TJDOamTpp'
+            redirectUri: 'https://theweer.com/'
         };
         
         this.tokens = this.loadTokens();
@@ -20,7 +19,7 @@ class AuthManager {
         const authUrl = `${this.config.cognitoDomain}/oauth2/authorize?` +
             `client_id=${this.config.clientId}&` +
             `response_type=code&` +
-            `scope=email+openid+phone+profile+aws.cognito.signin.user.admin&` +
+            `scope=openid&` +
             `redirect_uri=${encodeURIComponent(this.config.redirectUri)}`;
         
         window.location.href = authUrl;
@@ -40,16 +39,15 @@ class AuthManager {
         if (authCode) {
             try {
                 await this.exchangeCodeForTokens(authCode);
-                // Clean URL
                 window.history.replaceState({}, document.title, window.location.pathname);
             } catch (error) {
                 console.error('Token exchange failed:', error);
+                this.showLogin();
             }
         }
     }
 
     async exchangeCodeForTokens(authCode) {
-        // In production, this should call your backend to securely exchange the code
         const tokenUrl = `${this.config.cognitoDomain}/oauth2/token`;
         
         const response = await fetch(tokenUrl, {
@@ -93,10 +91,10 @@ class AuthManager {
 
     isTokenValid() {
         if (!this.tokens || !this.tokens.expiresAt) return false;
-        return Date.now() < this.tokens.expiresAt - 60000; // 1 minute buffer
+        return Date.now() < this.tokens.expiresAt - 60000;
     }
 
-    async checkExistingSession() {
+    checkExistingSession() {
         if (this.isTokenValid() && this.tokens.idToken) {
             this.showDashboard();
         } else {
@@ -112,16 +110,13 @@ class AuthManager {
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('dashboard').classList.remove('hidden');
         
-        // Display user information
         document.getElementById('user-details').innerHTML = `
             <p><strong>Username:</strong> ${tokenPayload['cognito:username'] || tokenPayload.username}</p>
             <p><strong>Email:</strong> ${tokenPayload.email}</p>
             <p><strong>User ID:</strong> ${tokenPayload.sub}</p>
             <p><strong>Email Verified:</strong> ${tokenPayload.email_verified ? 'Yes' : 'No'}</p>
-            ${tokenPayload.identities ? `<p><strong>Provider:</strong> ${JSON.parse(tokenPayload.identities)[0].providerType}</p>` : ''}
         `;
         
-        // Display tokens (truncated for security)
         document.getElementById('id-token').textContent = this.truncateToken(this.tokens.idToken);
         document.getElementById('access-token').textContent = this.truncateToken(this.tokens.accessToken);
         document.getElementById('token-expiry').textContent = new Date(this.tokens.expiresAt).toLocaleString();
@@ -145,7 +140,6 @@ class AuthManager {
         }
 
         try {
-            // Example protected API call
             const response = await fetch('/your-protected-api-endpoint', {
                 headers: {
                     'Authorization': `Bearer ${this.tokens.accessToken}`,
@@ -165,17 +159,10 @@ class AuthManager {
     }
 
     logout() {
-        const logoutUrl = `${this.config.cognitoDomain}/logout?` +
-            `client_id=${this.config.clientId}&` +
-            `logout_uri=${encodeURIComponent(this.config.redirectUri)}`;
-        
         this.showLogin();
-        // Optional: Redirect to Cognito logout
-        // window.location.href = logoutUrl;
     }
 }
 
-// Global functions for HTML buttons
 const authManager = new AuthManager();
 
 function redirectToHostedUI() {
