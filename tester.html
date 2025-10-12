@@ -38,9 +38,37 @@
             border-radius: 3px;
             cursor: pointer;
             margin-right: 10px;
+            margin-bottom: 10px;
+            width: 100%;
         }
         button:hover {
             background-color: #0056b3;
+        }
+        .google-btn {
+            background-color: #db4437;
+            margin-top: 10px;
+        }
+        .google-btn:hover {
+            background-color: #c23321;
+        }
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        .divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #ddd;
+        }
+        .divider span {
+            background: white;
+            padding: 0 10px;
+            position: relative;
         }
         .hidden {
             display: none;
@@ -76,7 +104,16 @@
                 <input type="password" id="login-password" placeholder="Enter password">
             </div>
             <button onclick="login()">Login</button>
-            <button onclick="showSignup()">Sign Up Instead</button>
+            
+            <div class="divider">
+                <span>OR</span>
+            </div>
+            
+            <button class="google-btn" onclick="googleLogin()">Login with Google</button>
+            
+            <div style="margin-top: 15px; text-align: center;">
+                <button onclick="showSignup()" style="background-color: #6c757d; width: auto;">Sign Up Instead</button>
+            </div>
         </div>
 
         <!-- Signup Form -->
@@ -95,7 +132,16 @@
                 <input type="email" id="signup-email" placeholder="Enter email">
             </div>
             <button onclick="signup()">Sign Up</button>
-            <button onclick="showLogin()">Login Instead</button>
+            
+            <div class="divider">
+                <span>OR</span>
+            </div>
+            
+            <button class="google-btn" onclick="googleLogin()">Sign Up with Google</button>
+            
+            <div style="margin-top: 15px; text-align: center;">
+                <button onclick="showLogin()" style="background-color: #6c757d; width: auto;">Login Instead</button>
+            </div>
         </div>
 
         <!-- User Info Section -->
