@@ -1,28 +1,161 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Debug Auth - The Weer</title>
+    <title>API Test - The Weer</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        button { 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #result { margin-top: 20px; padding: 10px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
 </head>
 <body>
-    <h1>Authentication Debug Info</h1>
-    <div id="debug"></div>
+    <h1>API Gateway Test</h1>
     
+    <div id="auth-status">
+        <p>Checking authentication...</p>
+    </div>
+    
+    <button onclick="refreshAuth()" id="refreshButton">Refresh Authentication</button>
+    <button onclick="callApi()" id="apiButton" disabled>Test API Call</button>
+    
+    <div id="result"></div>
+
     <script>
-        function displayStorage() {
-            const debug = document.getElementById('debug');
-            let html = '<h2>LocalStorage Contents:</h2><ul>';
+        const API_URL = 'https://rd8hnh5ch6.execute-api.us-east-1.amazonaws.com/prod/add-record';
+
+        function checkAuth() {
+            const cognitoToken = localStorage.getItem('cognitoToken');
+            const idToken = localStorage.getItem('idToken');
+            const authStatus = document.getElementById('auth-status');
+            const apiButton = document.getElementById('apiButton');
+            const refreshButton = document.getElementById('refreshButton');
             
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                const value = localStorage.getItem(key);
-                html += `<li><strong>${key}:</strong> ${value}</li>`;
+            if (idToken && cognitoToken) {
+                authStatus.innerHTML = `
+                    <div class="success">
+                        ✅ You are signed in with API access<br>
+                        <small>Real JWT token available</small>
+                    </div>
+                `;
+                apiButton.disabled = false;
+                refreshButton.style.display = 'none';
+                
+                // Show user info from token
+                try {
+                    const payload = JSON.parse(atob(idToken.split('.')[1]));
+                    authStatus.innerHTML += `<div><small>User: ${payload.email || payload.username || 'Unknown'}</small></div>`;
+                } catch (e) {
+                    console.log('Could not decode token');
+                }
+                
+            } else if (cognitoToken) {
+                authStatus.innerHTML = `
+                    <div class="error">
+                        ⚠️ You are signed in but need API tokens<br>
+                        <small>Click "Refresh Authentication" to get API access</small>
+                    </div>
+                `;
+                apiButton.disabled = true;
+                refreshButton.style.display = 'block';
+            } else {
+                authStatus.innerHTML = `
+                    <div class="error">
+                        ❌ Not signed in<br>
+                        <small>Please <a href="index.html">sign in on the main page</a> first</small>
+                    </div>
+                `;
+                apiButton.disabled = true;
+                refreshButton.style.display = 'none';
             }
-            
-            html += '</ul>';
-            debug.innerHTML = html;
         }
-        
-        displayStorage();
+
+        function refreshAuth() {
+            // Redirect to main app to get fresh tokens
+            const returnUrl = encodeURIComponent(window.location.href);
+            window.location.href = `index.html?return=${returnUrl}`;
+        }
+
+        async function callApi() {
+            const button = document.getElementById('apiButton');
+            const resultDiv = document.getElementById('result');
+            
+            button.disabled = true;
+            button.textContent = 'Calling API...';
+            resultDiv.innerHTML = '<div class="info">Making API call...</div>';
+
+            try {
+                const token = localStorage.getItem('idToken');
+                if (!token) {
+                    throw new Error('No JWT token found');
+                }
+
+                console.log('Making API call with token...');
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ API Call Successful!<br>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(`API error ${response.status}: ${data.message || JSON.stringify(data)}`);
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ API Call Failed<br>
+                        <strong>${error.message}</strong><br><br>
+                        <button onclick="refreshAuth()">Refresh Authentication</button>
+                    </div>
+                `;
+                console.error('API call failed:', error);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Test API Call';
+            }
+        }
+
+        // Check for return from main app
+        function checkReturn() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('return')) {
+                // We returned from main app - check if we have tokens now
+                window.history.replaceState({}, document.title, window.location.pathname);
+                checkAuth();
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', function() {
+            checkReturn();
+            checkAuth();
+        });
     </script>
 </body>
 </html>
