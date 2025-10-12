@@ -12,6 +12,7 @@
             border: none; 
             border-radius: 5px; 
             cursor: pointer; 
+            margin: 5px;
         }
         button:hover { background: #0056b3; }
         button:disabled { background: #ccc; cursor: not-allowed; }
@@ -19,121 +20,40 @@
         .warning { color: orange; }
         .error { color: red; }
         .success { color: green; }
+        .auth-section { 
+            margin-bottom: 20px; 
+            padding: 15px; 
+            background: #f0f0f0; 
+            border-radius: 5px; 
+            border-left: 4px solid #007bff;
+        }
     </style>
 </head>
 <body>
     <h1>Simple API Test</h1>
-    <div id="auth-status" style="margin-bottom: 20px; padding: 10px; background: #f0f0f0; border-radius: 5px;">
+    <div id="auth-status" class="auth-section">
         Checking authentication status...
     </div>
     <button onclick="callApi()" id="apiButton" disabled>Click to Call API</button>
     <div id="result"></div>
 
-    <!-- Include your existing auth.js -->
-    <script src="auth.js"></script>
+    <!-- Use the modified auth script -->
+    <script src="auth-tester.js"></script>
 
     <script>
         const API_URL = 'https://rd8hnh5ch6.execute-api.us-east-1.amazonaws.com/prod/add-record';
 
-        // Function to exchange authorization code for tokens
-        async function exchangeCodeForTokens(code) {
-            try {
-                const tokenUrl = `https://${cognitoConfig.domain}/oauth2/token`;
-                const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
-                
-                const response = await fetch(tokenUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        grant_type: 'authorization_code',
-                        client_id: cognitoConfig.clientId,
-                        code: code,
-                        redirect_uri: cognitoConfig.redirectUri
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Token exchange failed: ${response.status}`);
-                }
-
-                const tokens = await response.json();
-                return tokens;
-            } catch (error) {
-                console.error('Token exchange error:', error);
-                throw error;
-            }
+        // Function to get the JWT token
+        function getJwtToken() {
+            return localStorage.getItem('idToken');
         }
 
-        // Function to get the real JWT token
-        async function getJwtToken() {
-            try {
-                // Check if we have a code in the URL (fresh login)
-                const urlParams = new URLSearchParams(window.location.search);
-                const code = urlParams.get('code');
-                
-                if (code) {
-                    // Exchange code for tokens
-                    const tokens = await exchangeCodeForTokens(code);
-                    
-                    // Store the tokens
-                    localStorage.setItem('idToken', tokens.id_token);
-                    localStorage.setItem('accessToken', tokens.access_token);
-                    localStorage.setItem('refreshToken', tokens.refresh_token);
-                    
-                    // Clear the code from URL
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    
-                    return tokens.id_token;
-                }
-                
-                // Check if we have a stored token
-                const storedToken = localStorage.getItem('idToken');
-                if (storedToken && !storedToken.startsWith('authenticated-')) {
-                    return storedToken;
-                }
-                
-                return null;
-            } catch (error) {
-                console.error('Error getting JWT token:', error);
-                return null;
-            }
-        }
-
-        // Check authentication status on page load
-        async function checkAuthOnLoad() {
-            const authStatus = document.getElementById('auth-status');
-            const apiButton = document.getElementById('apiButton');
-            
-            try {
-                const token = await getJwtToken();
-                const hasAuthFlag = localStorage.getItem('cognitoToken');
-                
-                if (token) {
-                    authStatus.innerHTML = '<div class="success">✅ Authenticated with valid JWT token</div>';
-                    apiButton.disabled = false;
-                    
-                    // Decode token to show user info (optional)
-                    try {
-                        const payload = JSON.parse(atob(token.split('.')[1]));
-                        authStatus.innerHTML += `<div><small>User: ${payload.email || payload.username || 'Unknown'}</small></div>`;
-                    } catch (e) {
-                        console.log('Could not decode token:', e);
-                    }
-                } else if (hasAuthFlag) {
-                    authStatus.innerHTML = '<div class="warning">⚠️ You are logged in but need to refresh to get API token</div>';
-                    authStatus.innerHTML += '<div><small><a href="javascript:location.reload()">Click here to refresh</a></small></div>';
-                    apiButton.disabled = true;
-                } else {
-                    authStatus.innerHTML = '<div class="error">❌ Not authenticated</div>';
-                    authStatus.innerHTML += '<div><small>Please <a href="javascript:signIn()">sign in</a> first</small></div>';
-                    apiButton.disabled = true;
-                }
-            } catch (error) {
-                console.error('Auth check error:', error);
-                authStatus.innerHTML = '<div class="error">❌ Error checking authentication</div>';
-                apiButton.disabled = true;
+        // Clear existing placeholder tokens and start fresh
+        function clearPlaceholderTokens() {
+            const token = localStorage.getItem('cognitoToken');
+            if (token && token.startsWith('authenticated-')) {
+                localStorage.removeItem('cognitoToken');
+                console.log('Cleared placeholder token');
             }
         }
 
@@ -147,9 +67,9 @@
             resultDiv.innerHTML = '';
 
             try {
-                const token = await getJwtToken();
+                const token = getJwtToken();
                 if (!token) {
-                    throw new Error('No valid JWT token found. Please sign in again.');
+                    throw new Error('No valid JWT token found. Please sign in.');
                 }
 
                 console.log('Making API call with token...');
@@ -180,8 +100,11 @@
             }
         }
 
-        // Initialize on page load
-        window.addEventListener('load', checkAuthOnLoad);
+        // Clear placeholder tokens and check auth on load
+        window.addEventListener('load', function() {
+            clearPlaceholderTokens();
+            checkAuthStatus();
+        });
     </script>
 </body>
 </html>
