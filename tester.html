@@ -17,6 +17,7 @@ h1,h2,h3 { color:#333; }
 #uploadSection button { padding:10px 20px; font-size:16px; background-color:#28a745; color:white; border:none; border-radius:5px; cursor:pointer; }
 #uploadResult { margin-top:10px; font-weight:bold; }
 </style>
+    <link rel="stylesheet" href="realtime-updates.css">
 </head>
 <body>
 
@@ -265,7 +266,53 @@ async function uploadFiles(){
         resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
     }
 }
-</script>
+    // Initialize real-time updates
+const realtimeUpdates = new RealtimeUpdates();
+const imageGallery = new ImageGallery('imageGallery');
 
+// Show real-time section when user is signed in
+function showSessionInfo() {
+    const session = getSession();
+    const tokenDiv = document.getElementById('token-display');
+    const realtimeSection = document.getElementById('realtimeSection');
+    
+    if (session && session.id_token) {
+        const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+        tokenDiv.innerHTML = `<h2>Signed in as ${payload.sub}</h2>
+        <pre>${JSON.stringify(payload, null, 2)}</pre>`;
+        document.getElementById('uploadSection').style.display = 'block';
+        realtimeSection.style.display = 'block';
+        
+        // Initialize real-time components
+        imageGallery.init();
+        realtimeUpdates.init(payload.sub);
+        
+        // Set up callbacks
+        realtimeUpdates.setImageUpdateCallback((data) => {
+            imageGallery.addOrUpdateImage(data.key, data);
+        });
+        
+        realtimeUpdates.setStatusChangeCallback((status) => {
+            imageGallery.updateConnectionStatus(status);
+        });
+        
+    } else {
+        tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
+        document.getElementById('uploadSection').style.display = 'none';
+        realtimeSection.style.display = 'none';
+        realtimeUpdates.disconnect();
+    }
+}
+</script>
+<!-- Real-time Updates Section -->
+<div id="realtimeSection" style="display: none;">
+    <div class="gallery-container">
+        <div id="imageGallery"></div>
+    </div>
+</div>
+
+<!-- Load modular scripts -->
+<script src="realtime-updates.js"></script>
+<script src="image-gallery.js"></script>
 </body>
 </html>
