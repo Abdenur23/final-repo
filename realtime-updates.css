@@ -1,81 +1,90 @@
-.gallery-container {
-    margin-top: 20px;
-    border-top: 1px solid #ddd;
-    padding-top: 20px;
+.updates-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    background: #f9f9f9;
 }
 
-.gallery-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
+.progress-item {
+    background: white;
+    border: 1px solid #e1e1e1;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.connection-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.file-name {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
     font-size: 14px;
 }
 
-.status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+.progress-stages {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
 }
 
-.status-dot.connected { background-color: #28a745; }
-.status-dot.disconnected { background-color: #dc3545; }
-.status-dot.connecting { background-color: #ffc107; }
-.status-dot.error { background-color: #dc3545; }
-
-.images-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
-    margin-top: 15px;
+.stage {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    background: #f0f0f0;
+    color: #666;
+    transition: all 0.3s ease;
 }
 
-.image-card {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    overflow: hidden;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.stage.completed {
+    background: #4CAF50;
+    color: white;
 }
 
-.image-container {
-    width: 100%;
-    height: 150px;
-    overflow: hidden;
-    background: #f8f9fa;
+.stage.active {
+    background: #2196F3;
+    color: white;
+    animation: pulse 1.5s infinite;
 }
 
-.image-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.image-info {
-    padding: 10px;
-}
-
-.filename {
-    font-weight: bold;
-    font-size: 12px;
-    margin-bottom: 5px;
-    word-break: break-all;
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
 }
 
 .timestamp {
     font-size: 11px;
-    color: #666;
-    margin-bottom: 3px;
+    color: #888;
+    text-align: right;
 }
 
-.stage {
-    font-size: 11px;
-    color: #007bff;
+.final-badge {
+    background: #4CAF50;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 15px;
     font-weight: bold;
+    margin-top: 8px;
+    text-align: center;
+    animation: celebrate 0.5s ease;
 }
+
+@keyframes celebrate {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.connection-status {
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+.connected { background: #4CAF50; color: white; }
+.disconnected { background: #f44336; color: white; }
+.connecting { background: #ff9800; color: white; }
