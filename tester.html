@@ -131,6 +131,24 @@ async function uploadFiles(){
     }
 }
 </script>
+<!-- Add these lines before closing body tag -->
+<link rel="stylesheet" href="realtime-updates.css">
+<script src="realtime-updates.js"></script>
+<script>
+// Initialize real-time updates when page loads
+const realTimeUpdates = new RealTimeUpdates();
 
+// Modify the existing uploadFiles function to show real-time panel
+const originalUploadFiles = window.uploadFiles;
+window.uploadFiles = async function() {
+    await originalUploadFiles();
+    realTimeUpdates.showPanel();
+};
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    realTimeUpdates.initialize();
+});
+</script>
 </body>
 </html>
