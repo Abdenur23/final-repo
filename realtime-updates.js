@@ -1,81 +1,166 @@
-class RealtimeUpdates {
+class RealTimeUpdates {
     constructor() {
         this.socket = null;
         this.isConnected = false;
-        this.userSub = null;
+        this.pendingImages = new Map();
     }
 
-    init(userSub) {
-        this.userSub = userSub;
-        this.connectWebSocket();
+    initialize() {
+        this.setupWebSocket();
+        this.renderUpdatesPanel();
     }
 
-    connectWebSocket() {
-        const wsUrl = 'wss://qznzor4oy6.execute-api.us-east-1.amazonaws.com/production';
-        this.socket = new WebSocket(wsUrl);
+    setupWebSocket() {
+        const WS_URL = 'wss://your-websocket-api.execute-api.us-east-1.amazonaws.com/prod';
+        this.socket = new WebSocket(WS_URL);
         
         this.socket.onopen = () => {
-            this.isConnected = true;
-            this.socket.send(JSON.stringify({
-                action: 'connect',
-                sub: this.userSub
-            }));
-            this.onStatusChange('connected');
+            console.log('WebSocket connected');
+            this.authenticateWebSocket();
         };
 
         this.socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            this.handleMessage(data);
+            this.handleUpdate(data);
         };
 
         this.socket.onclose = () => {
+            console.log('WebSocket disconnected');
             this.isConnected = false;
-            this.onStatusChange('disconnected');
-            // Attempt reconnect after 3 seconds
-            setTimeout(() => this.connectWebSocket(), 3000);
-        };
-
-        this.socket.onerror = (error) => {
-            console.error('WebSocket error:', error);
-            this.onStatusChange('error');
+            // Attempt reconnect after 5 seconds
+            setTimeout(() => this.setupWebSocket(), 5000);
         };
     }
 
-    handleMessage(data) {
-        switch (data.type) {
-            case 'IMAGE_UPDATE':
-                this.onImageUpdate(data);
+    authenticateWebSocket() {
+        const session = this.getSession();
+        if (session && session.id_token) {
+            this.socket.send(JSON.stringify({
+                action: 'authorize',
+                id_token: session.id_token
+            }));
+            this.isConnected = true;
+        }
+    }
+
+    handleUpdate(data) {
+        console.log('Received update:', data);
+        
+        switch(data.type) {
+            case 'image_update':
+                this.updateImageStatus(data);
                 break;
             default:
                 console.log('Unknown message type:', data.type);
         }
     }
 
-    onImageUpdate(data) {
-        // This will be overridden by the main UI
-        if (typeof this.imageUpdateCallback === 'function') {
-            this.imageUpdateCallback(data);
+    updateImageStatus(update) {
+        const container = document.getElementById('realtimeUpdates');
+        if (!container) return;
+
+        const fileName = update.fileName;
+        const stage = update.stage;
+        
+        // Create or update progress item
+        let item = this.pendingImages.get(fileName);
+        if (!item) {
+            item = this.createProgressItem(fileName);
+            this.pendingImages.set(fileName, item);
         }
+        
+        this.updateProgressItem(item, stage, update.timestamp);
     }
 
-    onStatusChange(status) {
-        // This will be overridden by the main UI
-        if (typeof this.statusChangeCallback === 'function') {
-            this.statusChangeCallback(status);
+    createProgressItem(fileName) {
+        const container = document.getElementById('realtimeUpdates');
+        const item = document.createElement('div');
+        item.className = 'progress-item';
+        item.innerHTML = `
+            <div class="file-name">${this.formatFileName(fileName)}</div>
+            <div class="progress-stages">
+                <div class="stage uploaded">📤 Uploaded</div>
+                <div class="stage stage1">🔄 Stage 1</div>
+                <div class="stage stage2">🔄 Stage 2</div>
+                <div class="stage final">✅ Final</div>
+            </div>
+            <div class="timestamp"></div>
+        `;
+        container.appendChild(item);
+        return item;
+    }
+
+    updateProgressItem(item, stage, timestamp) {
+        // Update stage indicators
+        const stages = item.querySelectorAll('.stage');
+        stages.forEach(stageEl => stageEl.classList.remove('active', 'completed'));
+        
+        switch(stage) {
+            case 'uploaded':
+                item.querySelector('.uploaded').classList.add('completed');
+                break;
+            case 'stage1_complete':
+                item.querySelector('.uploaded').classList.add('completed');
+                item.querySelector('.stage1').classList.add('completed');
+                break;
+            case 'stage2_complete':
+                item.querySelector('.uploaded').classList.add('completed');
+                item.querySelector('.stage1').classList.add('completed');
+                item.querySelector('.stage2').classList.add('completed');
+                break;
+            case 'final_complete':
+                stages.forEach(stageEl => stageEl.classList.add('completed'));
+                this.showFinalImage(item, timestamp);
+                break;
         }
-    }
-
-    setImageUpdateCallback(callback) {
-        this.imageUpdateCallback = callback;
-    }
-
-    setStatusChangeCallback(callback) {
-        this.statusChangeCallback = callback;
-    }
-
-    disconnect() {
-        if (this.socket) {
-            this.socket.close();
+        
+        // Update active stage
+        const activeStage = item.querySelector(`.${stage.split('_')[0]}`);
+        if (activeStage) {
+            activeStage.classList.add('active');
         }
+        
+        // Update timestamp
+        item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
+    }
+
+    showFinalImage(item, timestamp) {
+        // You can extend this to actually show the final image
+        const finalBadge = document.createElement('div');
+        finalBadge.className = 'final-badge';
+        finalBadge.textContent = '🎉 Processing Complete!';
+        item.appendChild(finalBadge);
+    }
+
+    formatFileName(name) {
+        return name.length > 30 ? name.substring(0, 27) + '...' : name;
+    }
+
+    getSession() {
+        return JSON.parse(localStorage.getItem('cognitoSession'));
+    }
+
+    renderUpdatesPanel() {
+        const uploadSection = document.getElementById('uploadSection');
+        if (!uploadSection) return;
+
+        const updatesHTML = `
+            <div id="realtimePanel" style="margin-top: 20px; display: none;">
+                <h3>🔄 Real-time Processing Updates</h3>
+                <div id="realtimeUpdates" class="updates-container"></div>
+            </div>
+        `;
+        
+        uploadSection.insertAdjacentHTML('afterend', updatesHTML);
+    }
+
+    showPanel() {
+        const panel = document.getElementById('realtimePanel');
+        if (panel) panel.style.display = 'block';
+    }
+
+    hidePanel() {
+        const panel = document.getElementById('realtimePanel');
+        if (panel) panel.style.display = 'none';
     }
 }
