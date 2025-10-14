@@ -11,7 +11,7 @@ class RealTimeUpdates {
     }
 
     setupWebSocket() {
-        const WS_URL = 'wss://your-websocket-api.execute-api.us-east-1.amazonaws.com/prod';
+        const WS_URL = 'wss://h5akjyhdj6.execute-api.us-east-1.amazonaws.com/production';
         this.socket = new WebSocket(WS_URL);
         
         this.socket.onopen = () => {
