@@ -314,10 +314,45 @@ class RealTimeUpdates {
         this.socket = null;
         this.isConnected = false;
         this.pendingImages = new Map();
-        this.mockupProducts = new Map(); // Track products by CID
+        this.mockupProducts = new Map();
     }
 
-    // ... (keep existing setupWebSocket, authenticateWebSocket methods unchanged)
+    initialize() {
+        this.setupWebSocket();
+        this.renderUpdatesPanel();
+    }
+
+    setupWebSocket() {
+        const WS_URL = 'wss://h5akjyhdj6.execute-api.us-east-1.amazonaws.com/production';
+        this.socket = new WebSocket(WS_URL);
+        
+        this.socket.onopen = () => {
+            console.log('WebSocket connected');
+            this.authenticateWebSocket();
+        };
+
+        this.socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            this.handleUpdate(data);
+        };
+
+        this.socket.onclose = () => {
+            console.log('WebSocket disconnected');
+            this.isConnected = false;
+            setTimeout(() => this.setupWebSocket(), 5000);
+        };
+    }
+
+    authenticateWebSocket() {
+        const session = this.getSession();
+        if (session && session.id_token) {
+            this.socket.send(JSON.stringify({
+                action: 'authorize',
+                id_token: session.id_token
+            }));
+            this.isConnected = true;
+        }
+    }
 
     handleUpdate(data) {
         console.log('Received update:', data);
@@ -339,7 +374,7 @@ class RealTimeUpdates {
         const stage = update.stage;
         
         // Handle Mockup ready images
-        if (stage === 'Getting mockup files') {
+        if (stage === 'Getting mockup files' && update.imageUrl) {
             this.handleMockupReady(update);
             return;
         }
@@ -354,7 +389,6 @@ class RealTimeUpdates {
     }
 
     handleMockupReady(update) {
-        // Extract CID from filename to group images by product
         const cid = this.extractCID(update.fileName);
         if (!cid) return;
 
@@ -363,9 +397,11 @@ class RealTimeUpdates {
         }
         
         const productImages = this.mockupProducts.get(cid);
-        productImages.push(update.fileName);
+        productImages.push({
+            fileName: update.fileName,
+            imageUrl: update.imageUrl
+        });
         
-        // Display mockup gallery when we have 3 angles (or any number)
         this.displayMockupGallery(cid, productImages);
     }
 
@@ -374,8 +410,7 @@ class RealTimeUpdates {
         return match ? match[1] : null;
     }
 
-    displayMockupGallery(cid, imageFiles) {
-        // Remove existing gallery for this product
+    displayMockupGallery(cid, imageData) {
         const existingGallery = document.getElementById(`mockup-gallery-${cid}`);
         if (existingGallery) {
             existingGallery.remove();
@@ -388,38 +423,29 @@ class RealTimeUpdates {
         gallery.innerHTML = `
             <h4>📱 Product Mockup Ready</h4>
             <div class="mockup-images" id="images-${cid}">
-                ${imageFiles.map(file => 
-                    `<img src="${this.getImageUrl(file)}" alt="Product view" loading="lazy" />`
+                ${imageData.map(data => 
+                    `<img src="${data.imageUrl}" alt="Product view" loading="lazy" />`
                 ).join('')}
             </div>
         `;
         
         container.appendChild(gallery);
-        
-        // Load images from S3
-        this.loadMockupImages(cid, imageFiles);
+        this.loadMockupImages(cid, imageData);
     }
 
-    getImageUrl(fileName) {
-        // Construct S3 URL for optimized images
-        const baseUrl = 'https://136-circulation-bucket.s3.us-east-1.amazonaws.com';
-        const optFileName = 'opt-' + fileName.split('/').pop();
-        return `${baseUrl}/output/frames/${optFileName}`;
-    }
-
-    async loadMockupImages(cid, imageFiles) {
+    async loadMockupImages(cid, imageData) {
         const container = document.getElementById(`images-${cid}`);
         if (!container) return;
 
-        for (const file of imageFiles) {
-            const img = container.querySelector(`[src="${this.getImageUrl(file)}"]`);
+        for (const data of imageData) {
+            const img = container.querySelector(`[src="${data.imageUrl}"]`);
             if (img) {
                 try {
-                    await this.preloadImage(this.getImageUrl(file));
-                    img.style.opacity = '1'; // Reveal when loaded
+                    await this.preloadImage(data.imageUrl);
+                    img.style.opacity = '1';
                 } catch (error) {
-                    console.error('Failed to load image:', file);
-                    img.style.opacity = '0.3'; // Dim failed loads
+                    console.error('Failed to load image:', data.fileName);
+                    img.style.opacity = '0.3';
                 }
             }
         }
@@ -434,10 +460,71 @@ class RealTimeUpdates {
         });
     }
 
-    // ... (keep existing createProgressItem, updateProgressItem, formatFileName methods unchanged)
+    createProgressItem(fileName) {
+        const container = document.getElementById('realtimeUpdates');
+        const item = document.createElement('div');
+        item.className = 'progress-item';
+        item.innerHTML = `
+            <div class="file-name">${this.formatFileName(fileName)}</div>
+            <div class="current-stage">Starting...</div>
+            <div class="timestamp"></div>
+        `;
+        container.appendChild(item);
+        return item;
+    }
+
+    updateProgressItem(item, stage, timestamp) {
+        const stageElement = item.querySelector('.current-stage');
+        stageElement.textContent = stage;
+        
+        item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
+        item.className = 'progress-item ' + stage.toLowerCase().replace(/\s+/g, '-');
+        
+        if (stage === 'Getting mockup files') {
+            const finalBadge = document.createElement('div');
+            finalBadge.className = 'final-badge';
+            finalBadge.textContent = '✅ Complete!';
+            if (!item.querySelector('.final-badge')) {
+                item.appendChild(finalBadge);
+            }
+        }
+    }
+
+    formatFileName(name) {
+        const filename = name.split('/').pop();
+        return filename.length > 30 ? filename.substring(0, 27) + '...' : filename;
+    }
+
+    getSession() {
+        return JSON.parse(localStorage.getItem('cognitoSession'));
+    }
+
+    renderUpdatesPanel() {
+        const uploadSection = document.getElementById('uploadSection');
+        if (!uploadSection) return;
+
+        const updatesHTML = `
+            <div id="realtimePanel" style="margin-top: 20px; display: none;">
+                <h3>🔄 Processing Updates</h3>
+                <div id="realtimeUpdates" class="updates-container"></div>
+            </div>
+        `;
+        
+        uploadSection.insertAdjacentHTML('afterend', updatesHTML);
+    }
+
+    showPanel() {
+        const panel = document.getElementById('realtimePanel');
+        if (panel) panel.style.display = 'block';
+    }
+
+    hidePanel() {
+        const panel = document.getElementById('realtimePanel');
+        if (panel) panel.style.display = 'none';
+    }
 }
 
-// Add minimal CSS
+// --- Inject styles ---
 const mockupStyles = `
 .mockup-gallery {
     border: 1px solid #ddd;
@@ -467,7 +554,6 @@ const mockupStyles = `
 }
 `;
 
-// Inject styles
 const styleSheet = document.createElement('style');
 styleSheet.textContent = mockupStyles;
 document.head.appendChild(styleSheet);
