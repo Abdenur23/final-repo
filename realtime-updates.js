@@ -568,7 +568,7 @@ class RealTimeUpdates {
     initialize() {
         this.setupWebSocket();
         this.renderUpdatesPanel();
-        this.showPanel(); // Auto-show panel when initialized
+        this.showPanel();
     }
 
     setupWebSocket() {
@@ -581,19 +581,19 @@ class RealTimeUpdates {
         };
 
         this.socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log('WebSocket message received:', data);
-            this.handleUpdate(data);
+            try {
+                const data = JSON.parse(event.data);
+                console.log('WebSocket message received:', data);
+                this.handleUpdate(data);
+            } catch (error) {
+                console.error('Error parsing WebSocket message:', error);
+            }
         };
 
         this.socket.onclose = () => {
             console.log('WebSocket disconnected');
             this.isConnected = false;
             setTimeout(() => this.setupWebSocket(), 5000);
-        };
-
-        this.socket.onerror = (error) => {
-            console.log('WebSocket error:', error);
         };
     }
 
@@ -605,9 +605,6 @@ class RealTimeUpdates {
                 id_token: session.id_token
             }));
             this.isConnected = true;
-            console.log('WebSocket authenticated');
-        } else {
-            console.log('No session found for WebSocket authentication');
         }
     }
 
@@ -618,8 +615,6 @@ class RealTimeUpdates {
             case 'image_update':
                 this.updateImageStatus(data);
                 break;
-            default:
-                console.log('Unknown message type:', data.type);
         }
     }
 
@@ -627,7 +622,7 @@ class RealTimeUpdates {
         console.log('Updating image status:', update);
         const container = document.getElementById('realtimeUpdates');
         if (!container) {
-            console.log('realtimeUpdates container not found');
+            console.error('realtimeUpdates container not found');
             return;
         }
 
@@ -641,12 +636,12 @@ class RealTimeUpdates {
             return;
         }
         
+        // Handle other stages
         let item = this.pendingImages.get(fileName);
         if (!item) {
             item = this.createProgressItem(fileName);
             this.pendingImages.set(fileName, item);
         }
-        
         this.updateProgressItem(item, stage, update.timestamp);
     }
 
@@ -669,8 +664,6 @@ class RealTimeUpdates {
         });
         
         console.log(`Collected ${productImages.length} images for CID ${cid}`);
-        
-        // Display gallery when we have images (don't wait for exactly 3)
         this.displayMockupGallery(cid, productImages);
     }
 
@@ -682,63 +675,25 @@ class RealTimeUpdates {
     displayMockupGallery(cid, imageData) {
         console.log('Displaying mockup gallery for CID:', cid, 'with', imageData.length, 'images');
         
-        const existingGallery = document.getElementById(`mockup-gallery-${cid}`);
-        if (existingGallery) {
-            existingGallery.remove();
+        let gallery = document.getElementById(`mockup-gallery-${cid}`);
+        if (!gallery) {
+            const container = document.getElementById('realtimeUpdates');
+            gallery = document.createElement('div');
+            gallery.id = `mockup-gallery-${cid}`;
+            gallery.className = 'mockup-gallery';
+            container.appendChild(gallery);
         }
-
-        const container = document.getElementById('realtimeUpdates');
-        const gallery = document.createElement('div');
-        gallery.id = `mockup-gallery-${cid}`;
-        gallery.className = 'mockup-gallery';
+        
         gallery.innerHTML = `
-            <h4>📱 Product Mockup Ready (${imageData.length} images)</h4>
-            <div class="mockup-images" id="images-${cid}">
+            <h4>📱 Product Mockup Ready</h4>
+            <div class="mockup-images">
                 ${imageData.map((data, index) => 
-                    `<img src="${data.imageUrl}" alt="Product view ${index + 1}" loading="lazy" style="opacity: 0; transition: opacity 0.3s ease;" />`
+                    `<div class="image-container">
+                        <img src="${data.imageUrl}" alt="Product view ${index + 1}" onload="this.style.opacity='1'" onerror="this.style.opacity='0.3'; console.error('Failed to load image:', this.src)" style="opacity: 0; transition: opacity 0.3s ease;" />
+                    </div>`
                 ).join('')}
             </div>
         `;
-        
-        container.appendChild(gallery);
-        this.loadMockupImages(cid, imageData);
-    }
-
-    async loadMockupImages(cid, imageData) {
-        const container = document.getElementById(`images-${cid}`);
-        if (!container) return;
-
-        console.log('Loading mockup images for CID:', cid);
-        
-        for (const data of imageData) {
-            const img = container.querySelector(`img[src="${data.imageUrl}"]`);
-            if (img) {
-                try {
-                    await this.preloadImage(data.imageUrl);
-                    img.style.opacity = '1';
-                    console.log('Successfully loaded image:', data.fileName);
-                } catch (error) {
-                    console.error('Failed to load image:', data.fileName, error);
-                    img.style.opacity = '0.3';
-                    img.style.filter = 'grayscale(100%)';
-                }
-            }
-        }
-    }
-
-    preloadImage(src) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => {
-                console.log('Image preloaded successfully:', src);
-                resolve();
-            };
-            img.onerror = () => {
-                console.error('Failed to preload image:', src);
-                reject(new Error(`Failed to load image: ${src}`));
-            };
-            img.src = src;
-        });
     }
 
     createProgressItem(fileName) {
@@ -757,18 +712,7 @@ class RealTimeUpdates {
     updateProgressItem(item, stage, timestamp) {
         const stageElement = item.querySelector('.current-stage');
         stageElement.textContent = stage;
-        
         item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
-        item.className = 'progress-item ' + stage.toLowerCase().replace(/\s+/g, '-');
-        
-        if (stage === 'Mockup ready') {
-            const finalBadge = document.createElement('div');
-            finalBadge.className = 'final-badge';
-            finalBadge.textContent = '✅ Complete!';
-            if (!item.querySelector('.final-badge')) {
-                item.appendChild(finalBadge);
-            }
-        }
     }
 
     formatFileName(name) {
@@ -777,26 +721,13 @@ class RealTimeUpdates {
     }
 
     getSession() {
-        const session = localStorage.getItem('cognitoSession');
-        console.log('Retrieved session from localStorage:', session ? 'exists' : 'null');
-        return session ? JSON.parse(session) : null;
+        return JSON.parse(localStorage.getItem('cognitoSession'));
     }
 
     renderUpdatesPanel() {
-        const uploadSection = document.getElementById('uploadSection');
-        if (!uploadSection) {
-            console.log('uploadSection not found, creating standalone panel');
-            // Create standalone panel if uploadSection doesn't exist
-            const panelHTML = `
-                <div id="realtimePanel" style="margin: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
-                    <h3>🔄 Processing Updates</h3>
-                    <div id="realtimeUpdates" class="updates-container"></div>
-                </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', panelHTML);
-            return;
-        }
+        if (document.getElementById('realtimePanel')) return;
 
+        const uploadSection = document.getElementById('uploadSection');
         const updatesHTML = `
             <div id="realtimePanel" style="margin-top: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
                 <h3>🔄 Processing Updates</h3>
@@ -804,51 +735,51 @@ class RealTimeUpdates {
             </div>
         `;
         
-        uploadSection.insertAdjacentHTML('afterend', updatesHTML);
-        console.log('Updates panel rendered');
+        if (uploadSection) {
+            uploadSection.insertAdjacentHTML('afterend', updatesHTML);
+        } else {
+            document.body.insertAdjacentHTML('beforeend', updatesHTML);
+        }
     }
 
     showPanel() {
         const panel = document.getElementById('realtimePanel');
-        if (panel) {
-            panel.style.display = 'block';
-            console.log('Updates panel shown');
-        } else {
-            console.log('Updates panel not found');
-        }
-    }
-
-    hidePanel() {
-        const panel = document.getElementById('realtimePanel');
-        if (panel) panel.style.display = 'none';
+        if (panel) panel.style.display = 'block';
     }
 }
 
 // Add CSS styles
-const mockupStyles = `
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `
 .mockup-gallery {
     border: 2px solid #4CAF50;
     padding: 15px;
     margin: 10px 0;
     border-radius: 8px;
-    background: #f9f9f9;
+    background: #f8fff8;
 }
 .mockup-gallery h4 {
-    margin: 0 0 10px 0;
+    margin: 0 0 15px 0;
     color: #2c5aa0;
+    font-size: 18px;
 }
 .mockup-images {
     display: flex;
-    gap: 10px;
+    gap: 15px;
     flex-wrap: wrap;
 }
-.mockup-images img {
-    width: 150px;
-    height: 150px;
-    object-fit: cover;
+.mockup-images .image-container {
+    border: 2px solid #ddd;
     border-radius: 8px;
-    border: 2px solid #fff;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    padding: 5px;
+    background: white;
+}
+.mockup-images img {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    border-radius: 4px;
+    display: block;
 }
 .progress-item {
     padding: 10px;
@@ -857,37 +788,11 @@ const mockupStyles = `
     background: white;
     border-radius: 4px;
 }
-.final-badge {
-    color: #28a745;
-    font-weight: bold;
-    margin-top: 5px;
-}
 `;
+document.head.appendChild(styleSheet);
 
-// Inject styles
-if (!document.querySelector('#realtime-updates-styles')) {
-    const styleSheet = document.createElement('style');
-    styleSheet.id = 'realtime-updates-styles';
-    styleSheet.textContent = mockupStyles;
-    document.head.appendChild(styleSheet);
-}
-
-// Initialize when page loads
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing RealTimeUpdates');
     window.realtimeUpdates = new RealTimeUpdates();
     window.realtimeUpdates.initialize();
 });
-
-// Also try initializing if DOM is already loaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded, initializing RealTimeUpdates');
-        window.realtimeUpdates = new RealTimeUpdates();
-        window.realtimeUpdates.initialize();
-    });
-} else {
-    console.log('DOM already ready, initializing RealTimeUpdates immediately');
-    window.realtimeUpdates = new RealTimeUpdates();
-    window.realtimeUpdates.initialize();
-}
