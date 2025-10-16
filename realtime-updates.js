@@ -616,6 +616,9 @@ class RealTimeUpdates {
             case 'image_update':
                 this.updateImageStatus(data);
                 break;
+            case 'coordinated_mockup_ready':
+                this.handleCoordinatedMockupReady(data);
+                break;
         }
     }
 
@@ -630,7 +633,7 @@ class RealTimeUpdates {
         const fileName = update.fileName;
         const stage = update.stage;
         
-        // Handle Mockup ready images
+        // Handle Mockup ready images (individual notifications)
         if (stage === 'Mockup ready' && update.imageUrl) {
             console.log('Mockup ready with image URL:', update.imageUrl);
             this.handleMockupReady(update);
@@ -646,36 +649,125 @@ class RealTimeUpdates {
         this.updateProgressItem(item, stage, update.timestamp);
     }
 
+    handleCoordinatedMockupReady(data) {
+        console.log('Handling coordinated mockup ready:', data);
+        const cid = data.cid;
+        const files = data.files || [];
+        
+        console.log(`Received coordinated mockup for CID ${cid} with ${files.length} files`);
+        
+        if (files.length === 0) {
+            console.error('No files in coordinated mockup notification');
+            return;
+        }
+
+        // Display the coordinated mockup gallery
+        this.displayCoordinatedMockupGallery(cid, files, data.timestamp);
+        
+        // Also update individual progress items for each file
+        files.forEach(fileData => {
+            this.updateImageStatus({
+                fileName: fileData.fileName,
+                stage: 'Mockup ready',
+                imageUrl: fileData.imageUrl,
+                timestamp: data.timestamp
+            });
+        });
+    }
+
     handleMockupReady(update) {
-        console.log('Handling mockup ready:', update);
+        console.log('Handling individual mockup ready:', update);
         const cid = this.extractCID(update.fileName);
         if (!cid) {
             console.log('No CID found in filename:', update.fileName);
             return;
         }
 
+        // For individual mockup notifications, still add to the collection
+        // but only display if it's not part of a coordinated notification
         if (!this.mockupProducts.has(cid)) {
             this.mockupProducts.set(cid, []);
         }
         
         const productImages = this.mockupProducts.get(cid);
         
-        productImages.push({
-            fileName: update.fileName,
-            imageUrl: update.imageUrl
-        });
-        
-        console.log(`Collected ${productImages.length} images for CID ${cid}`);
-        this.displayMockupGallery(cid, productImages);
+        // Check if this file already exists in the collection
+        const existingFile = productImages.find(img => img.fileName === update.fileName);
+        if (!existingFile) {
+            productImages.push({
+                fileName: update.fileName,
+                imageUrl: update.imageUrl
+            });
+            
+            console.log(`Collected ${productImages.length} images for CID ${cid}`);
+            
+            // Only display individual gallery if we don't have a coordinated notification
+            // Coordinated notifications will overwrite this
+            if (productImages.length < 3) { // Assuming 3 is the coordinated count
+                this.displayMockupGallery(cid, productImages);
+            }
+        }
     }
 
-    extractCID(fileName) {
-        const match = fileName.match(/_cid_([^_]+)_/);
-        return match ? match[1] : null;
+    displayCoordinatedMockupGallery(cid, imageData, timestamp) {
+        console.log('Displaying coordinated mockup gallery for CID:', cid, 'with', imageData.length, 'images');
+        
+        let gallery = document.getElementById(`mockup-gallery-${cid}`);
+        if (!gallery) {
+            const container = document.getElementById('realtimeUpdates');
+            gallery = document.createElement('div');
+            gallery.id = `mockup-gallery-${cid}`;
+            gallery.className = 'mockup-gallery coordinated-gallery';
+            container.appendChild(gallery);
+        }
+        
+        // Sort files by prefix for consistent display
+        const sortedData = imageData.sort((a, b) => {
+            const prefixA = a.fileName.split('_')[0];
+            const prefixB = b.fileName.split('_')[0];
+            return prefixA.localeCompare(prefixB);
+        });
+        
+        gallery.innerHTML = `
+            <div class="gallery-header">
+                <h4>🎯 Complete Product Mockup Ready</h4>
+                <div class="gallery-info">
+                    <span class="file-count">${sortedData.length} views generated</span>
+                    <span class="timestamp">${new Date(timestamp).toLocaleTimeString()}</span>
+                </div>
+            </div>
+            <div class="mockup-images coordinated-images">
+                ${sortedData.map((data, index) => {
+                    const prefix = data.fileName.split('_')[0];
+                    const viewName = this.getViewName(prefix);
+                    return `
+                    <div class="coordinated-image-container">
+                        <div class="view-label">${viewName}</div>
+                        <img src="${data.imageUrl}" 
+                             alt="${viewName}" 
+                             onload="this.style.opacity='1'" 
+                             onerror="this.style.opacity='0.3'; console.error('Failed to load image:', this.src)" 
+                             style="opacity: 0; transition: opacity 0.3s ease;" />
+                    </div>`;
+                }).join('')}
+            </div>
+        `;
+        
+        // Scroll the gallery into view
+        gallery.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    getViewName(prefix) {
+        const viewMap = {
+            'opt-turn_006': 'Front View',
+            'opt-turn_010': 'Side View', 
+            'opt-turn_014': 'Back View'
+        };
+        return viewMap[prefix] || prefix;
     }
 
     displayMockupGallery(cid, imageData) {
-        console.log('Displaying mockup gallery for CID:', cid, 'with', imageData.length, 'images');
+        console.log('Displaying individual mockup gallery for CID:', cid, 'with', imageData.length, 'images');
         
         let gallery = document.getElementById(`mockup-gallery-${cid}`);
         if (!gallery) {
@@ -696,6 +788,11 @@ class RealTimeUpdates {
                 ).join('')}
             </div>
         `;
+    }
+
+    extractCID(fileName) {
+        const match = fileName.match(/_cid_([^_]+)_/);
+        return match ? match[1] : null;
     }
 
     createProgressItem(fileName) {
@@ -760,21 +857,59 @@ styleSheet.textContent = `
     border-radius: 8px;
     background: #f8fff8;
 }
+.mockup-gallery.coordinated-gallery {
+    border-color: #2196F3;
+    background: #f0f8ff;
+}
 .mockup-gallery h4 {
     margin: 0 0 15px 0;
     color: #2c5aa0;
     font-size: 18px;
+}
+.gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+.gallery-info {
+    display: flex;
+    gap: 15px;
+    font-size: 14px;
+    color: #666;
+}
+.file-count {
+    background: #e3f2fd;
+    padding: 4px 8px;
+    border-radius: 12px;
 }
 .mockup-images {
     display: flex;
     gap: 15px;
     flex-wrap: wrap;
 }
+.mockup-images.coordinated-images {
+    justify-content: center;
+}
 .mockup-images .image-container {
     border: 2px solid #ddd;
     border-radius: 8px;
     padding: 5px;
     background: white;
+}
+.coordinated-image-container {
+    border: 2px solid #2196F3;
+    border-radius: 8px;
+    padding: 8px;
+    background: white;
+    text-align: center;
+}
+.view-label {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #2196F3;
+    font-size: 14px;
 }
 .mockup-images img {
     width: 200px;
