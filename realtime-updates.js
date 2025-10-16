@@ -309,14 +309,12 @@
 //     }
 // }
 // // ---------------------
-
-
 class RealTimeUpdates {
     constructor() {
         this.socket = null;
         this.isConnected = false;
         this.pendingImages = new Map();
-        this.mockupProducts = new Map(); // Track products by CID
+        this.mockupProducts = new Map();
     }
 
     initialize() {
@@ -376,7 +374,7 @@ class RealTimeUpdates {
         const stage = update.stage;
         
         // Handle Mockup ready images
-        if (stage === 'Getting mockup files') {
+        if (stage === 'Getting mockup files' && update.imageUrl) {
             this.handleMockupReady(update);
             return;
         }
@@ -391,7 +389,6 @@ class RealTimeUpdates {
     }
 
     handleMockupReady(update) {
-        // Extract CID from filename to group images by product
         const cid = this.extractCID(update.fileName);
         if (!cid) return;
 
@@ -400,9 +397,11 @@ class RealTimeUpdates {
         }
         
         const productImages = this.mockupProducts.get(cid);
-        productImages.push(update.fileName);
+        productImages.push({
+            fileName: update.fileName,
+            imageUrl: update.imageUrl
+        });
         
-        // Display mockup gallery when we have 3 angles (or any number)
         this.displayMockupGallery(cid, productImages);
     }
 
@@ -411,8 +410,7 @@ class RealTimeUpdates {
         return match ? match[1] : null;
     }
 
-    displayMockupGallery(cid, imageFiles) {
-        // Remove existing gallery for this product
+    displayMockupGallery(cid, imageData) {
         const existingGallery = document.getElementById(`mockup-gallery-${cid}`);
         if (existingGallery) {
             existingGallery.remove();
@@ -425,46 +423,29 @@ class RealTimeUpdates {
         gallery.innerHTML = `
             <h4>📱 Product Mockup Ready</h4>
             <div class="mockup-images" id="images-${cid}">
-                ${imageFiles.map(file => 
-                    `<img src="${this.getImageUrl(file)}" alt="Product view" loading="lazy" />`
+                ${imageData.map(data => 
+                    `<img src="${data.imageUrl}" alt="Product view" loading="lazy" />`
                 ).join('')}
             </div>
         `;
         
         container.appendChild(gallery);
-        
-        // Load images from S3
-        this.loadMockupImages(cid, imageFiles);
+        this.loadMockupImages(cid, imageData);
     }
 
-    getImageUrl(fileName) {
-        const baseUrl = 'https://136-circulation-bucket.s3.us-east-1.amazonaws.com';
-
-        // Preserve any nested folders from the original file name
-        const pathParts = fileName.split('/');
-        const fileNameOnly = pathParts.pop();
-        const folderPath = pathParts.join('/'); // subfolder structure
-        
-        // Add "opt-" prefix only to the file itself, not the folder
-        const optFileName = 'opt-' + fileNameOnly;
-        
-        // Return full S3 path including subfolders if any
-        return `${baseUrl}/${folderPath ? folderPath + '/' : ''}${optFileName}`;
-    }
-
-    async loadMockupImages(cid, imageFiles) {
+    async loadMockupImages(cid, imageData) {
         const container = document.getElementById(`images-${cid}`);
         if (!container) return;
 
-        for (const file of imageFiles) {
-            const img = container.querySelector(`[src="${this.getImageUrl(file)}"]`);
+        for (const data of imageData) {
+            const img = container.querySelector(`[src="${data.imageUrl}"]`);
             if (img) {
                 try {
-                    await this.preloadImage(this.getImageUrl(file));
-                    img.style.opacity = '1'; // Reveal when loaded
+                    await this.preloadImage(data.imageUrl);
+                    img.style.opacity = '1';
                 } catch (error) {
-                    console.error('Failed to load image:', file);
-                    img.style.opacity = '0.3'; // Dim failed loads
+                    console.error('Failed to load image:', data.fileName);
+                    img.style.opacity = '0.3';
                 }
             }
         }
