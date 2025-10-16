@@ -439,8 +439,17 @@ class RealTimeUpdates {
 
     getImageUrl(fileName) {
         const baseUrl = 'https://136-circulation-bucket.s3.us-east-1.amazonaws.com';
-        const optFileName = 'opt-' + fileName.split('/').pop();
-        return `${baseUrl}/output/frames/${optFileName}`;
+
+        // Preserve any nested folders from the original file name
+        const pathParts = fileName.split('/');
+        const fileNameOnly = pathParts.pop();
+        const folderPath = pathParts.join('/'); // subfolder structure
+        
+        // Add "opt-" prefix only to the file itself, not the folder
+        const optFileName = 'opt-' + fileNameOnly;
+        
+        // Return full S3 path including subfolders if any
+        return `${baseUrl}/${folderPath ? folderPath + '/' : ''}${optFileName}`;
     }
 
     async loadMockupImages(cid, imageFiles) {
