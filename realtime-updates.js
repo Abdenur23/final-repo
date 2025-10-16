@@ -562,12 +562,14 @@ class RealTimeUpdates {
     constructor() {
         this.socket = null;
         this.isConnected = false;
-        this.productVariants = new Map(); // cid -> array of variants
+        this.pendingImages = new Map();
+        this.productVariants = new Map();
     }
 
     initialize() {
         this.setupWebSocket();
         this.renderUpdatesPanel();
+        this.showPanel();
     }
 
     setupWebSocket() {
@@ -583,10 +585,7 @@ class RealTimeUpdates {
             try {
                 const data = JSON.parse(event.data);
                 console.log('WebSocket message received:', data);
-                
-                if (data.type === 'coordinated_mockup_ready') {
-                    this.handleCoordinatedMockupReady(data);
-                }
+                this.handleUpdate(data);
             } catch (error) {
                 console.error('Error parsing WebSocket message:', error);
             }
@@ -610,6 +609,45 @@ class RealTimeUpdates {
         }
     }
 
+    handleUpdate(data) {
+        console.log('Processing update:', data);
+        
+        switch(data.type) {
+            case 'image_update':
+                this.updateImageStatus(data);
+                break;
+            case 'coordinated_mockup_ready':
+                this.handleCoordinatedMockupReady(data);
+                break;
+        }
+    }
+
+    updateImageStatus(update) {
+        console.log('Updating image status:', update);
+        const container = document.getElementById('realtimeUpdates');
+        if (!container) {
+            console.error('realtimeUpdates container not found');
+            return;
+        }
+
+        const fileName = update.fileName;
+        const stage = update.stage;
+        
+        // Handle Mockup ready images (individual notifications)
+        if (stage === 'Mockup ready' && update.imageUrl) {
+            console.log('Mockup ready with image URL:', update.imageUrl);
+            this.handleMockupReady(update);
+        }
+        
+        // Handle other stages and progress updates
+        let item = this.pendingImages.get(fileName);
+        if (!item) {
+            item = this.createProgressItem(fileName);
+            this.pendingImages.set(fileName, item);
+        }
+        this.updateProgressItem(item, stage, update.timestamp);
+    }
+
     handleCoordinatedMockupReady(data) {
         console.log('Handling coordinated mockup ready:', data);
         const cid = data.cid;
@@ -629,15 +667,38 @@ class RealTimeUpdates {
         const existingVariantIndex = variants.findIndex(v => v.variantId === variantId);
         
         if (existingVariantIndex >= 0) {
-            // Update existing variant
             variants[existingVariantIndex] = { variantId, files, timestamp: data.timestamp };
         } else {
-            // Add new variant
             variants.push({ variantId, files, timestamp: data.timestamp });
         }
         
         // Display all variants for this product
         this.displayProductVariants(cid);
+        
+        // Also update individual progress items for each file
+        files.forEach(fileData => {
+            this.updateImageStatus({
+                fileName: fileData.fileName,
+                stage: 'Mockup ready',
+                imageUrl: fileData.imageUrl,
+                timestamp: data.timestamp
+            });
+        });
+    }
+
+    handleMockupReady(update) {
+        console.log('Handling individual mockup ready:', update);
+        const cid = this.extractCID(update.fileName);
+        if (!cid) {
+            console.log('No CID found in filename:', update.fileName);
+            return;
+        }
+
+        // For individual mockup notifications, still add to the collection
+        // but coordinated notifications will take precedence
+        if (!this.productVariants.has(cid)) {
+            this.productVariants.set(cid, []);
+        }
     }
 
     displayProductVariants(cid) {
@@ -654,18 +715,16 @@ class RealTimeUpdates {
         }
         
         productContainer.innerHTML = `
-            <h3>🎨 Product Designs Ready</h3>
+            <h3>🎨 Complete Product Designs</h3>
             <div class="variants-container">
                 ${variants.map((variant, index) => this.renderVariant(variant, index)).join('')}
             </div>
         `;
         
-        // Scroll to show new variants
         productContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     renderVariant(variant, index) {
-        // Sort files by prefix for consistent display
         const sortedFiles = variant.files.sort((a, b) => 
             a.fileName.localeCompare(b.fileName)
         );
@@ -695,6 +754,11 @@ class RealTimeUpdates {
         `;
     }
 
+    extractCID(fileName) {
+        const match = fileName.match(/_cid_([^_]+)_/);
+        return match ? match[1] : null;
+    }
+
     getViewName(fileName) {
         const prefix = fileName.split('_')[0];
         const viewMap = {
@@ -706,7 +770,6 @@ class RealTimeUpdates {
     }
 
     formatVariantName(variantId) {
-        // Convert "palette_1_flavor_1" to "Palette 1, Flavor 1"
         return variantId.split('_')
             .reduce((acc, part, index, array) => {
                 if (index % 2 === 0) {
@@ -719,6 +782,30 @@ class RealTimeUpdates {
             .join(', ');
     }
 
+    createProgressItem(fileName) {
+        const container = document.getElementById('realtimeUpdates');
+        const item = document.createElement('div');
+        item.className = 'progress-item';
+        item.innerHTML = `
+            <div class="file-name">${this.formatFileName(fileName)}</div>
+            <div class="current-stage">Starting...</div>
+            <div class="timestamp"></div>
+        `;
+        container.appendChild(item);
+        return item;
+    }
+
+    updateProgressItem(item, stage, timestamp) {
+        const stageElement = item.querySelector('.current-stage');
+        stageElement.textContent = stage;
+        item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
+    }
+
+    formatFileName(name) {
+        const filename = name.split('/').pop();
+        return filename.length > 30 ? filename.substring(0, 27) + '...' : filename;
+    }
+
     getSession() {
         return JSON.parse(localStorage.getItem('cognitoSession'));
     }
@@ -729,7 +816,7 @@ class RealTimeUpdates {
         const uploadSection = document.getElementById('uploadSection');
         const updatesHTML = `
             <div id="realtimePanel" style="margin-top: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
-                <h3>🔄 Product Designs</h3>
+                <h3>🔄 Processing Updates</h3>
                 <div id="realtimeUpdates" class="updates-container"></div>
             </div>
         `;
@@ -739,6 +826,11 @@ class RealTimeUpdates {
         } else {
             document.body.insertAdjacentHTML('beforeend', updatesHTML);
         }
+    }
+
+    showPanel() {
+        const panel = document.getElementById('realtimePanel');
+        if (panel) panel.style.display = 'block';
     }
 }
 
@@ -825,6 +917,29 @@ styleSheet.textContent = `
 .variant-timestamp {
     margin-top: 10px;
     text-align: center;
+    font-size: 12px;
+    color: #999;
+}
+
+.progress-item {
+    padding: 10px;
+    margin: 5px 0;
+    border-left: 4px solid #007bff;
+    background: white;
+    border-radius: 4px;
+}
+
+.progress-item .file-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.progress-item .current-stage {
+    color: #666;
+    margin-bottom: 3px;
+}
+
+.progress-item .timestamp {
     font-size: 12px;
     color: #999;
 }
