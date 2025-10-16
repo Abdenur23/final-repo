@@ -1,3 +1,172 @@
+// // // class RealTimeUpdates {
+// // //     constructor() {
+// // //         this.socket = null;
+// // //         this.isConnected = false;
+// // //         this.pendingImages = new Map();
+// // //     }
+
+// // //     initialize() {
+// // //         this.setupWebSocket();
+// // //         this.renderUpdatesPanel();
+// // //     }
+
+// // //     setupWebSocket() {
+// // //         const WS_URL = 'wss://h5akjyhdj6.execute-api.us-east-1.amazonaws.com/production';
+// // //         this.socket = new WebSocket(WS_URL);
+        
+// // //         this.socket.onopen = () => {
+// // //             console.log('WebSocket connected');
+// // //             this.authenticateWebSocket();
+// // //         };
+
+// // //         this.socket.onmessage = (event) => {
+// // //             const data = JSON.parse(event.data);
+// // //             this.handleUpdate(data);
+// // //         };
+
+// // //         this.socket.onclose = () => {
+// // //             console.log('WebSocket disconnected');
+// // //             this.isConnected = false;
+// // //             // Attempt reconnect after 5 seconds
+// // //             setTimeout(() => this.setupWebSocket(), 5000);
+// // //         };
+// // //     }
+
+// // //     authenticateWebSocket() {
+// // //         const session = this.getSession();
+// // //         if (session && session.id_token) {
+// // //             this.socket.send(JSON.stringify({
+// // //                 action: 'authorize',
+// // //                 id_token: session.id_token
+// // //             }));
+// // //             this.isConnected = true;
+// // //         }
+// // //     }
+
+// // //     handleUpdate(data) {
+// // //         console.log('Received update:', data);
+        
+// // //         switch(data.type) {
+// // //             case 'image_update':
+// // //                 this.updateImageStatus(data);
+// // //                 break;
+// // //             default:
+// // //                 console.log('Unknown message type:', data.type);
+// // //         }
+// // //     }
+
+// // //     updateImageStatus(update) {
+// // //         const container = document.getElementById('realtimeUpdates');
+// // //         if (!container) return;
+
+// // //         const fileName = update.fileName;
+// // //         const stage = update.stage;
+        
+// // //         // Create or update progress item
+// // //         let item = this.pendingImages.get(fileName);
+// // //         if (!item) {
+// // //             item = this.createProgressItem(fileName);
+// // //             this.pendingImages.set(fileName, item);
+// // //         }
+        
+// // //         this.updateProgressItem(item, stage, update.timestamp);
+// // //     }
+
+// // //     createProgressItem(fileName) {
+// // //         const container = document.getElementById('realtimeUpdates');
+// // //         const item = document.createElement('div');
+// // //         item.className = 'progress-item';
+// // //         item.innerHTML = `
+// // //             <div class="file-name">${this.formatFileName(fileName)}</div>
+// // //             <div class="progress-stages">
+// // //                 <div class="stage uploaded">📤 Uploaded</div>
+// // //                 <div class="stage stage1">🔄 Stage 1</div>
+// // //                 <div class="stage stage2">🔄 Stage 2</div>
+// // //                 <div class="stage final">✅ Final</div>
+// // //             </div>
+// // //             <div class="timestamp"></div>
+// // //         `;
+// // //         container.appendChild(item);
+// // //         return item;
+// // //     }
+
+// // //     updateProgressItem(item, stage, timestamp) {
+// // //         // Update stage indicators
+// // //         const stages = item.querySelectorAll('.stage');
+// // //         stages.forEach(stageEl => stageEl.classList.remove('active', 'completed'));
+        
+// // //         switch(stage) {
+// // //             case 'uploaded':
+// // //                 item.querySelector('.uploaded').classList.add('completed');
+// // //                 break;
+// // //             case 'stage1_complete':
+// // //                 item.querySelector('.uploaded').classList.add('completed');
+// // //                 item.querySelector('.stage1').classList.add('completed');
+// // //                 break;
+// // //             case 'stage2_complete':
+// // //                 item.querySelector('.uploaded').classList.add('completed');
+// // //                 item.querySelector('.stage1').classList.add('completed');
+// // //                 item.querySelector('.stage2').classList.add('completed');
+// // //                 break;
+// // //             case 'final_complete':
+// // //                 stages.forEach(stageEl => stageEl.classList.add('completed'));
+// // //                 this.showFinalImage(item, timestamp);
+// // //                 break;
+// // //         }
+        
+// // //         // Update active stage
+// // //         const activeStage = item.querySelector(`.${stage.split('_')[0]}`);
+// // //         if (activeStage) {
+// // //             activeStage.classList.add('active');
+// // //         }
+        
+// // //         // Update timestamp
+// // //         item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
+// // //     }
+
+// // //     showFinalImage(item, timestamp) {
+// // //         // You can extend this to actually show the final image
+// // //         const finalBadge = document.createElement('div');
+// // //         finalBadge.className = 'final-badge';
+// // //         finalBadge.textContent = '🎉 Processing Complete!';
+// // //         item.appendChild(finalBadge);
+// // //     }
+
+// // //     formatFileName(name) {
+// // //         return name.length > 30 ? name.substring(0, 27) + '...' : name;
+// // //     }
+
+// // //     getSession() {
+// // //         return JSON.parse(localStorage.getItem('cognitoSession'));
+// // //     }
+
+// // //     renderUpdatesPanel() {
+// // //         const uploadSection = document.getElementById('uploadSection');
+// // //         if (!uploadSection) return;
+
+// // //         const updatesHTML = `
+// // //             <div id="realtimePanel" style="margin-top: 20px; display: none;">
+// // //                 <h3>🔄 Real-time Processing Updates</h3>
+// // //                 <div id="realtimeUpdates" class="updates-container"></div>
+// // //             </div>
+// // //         `;
+        
+// // //         uploadSection.insertAdjacentHTML('afterend', updatesHTML);
+// // //     }
+
+// // //     showPanel() {
+// // //         const panel = document.getElementById('realtimePanel');
+// // //         if (panel) panel.style.display = 'block';
+// // //     }
+
+// // //     hidePanel() {
+// // //         const panel = document.getElementById('realtimePanel');
+// // //         if (panel) panel.style.display = 'none';
+// // //     }
+// // // }
+
+// // // --------------------------------------
+
 // // class RealTimeUpdates {
 // //     constructor() {
 // //         this.socket = null;
@@ -27,7 +196,6 @@
 // //         this.socket.onclose = () => {
 // //             console.log('WebSocket disconnected');
 // //             this.isConnected = false;
-// //             // Attempt reconnect after 5 seconds
 // //             setTimeout(() => this.setupWebSocket(), 5000);
 // //         };
 // //     }
@@ -62,7 +230,6 @@
 // //         const fileName = update.fileName;
 // //         const stage = update.stage;
         
-// //         // Create or update progress item
 // //         let item = this.pendingImages.get(fileName);
 // //         if (!item) {
 // //             item = this.createProgressItem(fileName);
@@ -78,12 +245,7 @@
 // //         item.className = 'progress-item';
 // //         item.innerHTML = `
 // //             <div class="file-name">${this.formatFileName(fileName)}</div>
-// //             <div class="progress-stages">
-// //                 <div class="stage uploaded">📤 Uploaded</div>
-// //                 <div class="stage stage1">🔄 Stage 1</div>
-// //                 <div class="stage stage2">🔄 Stage 2</div>
-// //                 <div class="stage final">✅ Final</div>
-// //             </div>
+// //             <div class="current-stage">Starting...</div>
 // //             <div class="timestamp"></div>
 // //         `;
 // //         container.appendChild(item);
@@ -91,49 +253,31 @@
 // //     }
 
 // //     updateProgressItem(item, stage, timestamp) {
-// //         // Update stage indicators
-// //         const stages = item.querySelectorAll('.stage');
-// //         stages.forEach(stageEl => stageEl.classList.remove('active', 'completed'));
-        
-// //         switch(stage) {
-// //             case 'uploaded':
-// //                 item.querySelector('.uploaded').classList.add('completed');
-// //                 break;
-// //             case 'stage1_complete':
-// //                 item.querySelector('.uploaded').classList.add('completed');
-// //                 item.querySelector('.stage1').classList.add('completed');
-// //                 break;
-// //             case 'stage2_complete':
-// //                 item.querySelector('.uploaded').classList.add('completed');
-// //                 item.querySelector('.stage1').classList.add('completed');
-// //                 item.querySelector('.stage2').classList.add('completed');
-// //                 break;
-// //             case 'final_complete':
-// //                 stages.forEach(stageEl => stageEl.classList.add('completed'));
-// //                 this.showFinalImage(item, timestamp);
-// //                 break;
-// //         }
-        
-// //         // Update active stage
-// //         const activeStage = item.querySelector(`.${stage.split('_')[0]}`);
-// //         if (activeStage) {
-// //             activeStage.classList.add('active');
-// //         }
+// //         // Update current stage text
+// //         const stageElement = item.querySelector('.current-stage');
+// //         stageElement.textContent = stage;
         
 // //         // Update timestamp
 // //         item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
-// //     }
-
-// //     showFinalImage(item, timestamp) {
-// //         // You can extend this to actually show the final image
-// //         const finalBadge = document.createElement('div');
-// //         finalBadge.className = 'final-badge';
-// //         finalBadge.textContent = '🎉 Processing Complete!';
-// //         item.appendChild(finalBadge);
+        
+// //         // Add visual feedback based on stage
+// //         item.className = 'progress-item ' + stage.toLowerCase().replace(/\s+/g, '-');
+        
+// //         // Show completion
+// //         if (stage === 'Getting mockup files') {
+// //             const finalBadge = document.createElement('div');
+// //             finalBadge.className = 'final-badge';
+// //             finalBadge.textContent = '✅ Complete!';
+// //             if (!item.querySelector('.final-badge')) {
+// //                 item.appendChild(finalBadge);
+// //             }
+// //         }
 // //     }
 
 // //     formatFileName(name) {
-// //         return name.length > 30 ? name.substring(0, 27) + '...' : name;
+// //         // Extract just the filename from path
+// //         const filename = name.split('/').pop();
+// //         return filename.length > 30 ? filename.substring(0, 27) + '...' : filename;
 // //     }
 
 // //     getSession() {
@@ -146,7 +290,7 @@
 
 // //         const updatesHTML = `
 // //             <div id="realtimePanel" style="margin-top: 20px; display: none;">
-// //                 <h3>🔄 Real-time Processing Updates</h3>
+// //                 <h3>🔄 Processing Updates</h3>
 // //                 <div id="realtimeUpdates" class="updates-container"></div>
 // //             </div>
 // //         `;
@@ -164,14 +308,13 @@
 // //         if (panel) panel.style.display = 'none';
 // //     }
 // // }
-
-// // --------------------------------------
-
+// // // ---------------------
 // class RealTimeUpdates {
 //     constructor() {
 //         this.socket = null;
 //         this.isConnected = false;
 //         this.pendingImages = new Map();
+//         this.mockupProducts = new Map();
 //     }
 
 //     initialize() {
@@ -230,6 +373,12 @@
 //         const fileName = update.fileName;
 //         const stage = update.stage;
         
+//         // Handle Mockup ready images
+//         if (stage === 'Getting mockup files' && update.imageUrl) {
+//             this.handleMockupReady(update);
+//             return;
+//         }
+        
 //         let item = this.pendingImages.get(fileName);
 //         if (!item) {
 //             item = this.createProgressItem(fileName);
@@ -237,6 +386,78 @@
 //         }
         
 //         this.updateProgressItem(item, stage, update.timestamp);
+//     }
+
+//     handleMockupReady(update) {
+//         const cid = this.extractCID(update.fileName);
+//         if (!cid) return;
+
+//         if (!this.mockupProducts.has(cid)) {
+//             this.mockupProducts.set(cid, []);
+//         }
+        
+//         const productImages = this.mockupProducts.get(cid);
+//         productImages.push({
+//             fileName: update.fileName,
+//             imageUrl: update.imageUrl
+//         });
+        
+//         this.displayMockupGallery(cid, productImages);
+//     }
+
+//     extractCID(fileName) {
+//         const match = fileName.match(/_cid_([^_]+)_/);
+//         return match ? match[1] : null;
+//     }
+
+//     displayMockupGallery(cid, imageData) {
+//         const existingGallery = document.getElementById(`mockup-gallery-${cid}`);
+//         if (existingGallery) {
+//             existingGallery.remove();
+//         }
+
+//         const container = document.getElementById('realtimeUpdates');
+//         const gallery = document.createElement('div');
+//         gallery.id = `mockup-gallery-${cid}`;
+//         gallery.className = 'mockup-gallery';
+//         gallery.innerHTML = `
+//             <h4>📱 Product Mockup Ready</h4>
+//             <div class="mockup-images" id="images-${cid}">
+//                 ${imageData.map(data => 
+//                     `<img src="${data.imageUrl}" alt="Product view" loading="lazy" />`
+//                 ).join('')}
+//             </div>
+//         `;
+        
+//         container.appendChild(gallery);
+//         this.loadMockupImages(cid, imageData);
+//     }
+
+//     async loadMockupImages(cid, imageData) {
+//         const container = document.getElementById(`images-${cid}`);
+//         if (!container) return;
+
+//         for (const data of imageData) {
+//             const img = container.querySelector(`[src="${data.imageUrl}"]`);
+//             if (img) {
+//                 try {
+//                     await this.preloadImage(data.imageUrl);
+//                     img.style.opacity = '1';
+//                 } catch (error) {
+//                     console.error('Failed to load image:', data.fileName);
+//                     img.style.opacity = '0.3';
+//                 }
+//             }
+//         }
+//     }
+
+//     preloadImage(src) {
+//         return new Promise((resolve, reject) => {
+//             const img = new Image();
+//             img.onload = resolve;
+//             img.onerror = reject;
+//             img.src = src;
+//         });
 //     }
 
 //     createProgressItem(fileName) {
@@ -253,17 +474,12 @@
 //     }
 
 //     updateProgressItem(item, stage, timestamp) {
-//         // Update current stage text
 //         const stageElement = item.querySelector('.current-stage');
 //         stageElement.textContent = stage;
         
-//         // Update timestamp
 //         item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
-        
-//         // Add visual feedback based on stage
 //         item.className = 'progress-item ' + stage.toLowerCase().replace(/\s+/g, '-');
         
-//         // Show completion
 //         if (stage === 'Getting mockup files') {
 //             const finalBadge = document.createElement('div');
 //             finalBadge.className = 'final-badge';
@@ -275,7 +491,6 @@
 //     }
 
 //     formatFileName(name) {
-//         // Extract just the filename from path
 //         const filename = name.split('/').pop();
 //         return filename.length > 30 ? filename.substring(0, 27) + '...' : filename;
 //     }
@@ -308,7 +523,40 @@
 //         if (panel) panel.style.display = 'none';
 //     }
 // }
-// // ---------------------
+
+// // --- Inject styles ---
+// const mockupStyles = `
+// .mockup-gallery {
+//     border: 1px solid #ddd;
+//     padding: 15px;
+//     margin: 10px 0;
+//     border-radius: 8px;
+//     background: #f9f9f9;
+// }
+// .mockup-gallery h4 {
+//     margin: 0 0 10px 0;
+//     color: #2c5aa0;
+// }
+// .mockup-images {
+//     display: flex;
+//     gap: 10px;
+//     flex-wrap: wrap;
+// }
+// .mockup-images img {
+//     width: 120px;
+//     height: 120px;
+//     object-fit: cover;
+//     border-radius: 4px;
+//     border: 2px solid #fff;
+//     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+//     opacity: 0;
+//     transition: opacity 0.3s ease;
+// }
+// `;
+
+// const styleSheet = document.createElement('style');
+// styleSheet.textContent = mockupStyles;
+// document.head.appendChild(styleSheet);
 class RealTimeUpdates {
     constructor() {
         this.socket = null;
@@ -374,7 +622,7 @@ class RealTimeUpdates {
         const stage = update.stage;
         
         // Handle Mockup ready images
-        if (stage === 'Getting mockup files' && update.imageUrl) {
+        if (stage === 'Mockup ready' && update.imageUrl) {
             this.handleMockupReady(update);
             return;
         }
@@ -402,7 +650,10 @@ class RealTimeUpdates {
             imageUrl: update.imageUrl
         });
         
-        this.displayMockupGallery(cid, productImages);
+        // Display gallery when we have 3 images
+        if (productImages.length === 3) {
+            this.displayMockupGallery(cid, productImages);
+        }
     }
 
     extractCID(fileName) {
@@ -480,7 +731,7 @@ class RealTimeUpdates {
         item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
         item.className = 'progress-item ' + stage.toLowerCase().replace(/\s+/g, '-');
         
-        if (stage === 'Getting mockup files') {
+        if (stage === 'Mockup ready') {
             const finalBadge = document.createElement('div');
             finalBadge.className = 'final-badge';
             finalBadge.textContent = '✅ Complete!';
@@ -524,36 +775,8 @@ class RealTimeUpdates {
     }
 }
 
-// --- Inject styles ---
-const mockupStyles = `
-.mockup-gallery {
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin: 10px 0;
-    border-radius: 8px;
-    background: #f9f9f9;
-}
-.mockup-gallery h4 {
-    margin: 0 0 10px 0;
-    color: #2c5aa0;
-}
-.mockup-images {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-.mockup-images img {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 4px;
-    border: 2px solid #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-`;
-
-const styleSheet = document.createElement('style');
-styleSheet.textContent = mockupStyles;
-document.head.appendChild(styleSheet);
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    window.realtimeUpdates = new RealTimeUpdates();
+    window.realtimeUpdates.initialize();
+});
