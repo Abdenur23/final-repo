@@ -659,12 +659,7 @@ class RealTimeUpdates {
         }
         
         const productImages = this.mockupProducts.get(cid);
-        // --- ADDED ALERT FOR DEBUGGING ---
-        if (productImages.length === 0) {
-            alert('Received Mockup Ready Update.\n\nImage URL:\n' + update.imageUrl + 
-                  '\n\nFilename:\n' + update.fileName);
-        }
-        // --- END DEBUGGING CODE ---
+        
         productImages.push({
             fileName: update.fileName,
             imageUrl: update.imageUrl
