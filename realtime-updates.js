@@ -562,14 +562,12 @@ class RealTimeUpdates {
     constructor() {
         this.socket = null;
         this.isConnected = false;
-        this.pendingImages = new Map();
-        this.mockupProducts = new Map();
+        this.productVariants = new Map(); // cid -> array of variants
     }
 
     initialize() {
         this.setupWebSocket();
         this.renderUpdatesPanel();
-        this.showPanel();
     }
 
     setupWebSocket() {
@@ -585,7 +583,10 @@ class RealTimeUpdates {
             try {
                 const data = JSON.parse(event.data);
                 console.log('WebSocket message received:', data);
-                this.handleUpdate(data);
+                
+                if (data.type === 'coordinated_mockup_ready') {
+                    this.handleCoordinatedMockupReady(data);
+                }
             } catch (error) {
                 console.error('Error parsing WebSocket message:', error);
             }
@@ -609,155 +610,93 @@ class RealTimeUpdates {
         }
     }
 
-    handleUpdate(data) {
-        console.log('Processing update:', data);
-        
-        switch(data.type) {
-            case 'image_update':
-                this.updateImageStatus(data);
-                break;
-            case 'coordinated_mockup_ready':
-                this.handleCoordinatedMockupReady(data);
-                break;
-        }
-    }
-
-    updateImageStatus(update) {
-        console.log('Updating image status:', update);
-        const container = document.getElementById('realtimeUpdates');
-        if (!container) {
-            console.error('realtimeUpdates container not found');
-            return;
-        }
-
-        const fileName = update.fileName;
-        const stage = update.stage;
-        
-        // Handle Mockup ready images (individual notifications)
-        if (stage === 'Mockup ready' && update.imageUrl) {
-            console.log('Mockup ready with image URL:', update.imageUrl);
-            this.handleMockupReady(update);
-            return;
-        }
-        
-        // Handle other stages
-        let item = this.pendingImages.get(fileName);
-        if (!item) {
-            item = this.createProgressItem(fileName);
-            this.pendingImages.set(fileName, item);
-        }
-        this.updateProgressItem(item, stage, update.timestamp);
-    }
-
     handleCoordinatedMockupReady(data) {
         console.log('Handling coordinated mockup ready:', data);
         const cid = data.cid;
+        const variantId = data.variantId;
         const files = data.files || [];
         
-        console.log(`Received coordinated mockup for CID ${cid} with ${files.length} files`);
+        console.log(`Received coordinated mockup for CID ${cid}, variant ${variantId} with ${files.length} files`);
         
-        if (files.length === 0) {
-            console.error('No files in coordinated mockup notification');
-            return;
-        }
+        if (files.length === 0) return;
 
-        // Display the coordinated mockup gallery
-        this.displayCoordinatedMockupGallery(cid, files, data.timestamp);
+        // Store or update the product variant
+        if (!this.productVariants.has(cid)) {
+            this.productVariants.set(cid, []);
+        }
         
-        // Also update individual progress items for each file
-        files.forEach(fileData => {
-            this.updateImageStatus({
-                fileName: fileData.fileName,
-                stage: 'Mockup ready',
-                imageUrl: fileData.imageUrl,
-                timestamp: data.timestamp
-            });
-        });
+        const variants = this.productVariants.get(cid);
+        const existingVariantIndex = variants.findIndex(v => v.variantId === variantId);
+        
+        if (existingVariantIndex >= 0) {
+            // Update existing variant
+            variants[existingVariantIndex] = { variantId, files, timestamp: data.timestamp };
+        } else {
+            // Add new variant
+            variants.push({ variantId, files, timestamp: data.timestamp });
+        }
+        
+        // Display all variants for this product
+        this.displayProductVariants(cid);
     }
 
-    handleMockupReady(update) {
-        console.log('Handling individual mockup ready:', update);
-        const cid = this.extractCID(update.fileName);
-        if (!cid) {
-            console.log('No CID found in filename:', update.fileName);
-            return;
-        }
-
-        // For individual mockup notifications, still add to the collection
-        // but only display if it's not part of a coordinated notification
-        if (!this.mockupProducts.has(cid)) {
-            this.mockupProducts.set(cid, []);
-        }
+    displayProductVariants(cid) {
+        const variants = this.productVariants.get(cid) || [];
+        console.log(`Displaying ${variants.length} variants for CID ${cid}`);
         
-        const productImages = this.mockupProducts.get(cid);
-        
-        // Check if this file already exists in the collection
-        const existingFile = productImages.find(img => img.fileName === update.fileName);
-        if (!existingFile) {
-            productImages.push({
-                fileName: update.fileName,
-                imageUrl: update.imageUrl
-            });
-            
-            console.log(`Collected ${productImages.length} images for CID ${cid}`);
-            
-            // Only display individual gallery if we don't have a coordinated notification
-            // Coordinated notifications will overwrite this
-            if (productImages.length < 3) { // Assuming 3 is the coordinated count
-                this.displayMockupGallery(cid, productImages);
-            }
-        }
-    }
-
-    displayCoordinatedMockupGallery(cid, imageData, timestamp) {
-        console.log('Displaying coordinated mockup gallery for CID:', cid, 'with', imageData.length, 'images');
-        
-        let gallery = document.getElementById(`mockup-gallery-${cid}`);
-        if (!gallery) {
-            const container = document.getElementById('realtimeUpdates');
-            gallery = document.createElement('div');
-            gallery.id = `mockup-gallery-${cid}`;
-            gallery.className = 'mockup-gallery coordinated-gallery';
-            container.appendChild(gallery);
+        let productContainer = document.getElementById(`product-${cid}`);
+        if (!productContainer) {
+            const updatesContainer = document.getElementById('realtimeUpdates');
+            productContainer = document.createElement('div');
+            productContainer.id = `product-${cid}`;
+            productContainer.className = 'product-container';
+            updatesContainer.appendChild(productContainer);
         }
         
-        // Sort files by prefix for consistent display
-        const sortedData = imageData.sort((a, b) => {
-            const prefixA = a.fileName.split('_')[0];
-            const prefixB = b.fileName.split('_')[0];
-            return prefixA.localeCompare(prefixB);
-        });
-        
-        gallery.innerHTML = `
-            <div class="gallery-header">
-                <h4>🎯 Complete Product Mockup Ready</h4>
-                <div class="gallery-info">
-                    <span class="file-count">${sortedData.length} views generated</span>
-                    <span class="timestamp">${new Date(timestamp).toLocaleTimeString()}</span>
-                </div>
-            </div>
-            <div class="mockup-images coordinated-images">
-                ${sortedData.map((data, index) => {
-                    const prefix = data.fileName.split('_')[0];
-                    const viewName = this.getViewName(prefix);
-                    return `
-                    <div class="coordinated-image-container">
-                        <div class="view-label">${viewName}</div>
-                        <img src="${data.imageUrl}" 
-                             alt="${viewName}" 
-                             onload="this.style.opacity='1'" 
-                             onerror="this.style.opacity='0.3'; console.error('Failed to load image:', this.src)" 
-                             style="opacity: 0; transition: opacity 0.3s ease;" />
-                    </div>`;
-                }).join('')}
+        productContainer.innerHTML = `
+            <h3>🎨 Product Designs Ready</h3>
+            <div class="variants-container">
+                ${variants.map((variant, index) => this.renderVariant(variant, index)).join('')}
             </div>
         `;
         
-        // Scroll the gallery into view
-        gallery.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // Scroll to show new variants
+        productContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    getViewName(prefix) {
+    renderVariant(variant, index) {
+        // Sort files by prefix for consistent display
+        const sortedFiles = variant.files.sort((a, b) => 
+            a.fileName.localeCompare(b.fileName)
+        );
+        
+        return `
+            <div class="variant-card">
+                <div class="variant-header">
+                    <h4>Design Option ${index + 1}</h4>
+                    <span class="variant-badge">${this.formatVariantName(variant.variantId)}</span>
+                </div>
+                <div class="variant-images">
+                    ${sortedFiles.map(file => `
+                        <div class="variant-image">
+                            <img src="${file.imageUrl}" 
+                                 alt="${this.getViewName(file.fileName)}"
+                                 onload="this.style.opacity='1'" 
+                                 onerror="this.style.opacity='0.3'" 
+                                 style="opacity: 0; transition: opacity 0.3s ease;" />
+                            <div class="view-label">${this.getViewName(file.fileName)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="variant-timestamp">
+                    Generated: ${new Date(variant.timestamp).toLocaleTimeString()}
+                </div>
+            </div>
+        `;
+    }
+
+    getViewName(fileName) {
+        const prefix = fileName.split('_')[0];
         const viewMap = {
             'opt-turn_006': 'Front View',
             'opt-turn_010': 'Side View', 
@@ -766,57 +705,18 @@ class RealTimeUpdates {
         return viewMap[prefix] || prefix;
     }
 
-    displayMockupGallery(cid, imageData) {
-        console.log('Displaying individual mockup gallery for CID:', cid, 'with', imageData.length, 'images');
-        
-        let gallery = document.getElementById(`mockup-gallery-${cid}`);
-        if (!gallery) {
-            const container = document.getElementById('realtimeUpdates');
-            gallery = document.createElement('div');
-            gallery.id = `mockup-gallery-${cid}`;
-            gallery.className = 'mockup-gallery';
-            container.appendChild(gallery);
-        }
-        
-        gallery.innerHTML = `
-            <h4>📱 Product Mockup Ready</h4>
-            <div class="mockup-images">
-                ${imageData.map((data, index) => 
-                    `<div class="image-container">
-                        <img src="${data.imageUrl}" alt="Product view ${index + 1}" onload="this.style.opacity='1'" onerror="this.style.opacity='0.3'; console.error('Failed to load image:', this.src)" style="opacity: 0; transition: opacity 0.3s ease;" />
-                    </div>`
-                ).join('')}
-            </div>
-        `;
-    }
-
-    extractCID(fileName) {
-        const match = fileName.match(/_cid_([^_]+)_/);
-        return match ? match[1] : null;
-    }
-
-    createProgressItem(fileName) {
-        const container = document.getElementById('realtimeUpdates');
-        const item = document.createElement('div');
-        item.className = 'progress-item';
-        item.innerHTML = `
-            <div class="file-name">${this.formatFileName(fileName)}</div>
-            <div class="current-stage">Starting...</div>
-            <div class="timestamp"></div>
-        `;
-        container.appendChild(item);
-        return item;
-    }
-
-    updateProgressItem(item, stage, timestamp) {
-        const stageElement = item.querySelector('.current-stage');
-        stageElement.textContent = stage;
-        item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
-    }
-
-    formatFileName(name) {
-        const filename = name.split('/').pop();
-        return filename.length > 30 ? filename.substring(0, 27) + '...' : filename;
+    formatVariantName(variantId) {
+        // Convert "palette_1_flavor_1" to "Palette 1, Flavor 1"
+        return variantId.split('_')
+            .reduce((acc, part, index, array) => {
+                if (index % 2 === 0) {
+                    acc.push(part.charAt(0).toUpperCase() + part.slice(1));
+                } else {
+                    acc[acc.length - 1] += ` ${part}`;
+                }
+                return acc;
+            }, [])
+            .join(', ');
     }
 
     getSession() {
@@ -829,7 +729,7 @@ class RealTimeUpdates {
         const uploadSection = document.getElementById('uploadSection');
         const updatesHTML = `
             <div id="realtimePanel" style="margin-top: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
-                <h3>🔄 Processing Updates</h3>
+                <h3>🔄 Product Designs</h3>
                 <div id="realtimeUpdates" class="updates-container"></div>
             </div>
         `;
@@ -840,90 +740,93 @@ class RealTimeUpdates {
             document.body.insertAdjacentHTML('beforeend', updatesHTML);
         }
     }
-
-    showPanel() {
-        const panel = document.getElementById('realtimePanel');
-        if (panel) panel.style.display = 'block';
-    }
 }
 
 // Add CSS styles
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
-.mockup-gallery {
+.product-container {
+    margin: 20px 0;
+    padding: 20px;
     border: 2px solid #4CAF50;
-    padding: 15px;
-    margin: 10px 0;
-    border-radius: 8px;
+    border-radius: 12px;
     background: #f8fff8;
 }
-.mockup-gallery.coordinated-gallery {
-    border-color: #2196F3;
-    background: #f0f8ff;
-}
-.mockup-gallery h4 {
-    margin: 0 0 15px 0;
+
+.product-container h3 {
+    margin: 0 0 20px 0;
     color: #2c5aa0;
-    font-size: 18px;
+    font-size: 24px;
+    text-align: center;
 }
-.gallery-header {
+
+.variants-container {
+    display: grid;
+    gap: 20px;
+}
+
+.variant-card {
+    border: 2px solid #2196F3;
+    border-radius: 8px;
+    padding: 15px;
+    background: white;
+}
+
+.variant-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
-    flex-wrap: wrap;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
 }
-.gallery-info {
-    display: flex;
-    gap: 15px;
-    font-size: 14px;
-    color: #666;
+
+.variant-header h4 {
+    margin: 0;
+    color: #333;
 }
-.file-count {
-    background: #e3f2fd;
+
+.variant-badge {
+    background: #2196F3;
+    color: white;
     padding: 4px 8px;
     border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
 }
-.mockup-images {
+
+.variant-images {
     display: flex;
     gap: 15px;
+    justify-content: center;
     flex-wrap: wrap;
 }
-.mockup-images.coordinated-images {
-    justify-content: center;
-}
-.mockup-images .image-container {
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    padding: 5px;
-    background: white;
-}
-.coordinated-image-container {
-    border: 2px solid #2196F3;
-    border-radius: 8px;
-    padding: 8px;
-    background: white;
+
+.variant-image {
     text-align: center;
 }
-.view-label {
-    font-weight: bold;
-    margin-bottom: 8px;
-    color: #2196F3;
-    font-size: 14px;
-}
-.mockup-images img {
-    width: 200px;
-    height: 200px;
+
+.variant-image img {
+    width: 180px;
+    height: 180px;
     object-fit: contain;
+    border: 1px solid #ddd;
     border-radius: 4px;
     display: block;
 }
-.progress-item {
-    padding: 10px;
-    margin: 5px 0;
-    border-left: 4px solid #007bff;
-    background: white;
-    border-radius: 4px;
+
+.view-label {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #666;
+    font-weight: bold;
+}
+
+.variant-timestamp {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 12px;
+    color: #999;
 }
 `;
 document.head.appendChild(styleSheet);
