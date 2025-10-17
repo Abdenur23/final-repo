@@ -563,8 +563,7 @@ class RealTimeUpdates {
         this.socket = null;
         this.isConnected = false;
         this.pendingImages = new Map();
-        // Stores batches of images (design options) grouped by CID
-        this.mockupGalleries = new Map(); 
+        this.designs = new Map();
     }
 
     initialize() {
@@ -614,36 +613,75 @@ class RealTimeUpdates {
         console.log('Processing update:', data);
         
         switch(data.type) {
-            case 'image_update':
-                // Handles continuous progress updates (stages other than 'Mockup ready')
-                this.updateImageStatus(data);
+            case 'design_ready':
+                this.handleDesignReady(data);
                 break;
-            case 'image_batch_update':
-                // Handles the final combined notification
-                this.handleMockupReady(data);
+            case 'image_update':
+                this.updateImageStatus(data);
                 break;
         }
     }
 
-    updateImageStatus(update) {
-        console.log('Updating image status:', update);
+    handleDesignReady(designData) {
+        console.log('Design ready:', designData);
+        
+        const designId = designData.designId;
+        this.designs.set(designId, designData);
+        
+        this.displayDesign(designData);
+    }
+
+    displayDesign(designData) {
         const container = document.getElementById('realtimeUpdates');
-        if (!container) {
-            console.error('realtimeUpdates container not found');
-            return;
-        }
+        
+        const designElement = document.createElement('div');
+        designElement.className = 'design-container';
+        designElement.id = `design-${designData.designId}`;
+        
+        designElement.innerHTML = `
+            <h4>🎨 Design Option: ${this.formatDesignId(designData.designId)}</h4>
+            <div class="design-images">
+                ${Object.entries(designData.images).map(([view, url]) => 
+                    `<div class="design-view">
+                        <div class="view-label">${this.formatViewName(view)}</div>
+                        <img src="${url}" alt="${view}" 
+                             onload="this.style.opacity='1'" 
+                             onerror="this.style.opacity='0.3'" 
+                             style="opacity: 0; transition: opacity 0.3s ease;" />
+                    </div>`
+                ).join('')}
+            </div>
+        `;
+        
+        container.appendChild(designElement);
+    }
+
+    formatDesignId(designId) {
+        return designId.replace(/_/g, ' ').replace('cid', 'Design');
+    }
+
+    formatViewName(view) {
+        const viewMap = {
+            'opt-turn_006': 'Front View',
+            'opt-turn_010': 'Side View', 
+            'opt-turn_014': 'Back View'
+        };
+        return viewMap[view] || view;
+    }
+
+    updateImageStatus(update) {
+        // Keep existing single image update logic for non-design files
+        const container = document.getElementById('realtimeUpdates');
+        if (!container) return;
 
         const fileName = update.fileName;
         const stage = update.stage;
         
-        // Ignore single-file updates if the stage is 'Mockup ready', 
-        // as the batch update will be handling the final display.
-        if (stage === 'Mockup ready') {
-            console.log(`Ignoring single update for Mockup ready file: ${fileName}. Awaiting batch notification.`);
+        if (stage === 'Mockup ready' && update.imageUrl) {
+            this.handleMockupReady(update);
             return;
         }
         
-        // Handle other (continuous progress) stages
         let item = this.pendingImages.get(fileName);
         if (!item) {
             item = this.createProgressItem(fileName);
@@ -653,72 +691,21 @@ class RealTimeUpdates {
     }
 
     handleMockupReady(update) {
-        // 'update' is the 'image_batch_update' object: {cid, stage, images: [{fileName, imageUrl}, ...]}
-        console.log('Handling mockup batch ready:', update);
-        
-        const cid = update.cid; 
-        const imageDataBatch = update.images; // This is the array of 3 images
+        // Existing single image mockup logic
+        const cid = this.extractCID(update.fileName);
+        if (!cid) return;
 
-        if (!cid) {
-            console.log('No CID found in batch update:', update);
-            return;
-        }
-
-        if (!this.mockupGalleries.has(cid)) {
-            this.mockupGalleries.set(cid, []);
-        }
+        const mockupElement = document.createElement('div');
+        mockupElement.className = 'single-mockup';
+        mockupElement.innerHTML = `
+            <h4>📱 Single Mockup</h4>
+            <img src="${update.imageUrl}" alt="Mockup" 
+                 onload="this.style.opacity='1'" 
+                 onerror="this.style.opacity='0.3'" 
+                 style="opacity: 0; transition: opacity 0.3s ease; max-width: 300px;" />
+        `;
         
-        const designBatches = this.mockupGalleries.get(cid);
-        
-        // Add the new design option batch
-        designBatches.push(imageDataBatch); 
-        
-        console.log(`Collected ${designBatches.length} design options for CID ${cid}`);
-        this.displayMockupGallery(cid, designBatches);
-        
-        // Remove progress items related to these files since the batch is complete
-        imageDataBatch.forEach(img => {
-            const item = this.pendingImages.get(img.fileName);
-            if(item) {
-                item.remove();
-                this.pendingImages.delete(img.fileName);
-            }
-        });
-    }
-
-    displayMockupGallery(cid, designBatches) {
-        // designBatches is an array of arrays: [[img_design1_view1, img_design1_view2, ...], [img_design2_view1, ...]]
-        console.log('Displaying mockup gallery for CID:', cid, 'with', designBatches.length, 'design options');
-        
-        let galleryContainer = document.getElementById(`mockup-gallery-container-${cid}`);
-        if (!galleryContainer) {
-            const container = document.getElementById('realtimeUpdates');
-            galleryContainer = document.createElement('div');
-            galleryContainer.id = `mockup-gallery-container-${cid}`;
-            container.appendChild(galleryContainer);
-        }
-        
-        galleryContainer.innerHTML = ''; // Clear previous content
-
-        // Iterate over each design option batch and create a separate gallery section
-        designBatches.forEach((batch, designIndex) => {
-            const designOptionElement = document.createElement('div');
-            designOptionElement.className = 'mockup-gallery';
-            designOptionElement.innerHTML = `
-                <h4>✅ Design Option ${designIndex + 1} Ready (CID: ${cid})</h4>
-                <div class="mockup-images">
-                    ${batch.map((data, imageIndex) => {
-                        const prefix = data.fileName.split('_')[0];
-                        return `
-                        <div class="image-container">
-                            <img src="${data.imageUrl}" alt="View ${imageIndex + 1}" onload="this.style.opacity='1'" onerror="this.style.opacity='0.3'; console.error('Failed to load image:', this.src)" style="opacity: 0; transition: opacity 0.3s ease;" />
-                            <div class="image-label">${prefix}</div>
-                        </div>`;
-                    }).join('')}
-                </div>
-            `;
-            galleryContainer.appendChild(designOptionElement);
-        });
+        document.getElementById('realtimeUpdates').appendChild(mockupElement);
     }
 
     createProgressItem(fileName) {
@@ -730,7 +717,7 @@ class RealTimeUpdates {
             <div class="current-stage">Starting...</div>
             <div class="timestamp"></div>
         `;
-        container.prepend(item); // Use prepend to show new progress items at the top
+        container.appendChild(item);
         return item;
     }
 
@@ -738,6 +725,11 @@ class RealTimeUpdates {
         const stageElement = item.querySelector('.current-stage');
         stageElement.textContent = stage;
         item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
+    }
+
+    extractCID(fileName) {
+        const match = fileName.match(/_cid_([^_]+)_/);
+        return match ? match[1] : null;
     }
 
     formatFileName(name) {
@@ -773,45 +765,48 @@ class RealTimeUpdates {
     }
 }
 
-// Add CSS styles (updated to include image-label)
+// Add CSS styles
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
-.mockup-gallery {
+.design-container {
     border: 2px solid #4CAF50;
     padding: 15px;
     margin: 10px 0;
     border-radius: 8px;
     background: #f8fff8;
 }
-.mockup-gallery h4 {
+.design-container h4 {
     margin: 0 0 15px 0;
     color: #2c5aa0;
     font-size: 18px;
 }
-.mockup-images {
+.design-images {
     display: flex;
     gap: 15px;
     flex-wrap: wrap;
 }
-.mockup-images .image-container {
+.design-view {
+    text-align: center;
+}
+.design-view img {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
     border: 2px solid #ddd;
     border-radius: 8px;
     padding: 5px;
     background: white;
-    text-align: center;
 }
-.mockup-images img {
-    width: 200px;
-    height: 200px;
-    object-fit: contain;
-    border-radius: 4px;
-    display: block;
-}
-.image-label {
-    margin-top: 5px;
-    font-size: 0.8em;
-    color: #555;
+.view-label {
+    margin-bottom: 5px;
     font-weight: bold;
+    color: #555;
+}
+.single-mockup {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 8px;
 }
 .progress-item {
     padding: 10px;
@@ -819,12 +814,6 @@ styleSheet.textContent = `
     border-left: 4px solid #007bff;
     background: white;
     border-radius: 4px;
-    display: flex;
-    justify-content: space-between;
-}
-.progress-item .file-name {
-    flex-grow: 1;
-    font-weight: bold;
 }
 `;
 document.head.appendChild(styleSheet);
