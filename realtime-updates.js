@@ -730,4 +730,23 @@ styleSheet.textContent = `
 }
 .view-label {
     font-weight: bold;
-    margin-bottom: 5
+    margin-bottom: 5px;
+    color: #555;
+}
+.view-container img {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px;
+    background: white;
+}
+`;
+document.head.appendChild(styleSheet);
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    window.realtimeUpdates = new RealTimeUpdates();
+    window.realtimeUpdates.initialize();
+});
