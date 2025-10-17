@@ -563,7 +563,8 @@ class RealTimeUpdates {
         this.socket = null;
         this.isConnected = false;
         this.pendingImages = new Map();
-        this.mockupProducts = new Map();
+        // Updated to store galleries by CID, where each gallery is an array of batches (design options)
+        this.mockupGalleries = new Map(); 
     }
 
     initialize() {
@@ -573,6 +574,7 @@ class RealTimeUpdates {
     }
 
     setupWebSocket() {
+        // ... (WebSocket connection setup remains the same)
         const WS_URL = 'wss://h5akjyhdj6.execute-api.us-east-1.amazonaws.com/production';
         this.socket = new WebSocket(WS_URL);
         
@@ -614,12 +616,18 @@ class RealTimeUpdates {
         
         switch(data.type) {
             case 'image_update':
+                // Handles non-batch updates (e.g., intermediate stages)
                 this.updateImageStatus(data);
+                break;
+            case 'image_batch_update':
+                // New: Handles the combined notification for a full set of mockup images
+                this.handleMockupReady(data);
                 break;
         }
     }
 
     updateImageStatus(update) {
+        // ... (Functionality for non-mockup-ready updates remains the same)
         console.log('Updating image status:', update);
         const container = document.getElementById('realtimeUpdates');
         if (!container) {
@@ -630,10 +638,8 @@ class RealTimeUpdates {
         const fileName = update.fileName;
         const stage = update.stage;
         
-        // Handle Mockup ready images
-        if (stage === 'Mockup ready' && update.imageUrl) {
-            console.log('Mockup ready with image URL:', update.imageUrl);
-            this.handleMockupReady(update);
+        // Skip single file updates for 'Mockup ready' now that we use batch update
+        if (stage === 'Mockup ready') {
             return;
         }
         
@@ -647,58 +653,77 @@ class RealTimeUpdates {
     }
 
     handleMockupReady(update) {
-        console.log('Handling mockup ready:', update);
-        const cid = this.extractCID(update.fileName);
+        // 'update' is now the 'image_batch_update' object
+        console.log('Handling mockup batch ready:', update);
+        
+        // The CID is now directly in the update object from the Lambda
+        const cid = update.cid; 
+        const imageData = update.images; // This is the array of {fileName, imageUrl} for the batch
+
         if (!cid) {
-            console.log('No CID found in filename:', update.fileName);
+            console.log('No CID found in batch update:', update);
             return;
         }
 
-        if (!this.mockupProducts.has(cid)) {
-            this.mockupProducts.set(cid, []);
+        // Initialize the gallery array for this CID if it doesn't exist
+        if (!this.mockupGalleries.has(cid)) {
+            this.mockupGalleries.set(cid, []);
         }
         
-        const productImages = this.mockupProducts.get(cid);
+        const designBatches = this.mockupGalleries.get(cid);
         
-        productImages.push({
-            fileName: update.fileName,
-            imageUrl: update.imageUrl
-        });
+        // Each batch (3 images) is one design option. We push the whole array.
+        designBatches.push(imageData); 
         
-        console.log(`Collected ${productImages.length} images for CID ${cid}`);
-        this.displayMockupGallery(cid, productImages);
+        console.log(`Collected ${designBatches.length} design options for CID ${cid}`);
+        this.displayMockupGallery(cid, designBatches);
+        
+        // Optional: Remove progress items related to these files
+        imageData.forEach(img => this.pendingImages.delete(img.fileName));
     }
 
+    // extractCID is no longer needed in its previous form, 
+    // but we can keep it if other parts of the system rely on it.
     extractCID(fileName) {
         const match = fileName.match(/_cid_([^_]+)_/);
         return match ? match[1] : null;
     }
 
-    displayMockupGallery(cid, imageData) {
-        console.log('Displaying mockup gallery for CID:', cid, 'with', imageData.length, 'images');
+    displayMockupGallery(cid, designBatches) {
+        // designBatches is an array of arrays, e.g., [[img1, img2, img3], [img4, img5, img6]]
+        console.log('Displaying mockup gallery for CID:', cid, 'with', designBatches.length, 'design options');
         
-        let gallery = document.getElementById(`mockup-gallery-${cid}`);
-        if (!gallery) {
+        let galleryContainer = document.getElementById(`mockup-gallery-container-${cid}`);
+        if (!galleryContainer) {
             const container = document.getElementById('realtimeUpdates');
-            gallery = document.createElement('div');
-            gallery.id = `mockup-gallery-${cid}`;
-            gallery.className = 'mockup-gallery';
-            container.appendChild(gallery);
+            galleryContainer = document.createElement('div');
+            galleryContainer.id = `mockup-gallery-container-${cid}`;
+            container.appendChild(galleryContainer);
         }
         
-        gallery.innerHTML = `
-            <h4>📱 Product Mockup Ready</h4>
-            <div class="mockup-images">
-                ${imageData.map((data, index) => 
-                    `<div class="image-container">
-                        <img src="${data.imageUrl}" alt="Product view ${index + 1}" onload="this.style.opacity='1'" onerror="this.style.opacity='0.3'; console.error('Failed to load image:', this.src)" style="opacity: 0; transition: opacity 0.3s ease;" />
-                    </div>`
-                ).join('')}
-            </div>
-        `;
+        galleryContainer.innerHTML = ''; // Clear previous content
+
+        // Iterate over each design option batch
+        designBatches.forEach((batch, designIndex) => {
+            const designOptionElement = document.createElement('div');
+            designOptionElement.className = 'mockup-gallery';
+            designOptionElement.innerHTML = `
+                <h4>✅ Design Option ${designIndex + 1} Ready</h4>
+                <div class="mockup-images">
+                    ${batch.map((data, imageIndex) => 
+                        `<div class="image-container">
+                            <img src="${data.imageUrl}" alt="View ${imageIndex + 1}" onload="this.style.opacity='1'" onerror="this.style.opacity='0.3'; console.error('Failed to load image:', this.src)" style="opacity: 0; transition: opacity 0.3s ease;" />
+                            <div class="image-label">${data.fileName.split('_')[0]}</div>
+                        </div>`
+                    ).join('')}
+                </div>
+            `;
+            galleryContainer.appendChild(designOptionElement);
+        });
     }
 
     createProgressItem(fileName) {
+        // ... (Remains the same)
         const container = document.getElementById('realtimeUpdates');
         const item = document.createElement('div');
         item.className = 'progress-item';
@@ -712,21 +737,25 @@ class RealTimeUpdates {
     }
 
     updateProgressItem(item, stage, timestamp) {
+        // ... (Remains the same)
         const stageElement = item.querySelector('.current-stage');
         stageElement.textContent = stage;
         item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
     }
 
     formatFileName(name) {
+        // ... (Remains the same)
         const filename = name.split('/').pop();
         return filename.length > 30 ? filename.substring(0, 27) + '...' : filename;
     }
 
     getSession() {
+        // ... (Remains the same)
         return JSON.parse(localStorage.getItem('cognitoSession'));
     }
 
     renderUpdatesPanel() {
+        // ... (Remains the same)
         if (document.getElementById('realtimePanel')) return;
 
         const uploadSection = document.getElementById('uploadSection');
@@ -745,12 +774,13 @@ class RealTimeUpdates {
     }
 
     showPanel() {
+        // ... (Remains the same)
         const panel = document.getElementById('realtimePanel');
         if (panel) panel.style.display = 'block';
     }
 }
 
-// Add CSS styles
+// Add CSS styles (updated to include image-label)
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
 .mockup-gallery {
@@ -775,6 +805,7 @@ styleSheet.textContent = `
     border-radius: 8px;
     padding: 5px;
     background: white;
+    text-align: center; /* Center the label */
 }
 .mockup-images img {
     width: 200px;
@@ -782,6 +813,12 @@ styleSheet.textContent = `
     object-fit: contain;
     border-radius: 4px;
     display: block;
+}
+.image-label {
+    margin-top: 5px;
+    font-size: 0.8em;
+    color: #555;
+    font-weight: bold;
 }
 .progress-item {
     padding: 10px;
