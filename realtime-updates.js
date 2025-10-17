@@ -564,6 +564,7 @@ class RealTimeUpdates {
         this.isConnected = false;
         this.pendingImages = new Map();
         this.completedDesigns = new Map();
+        this.processedFiles = new Set(); // Track processed files to avoid duplicates
     }
 
     initialize() {
@@ -612,6 +613,14 @@ class RealTimeUpdates {
     handleUpdate(data) {
         console.log('Processing update:', data);
         
+        // Check for duplicate files
+        const fileKey = data.fileName + '_' + data.stage;
+        if (this.processedFiles.has(fileKey)) {
+            console.log('Skipping duplicate file update:', fileKey);
+            return;
+        }
+        this.processedFiles.add(fileKey);
+        
         switch(data.type) {
             case 'design_ready':
                 this.handleDesignReady(data);
@@ -626,8 +635,13 @@ class RealTimeUpdates {
         console.log('Complete design ready:', designData);
         
         const designId = designData.designId;
-        this.completedDesigns.set(designId, designData);
-        this.displayDesign(designData);
+        // Only process if we haven't seen this design yet
+        if (!this.completedDesigns.has(designId)) {
+            this.completedDesigns.set(designId, designData);
+            this.displayDesign(designData);
+        } else {
+            console.log('Skipping duplicate design:', designId);
+        }
     }
 
     updateImageStatus(update) {
@@ -635,7 +649,7 @@ class RealTimeUpdates {
         const fileName = update.fileName;
         const stage = update.stage;
         
-        // Handle Mockup ready images individually
+        // Handle Mockup ready images individually (for non-batched files)
         if (stage === 'Mockup ready' && update.imageUrl) {
             this.handleIndividualMockup(update);
             return;
@@ -654,6 +668,12 @@ class RealTimeUpdates {
         console.log('Individual mockup ready:', update);
         const fileName = update.fileName;
         
+        // Skip if this is part of a batched design (starts with opt-turn_)
+        if (fileName.startsWith('opt-turn_')) {
+            console.log('Skipping individual opt-turn file, waiting for batch:', fileName);
+            return;
+        }
+        
         let item = this.pendingImages.get(fileName);
         if (!item) {
             item = this.createProgressItem(fileName);
@@ -663,33 +683,37 @@ class RealTimeUpdates {
         // Update the progress item to show mockup is ready
         this.updateProgressItem(item, 'Mockup ready', update.timestamp);
         
-        // Add image to the progress item
-        const img = document.createElement('img');
-        img.src = update.imageUrl;
-        img.style.maxWidth = '100px';
-        img.style.maxHeight = '100px';
-        img.style.marginTop = '10px';
-        img.onload = () => img.style.opacity = '1';
-        img.style.opacity = '0';
-        img.style.transition = 'opacity 0.3s ease';
-        
-        item.appendChild(img);
+        // Add image to the progress item if it doesn't already have one
+        if (!item.querySelector('img')) {
+            const img = document.createElement('img');
+            img.src = update.imageUrl;
+            img.style.maxWidth = '100px';
+            img.style.maxHeight = '100px';
+            img.style.marginTop = '10px';
+            img.onload = () => img.style.opacity = '1';
+            img.style.opacity = '0';
+            img.style.transition = 'opacity 0.3s ease';
+            
+            item.appendChild(img);
+        }
     }
 
     displayDesign(designData) {
         const container = document.getElementById('realtimeUpdates');
         const designId = designData.designId;
         
-        let designElement = document.getElementById(`design-${designId}`);
-        if (!designElement) {
-            designElement = document.createElement('div');
-            designElement.id = `design-${designId}`;
-            designElement.className = 'design-container';
-            container.appendChild(designElement);
+        // Remove any existing design with same ID to avoid duplicates
+        const existingDesign = document.getElementById(`design-${designId}`);
+        if (existingDesign) {
+            existingDesign.remove();
         }
         
+        const designElement = document.createElement('div');
+        designElement.id = `design-${designId}`;
+        designElement.className = 'design-container';
+        
         designElement.innerHTML = `
-            <h4>🎨 Design ${designId.replace('design_', '')}</h4>
+            <h4>🎨 Design ${designId.replace('design_', 'Palette ').replace('_', ' Flavor ')}</h4>
             <div class="design-views">
                 ${Object.entries(designData.imageUrls).map(([view, url]) => 
                     `<div class="view-container">
@@ -702,6 +726,8 @@ class RealTimeUpdates {
                 ).join('')}
             </div>
         `;
+        
+        container.appendChild(designElement);
     }
 
     formatViewName(viewPrefix) {
@@ -784,9 +810,13 @@ styleSheet.textContent = `
     display: flex;
     gap: 15px;
     flex-wrap: wrap;
+    justify-content: center;
 }
 .view-container {
     text-align: center;
+    flex: 1;
+    min-width: 150px;
+    max-width: 200px;
 }
 .view-label {
     font-weight: bold;
@@ -794,7 +824,7 @@ styleSheet.textContent = `
     color: #555;
 }
 .view-container img {
-    width: 150px;
+    width: 100%;
     height: 150px;
     object-fit: contain;
     border: 1px solid #ddd;
