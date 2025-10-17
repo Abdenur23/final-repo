@@ -563,7 +563,7 @@ class RealTimeUpdates {
         this.socket = null;
         this.isConnected = false;
         this.pendingImages = new Map();
-        this.designs = new Map();
+        this.designs = new Map(); // Store complete designs
     }
 
     initialize() {
@@ -623,118 +623,58 @@ class RealTimeUpdates {
     }
 
     handleDesignReady(designData) {
-        console.log('Design ready:', designData);
+        console.log('Design ready with all views:', designData);
         
         const designId = designData.designId;
+        const cid = designData.cid;
+        
+        // Store the complete design
         this.designs.set(designId, designData);
         
+        // Display the design with all three views
         this.displayDesign(designData);
     }
 
     displayDesign(designData) {
         const container = document.getElementById('realtimeUpdates');
+        const designId = designData.designId;
         
-        const designElement = document.createElement('div');
-        designElement.className = 'design-container';
-        designElement.id = `design-${designData.designId}`;
+        let designElement = document.getElementById(`design-${designId}`);
+        if (!designElement) {
+            designElement = document.createElement('div');
+            designElement.id = `design-${designId}`;
+            designElement.className = 'design-container';
+            container.appendChild(designElement);
+        }
         
         designElement.innerHTML = `
-            <h4>🎨 Design Option: ${this.formatDesignId(designData.designId)}</h4>
-            <div class="design-images">
-                ${Object.entries(designData.images).map(([view, url]) => 
-                    `<div class="design-view">
+            <h4>🎨 Design ${designId}</h4>
+            <div class="design-views">
+                ${Object.entries(designData.imageUrls).map(([view, url]) => 
+                    `<div class="view-container">
                         <div class="view-label">${this.formatViewName(view)}</div>
                         <img src="${url}" alt="${view}" 
                              onload="this.style.opacity='1'" 
-                             onerror="this.style.opacity='0.3'" 
+                             onerror="this.style.display='none'"
                              style="opacity: 0; transition: opacity 0.3s ease;" />
                     </div>`
                 ).join('')}
             </div>
         `;
-        
-        container.appendChild(designElement);
     }
 
-    formatDesignId(designId) {
-        return designId.replace(/_/g, ' ').replace('cid', 'Design');
-    }
-
-    formatViewName(view) {
-        const viewMap = {
+    formatViewName(viewPrefix) {
+        const viewNames = {
             'opt-turn_006': 'Front View',
             'opt-turn_010': 'Side View', 
             'opt-turn_014': 'Back View'
         };
-        return viewMap[view] || view;
+        return viewNames[viewPrefix] || viewPrefix;
     }
 
     updateImageStatus(update) {
-        // Keep existing single image update logic for non-design files
-        const container = document.getElementById('realtimeUpdates');
-        if (!container) return;
-
-        const fileName = update.fileName;
-        const stage = update.stage;
-        
-        if (stage === 'Mockup ready' && update.imageUrl) {
-            this.handleMockupReady(update);
-            return;
-        }
-        
-        let item = this.pendingImages.get(fileName);
-        if (!item) {
-            item = this.createProgressItem(fileName);
-            this.pendingImages.set(fileName, item);
-        }
-        this.updateProgressItem(item, stage, update.timestamp);
-    }
-
-    handleMockupReady(update) {
-        // Existing single image mockup logic
-        const cid = this.extractCID(update.fileName);
-        if (!cid) return;
-
-        const mockupElement = document.createElement('div');
-        mockupElement.className = 'single-mockup';
-        mockupElement.innerHTML = `
-            <h4>📱 Single Mockup</h4>
-            <img src="${update.imageUrl}" alt="Mockup" 
-                 onload="this.style.opacity='1'" 
-                 onerror="this.style.opacity='0.3'" 
-                 style="opacity: 0; transition: opacity 0.3s ease; max-width: 300px;" />
-        `;
-        
-        document.getElementById('realtimeUpdates').appendChild(mockupElement);
-    }
-
-    createProgressItem(fileName) {
-        const container = document.getElementById('realtimeUpdates');
-        const item = document.createElement('div');
-        item.className = 'progress-item';
-        item.innerHTML = `
-            <div class="file-name">${this.formatFileName(fileName)}</div>
-            <div class="current-stage">Starting...</div>
-            <div class="timestamp"></div>
-        `;
-        container.appendChild(item);
-        return item;
-    }
-
-    updateProgressItem(item, stage, timestamp) {
-        const stageElement = item.querySelector('.current-stage');
-        stageElement.textContent = stage;
-        item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
-    }
-
-    extractCID(fileName) {
-        const match = fileName.match(/_cid_([^_]+)_/);
-        return match ? match[1] : null;
-    }
-
-    formatFileName(name) {
-        const filename = name.split('/').pop();
-        return filename.length > 30 ? filename.substring(0, 27) + '...' : filename;
+        // Keep this for individual image updates if needed
+        console.log('Individual image update:', update);
     }
 
     getSession() {
@@ -747,7 +687,7 @@ class RealTimeUpdates {
         const uploadSection = document.getElementById('uploadSection');
         const updatesHTML = `
             <div id="realtimePanel" style="margin-top: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
-                <h3>🔄 Processing Updates</h3>
+                <h3>🔄 Design Updates</h3>
                 <div id="realtimeUpdates" class="updates-container"></div>
             </div>
         `;
@@ -780,46 +720,14 @@ styleSheet.textContent = `
     color: #2c5aa0;
     font-size: 18px;
 }
-.design-images {
+.design-views {
     display: flex;
     gap: 15px;
     flex-wrap: wrap;
 }
-.design-view {
+.view-container {
     text-align: center;
 }
-.design-view img {
-    width: 200px;
-    height: 200px;
-    object-fit: contain;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    padding: 5px;
-    background: white;
-}
 .view-label {
-    margin-bottom: 5px;
     font-weight: bold;
-    color: #555;
-}
-.single-mockup {
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 8px;
-}
-.progress-item {
-    padding: 10px;
-    margin: 5px 0;
-    border-left: 4px solid #007bff;
-    background: white;
-    border-radius: 4px;
-}
-`;
-document.head.appendChild(styleSheet);
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    window.realtimeUpdates = new RealTimeUpdates();
-    window.realtimeUpdates.initialize();
-});
+    margin-bottom: 5
