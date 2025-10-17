@@ -563,7 +563,7 @@ class RealTimeUpdates {
         this.socket = null;
         this.isConnected = false;
         this.pendingImages = new Map();
-        this.productVariants = new Map();
+        this.mockupProducts = new Map();
     }
 
     initialize() {
@@ -616,9 +616,6 @@ class RealTimeUpdates {
             case 'image_update':
                 this.updateImageStatus(data);
                 break;
-            case 'coordinated_mockup_ready':
-                this.handleCoordinatedMockupReady(data);
-                break;
         }
     }
 
@@ -633,13 +630,14 @@ class RealTimeUpdates {
         const fileName = update.fileName;
         const stage = update.stage;
         
-        // Handle Mockup ready images (individual notifications)
+        // Handle Mockup ready images
         if (stage === 'Mockup ready' && update.imageUrl) {
             console.log('Mockup ready with image URL:', update.imageUrl);
             this.handleMockupReady(update);
+            return;
         }
         
-        // Handle other stages and progress updates
+        // Handle other stages
         let item = this.pendingImages.get(fileName);
         if (!item) {
             item = this.createProgressItem(fileName);
@@ -648,110 +646,27 @@ class RealTimeUpdates {
         this.updateProgressItem(item, stage, update.timestamp);
     }
 
-    handleCoordinatedMockupReady(data) {
-        console.log('Handling coordinated mockup ready:', data);
-        const cid = data.cid;
-        const variantId = data.variantId;
-        const files = data.files || [];
-        
-        console.log(`Received coordinated mockup for CID ${cid}, variant ${variantId} with ${files.length} files`);
-        
-        if (files.length === 0) return;
-
-        // Store or update the product variant
-        if (!this.productVariants.has(cid)) {
-            this.productVariants.set(cid, []);
-        }
-        
-        const variants = this.productVariants.get(cid);
-        const existingVariantIndex = variants.findIndex(v => v.variantId === variantId);
-        
-        if (existingVariantIndex >= 0) {
-            variants[existingVariantIndex] = { variantId, files, timestamp: data.timestamp };
-        } else {
-            variants.push({ variantId, files, timestamp: data.timestamp });
-        }
-        
-        // Display all variants for this product
-        this.displayProductVariants(cid);
-        
-        // Also update individual progress items for each file
-        files.forEach(fileData => {
-            this.updateImageStatus({
-                fileName: fileData.fileName,
-                stage: 'Mockup ready',
-                imageUrl: fileData.imageUrl,
-                timestamp: data.timestamp
-            });
-        });
-    }
-
     handleMockupReady(update) {
-        console.log('Handling individual mockup ready:', update);
+        console.log('Handling mockup ready:', update);
         const cid = this.extractCID(update.fileName);
         if (!cid) {
             console.log('No CID found in filename:', update.fileName);
             return;
         }
 
-        // For individual mockup notifications, still add to the collection
-        // but coordinated notifications will take precedence
-        if (!this.productVariants.has(cid)) {
-            this.productVariants.set(cid, []);
-        }
-    }
-
-    displayProductVariants(cid) {
-        const variants = this.productVariants.get(cid) || [];
-        console.log(`Displaying ${variants.length} variants for CID ${cid}`);
-        
-        let productContainer = document.getElementById(`product-${cid}`);
-        if (!productContainer) {
-            const updatesContainer = document.getElementById('realtimeUpdates');
-            productContainer = document.createElement('div');
-            productContainer.id = `product-${cid}`;
-            productContainer.className = 'product-container';
-            updatesContainer.appendChild(productContainer);
+        if (!this.mockupProducts.has(cid)) {
+            this.mockupProducts.set(cid, []);
         }
         
-        productContainer.innerHTML = `
-            <h3>🎨 Complete Product Designs</h3>
-            <div class="variants-container">
-                ${variants.map((variant, index) => this.renderVariant(variant, index)).join('')}
-            </div>
-        `;
+        const productImages = this.mockupProducts.get(cid);
         
-        productContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    renderVariant(variant, index) {
-        const sortedFiles = variant.files.sort((a, b) => 
-            a.fileName.localeCompare(b.fileName)
-        );
+        productImages.push({
+            fileName: update.fileName,
+            imageUrl: update.imageUrl
+        });
         
-        return `
-            <div class="variant-card">
-                <div class="variant-header">
-                    <h4>Design Option ${index + 1}</h4>
-                    <span class="variant-badge">${this.formatVariantName(variant.variantId)}</span>
-                </div>
-                <div class="variant-images">
-                    ${sortedFiles.map(file => `
-                        <div class="variant-image">
-                            <img src="${file.imageUrl}" 
-                                 alt="${this.getViewName(file.fileName)}"
-                                 onload="this.style.opacity='1'" 
-                                 onerror="this.style.opacity='0.3'" 
-                                 style="opacity: 0; transition: opacity 0.3s ease;" />
-                            <div class="view-label">${this.getViewName(file.fileName)}</div>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="variant-timestamp">
-                    Generated: ${new Date(variant.timestamp).toLocaleTimeString()}
-                </div>
-            </div>
-        `;
+        console.log(`Collected ${productImages.length} images for CID ${cid}`);
+        this.displayMockupGallery(cid, productImages);
     }
 
     extractCID(fileName) {
@@ -759,27 +674,28 @@ class RealTimeUpdates {
         return match ? match[1] : null;
     }
 
-    getViewName(fileName) {
-        const prefix = fileName.split('_')[0];
-        const viewMap = {
-            'opt-turn_006': 'Front View',
-            'opt-turn_010': 'Side View', 
-            'opt-turn_014': 'Back View'
-        };
-        return viewMap[prefix] || prefix;
-    }
-
-    formatVariantName(variantId) {
-        return variantId.split('_')
-            .reduce((acc, part, index, array) => {
-                if (index % 2 === 0) {
-                    acc.push(part.charAt(0).toUpperCase() + part.slice(1));
-                } else {
-                    acc[acc.length - 1] += ` ${part}`;
-                }
-                return acc;
-            }, [])
-            .join(', ');
+    displayMockupGallery(cid, imageData) {
+        console.log('Displaying mockup gallery for CID:', cid, 'with', imageData.length, 'images');
+        
+        let gallery = document.getElementById(`mockup-gallery-${cid}`);
+        if (!gallery) {
+            const container = document.getElementById('realtimeUpdates');
+            gallery = document.createElement('div');
+            gallery.id = `mockup-gallery-${cid}`;
+            gallery.className = 'mockup-gallery';
+            container.appendChild(gallery);
+        }
+        
+        gallery.innerHTML = `
+            <h4>📱 Product Mockup Ready</h4>
+            <div class="mockup-images">
+                ${imageData.map((data, index) => 
+                    `<div class="image-container">
+                        <img src="${data.imageUrl}" alt="Product view ${index + 1}" onload="this.style.opacity='1'" onerror="this.style.opacity='0.3'; console.error('Failed to load image:', this.src)" style="opacity: 0; transition: opacity 0.3s ease;" />
+                    </div>`
+                ).join('')}
+            </div>
+        `;
     }
 
     createProgressItem(fileName) {
@@ -837,111 +753,42 @@ class RealTimeUpdates {
 // Add CSS styles
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
-.product-container {
-    margin: 20px 0;
-    padding: 20px;
+.mockup-gallery {
     border: 2px solid #4CAF50;
-    border-radius: 12px;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
     background: #f8fff8;
 }
-
-.product-container h3 {
-    margin: 0 0 20px 0;
+.mockup-gallery h4 {
+    margin: 0 0 15px 0;
     color: #2c5aa0;
-    font-size: 24px;
-    text-align: center;
+    font-size: 18px;
 }
-
-.variants-container {
-    display: grid;
-    gap: 20px;
-}
-
-.variant-card {
-    border: 2px solid #2196F3;
-    border-radius: 8px;
-    padding: 15px;
-    background: white;
-}
-
-.variant-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
-}
-
-.variant-header h4 {
-    margin: 0;
-    color: #333;
-}
-
-.variant-badge {
-    background: #2196F3;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.variant-images {
+.mockup-images {
     display: flex;
     gap: 15px;
-    justify-content: center;
     flex-wrap: wrap;
 }
-
-.variant-image {
-    text-align: center;
+.mockup-images .image-container {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 5px;
+    background: white;
 }
-
-.variant-image img {
-    width: 180px;
-    height: 180px;
+.mockup-images img {
+    width: 200px;
+    height: 200px;
     object-fit: contain;
-    border: 1px solid #ddd;
     border-radius: 4px;
     display: block;
 }
-
-.view-label {
-    margin-top: 8px;
-    font-size: 12px;
-    color: #666;
-    font-weight: bold;
-}
-
-.variant-timestamp {
-    margin-top: 10px;
-    text-align: center;
-    font-size: 12px;
-    color: #999;
-}
-
 .progress-item {
     padding: 10px;
     margin: 5px 0;
     border-left: 4px solid #007bff;
     background: white;
     border-radius: 4px;
-}
-
-.progress-item .file-name {
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.progress-item .current-stage {
-    color: #666;
-    margin-bottom: 3px;
-}
-
-.progress-item .timestamp {
-    font-size: 12px;
-    color: #999;
 }
 `;
 document.head.appendChild(styleSheet);
