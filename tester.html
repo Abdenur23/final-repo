@@ -181,9 +181,13 @@ async function uploadFiles(){
                     method: 'POST',
                     headers: {'Content-Type': 'application/json', 'Authorization': token},
                     body: JSON.stringify(notificationPayload)
-                }).catch(err => console.log('Notification failed (non-critical):', err));
-                
-                console.log(`Upload completed for: ${u.fileName}`);
+                }).then(response => {
+                    if (!response.ok) {
+                        console.log('Notification failed:', response.status);
+                    } else {
+                        console.log(`Upload completion notified for: ${u.fileName}`);
+                    }
+                }).catch(err => console.log('Notification error:', err));
             }
             
             return uploadResponse;
