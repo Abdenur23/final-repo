@@ -563,7 +563,7 @@ class RealTimeUpdates {
         this.socket = null;
         this.isConnected = false;
         this.pendingImages = new Map();
-        this.designs = new Map(); // Store complete designs
+        this.completedDesigns = new Map();
     }
 
     initialize() {
@@ -623,16 +623,57 @@ class RealTimeUpdates {
     }
 
     handleDesignReady(designData) {
-        console.log('Design ready with all views:', designData);
+        console.log('Complete design ready:', designData);
         
         const designId = designData.designId;
-        const cid = designData.cid;
-        
-        // Store the complete design
-        this.designs.set(designId, designData);
-        
-        // Display the design with all three views
+        this.completedDesigns.set(designId, designData);
         this.displayDesign(designData);
+    }
+
+    updateImageStatus(update) {
+        console.log('Individual image update:', update);
+        const fileName = update.fileName;
+        const stage = update.stage;
+        
+        // Handle Mockup ready images individually
+        if (stage === 'Mockup ready' && update.imageUrl) {
+            this.handleIndividualMockup(update);
+            return;
+        }
+        
+        // Handle progress updates for other stages
+        let item = this.pendingImages.get(fileName);
+        if (!item) {
+            item = this.createProgressItem(fileName);
+            this.pendingImages.set(fileName, item);
+        }
+        this.updateProgressItem(item, stage, update.timestamp);
+    }
+
+    handleIndividualMockup(update) {
+        console.log('Individual mockup ready:', update);
+        const fileName = update.fileName;
+        
+        let item = this.pendingImages.get(fileName);
+        if (!item) {
+            item = this.createProgressItem(fileName);
+            this.pendingImages.set(fileName, item);
+        }
+        
+        // Update the progress item to show mockup is ready
+        this.updateProgressItem(item, 'Mockup ready', update.timestamp);
+        
+        // Add image to the progress item
+        const img = document.createElement('img');
+        img.src = update.imageUrl;
+        img.style.maxWidth = '100px';
+        img.style.maxHeight = '100px';
+        img.style.marginTop = '10px';
+        img.onload = () => img.style.opacity = '1';
+        img.style.opacity = '0';
+        img.style.transition = 'opacity 0.3s ease';
+        
+        item.appendChild(img);
     }
 
     displayDesign(designData) {
@@ -648,7 +689,7 @@ class RealTimeUpdates {
         }
         
         designElement.innerHTML = `
-            <h4>🎨 Design ${designId}</h4>
+            <h4>🎨 Design ${designId.replace('design_', '')}</h4>
             <div class="design-views">
                 ${Object.entries(designData.imageUrls).map(([view, url]) => 
                     `<div class="view-container">
@@ -672,9 +713,28 @@ class RealTimeUpdates {
         return viewNames[viewPrefix] || viewPrefix;
     }
 
-    updateImageStatus(update) {
-        // Keep this for individual image updates if needed
-        console.log('Individual image update:', update);
+    createProgressItem(fileName) {
+        const container = document.getElementById('realtimeUpdates');
+        const item = document.createElement('div');
+        item.className = 'progress-item';
+        item.innerHTML = `
+            <div class="file-name">${this.formatFileName(fileName)}</div>
+            <div class="current-stage">Starting...</div>
+            <div class="timestamp"></div>
+        `;
+        container.appendChild(item);
+        return item;
+    }
+
+    updateProgressItem(item, stage, timestamp) {
+        const stageElement = item.querySelector('.current-stage');
+        stageElement.textContent = stage;
+        item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
+    }
+
+    formatFileName(name) {
+        const filename = name.split('/').pop();
+        return filename.length > 30 ? filename.substring(0, 27) + '...' : filename;
     }
 
     getSession() {
@@ -687,7 +747,7 @@ class RealTimeUpdates {
         const uploadSection = document.getElementById('uploadSection');
         const updatesHTML = `
             <div id="realtimePanel" style="margin-top: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
-                <h3>🔄 Design Updates</h3>
+                <h3>🔄 Processing Updates</h3>
                 <div id="realtimeUpdates" class="updates-container"></div>
             </div>
         `;
@@ -741,6 +801,17 @@ styleSheet.textContent = `
     border-radius: 4px;
     padding: 5px;
     background: white;
+}
+.progress-item {
+    padding: 10px;
+    margin: 5px 0;
+    border-left: 4px solid #007bff;
+    background: white;
+    border-radius: 4px;
+}
+.progress-item img {
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
 `;
 document.head.appendChild(styleSheet);
