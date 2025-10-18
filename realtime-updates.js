@@ -5,7 +5,7 @@ class RealTimeUpdates {
         this.pendingImages = new Map();
         this.completedDesigns = new Map();
         this.processedFiles = new Set();
-        this.productPrice = 34; // Updated to 34$ as requested
+        this.productPrice = 34;
     }
 
     initialize() {
@@ -54,13 +54,11 @@ class RealTimeUpdates {
     handleUpdate(data) {
         console.log('Processing update:', data);
         
-        // Handle design_ready messages (batched product with all views)
         if (data.type === 'design_ready') {
             this.handleDesignReady(data);
             return;
         }
         
-        // Handle individual image updates
         if (data.type === 'image_update') {
             const fileKey = data.fileName + '_' + data.stage;
             if (this.processedFiles.has(fileKey)) {
@@ -76,12 +74,9 @@ class RealTimeUpdates {
         console.log('Complete design ready:', designData);
         
         const designId = designData.designId;
-        // Only process if we haven't seen this design yet
         if (!this.completedDesigns.has(designId)) {
             this.completedDesigns.set(designId, designData);
             this.displayDesign(designData);
-            
-            // Remove the progress item once the design is displayed
             this.removeProgressItem(designId);
         }
     }
@@ -91,7 +86,6 @@ class RealTimeUpdates {
         const fileName = update.fileName;
         const stage = update.stage;
         
-        // For batched files, use design ID for progress tracking
         let designId = this.extractDesignId(fileName);
         let itemKey = designId || fileName;
         
@@ -101,26 +95,7 @@ class RealTimeUpdates {
             this.pendingImages.set(itemKey, item);
         }
         
-        this.updateProgressItem(item, stage, update.timestamp);
-        
-        // Show individual mockup image only for non-batched files
-        if (stage === 'Mockup ready' && update.imageUrl && !fileName.startsWith('opt-turn_')) {
-            this.addImageToProgressItem(item, update.imageUrl, fileName);
-        }
-    }
-
-    addImageToProgressItem(item, imageUrl, fileName) {
-        if (!item.querySelector('img')) {
-            const img = document.createElement('img');
-            img.src = imageUrl;
-            img.alt = fileName;
-            img.className = 'progress-thumbnail';
-            img.onload = () => img.style.opacity = '1';
-            img.style.opacity = '0';
-            img.style.transition = 'opacity 0.3s ease';
-            
-            item.appendChild(img);
-        }
+        this.updateProgressItem(item, stage, update.timestamp, update.imageUrl);
     }
 
     extractDesignId(fileName) {
@@ -132,11 +107,8 @@ class RealTimeUpdates {
         const container = document.getElementById('realtimeUpdates');
         const designId = designData.designId;
         
-        // Remove any existing design with same ID
         const existingDesign = document.getElementById(`design-${designId}`);
-        if (existingDesign) {
-            existingDesign.remove();
-        }
+        if (existingDesign) existingDesign.remove();
         
         const productElement = document.createElement('div');
         productElement.id = `design-${designId}`;
@@ -177,7 +149,6 @@ class RealTimeUpdates {
         const design = this.completedDesigns.get(designId);
         const title = designId.replace('design_', 'Design ').replace('_', ' - ');
         alert(`Added ${title} to cart! Price: $${this.productPrice.toFixed(2)}`);
-        // Add your cart logic here
     }
 
     formatViewName(viewPrefix) {
@@ -200,9 +171,12 @@ class RealTimeUpdates {
             : this.formatFileName(itemKey);
             
         item.innerHTML = `
-            <div class="file-name">${friendlyName}</div>
-            <div class="current-stage">Starting...</div>
-            <div class="timestamp"></div>
+            <div class="progress-content">
+                <div class="file-name">${friendlyName}</div>
+                <div class="current-stage">Starting...</div>
+                <div class="timestamp"></div>
+            </div>
+            <div class="image-container"></div>
         `;
         container.appendChild(item);
         return item;
@@ -216,10 +190,30 @@ class RealTimeUpdates {
         }
     }
 
-    updateProgressItem(item, stage, timestamp) {
+    updateProgressItem(item, stage, timestamp, imageUrl) {
         const stageElement = item.querySelector('.current-stage');
         stageElement.textContent = stage;
         item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
+        
+        // Always show image if URL is provided
+        if (imageUrl) {
+            this.addImageToProgressItem(item, imageUrl);
+        }
+    }
+
+    addImageToProgressItem(item, imageUrl) {
+        const imageContainer = item.querySelector('.image-container');
+        imageContainer.innerHTML = ''; // Clear previous image
+        
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = 'Processing preview';
+        img.className = 'progress-thumbnail';
+        img.onload = () => img.style.opacity = '1';
+        img.style.opacity = '0';
+        img.style.transition = 'opacity 0.3s ease';
+        
+        imageContainer.appendChild(img);
     }
 
     formatFileName(name) {
@@ -329,18 +323,45 @@ styleSheet.textContent = `
     width: 100%;
 }
 .progress-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 10px;
     margin: 5px 0;
     border-left: 4px solid #ffc107;
     background: #fff8e6;
     border-radius: 4px;
+    gap: 15px;
+}
+.progress-content {
+    flex: 1;
+}
+.progress-content .file-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.progress-content .current-stage {
+    color: #007bff;
+    font-size: 0.9em;
+}
+.progress-content .timestamp {
+    color: #666;
+    font-size: 0.8em;
+}
+.image-container {
+    flex-shrink: 0;
 }
 .progress-thumbnail {
-    max-width: 50px;
-    max-height: 50px;
-    margin-top: 5px;
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
     border: 1px solid #ddd;
     border-radius: 4px;
+    background: white;
+}
+.updates-container {
+    max-height: 600px;
+    overflow-y: auto;
 }
 `;
 document.head.appendChild(styleSheet);
