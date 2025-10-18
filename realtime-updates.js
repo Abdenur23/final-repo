@@ -1,11 +1,9 @@
 class RealTimeUpdates {
     constructor() {
         this.socket = null;
-        this.isConnected = false;
-        this.pendingImages = new Map();
         this.completedDesigns = new Map();
-        this.processedFiles = new Set();
-        this.productPrice = 34; // Updated to 34$ as requested
+        this.pendingImages = new Map();
+        this.productPrice = 35;
     }
 
     initialize() {
@@ -19,137 +17,89 @@ class RealTimeUpdates {
         this.socket = new WebSocket(WS_URL);
         
         this.socket.onopen = () => {
-            console.log('WebSocket connected');
+            console.log('WS connected');
             this.authenticateWebSocket();
         };
 
         this.socket.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                console.log('WebSocket message received:', data);
                 this.handleUpdate(data);
             } catch (error) {
-                console.error('Error parsing WebSocket message:', error);
+                console.error('Error parsing WS message:', error);
             }
         };
 
         this.socket.onclose = () => {
-            console.log('WebSocket disconnected');
-            this.isConnected = false;
+            console.log('WS disconnected');
             setTimeout(() => this.setupWebSocket(), 5000);
         };
     }
 
     authenticateWebSocket() {
-        const session = this.getSession();
+        const session = JSON.parse(localStorage.getItem('cognitoSession'));
         if (session && session.id_token) {
-            this.socket.send(JSON.stringify({
-                action: 'authorize',
-                id_token: session.id_token
-            }));
-            this.isConnected = true;
+            this.socket.send(JSON.stringify({ action: 'authorize', id_token: session.id_token }));
         }
     }
 
     handleUpdate(data) {
-        console.log('Processing update:', data);
-        
-        // Handle design_ready messages (batched product with all views)
-        if (data.type === 'design_ready') {
-            this.handleDesignReady(data);
-            return;
-        }
-        
-        // Handle individual image updates
-        if (data.type === 'image_update') {
-            const fileKey = data.fileName + '_' + data.stage;
-            if (this.processedFiles.has(fileKey)) {
-                console.log('Skipping duplicate file update:', fileKey);
-                return;
-            }
-            this.processedFiles.add(fileKey);
-            this.updateImageStatus(data);
+        switch(data.type) {
+            case 'design_ready':
+                this.handleDesignReady(data);
+                break;
+            case 'status_update': // For all progress updates
+                this.updateStatus(data);
+                break;
         }
     }
 
     handleDesignReady(designData) {
-        console.log('Complete design ready:', designData);
-        
         const designId = designData.designId;
-        // Only process if we haven't seen this design yet
         if (!this.completedDesigns.has(designId)) {
             this.completedDesigns.set(designId, designData);
             this.displayDesign(designData);
-            
-            // Remove the progress item once the design is displayed
             this.removeProgressItem(designId);
         }
     }
 
-    updateImageStatus(update) {
-        console.log('Individual image update:', update);
-        const fileName = update.fileName;
-        const stage = update.stage;
+    updateStatus(update) {
+        // Determine the ID for progress tracking (use designId for batched files)
+        const isBatchFile = update.fileName.startsWith('opt-turn_');
+        let itemKey = isBatchFile ? this.extractDesignId(update.fileName) : update.fileName;
         
-        // For batched files, use design ID for progress tracking
-        let designId = this.extractDesignId(fileName);
-        let itemKey = designId || fileName;
-        
+        // Skip updates for batched files that aren't yet grouped
+        if (!itemKey) return; 
+
         let item = this.pendingImages.get(itemKey);
         if (!item) {
             item = this.createProgressItem(itemKey);
             this.pendingImages.set(itemKey, item);
         }
-        
-        this.updateProgressItem(item, stage, update.timestamp);
-        
-        // Show individual mockup image only for non-batched files
-        if (stage === 'Mockup ready' && update.imageUrl && !fileName.startsWith('opt-turn_')) {
-            this.addImageToProgressItem(item, update.imageUrl, fileName);
-        }
-    }
-
-    addImageToProgressItem(item, imageUrl, fileName) {
-        if (!item.querySelector('img')) {
-            const img = document.createElement('img');
-            img.src = imageUrl;
-            img.alt = fileName;
-            img.className = 'progress-thumbnail';
-            img.onload = () => img.style.opacity = '1';
-            img.style.opacity = '0';
-            img.style.transition = 'opacity 0.3s ease';
-            
-            item.appendChild(img);
-        }
+        this.updateProgressItem(item, update.stage, update.timestamp);
     }
 
     extractDesignId(fileName) {
         const match = fileName.match(/_palette_id_(\d+)_flavor_(\d+)/);
         return match ? `design_${match[1]}_${match[2]}` : null;
     }
-
+    
     displayDesign(designData) {
         const container = document.getElementById('realtimeUpdates');
         const designId = designData.designId;
-        
-        // Remove any existing design with same ID
         const existingDesign = document.getElementById(`design-${designId}`);
-        if (existingDesign) {
-            existingDesign.remove();
-        }
+        if (existingDesign) existingDesign.remove();
         
         const productElement = document.createElement('div');
         productElement.id = `design-${designId}`;
         productElement.className = 'product-card';
         
         const match = designId.match(/design_(\d+)_(\d+)/);
-        const title = match 
-            ? `Phone Case - Color ${match[1]}, Style ${match[2]}`
-            : 'Custom Phone Case';
+        const title = match ? `Case: Color ${match[1]} / Flavor ${match[2]}` : 'Custom Case';
         
         productElement.innerHTML = `
             <div class="product-header">
-                <h4>${title}</h4>
+                <h4>✅ ${title}</h4>
                 <div class="product-price">$${this.productPrice.toFixed(2)}</div>
             </div>
             
@@ -165,26 +115,19 @@ class RealTimeUpdates {
                 ).join('')}
             </div>
             
-            <button class="add-to-cart-btn" onclick="realtimeUpdates.addToCart('${designId}')">
-                Add to Cart - $${this.productPrice.toFixed(2)}
+            <button class="add-to-cart-btn" onclick="alert('Added ${title} to cart!')">
+                Add to Cart
             </button>
         `;
         
         container.prepend(productElement);
     }
 
-    addToCart(designId) {
-        const design = this.completedDesigns.get(designId);
-        const title = designId.replace('design_', 'Design ').replace('_', ' - ');
-        alert(`Added ${title} to cart! Price: $${this.productPrice.toFixed(2)}`);
-        // Add your cart logic here
-    }
-
     formatViewName(viewPrefix) {
         const viewNames = {
-            'opt-turn_006': 'Front',
-            'opt-turn_010': 'Side', 
-            'opt-turn_014': 'Back'
+            'opt-turn_006': 'Front View',
+            'opt-turn_010': 'Side View', 
+            'opt-turn_014': 'Back View'
         };
         return viewNames[viewPrefix] || viewPrefix;
     }
@@ -192,15 +135,15 @@ class RealTimeUpdates {
     createProgressItem(itemKey) {
         const container = document.getElementById('realtimeUpdates');
         const item = document.createElement('div');
-        item.id = `progress-${itemKey}`;
+        item.id = `progress-${itemKey}`; 
         item.className = 'progress-item';
         
         const friendlyName = itemKey.startsWith('design_') 
-            ? `Phone Case: ${itemKey.replace('design_', '').replace('_', ' - ')}`
+            ? `Design Batch ${itemKey.match(/\d+/g).join('/')}`
             : this.formatFileName(itemKey);
             
         item.innerHTML = `
-            <div class="file-name">${friendlyName}</div>
+            <div class="file-name">Processing: ${friendlyName}</div>
             <div class="current-stage">Starting...</div>
             <div class="timestamp"></div>
         `;
@@ -208,17 +151,16 @@ class RealTimeUpdates {
         return item;
     }
 
-    removeProgressItem(designId) {
-        const item = document.getElementById(`progress-${designId}`);
+    removeProgressItem(itemKey) {
+        const item = document.getElementById(`progress-${itemKey}`);
         if (item) {
             item.remove();
-            this.pendingImages.delete(designId);
+            this.pendingImages.delete(itemKey);
         }
     }
 
     updateProgressItem(item, stage, timestamp) {
-        const stageElement = item.querySelector('.current-stage');
-        stageElement.textContent = stage;
+        item.querySelector('.current-stage').textContent = stage;
         item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
     }
 
@@ -227,26 +169,15 @@ class RealTimeUpdates {
         return filename.length > 30 ? filename.substring(0, 27) + '...' : filename;
     }
 
-    getSession() {
-        return JSON.parse(localStorage.getItem('cognitoSession'));
-    }
-
     renderUpdatesPanel() {
         if (document.getElementById('realtimePanel')) return;
-
-        const uploadSection = document.getElementById('uploadSection');
         const updatesHTML = `
             <div id="realtimePanel" style="margin-top: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
-                <h3>🔄 Processing Updates</h3>
+                <h3>🔄 Processing Updates and New Products</h3>
                 <div id="realtimeUpdates" class="updates-container"></div>
             </div>
         `;
-        
-        if (uploadSection) {
-            uploadSection.insertAdjacentHTML('afterend', updatesHTML);
-        } else {
-            document.body.insertAdjacentHTML('beforeend', updatesHTML);
-        }
+        document.body.insertAdjacentHTML('beforeend', updatesHTML);
     }
 
     showPanel() {
@@ -255,7 +186,7 @@ class RealTimeUpdates {
     }
 }
 
-// Add CSS styles
+// Add CSS styles (Slightly adjusted for phone case dimensions)
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
 .product-card {
@@ -277,24 +208,24 @@ styleSheet.textContent = `
 .product-card h4 {
     margin: 0;
     color: #0056b3;
-    font-size: 16px;
+    font-size: 18px;
 }
 .product-price {
     font-weight: bold;
     color: #28a745;
-    font-size: 1.1em;
+    font-size: 1.2em;
 }
 .design-views {
     display: flex;
-    gap: 15px;
+    gap: 20px; 
     flex-wrap: wrap;
     justify-content: center;
     margin-bottom: 15px;
 }
-.case-view-container {
+.case-view-container { 
     text-align: center;
-    width: 100px;
-    height: 200px;
+    width: 100px; /* Width of the phone case image container */
+    height: 200px; /* Height of the phone case image container */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -306,8 +237,8 @@ styleSheet.textContent = `
     color: #555;
 }
 .case-view-container img {
-    width: 100%;
-    height: 160px;
+    width: 100px; /* Fixed width to resemble phone case (portrait) */
+    height: 150px; /* Fixed height to resemble phone case (portrait) */
     object-fit: contain;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -319,14 +250,10 @@ styleSheet.textContent = `
     color: white;
     border: none;
     padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin-top: 10px;
     cursor: pointer;
     border-radius: 4px;
     width: 100%;
+    box-sizing: border-box; /* Ensures padding is included in width */
 }
 .progress-item {
     padding: 10px;
@@ -334,13 +261,8 @@ styleSheet.textContent = `
     border-left: 4px solid #ffc107;
     background: #fff8e6;
     border-radius: 4px;
-}
-.progress-thumbnail {
-    max-width: 50px;
-    max-height: 50px;
-    margin-top: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
 }
 `;
 document.head.appendChild(styleSheet);
