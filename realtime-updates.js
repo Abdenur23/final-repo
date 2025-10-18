@@ -5,7 +5,6 @@ class RealTimeUpdates {
         this.pendingImages = new Map();
         this.completedDesigns = new Map();
         this.processedFiles = new Set();
-        this.colorBatches = new Map(); // Track batches by color
     }
 
     initialize() {
@@ -77,7 +76,7 @@ class RealTimeUpdates {
         const designId = designData.designId;
         if (!this.completedDesigns.has(designId)) {
             this.completedDesigns.set(designId, designData);
-            this.displayDesignAsProduct(designData);
+            this.displayProduct(designData);
         } else {
             console.log('Skipping duplicate design:', designId);
         }
@@ -87,6 +86,12 @@ class RealTimeUpdates {
         console.log('Individual image update:', update);
         const fileName = update.fileName;
         const stage = update.stage;
+        
+        // Only show progress for individual files, skip batched opt-turn files
+        if (fileName.startsWith('opt-turn_')) {
+            console.log('Skipping progress for batched file:', fileName);
+            return;
+        }
         
         if (stage === 'Mockup ready' && update.imageUrl) {
             this.handleIndividualMockup(update);
@@ -105,26 +110,10 @@ class RealTimeUpdates {
         console.log('Individual mockup ready:', update);
         const fileName = update.fileName;
         
-        // Extract color from filename (assuming format like "color_red_view1.jpg")
-        const colorMatch = fileName.match(/(?:color[_-]?)([^_]+)/i);
-        const color = colorMatch ? colorMatch[1] : 'default';
-        
+        // Skip batched files as they'll be handled by design_ready
         if (fileName.startsWith('opt-turn_')) {
-            console.log('Skipping individual opt-turn file, waiting for batch:', fileName);
+            console.log('Skipping individual batched file:', fileName);
             return;
-        }
-        
-        // Add to color batch
-        if (!this.colorBatches.has(color)) {
-            this.colorBatches.set(color, []);
-        }
-        this.colorBatches.get(color).push(update);
-        
-        // Check if we have a complete batch (3 views: front, side, back)
-        const batch = this.colorBatches.get(color);
-        if (batch.length >= 3) {
-            this.createProductFromBatch(color, batch);
-            this.colorBatches.delete(color);
         }
         
         let item = this.pendingImages.get(fileName);
@@ -148,93 +137,74 @@ class RealTimeUpdates {
         }
     }
 
-    createProductFromBatch(color, batch) {
-        const productData = {
-            color: color,
-            imageUrls: {},
-            timestamp: new Date().toISOString()
-        };
-        
-        // Organize images by view type
-        batch.forEach(update => {
-            const viewType = this.determineViewType(update.fileName);
-            productData.imageUrls[viewType] = update.imageUrl;
-        });
-        
-        this.displayProduct(productData);
-    }
-
-    determineViewType(fileName) {
-        if (fileName.includes('front') || fileName.includes('006')) return 'front';
-        if (fileName.includes('side') || fileName.includes('010')) return 'side';
-        if (fileName.includes('back') || fileName.includes('014')) return 'back';
-        return 'unknown';
-    }
-
-    displayDesignAsProduct(designData) {
-        const productData = {
-            color: this.extractColorFromDesignId(designData.designId),
-            imageUrls: designData.imageUrls,
-            timestamp: new Date().toISOString()
-        };
-        this.displayProduct(productData);
-    }
-
-    extractColorFromDesignId(designId) {
-        const colorMatch = designId.match(/(?:color[_-]?)([^_]+)/i);
-        return colorMatch ? colorMatch[1] : 'design-' + designId;
-    }
-
-    displayProduct(productData) {
+    displayProduct(designData) {
         const container = document.getElementById('realtimeUpdates');
-        const productId = `product-${productData.color}-${Date.now()}`;
+        const productId = `product-${designData.designId}`;
+        
+        // Remove existing product with same design ID
+        const existingProduct = document.getElementById(productId);
+        if (existingProduct) {
+            existingProduct.remove();
+        }
         
         const productElement = document.createElement('div');
         productElement.id = productId;
         productElement.className = 'product-container';
         
+        const designInfo = this.parseDesignId(designData.designId);
+        
         productElement.innerHTML = `
-            <h4>📱 ${this.formatColorName(productData.color)} Phone Case</h4>
+            <h4>📱 ${designInfo.paletteName} - ${designInfo.flavorName}</h4>
             <div class="product-images">
-                ${Object.entries(productData.imageUrls).map(([view, url]) => 
+                ${Object.entries(designData.imageUrls).map(([viewPrefix, url]) => 
                     `<div class="product-view">
-                        <div class="view-label">${this.formatViewName(view)}</div>
-                        <img src="${url}" alt="${view}" 
+                        <div class="view-label">${this.formatViewName(viewPrefix)}</div>
+                        <img src="${url}" alt="${viewPrefix}" 
                              onload="this.style.opacity='1'" 
                              onerror="this.style.display='none'"
                              style="opacity: 0; transition: opacity 0.3s ease;" />
                     </div>`
                 ).join('')}
             </div>
-            <div class="product-price">$35.00</div>
-            <button class="add-to-cart-btn" onclick="realtimeUpdates.addToCart('${productData.color}')">
-                Add to Cart
-            </button>
+            <div class="product-info">
+                <div class="product-price">$35.00</div>
+                <button class="add-to-cart-btn" onclick="realtimeUpdates.addToCart('${designData.designId}')">
+                    Add to Cart
+                </button>
+            </div>
         `;
         
         container.appendChild(productElement);
     }
 
-    formatColorName(color) {
-        return color.charAt(0).toUpperCase() + color.slice(1);
+    parseDesignId(designId) {
+        // design_1_2 -> Palette 1, Flavor 2
+        const match = designId.match(/design_(\d+)_(\d+)/);
+        if (match) {
+            return {
+                paletteName: `Palette ${match[1]}`,
+                flavorName: `Flavor ${match[2]}`
+            };
+        }
+        return {
+            paletteName: 'Custom Design',
+            flavorName: 'Phone Case'
+        };
     }
 
-    formatViewName(view) {
+    formatViewName(viewPrefix) {
         const viewNames = {
-            'front': 'Front View',
-            'side': 'Side View',
-            'back': 'Back View',
             'opt-turn_006': 'Front View',
             'opt-turn_010': 'Side View', 
             'opt-turn_014': 'Back View'
         };
-        return viewNames[view] || view;
+        return viewNames[viewPrefix] || viewPrefix;
     }
 
-    addToCart(color) {
-        console.log(`Adding ${color} phone case to cart - $35.00`);
-        // Add your cart integration logic here
-        alert(`Added ${this.formatColorName(color)} Phone Case to cart - $35.00`);
+    addToCart(designId) {
+        const designInfo = this.parseDesignId(designId);
+        console.log(`Adding ${designInfo.paletteName} - ${designInfo.flavorName} to cart - $35.00`);
+        alert(`Added ${designInfo.paletteName} - ${designInfo.flavorName} to cart - $35.00`);
     }
 
     createProgressItem(fileName) {
@@ -289,79 +259,100 @@ class RealTimeUpdates {
     }
 }
 
-// Updated CSS styles
+// Updated CSS for better product display
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
 .product-container {
     border: 2px solid #4CAF50;
     padding: 20px;
-    margin: 15px 0;
-    border-radius: 8px;
+    margin: 20px 0;
+    border-radius: 12px;
     background: #f8fff8;
     text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 .product-container h4 {
-    margin: 0 0 15px 0;
+    margin: 0 0 20px 0;
     color: #2c5aa0;
-    font-size: 20px;
+    font-size: 22px;
+    font-weight: 600;
 }
 .product-images {
     display: flex;
-    gap: 15px;
+    gap: 20px;
     flex-wrap: wrap;
     justify-content: center;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 .product-view {
     text-align: center;
     flex: 1;
-    min-width: 120px;
-    max-width: 180px;
+    min-width: 150px;
+    max-width: 200px;
 }
 .view-label {
     font-weight: bold;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     color: #555;
     font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 .product-view img {
     width: 100%;
-    height: 200px;
+    height: 300px;
     object-fit: contain;
-    border: 1px solid #ddd;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
-    padding: 5px;
+    padding: 8px;
     background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.product-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 15px;
 }
 .product-price {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
     color: #2c5aa0;
-    margin: 10px 0;
 }
 .add-to-cart-btn {
     background: #4CAF50;
     color: white;
     border: none;
-    padding: 12px 24px;
-    border-radius: 6px;
+    padding: 14px 28px;
+    border-radius: 8px;
     font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
 }
 .add-to-cart-btn:hover {
     background: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
 }
 .progress-item {
-    padding: 10px;
-    margin: 5px 0;
+    padding: 12px;
+    margin: 8px 0;
     border-left: 4px solid #007bff;
     background: white;
-    border-radius: 4px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 .progress-item img {
     border: 1px solid #ddd;
     border-radius: 4px;
+}
+.updates-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 `;
 document.head.appendChild(styleSheet);
