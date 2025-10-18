@@ -65,7 +65,10 @@ class RealTimeUpdates {
                 this.handleDesignReady(data);
                 break;
             case 'image_update':
-                this.updateImageStatus(data);
+                // Only show progress for non-Mockup stages, or individual Mockups that aren't part of batches
+                if (data.stage !== 'Mockup ready' || !data.fileName.startsWith('opt-turn_')) {
+                    this.updateImageStatus(data);
+                }
                 break;
         }
     }
@@ -77,8 +80,6 @@ class RealTimeUpdates {
         if (!this.completedDesigns.has(designId)) {
             this.completedDesigns.set(designId, designData);
             this.displayProduct(designData);
-        } else {
-            console.log('Skipping duplicate design:', designId);
         }
     }
 
@@ -87,44 +88,16 @@ class RealTimeUpdates {
         const fileName = update.fileName;
         const stage = update.stage;
         
-        // Only show progress for individual files, skip batched opt-turn files
-        if (fileName.startsWith('opt-turn_')) {
-            console.log('Skipping progress for batched file:', fileName);
-            return;
-        }
-        
-        if (stage === 'Mockup ready' && update.imageUrl) {
-            this.handleIndividualMockup(update);
-            return;
-        }
-        
         let item = this.pendingImages.get(fileName);
         if (!item) {
             item = this.createProgressItem(fileName);
             this.pendingImages.set(fileName, item);
         }
+        
         this.updateProgressItem(item, stage, update.timestamp);
-    }
-
-    handleIndividualMockup(update) {
-        console.log('Individual mockup ready:', update);
-        const fileName = update.fileName;
         
-        // Skip batched files as they'll be handled by design_ready
-        if (fileName.startsWith('opt-turn_')) {
-            console.log('Skipping individual batched file:', fileName);
-            return;
-        }
-        
-        let item = this.pendingImages.get(fileName);
-        if (!item) {
-            item = this.createProgressItem(fileName);
-            this.pendingImages.set(fileName, item);
-        }
-        
-        this.updateProgressItem(item, 'Mockup ready', update.timestamp);
-        
-        if (!item.querySelector('img')) {
+        // If this is a mockup-ready individual file (not batched), show the image
+        if (stage === 'Mockup ready' && update.imageUrl && !item.querySelector('img')) {
             const img = document.createElement('img');
             img.src = update.imageUrl;
             img.style.maxWidth = '100px';
@@ -259,7 +232,7 @@ class RealTimeUpdates {
     }
 }
 
-// Updated CSS for better product display
+// CSS remains the same
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
 .product-container {
