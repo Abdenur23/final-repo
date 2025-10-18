@@ -57,10 +57,15 @@ function signin(){
     window.location.href = `https://${cognitoConfig.domain}/login?client_id=${cognitoConfig.clientId}&response_type=token&scope=email+openid+profile&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`;
 }
 
+// function signout(){
+//     localStorage.removeItem('cognitoSession');
+//     location.reload();
+// }
 function signout(){
     localStorage.removeItem('cognitoSession');
-    location.reload();
+    window.location.href = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${encodeURIComponent(window.location.origin)}`;
 }
+
 
 function parseHashTokens(){
     if(location.hash){
