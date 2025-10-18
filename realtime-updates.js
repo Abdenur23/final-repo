@@ -6,6 +6,7 @@ class RealTimeUpdates {
         this.completedDesigns = new Map();
         this.processedFiles = new Set();
         this.productPrice = 34;
+        this.hasDisplayedProduct = false;
     }
 
     initialize() {
@@ -60,13 +61,16 @@ class RealTimeUpdates {
         }
         
         if (data.type === 'image_update') {
-            const fileKey = data.fileName + '_' + data.stage;
-            if (this.processedFiles.has(fileKey)) {
-                console.log('Skipping duplicate file update:', fileKey);
-                return;
+            // Only show progress updates if no products have been displayed yet
+            if (!this.hasDisplayedProduct) {
+                const fileKey = data.fileName + '_' + data.stage;
+                if (this.processedFiles.has(fileKey)) {
+                    console.log('Skipping duplicate file update:', fileKey);
+                    return;
+                }
+                this.processedFiles.add(fileKey);
+                this.updateImageStatus(data);
             }
-            this.processedFiles.add(fileKey);
-            this.updateImageStatus(data);
         }
     }
 
@@ -78,7 +82,20 @@ class RealTimeUpdates {
             this.completedDesigns.set(designId, designData);
             this.displayDesign(designData);
             this.removeProgressItem(designId);
+            
+            // Mark that we've displayed at least one product
+            this.hasDisplayedProduct = true;
+            
+            // Clear all progress updates once we have products
+            this.clearAllProgressUpdates();
         }
+    }
+
+    clearAllProgressUpdates() {
+        const container = document.getElementById('realtimeUpdates');
+        const progressItems = container.querySelectorAll('.progress-item');
+        progressItems.forEach(item => item.remove());
+        this.pendingImages.clear();
     }
 
     updateImageStatus(update) {
@@ -114,27 +131,30 @@ class RealTimeUpdates {
         productElement.id = `design-${designId}`;
         productElement.className = 'product-card';
         
-        const match = designId.match(/design_(\d+)_(\d+)/);
-        const title = match 
-            ? `Phone Case - Color ${match[1]}, Style ${match[2]}`
-            : 'Custom Phone Case';
+        const paletteName = designData.paletteName || 'Custom Design';
+        const imageUrls = Object.values(designData.imageUrls);
         
         productElement.innerHTML = `
             <div class="product-header">
-                <h4>${title}</h4>
+                <h4>${paletteName}</h4>
                 <div class="product-price">$${this.productPrice.toFixed(2)}</div>
             </div>
             
-            <div class="design-views">
-                ${Object.entries(designData.imageUrls).map(([view, url]) => 
-                    `<div class="case-view-container">
-                        <div class="view-label">${this.formatViewName(view)}</div>
-                        <img src="${url}" alt="${this.formatViewName(view)}" 
-                             onload="this.style.opacity='1'" 
-                             onerror="this.style.display='none'"
-                             style="opacity: 0; transition: opacity 0.3s ease;" />
-                    </div>`
-                ).join('')}
+            <div class="design-viewer">
+                <div class="main-image-container">
+                    <img src="${imageUrls[0]}" alt="${paletteName}" 
+                         class="main-image"
+                         onload="this.style.opacity='1'" 
+                         onerror="this.style.display='none'"
+                         style="opacity: 0; transition: opacity 0.3s ease;" />
+                </div>
+                <div class="image-navigation">
+                    <button class="nav-btn prev-btn" onclick="realtimeUpdates.navigateImage('${designId}', -1)">‹</button>
+                    <div class="image-counter">
+                        <span class="current-image">1</span> / <span class="total-images">${imageUrls.length}</span>
+                    </div>
+                    <button class="nav-btn next-btn" onclick="realtimeUpdates.navigateImage('${designId}', 1)">›</button>
+                </div>
             </div>
             
             <button class="add-to-cart-btn" onclick="realtimeUpdates.addToCart('${designId}')">
@@ -142,22 +162,51 @@ class RealTimeUpdates {
             </button>
         `;
         
-        container.prepend(productElement);
+        // Store image URLs for navigation
+        productElement._imageUrls = imageUrls;
+        productElement._currentImageIndex = 0;
+        
+        // Add to products container or create one
+        let productsContainer = document.getElementById('productsContainer');
+        if (!productsContainer) {
+            productsContainer = document.createElement('div');
+            productsContainer.id = 'productsContainer';
+            productsContainer.className = 'products-container';
+            container.innerHTML = '<h3>Your Custom Phone Cases</h3>';
+            container.appendChild(productsContainer);
+        }
+        
+        productsContainer.appendChild(productElement);
+    }
+
+    navigateImage(designId, direction) {
+        const productElement = document.getElementById(`design-${designId}`);
+        if (!productElement || !productElement._imageUrls) return;
+        
+        const images = productElement._imageUrls;
+        let currentIndex = productElement._currentImageIndex || 0;
+        
+        currentIndex += direction;
+        if (currentIndex < 0) currentIndex = images.length - 1;
+        if (currentIndex >= images.length) currentIndex = 0;
+        
+        productElement._currentImageIndex = currentIndex;
+        
+        const mainImage = productElement.querySelector('.main-image');
+        const currentImageSpan = productElement.querySelector('.current-image');
+        
+        mainImage.style.opacity = '0';
+        setTimeout(() => {
+            mainImage.src = images[currentIndex];
+            currentImageSpan.textContent = currentIndex + 1;
+            mainImage.style.opacity = '1';
+        }, 150);
     }
 
     addToCart(designId) {
         const design = this.completedDesigns.get(designId);
-        const title = designId.replace('design_', 'Design ').replace('_', ' - ');
-        alert(`Added ${title} to cart! Price: $${this.productPrice.toFixed(2)}`);
-    }
-
-    formatViewName(viewPrefix) {
-        const viewNames = {
-            'opt-turn_006': 'Front',
-            'opt-turn_010': 'Side', 
-            'opt-turn_014': 'Back'
-        };
-        return viewNames[viewPrefix] || viewPrefix;
+        const paletteName = design.paletteName || 'Custom Design';
+        alert(`Added ${paletteName} to cart! Price: $${this.productPrice.toFixed(2)}`);
     }
 
     createProgressItem(itemKey) {
@@ -195,7 +244,6 @@ class RealTimeUpdates {
         stageElement.textContent = stage;
         item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
         
-        // Always show image if URL is provided
         if (imageUrl) {
             this.addImageToProgressItem(item, imageUrl);
         }
@@ -203,7 +251,7 @@ class RealTimeUpdates {
 
     addImageToProgressItem(item, imageUrl) {
         const imageContainer = item.querySelector('.image-container');
-        imageContainer.innerHTML = ''; // Clear previous image
+        imageContainer.innerHTML = '';
         
         const img = document.createElement('img');
         img.src = imageUrl;
@@ -252,75 +300,109 @@ class RealTimeUpdates {
 // Add CSS styles
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
+.products-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+}
 .product-card {
     border: 2px solid #007bff;
-    padding: 15px;
-    margin: 15px 0;
-    border-radius: 8px;
-    background: #eef7ff;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 20px;
+    border-radius: 12px;
+    background: #f8fbff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 320px;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
 }
 .product-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #cceeff;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e6f2ff;
 }
 .product-card h4 {
     margin: 0;
     color: #0056b3;
-    font-size: 16px;
+    font-size: 18px;
+    font-weight: 600;
 }
 .product-price {
     font-weight: bold;
     color: #28a745;
-    font-size: 1.1em;
+    font-size: 1.2em;
 }
-.design-views {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-bottom: 15px;
-}
-.case-view-container {
-    text-align: center;
-    width: 100px;
-    height: 200px;
+.design-viewer {
+    flex: 1;
     display: flex;
     flex-direction: column;
+    gap: 15px;
+}
+.main-image-container {
+    flex: 1;
+    display: flex;
     align-items: center;
-}
-.view-label {
-    font-size: 0.8em;
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #555;
-}
-.case-view-container img {
-    width: 100%;
-    height: 160px;
-    object-fit: contain;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 5px;
+    justify-content: center;
     background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px;
+    min-height: 300px;
+}
+.main-image {
+    max-width: 100%;
+    max-height: 280px;
+    object-fit: contain;
+}
+.image-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+}
+.nav-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+.nav-btn:hover {
+    background: #0056b3;
+}
+.image-counter {
+    font-weight: bold;
+    color: #555;
+    font-size: 14px;
 }
 .add-to-cart-btn {
     background-color: #28a745;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 12px 20px;
     text-align: center;
-    text-decoration: none;
-    display: inline-block;
     font-size: 16px;
-    margin-top: 10px;
+    margin-top: 15px;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 6px;
     width: 100%;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.add-to-cart-btn:hover {
+    background-color: #218838;
 }
 .progress-item {
     display: flex;
