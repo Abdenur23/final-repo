@@ -5,6 +5,7 @@ class RealTimeUpdates {
         this.pendingImages = new Map();
         this.completedDesigns = new Map();
         this.processedFiles = new Set();
+        this.pendingBatches = new Map(); // Track incomplete batches
     }
 
     initialize() {
@@ -65,10 +66,7 @@ class RealTimeUpdates {
                 this.handleDesignReady(data);
                 break;
             case 'image_update':
-                // Only show progress for non-Mockup stages, or individual Mockups that aren't part of batches
-                if (data.stage !== 'Mockup ready' || !data.fileName.startsWith('opt-turn_')) {
-                    this.updateImageStatus(data);
-                }
+                this.updateImageStatus(data);
                 break;
         }
     }
@@ -79,7 +77,9 @@ class RealTimeUpdates {
         const designId = designData.designId;
         if (!this.completedDesigns.has(designId)) {
             this.completedDesigns.set(designId, designData);
-            this.displayProduct(designData);
+            this.displayDesignAsProduct(designData);
+        } else {
+            console.log('Skipping duplicate design:', designId);
         }
     }
 
@@ -88,16 +88,38 @@ class RealTimeUpdates {
         const fileName = update.fileName;
         const stage = update.stage;
         
+        if (stage === 'Mockup ready' && update.imageUrl) {
+            this.handleIndividualMockup(update);
+            return;
+        }
+        
+        let item = this.pendingImages.get(fileName);
+        if (!item) {
+            item = this.createProgressItem(fileName);
+            this.pendingImages.set(fileName, item);
+        }
+        this.updateProgressItem(item, stage, update.timestamp);
+    }
+
+    handleIndividualMockup(update) {
+        console.log('Individual mockup ready:', update);
+        const fileName = update.fileName;
+        
+        // Handle batched images (opt-turn files)
+        if (fileName.startsWith('opt-turn_')) {
+            this.handleBatchImage(update);
+            return;
+        }
+        
         let item = this.pendingImages.get(fileName);
         if (!item) {
             item = this.createProgressItem(fileName);
             this.pendingImages.set(fileName, item);
         }
         
-        this.updateProgressItem(item, stage, update.timestamp);
+        this.updateProgressItem(item, 'Mockup ready', update.timestamp);
         
-        // If this is a mockup-ready individual file (not batched), show the image
-        if (stage === 'Mockup ready' && update.imageUrl && !item.querySelector('img')) {
+        if (!item.querySelector('img')) {
             const img = document.createElement('img');
             img.src = update.imageUrl;
             img.style.maxWidth = '100px';
@@ -110,38 +132,86 @@ class RealTimeUpdates {
         }
     }
 
-    displayProduct(designData) {
-        const container = document.getElementById('realtimeUpdates');
-        const productId = `product-${designData.designId}`;
+    handleBatchImage(update) {
+        const fileName = update.fileName;
+        const baseName = this.extractBaseName(fileName);
+        const prefix = this.extractPrefix(fileName);
         
-        // Remove existing product with same design ID
-        const existingProduct = document.getElementById(productId);
-        if (existingProduct) {
-            existingProduct.remove();
+        if (!this.pendingBatches.has(baseName)) {
+            this.pendingBatches.set(baseName, {
+                images: new Map(),
+                designId: this.extractDesignId(fileName)
+            });
+        }
+        
+        const batch = this.pendingBatches.get(baseName);
+        batch.images.set(prefix, {
+            url: update.imageUrl,
+            fileName: fileName
+        });
+        
+        // Check if we have all three views for a complete product
+        if (batch.images.size === 3) {
+            this.createProductFromBatch(batch, baseName);
+            this.pendingBatches.delete(baseName);
+        }
+    }
+
+    extractBaseName(fileName) {
+        const match = fileName.match(/opt-turn_\d+_(.+)/);
+        return match ? match[1] : fileName;
+    }
+
+    extractPrefix(fileName) {
+        const match = fileName.match(/(opt-turn_\d+)_/);
+        return match ? match[1] : fileName;
+    }
+
+    extractDesignId(fileName) {
+        const match = fileName.match(/_palette_id_(\d+)_flavor_(\d+)/);
+        return match ? `design_${match[1]}_${match[2]}` : `design_${Date.now()}`;
+    }
+
+    createProductFromBatch(batch, baseName) {
+        const designData = {
+            designId: batch.designId,
+            imageUrls: Object.fromEntries(batch.images),
+            timestamp: new Date().toISOString()
+        };
+        
+        if (!this.completedDesigns.has(designData.designId)) {
+            this.completedDesigns.set(designData.designId, designData);
+            this.displayDesignAsProduct(designData);
+        }
+    }
+
+    displayDesignAsProduct(designData) {
+        const container = document.getElementById('realtimeUpdates');
+        const designId = designData.designId;
+        
+        const existingDesign = document.getElementById(`product-${designId}`);
+        if (existingDesign) {
+            existingDesign.remove();
         }
         
         const productElement = document.createElement('div');
-        productElement.id = productId;
+        productElement.id = `product-${designId}`;
         productElement.className = 'product-container';
         
-        const designInfo = this.parseDesignId(designData.designId);
-        
         productElement.innerHTML = `
-            <h4>📱 ${designInfo.paletteName} - ${designInfo.flavorName}</h4>
-            <div class="product-images">
-                ${Object.entries(designData.imageUrls).map(([viewPrefix, url]) => 
-                    `<div class="product-view">
-                        <div class="view-label">${this.formatViewName(viewPrefix)}</div>
-                        <img src="${url}" alt="${viewPrefix}" 
+            <h4>Phone Case Design</h4>
+            <div class="product-views">
+                ${Object.entries(designData.imageUrls).map(([view, url]) => 
+                    `<div class="view-container">
+                        <img src="${url}" alt="${view}" 
                              onload="this.style.opacity='1'" 
-                             onerror="this.style.display='none'"
                              style="opacity: 0; transition: opacity 0.3s ease;" />
                     </div>`
                 ).join('')}
             </div>
             <div class="product-info">
                 <div class="product-price">$35.00</div>
-                <button class="add-to-cart-btn" onclick="realtimeUpdates.addToCart('${designData.designId}')">
+                <button class="add-to-cart-btn" onclick="window.realtimeUpdates.addToCart('${designId}')">
                     Add to Cart
                 </button>
             </div>
@@ -150,34 +220,13 @@ class RealTimeUpdates {
         container.appendChild(productElement);
     }
 
-    parseDesignId(designId) {
-        // design_1_2 -> Palette 1, Flavor 2
-        const match = designId.match(/design_(\d+)_(\d+)/);
-        if (match) {
-            return {
-                paletteName: `Palette ${match[1]}`,
-                flavorName: `Flavor ${match[2]}`
-            };
-        }
-        return {
-            paletteName: 'Custom Design',
-            flavorName: 'Phone Case'
-        };
-    }
-
-    formatViewName(viewPrefix) {
-        const viewNames = {
-            'opt-turn_006': 'Front View',
-            'opt-turn_010': 'Side View', 
-            'opt-turn_014': 'Back View'
-        };
-        return viewNames[viewPrefix] || viewPrefix;
-    }
-
     addToCart(designId) {
-        const designInfo = this.parseDesignId(designId);
-        console.log(`Adding ${designInfo.paletteName} - ${designInfo.flavorName} to cart - $35.00`);
-        alert(`Added ${designInfo.paletteName} - ${designInfo.flavorName} to cart - $35.00`);
+        const design = this.completedDesigns.get(designId);
+        if (design) {
+            console.log('Adding to cart:', designId, design);
+            // TODO: Integrate with your cart system
+            alert(`Added ${designId} to cart! Price: $35.00`);
+        }
     }
 
     createProgressItem(fileName) {
@@ -232,64 +281,52 @@ class RealTimeUpdates {
     }
 }
 
-// CSS remains the same
+// Add CSS styles
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
 .product-container {
     border: 2px solid #4CAF50;
     padding: 20px;
-    margin: 20px 0;
-    border-radius: 12px;
+    margin: 15px 0;
+    border-radius: 8px;
     background: #f8fff8;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    max-width: 600px;
 }
 .product-container h4 {
-    margin: 0 0 20px 0;
+    margin: 0 0 15px 0;
     color: #2c5aa0;
-    font-size: 22px;
-    font-weight: 600;
+    font-size: 20px;
+    text-align: center;
 }
-.product-images {
+.product-views {
     display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
+    gap: 15px;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
-.product-view {
+.view-container {
     text-align: center;
     flex: 1;
-    min-width: 150px;
-    max-width: 200px;
+    max-width: 180px;
 }
-.view-label {
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: #555;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.product-view img {
+.view-container img {
     width: 100%;
     height: 300px;
     object-fit: contain;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #ddd;
     border-radius: 8px;
-    padding: 8px;
+    padding: 5px;
     background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 .product-info {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 15px;
+    padding: 10px 0;
+    border-top: 1px solid #eee;
 }
 .product-price {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: bold;
     color: #2c5aa0;
 }
@@ -297,35 +334,24 @@ styleSheet.textContent = `
     background: #4CAF50;
     color: white;
     border: none;
-    padding: 14px 28px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+    font-size: 16px;
 }
 .add-to-cart-btn:hover {
     background: #45a049;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
 }
 .progress-item {
-    padding: 12px;
-    margin: 8px 0;
+    padding: 10px;
+    margin: 5px 0;
     border-left: 4px solid #007bff;
     background: white;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-radius: 4px;
 }
 .progress-item img {
     border: 1px solid #ddd;
     border-radius: 4px;
-}
-.updates-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
 }
 `;
 document.head.appendChild(styleSheet);
