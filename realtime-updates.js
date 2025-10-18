@@ -17,7 +17,7 @@ class RealTimeUpdates {
     setupWebSocket() {
         const WS_URL = 'wss://h5akjyhdj6.execute-api.us-east-1.amazonaws.com/production';
         this.socket = new WebSocket(WS_URL);
-
+        
         this.socket.onopen = () => {
             console.log('WebSocket connected');
             this.authenticateWebSocket();
@@ -53,7 +53,7 @@ class RealTimeUpdates {
 
     handleUpdate(data) {
         console.log('Processing update:', data);
-
+        
         // Check for duplicate files
         const fileKey = data.fileName + '_' + data.stage;
         if (this.processedFiles.has(fileKey)) {
@@ -61,8 +61,8 @@ class RealTimeUpdates {
             return;
         }
         this.processedFiles.add(fileKey);
-
-        switch (data.type) {
+        
+        switch(data.type) {
             case 'design_ready':
                 this.handleDesignReady(data);
                 break;
@@ -74,13 +74,13 @@ class RealTimeUpdates {
 
     handleDesignReady(designData) {
         console.log('Complete design ready:', designData);
-
+        
         const designId = designData.designId;
         // Only process if we haven't seen this design yet
         if (!this.completedDesigns.has(designId)) {
             this.completedDesigns.set(designId, designData);
             this.displayDesign(designData);
-
+            
             // Remove the progress item once the design is displayed
             this.removeProgressItem(designId);
         } else {
@@ -92,17 +92,17 @@ class RealTimeUpdates {
         console.log('Individual image update:', update);
         const fileName = update.fileName;
         const stage = update.stage;
-
+        
         // Handle Mockup ready images individually (for non-batched files)
         if (stage === 'Mockup ready' && update.imageUrl) {
             this.handleIndividualMockup(update);
             return;
         }
-
+        
         // For batched files, determine the design ID for progress tracking
         let designId = this.extractDesignId(fileName);
         let itemKey = designId || fileName; // Use designId for batched, or fileName for individual
-
+        
         // Handle progress updates for other stages
         let item = this.pendingImages.get(itemKey);
         if (!item) {
@@ -115,7 +115,7 @@ class RealTimeUpdates {
     handleIndividualMockup(update) {
         console.log('Individual mockup ready:', update);
         const fileName = update.fileName;
-
+        
         // Skip if this is part of a batched design (starts with opt-turn_)
         if (fileName.startsWith('opt-turn_')) {
             console.log('Skipping individual opt-turn file, waiting for batch:', fileName);
@@ -123,21 +123,21 @@ class RealTimeUpdates {
             let designId = this.extractDesignId(fileName);
             let itemKey = designId || fileName;
             let item = this.pendingImages.get(itemKey);
-            if (item) {
-                this.updateProgressItem(item, 'Processing Views...', update.timestamp);
+            if(item) {
+                 this.updateProgressItem(item, 'Processing Views...', update.timestamp);
             }
             return;
         }
-
+        
         let item = this.pendingImages.get(fileName);
         if (!item) {
             item = this.createProgressItem(fileName);
             this.pendingImages.set(fileName, item);
         }
-
+        
         // Update the progress item to show mockup is ready
         this.updateProgressItem(item, 'Mockup ready', update.timestamp);
-
+        
         // Add image to the progress item if it doesn't already have one
         if (!item.querySelector('img')) {
             const img = document.createElement('img');
@@ -147,7 +147,7 @@ class RealTimeUpdates {
             img.onload = () => img.style.opacity = '1';
             img.style.opacity = '0';
             img.style.transition = 'opacity 0.3s ease';
-
+            
             item.appendChild(img);
         }
     }
@@ -157,29 +157,29 @@ class RealTimeUpdates {
         const match = fileName.match(/_palette_id_(\d+)_flavor_(\d+)/);
         return match ? `design_${match[1]}_${match[2]}` : null;
     }
-
+    
     // 👇 The main product grouping update is here 👇
     displayDesign(designData) {
         const container = document.getElementById('realtimeUpdates');
         const designId = designData.designId;
-
+        
         // Remove any existing design with same ID to avoid duplicates
         const existingDesign = document.getElementById(`design-${designId}`);
         if (existingDesign) {
             existingDesign.remove();
         }
-
+        
         // Create the new product card element
         const productElement = document.createElement('div');
         productElement.id = `design-${designId}`;
         productElement.className = 'product-card';
-
+        
         // Create a user-friendly color/flavor title
         const match = designId.match(/design_(\d+)_(\d+)/);
-        const title = match
+        const title = match 
             ? `Phone Case: Color Palette ${match[1]} / Flavor ${match[2]}`
             : 'Custom Phone Case';
-
+        
         productElement.innerHTML = `
             <div class="product-header">
                 <h4>✅ ${title}</h4>
@@ -187,23 +187,23 @@ class RealTimeUpdates {
             </div>
             
             <div class="design-views">
-                ${Object.entries(designData.imageUrls).map(([view, url]) =>
-            // Use a more appropriate class for the image containers
-            `<div class="case-view-container">
+                ${Object.entries(designData.imageUrls).map(([view, url]) => 
+                    // Use a more appropriate class for the image containers
+                    `<div class="case-view-container">
                         <div class="view-label">${this.formatViewName(view)}</div>
                         <img src="${url}" alt="${this.formatViewName(view)}" 
                              onload="this.style.opacity='1'" 
                              onerror="this.style.display='none'"
                              style="opacity: 0; transition: opacity 0.3s ease;" />
                     </div>`
-        ).join('')}
+                ).join('')}
             </div>
             
             <button class="add-to-cart-btn" onclick="alert('Added ${title} to cart!')">
                 Add to Cart
             </button>
         `;
-
+        
         // Add the new product card to the top of the updates container
         container.prepend(productElement);
     }
@@ -212,7 +212,7 @@ class RealTimeUpdates {
     formatViewName(viewPrefix) {
         const viewNames = {
             'opt-turn_006': 'Front View',
-            'opt-turn_010': 'Side View',
+            'opt-turn_010': 'Side View', 
             'opt-turn_014': 'Back View'
         };
         return viewNames[viewPrefix] || viewPrefix;
@@ -223,11 +223,11 @@ class RealTimeUpdates {
         const item = document.createElement('div');
         item.id = `progress-${itemKey}`; // Add ID for easy removal/update
         item.className = 'progress-item';
-
-        const friendlyName = itemKey.startsWith('design_')
+        
+        const friendlyName = itemKey.startsWith('design_') 
             ? `Batch: ${itemKey.replace('design_', 'Design ')}`
             : this.formatFileName(itemKey);
-
+            
         item.innerHTML = `
             <div class="file-name">Processing: ${friendlyName}</div>
             <div class="current-stage">Starting...</div>
@@ -271,7 +271,7 @@ class RealTimeUpdates {
                 <div id="realtimeUpdates" class="updates-container"></div>
             </div>
         `;
-
+        
         if (uploadSection) {
             uploadSection.insertAdjacentHTML('afterend', updatesHTML);
         } else {
@@ -378,7 +378,7 @@ styleSheet.textContent = `
 document.head.appendChild(styleSheet);
 
 // Initialize
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     window.realtimeUpdates = new RealTimeUpdates();
     window.realtimeUpdates.initialize();
 });
