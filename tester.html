@@ -16,6 +16,7 @@ h1,h2,h3 { color:#333; }
 #uploadSection input { margin-bottom:10px; }
 #uploadSection button { padding:10px 20px; font-size:16px; background-color:#28a745; color:white; border:none; border-radius:5px; cursor:pointer; }
 #uploadResult { margin-top:10px; font-weight:bold; }
+.acknowledgment { margin-top: 15px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; }
 </style>
 </head>
 <body>
@@ -28,62 +29,31 @@ h1,h2,h3 { color:#333; }
     
     <!-- Device selection -->
     <h2>Select Your Device</h2>
-    <label for="brandSelect">Brand:</label>
-    <select id="brandSelect" onchange="updateDeviceOptions()">
-        <option value="">-- Choose Brand --</option>
-        <option value="apple">Apple</option>
-        <option value="samsung">Samsung</option>
-    </select>
     
+    <div style="margin-bottom: 15px;">
+        <label style="font-weight: bold; display: block; margin-bottom: 10px;">Brand:</label>
+        <label style="margin-right: 15px;">
+            <input type="radio" name="brand" value="apple" checked onchange="updateDeviceOptions()"> Apple
+        </label>
+        <label>
+            <input type="radio" name="brand" value="samsung" onchange="updateDeviceOptions()"> Samsung
+        </label>
+    </div>
+
     <label for="deviceSelect">Model:</label>
     <select id="deviceSelect">
-        <option value="">-- Choose Model --</option>
+        <option value="iphone17promax">iPhone 17 Pro Max</option>
     </select>
-    
-    <script>
-    const devices = {
-        apple: [
-            { name: "iPhone 17", value: "iphone17" },
-            { name: "iPhone Air", value: "iphoneair" },
-            { name: "iPhone 17 Pro", value: "iphone17pro" },
-            { name: "iPhone 17 Pro Max", value: "iphone17promax" },
-            { name: "iPhone 16", value: "iphone16" },
-            { name: "iPhone 16e", value: "iphone16e" },
-            { name: "iPhone 16 Plus", value: "iphone16plus" },
-            { name: "iPhone 16 Pro", value: "iphone16pro" },
-            { name: "iPhone 16 Pro Max", value: "iphone16promax" },
-            { name: "iPhone 14", value: "iphone14" },
-            { name: "iPhone 14 Plus", value: "iphone14plus" },
-            { name: "iPhone 14 Pro", value: "iphone14pro" },
-            { name: "iPhone 14 Pro Max", value: "iphone14promax" }
-        ],
-        samsung: [
-            { name: "Galaxy S25", value: "samsungs25" },
-            { name: "Galaxy S25+", value: "samsungs25plus" },
-            { name: "Galaxy S25 Ultra", value: "samsungs25ultra" },
-            { name: "Galaxy S24", value: "samsungs24" },
-            { name: "Galaxy S24+", value: "samsungs24plus" },
-            { name: "Galaxy S24 Ultra", value: "samsungs24ultra" },
-            { name: "Galaxy S23", value: "samsungs23" },
-            { name: "Galaxy S23+", value: "samsungs23plus" },
-            { name: "Galaxy S22", value: "samsungs22" },
-            { name: "Galaxy S21", value: "samsungs21" }
-        ]
-    };
-    
-    function updateDeviceOptions() {
-        const brand = document.getElementById('brandSelect').value;
-        const deviceSelect = document.getElementById('deviceSelect');
-        deviceSelect.innerHTML = '<option value="">-- Choose Model --</option>';
-        if (!brand || !devices[brand]) return;
-        devices[brand].forEach(d => {
-            const opt = document.createElement('option');
-            opt.value = d.value;
-            opt.textContent = d.name;
-            deviceSelect.appendChild(opt);
-        });
-    }
-    </script>
+
+    <div id="deviceAcknowledgment" class="acknowledgment" style="display: none;">
+        <p style="margin: 0 0 10px 0; font-size: 14px;">
+            <strong>Important:</strong> For demonstration, we'll show your design on iPhone 16 Pro Max. 
+            Your actual order will be custom-made specifically for your selected device.
+        </p>
+        <label>
+            <input type="checkbox" id="acknowledgeCheckbox"> I understand my order will be made for my selected device
+        </label>
+    </div>
 
     <div id="uploadSection" style="display:none;">
         <h2>Upload 3 Images</h2>
@@ -100,6 +70,63 @@ const cognitoConfig = {
     domain: 'auth.theweer.com',
     redirectUri: window.location.origin + window.location.pathname
 };
+
+const devices = {
+    apple: [
+        { name: "iPhone 17", value: "iphone17" },
+        { name: "iPhone Air", value: "iphoneair" },
+        { name: "iPhone 17 Pro", value: "iphone17pro" },
+        { name: "iPhone 17 Pro Max", value: "iphone17promax" },
+        { name: "iPhone 16", value: "iphone16" },
+        { name: "iPhone 16e", value: "iphone16e" },
+        { name: "iPhone 16 Plus", value: "iphone16plus" },
+        { name: "iPhone 16 Pro", value: "iphone16pro" },
+        { name: "iPhone 16 Pro Max", value: "iphone16promax" },
+        { name: "iPhone 14", value: "iphone14" },
+        { name: "iPhone 14 Plus", value: "iphone14plus" },
+        { name: "iPhone 14 Pro", value: "iphone14pro" },
+        { name: "iPhone 14 Pro Max", value: "iphone14promax" }
+    ],
+    samsung: [
+        { name: "Galaxy S25", value: "samsungs25" },
+        { name: "Galaxy S25+", value: "samsungs25plus" },
+        { name: "Galaxy S25 Ultra", value: "samsungs25ultra" },
+        { name: "Galaxy S24", value: "samsungs24" },
+        { name: "Galaxy S24+", value: "samsungs24plus" },
+        { name: "Galaxy S24 Ultra", value: "samsungs24ultra" },
+        { name: "Galaxy S23", value: "samsungs23" },
+        { name: "Galaxy S23+", value: "samsungs23plus" },
+        { name: "Galaxy S22", value: "samsungs22" },
+        { name: "Galaxy S21", value: "samsungs21" }
+    ]
+};
+
+function updateDeviceOptions() {
+    const brand = document.querySelector('input[name="brand"]:checked').value;
+    const deviceSelect = document.getElementById('deviceSelect');
+    const ackDiv = document.getElementById('deviceAcknowledgment');
+    
+    deviceSelect.innerHTML = '';
+    
+    if (brand === 'apple') {
+        devices.apple.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.value;
+            opt.textContent = d.name;
+            opt.selected = d.value === 'iphone17promax';
+            deviceSelect.appendChild(opt);
+        });
+    } else {
+        devices.samsung.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.value;
+            opt.textContent = d.name;
+            deviceSelect.appendChild(opt);
+        });
+    }
+    
+    ackDiv.style.display = 'block';
+}
 
 function saveSession(tokens){ localStorage.setItem('cognitoSession', JSON.stringify(tokens)); }
 function getSession(){ return JSON.parse(localStorage.getItem('cognitoSession')); }
@@ -162,9 +189,11 @@ document.getElementById('fileInput').addEventListener('change', (e)=>{
 async function uploadFiles() {
     const token = getSession()?.id_token;
     const deviceId = document.getElementById('deviceSelect').value;
+    const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
 
     if (!token) return alert('Please sign in first');
     if (!deviceId) return alert('Please select a device before uploading');
+    if (!acknowledgeCheckbox?.checked) return alert('Please acknowledge the device notice before uploading');
     if (selectedFiles.length !== 3) return alert('Please select exactly 3 images');
 
     const filesData = selectedFiles.map((f, i) => ({
@@ -177,7 +206,7 @@ async function uploadFiles() {
     const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': token },
-        body: JSON.stringify({ files: filesData, device_id: deviceId }) // ✅ include device_id
+        body: JSON.stringify({ files: filesData, device_id: deviceId })
     });
 
     const data = await res.json();
@@ -208,7 +237,7 @@ async function uploadFiles() {
                         palette_id: u.palette_id,
                         flavor: u.flavor,
                         cid: data.cid,
-                        device_id: deviceId // ✅ pass again for consistency
+                        device_id: deviceId
                     }
                 };
 
@@ -228,27 +257,9 @@ async function uploadFiles() {
         resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
     }
 }
-</script>
 
-<!-- Add these lines before closing body tag -->
-<link rel="stylesheet" href="realtime-updates.css">
-<script src="realtime-updates.js"></script>
-<script>
-// Initialize real-time updates when page loads
-const realTimeUpdates = new RealTimeUpdates();
-
-// Modify the existing uploadFiles function to show real-time panel
-const originalUploadFiles = window.uploadFiles;
-
-window.uploadFiles = async function() {
-    await originalUploadFiles();
-    realTimeUpdates.showPanel();
-};
-
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    realTimeUpdates.initialize();
-});
+// Initialize with Apple selected and iPhone 17 Pro Max as default
+updateDeviceOptions();
 </script>
 
 </body>
