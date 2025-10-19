@@ -66,7 +66,7 @@ h1,h2,h3 { color:#333; }
                 Your actual order will be custom-made specifically for your selected device: <strong id="selectedDevice"></strong>.
             </p>
             <label>
-                <input type="checkbox" id="acknowledgeCheckbox"> I understand my case and wallpaper will be custom-made for <strong id="deviceName"></strong>
+                <input type="checkbox" id="acknowledgeCheckbox"> I understand my case and wallpaper will be custom-made for: <strong id="deviceName"></strong>
             </label>
         </div>
     </div>
@@ -311,6 +311,27 @@ async function uploadFiles() {
         resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
     }
 }
+</script>
+
+<!-- REAL-TIME UPDATES CODE - KEPT EXACTLY AS IS -->
+<link rel="stylesheet" href="realtime-updates.css">
+<script src="realtime-updates.js"></script>
+<script>
+// Initialize real-time updates when page loads - KEPT EXACTLY AS IS
+const realTimeUpdates = new RealTimeUpdates();
+
+// Modify the existing uploadFiles function to show real-time panel - KEPT EXACTLY AS IS
+const originalUploadFiles = window.uploadFiles;
+
+window.uploadFiles = async function() {
+    await originalUploadFiles();
+    realTimeUpdates.showPanel();
+};
+
+// Initialize when DOM is loaded - KEPT EXACTLY AS IS
+document.addEventListener('DOMContentLoaded', function() {
+    realTimeUpdates.initialize();
+});
 </script>
 
 </body>
