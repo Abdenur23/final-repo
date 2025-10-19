@@ -49,9 +49,68 @@ h1,h2,h3 { color:#333; }
 
 
     <div id="token-display"><h2>Not signed in</h2></div>
+    <!-- Device selection -->
+    <h2>Select Your Device</h2>
+    <label for="brandSelect">Brand:</label>
+    <select id="brandSelect" onchange="updateDeviceOptions()">
+        <option value="">-- Choose Brand --</option>
+        <option value="apple">Apple</option>
+        <option value="samsung">Samsung</option>
+    </select>
+    
+    <label for="deviceSelect">Model:</label>
+    <select id="deviceSelect">
+        <option value="">-- Choose Model --</option>
+    </select>
+    
+    <script>
+    const devices = {
+        apple: [
+            { name: "iPhone 17", value: "iphone17" },
+            { name: "iPhone Air", value: "iphoneair" },
+            { name: "iPhone 17 Pro", value: "iphone17pro" },
+            { name: "iPhone 17 Pro Max", value: "iphone17promax" },
+            { name: "iPhone 16", value: "iphone16" },
+            { name: "iPhone 16e", value: "iphone16e" },
+            { name: "iPhone 16 Plus", value: "iphone16plus" },
+            { name: "iPhone 16 Pro", value: "iphone16pro" },
+            { name: "iPhone 16 Pro Max", value: "iphone16promax" },
+            { name: "iPhone 14", value: "iphone14" },
+            { name: "iPhone 14 Plus", value: "iphone14plus" },
+            { name: "iPhone 14 Pro", value: "iphone14pro" },
+            { name: "iPhone 14 Pro Max", value: "iphone14promax" }
+        ],
+        samsung: [
+            { name: "Galaxy S25", value: "samsungs25" },
+            { name: "Galaxy S25+", value: "samsungs25plus" },
+            { name: "Galaxy S25 Ultra", value: "samsungs25ultra" },
+            { name: "Galaxy S24", value: "samsungs24" },
+            { name: "Galaxy S24+", value: "samsungs24plus" },
+            { name: "Galaxy S24 Ultra", value: "samsungs24ultra" },
+            { name: "Galaxy S23", value: "samsungs23" },
+            { name: "Galaxy S23+", value: "samsungs23plus" },
+            { name: "Galaxy S22", value: "samsungs22" },
+            { name: "Galaxy S21", value: "samsungs21" }
+        ]
+    };
+    
+    function updateDeviceOptions() {
+        const brand = document.getElementById('brandSelect').value;
+        const deviceSelect = document.getElementById('deviceSelect');
+        deviceSelect.innerHTML = '<option value="">-- Choose Model --</option>';
+        if (!brand || !devices[brand]) return;
+        devices[brand].forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.value;
+            opt.textContent = d.name;
+            deviceSelect.appendChild(opt);
+        });
+    }
+    </script>
 
-
+ 
     <div id="uploadSection" style="display:none;">
+     
 
         <h2>Upload 3 Images</h2>
 
