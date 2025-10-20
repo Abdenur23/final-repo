@@ -366,6 +366,17 @@ window.uploadFiles = async function() {
 document.addEventListener('DOMContentLoaded', function() {
     realTimeUpdates.initialize();
 });
+    // Add this event listener after your existing initialization
+document.addEventListener('DOMContentLoaded', function() {
+    const deviceSelect = document.getElementById('deviceSelect');
+    
+    deviceSelect.addEventListener('change', function() {
+        if (this.value) {
+            console.log('Device changed to:', this.value);
+            updateCustomerDevice(this.value);
+        }
+    });
+});
 </script>
 
 </body>
