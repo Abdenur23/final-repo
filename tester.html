@@ -111,6 +111,41 @@ const devices = {
     ]
 };
 
+// Add this function to update customer device in database
+async function updateCustomerDevice(deviceId) {
+    const token = getSession()?.id_token;
+    if (!token) {
+        console.log('User not signed in, skipping device update');
+        return; // Only update if user is signed in
+    }
+    
+    try {
+        console.log('🚀 Calling Lambda to update device:', deviceId);
+        const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': token 
+            },
+            body: JSON.stringify({ 
+                device_id: deviceId,
+                action: 'updateDevice'
+            })
+        });
+        
+        console.log('📡 API Response status:', response.status);
+        if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Device updated successfully:', result);
+        } else {
+            const error = await response.text();
+            console.error('❌ Failed to update device:', error);
+        }
+    } catch (error) {
+        console.error('💥 Error updating device:', error);
+    }
+}
+
 // Initialize device options
 function initializeDeviceOptions() {
     updateDeviceOptions();
@@ -150,35 +185,6 @@ function updateDeviceOptions() {
     document.getElementById('acknowledgeCheckbox').checked = false;
 }
 
-// Add this function to update customer device in database
-async function updateCustomerDevice(deviceId) {
-    const token = getSession()?.id_token;
-    if (!token) return; // Only update if user is signed in
-    
-    try {
-        const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/update-device', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': token 
-            },
-            body: JSON.stringify({ 
-                device_id: deviceId,
-                action: 'updateDevice'
-            })
-        });
-        
-        if (response.ok) {
-            console.log(`Device updated to: ${deviceId}`);
-        } else {
-            console.error('Failed to update device');
-        }
-    } catch (error) {
-        console.error('Error updating device:', error);
-    }
-}
-
-// Modify the showAcknowledgeSection function to call device update
 function showAcknowledgeSection() {
     const deviceSelect = document.getElementById('deviceSelect');
     const acknowledgeSection = document.getElementById('acknowledgeSection');
@@ -191,7 +197,8 @@ function showAcknowledgeSection() {
         document.getElementById('deviceName').textContent = selectedDevice;
         acknowledgeSection.style.display = 'block';
         
-        // Update customer device in database
+        // 🔥 Update customer device in database
+        console.log('🔄 Device selected, updating database...');
         updateCustomerDevice(deviceValue);
     } else {
         acknowledgeSection.style.display = 'none';
@@ -366,19 +373,7 @@ window.uploadFiles = async function() {
 document.addEventListener('DOMContentLoaded', function() {
     realTimeUpdates.initialize();
 });
-    // Add this event listener after your existing initialization
-document.addEventListener('DOMContentLoaded', function() {
-    const deviceSelect = document.getElementById('deviceSelect');
-    
-    deviceSelect.addEventListener('change', function() {
-        if (this.value) {
-            console.log('Device changed to:', this.value);
-            updateCustomerDevice(this.value);
-        }
-    });
-});
 </script>
 
 </body>
 </html>
- 
