@@ -150,15 +150,49 @@ function updateDeviceOptions() {
     document.getElementById('acknowledgeCheckbox').checked = false;
 }
 
+// Add this function to update customer device in database
+async function updateCustomerDevice(deviceId) {
+    const token = getSession()?.id_token;
+    if (!token) return; // Only update if user is signed in
+    
+    try {
+        const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/update-device', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': token 
+            },
+            body: JSON.stringify({ 
+                device_id: deviceId,
+                action: 'updateDevice'
+            })
+        });
+        
+        if (response.ok) {
+            console.log(`Device updated to: ${deviceId}`);
+        } else {
+            console.error('Failed to update device');
+        }
+    } catch (error) {
+        console.error('Error updating device:', error);
+    }
+}
+
+// Modify the showAcknowledgeSection function to call device update
 function showAcknowledgeSection() {
     const deviceSelect = document.getElementById('deviceSelect');
     const acknowledgeSection = document.getElementById('acknowledgeSection');
     
     if (deviceSelect.value) {
         const selectedDevice = deviceSelect.options[deviceSelect.selectedIndex].text;
+        const deviceValue = deviceSelect.value;
+        
         document.getElementById('selectedDevice').textContent = selectedDevice;
         document.getElementById('deviceName').textContent = selectedDevice;
         acknowledgeSection.style.display = 'block';
+        
+        // Update customer device in database
+        updateCustomerDevice(deviceValue);
     } else {
         acknowledgeSection.style.display = 'none';
         document.getElementById('uploadSection').style.display = 'none';
