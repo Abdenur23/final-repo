@@ -111,7 +111,7 @@ const devices = {
     ]
 };
 
-// Add this function to update customer device in database
+// Add this function to update customer device in database - FIXED VERSION
 async function updateCustomerDevice(deviceId) {
     const token = getSession()?.id_token;
     if (!token) {
@@ -197,9 +197,8 @@ function showAcknowledgeSection() {
         document.getElementById('deviceName').textContent = selectedDevice;
         acknowledgeSection.style.display = 'block';
         
-        // 🔥 Update customer device in database
-        console.log('🔄 Device selected, updating database...');
-        updateCustomerDevice(deviceValue);
+        // 🔥 Update customer device in database - MOVED TO CHECKBOX INSTEAD OF SELECT
+        // This ensures the update only happens when user confirms their selection
     } else {
         acknowledgeSection.style.display = 'none';
         document.getElementById('uploadSection').style.display = 'none';
@@ -209,9 +208,14 @@ function showAcknowledgeSection() {
 function toggleUploadSection() {
     const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
     const uploadSection = document.getElementById('uploadSection');
+    const deviceSelect = document.getElementById('deviceSelect');
     
-    if (acknowledgeCheckbox.checked) {
+    if (acknowledgeCheckbox.checked && deviceSelect.value) {
         uploadSection.style.display = 'block';
+        
+        // 🔥 Update customer device in database - NOW HAPPENS WHEN USER ACKNOWLEDGES
+        console.log('🔄 User acknowledged device, updating database...');
+        updateCustomerDevice(deviceSelect.value);
     } else {
         uploadSection.style.display = 'none';
     }
@@ -348,6 +352,11 @@ async function uploadFiles() {
 
         await Promise.all(uploadPromises);
         resultDiv.innerHTML = `✅ All 3 files uploaded successfully!`;
+        
+        // Show real-time updates panel after successful upload
+        if (window.realTimeUpdates) {
+            window.realTimeUpdates.showPanel();
+        }
     } catch (e) {
         resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
     }
@@ -361,13 +370,8 @@ async function uploadFiles() {
 // Initialize real-time updates when page loads - KEPT EXACTLY AS IS
 const realTimeUpdates = new RealTimeUpdates();
 
-// Modify the existing uploadFiles function to show real-time panel - KEPT EXACTLY AS IS
-const originalUploadFiles = window.uploadFiles;
-
-window.uploadFiles = async function() {
-    await originalUploadFiles();
-    realTimeUpdates.showPanel();
-};
+// Store reference globally for access in uploadFiles
+window.realTimeUpdates = realTimeUpdates;
 
 // Initialize when DOM is loaded - KEPT EXACTLY AS IS
 document.addEventListener('DOMContentLoaded', function() {
