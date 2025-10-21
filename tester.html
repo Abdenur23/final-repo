@@ -111,41 +111,6 @@ const devices = {
     ]
 };
 
-// Add this function to update customer device in database - FIXED VERSION
-async function updateCustomerDevice(deviceId) {
-    const token = getSession()?.id_token;
-    if (!token) {
-        console.log('User not signed in, skipping device update');
-        return; // Only update if user is signed in
-    }
-    
-    try {
-        console.log('🚀 Calling Lambda to update device:', deviceId);
-        const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': token 
-            },
-            body: JSON.stringify({ 
-                device_id: deviceId,
-                action: 'updateDevice'
-            })
-        });
-        
-        console.log('📡 API Response status:', response.status);
-        if (response.ok) {
-            const result = await response.json();
-            console.log('✅ Device updated successfully:', result);
-        } else {
-            const error = await response.text();
-            console.error('❌ Failed to update device:', error);
-        }
-    } catch (error) {
-        console.error('💥 Error updating device:', error);
-    }
-}
-
 // Initialize device options
 function initializeDeviceOptions() {
     updateDeviceOptions();
@@ -191,14 +156,9 @@ function showAcknowledgeSection() {
     
     if (deviceSelect.value) {
         const selectedDevice = deviceSelect.options[deviceSelect.selectedIndex].text;
-        const deviceValue = deviceSelect.value;
-        
         document.getElementById('selectedDevice').textContent = selectedDevice;
         document.getElementById('deviceName').textContent = selectedDevice;
         acknowledgeSection.style.display = 'block';
-        
-        // 🔥 Update customer device in database - MOVED TO CHECKBOX INSTEAD OF SELECT
-        // This ensures the update only happens when user confirms their selection
     } else {
         acknowledgeSection.style.display = 'none';
         document.getElementById('uploadSection').style.display = 'none';
@@ -208,14 +168,9 @@ function showAcknowledgeSection() {
 function toggleUploadSection() {
     const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
     const uploadSection = document.getElementById('uploadSection');
-    const deviceSelect = document.getElementById('deviceSelect');
     
-    if (acknowledgeCheckbox.checked && deviceSelect.value) {
+    if (acknowledgeCheckbox.checked) {
         uploadSection.style.display = 'block';
-        
-        // 🔥 Update customer device in database - NOW HAPPENS WHEN USER ACKNOWLEDGES
-        console.log('🔄 User acknowledged device, updating database...');
-        updateCustomerDevice(deviceSelect.value);
     } else {
         uploadSection.style.display = 'none';
     }
@@ -352,11 +307,6 @@ async function uploadFiles() {
 
         await Promise.all(uploadPromises);
         resultDiv.innerHTML = `✅ All 3 files uploaded successfully!`;
-        
-        // Show real-time updates panel after successful upload
-        if (window.realTimeUpdates) {
-            window.realTimeUpdates.showPanel();
-        }
     } catch (e) {
         resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
     }
@@ -370,8 +320,13 @@ async function uploadFiles() {
 // Initialize real-time updates when page loads - KEPT EXACTLY AS IS
 const realTimeUpdates = new RealTimeUpdates();
 
-// Store reference globally for access in uploadFiles
-window.realTimeUpdates = realTimeUpdates;
+// Modify the existing uploadFiles function to show real-time panel - KEPT EXACTLY AS IS
+const originalUploadFiles = window.uploadFiles;
+
+window.uploadFiles = async function() {
+    await originalUploadFiles();
+    realTimeUpdates.showPanel();
+};
 
 // Initialize when DOM is loaded - KEPT EXACTLY AS IS
 document.addEventListener('DOMContentLoaded', function() {
