@@ -42,7 +42,6 @@ h1,h2,h3 { color:#333; }
 
     <div id="token-display"><h2>Not signed in</h2></div>
     
-    <!-- Device selection -->
     <div class="device-selection">
         <h2>Select Your Device</h2>
         
@@ -197,7 +196,7 @@ function showAcknowledgeSection() {
         document.getElementById('deviceName').textContent = selectedDevice;
         acknowledgeSection.style.display = 'block';
         
-        // 🔥 Update customer device in database
+        // Update customer device in database
         console.log('🔄 Device selected, updating database...');
         updateCustomerDevice(deviceValue);
     } else {
@@ -322,6 +321,7 @@ async function uploadFiles() {
             });
 
             if (uploadResponse.ok) {
+                // 🔥 FIX: Pass device_id in the uploadComplete notification
                 const notificationPayload = {
                     action: 'uploadComplete',
                     fileKey: u.key,
@@ -332,7 +332,7 @@ async function uploadFiles() {
                         palette_id: u.palette_id,
                         flavor: u.flavor,
                         cid: data.cid,
-                        device_id: deviceId
+                        device_id: deviceId // <-- IMPORTANT: Pass deviceId here
                     }
                 };
 
@@ -347,33 +347,19 @@ async function uploadFiles() {
         });
 
         await Promise.all(uploadPromises);
-        resultDiv.innerHTML = `✅ All 3 files uploaded successfully!`;
+        resultDiv.innerHTML = `✅ All 3 files uploaded successfully! Processing started...`;
     } catch (e) {
         resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
+    }
+    
+    // Show the real-time panel for updates
+    if (window.realtimeUpdates) {
+        window.realtimeUpdates.showPanel();
     }
 }
 </script>
 
-<!-- REAL-TIME UPDATES CODE - KEPT EXACTLY AS IS -->
 <link rel="stylesheet" href="realtime-updates.css">
 <script src="realtime-updates.js"></script>
-<script>
-// Initialize real-time updates when page loads - KEPT EXACTLY AS IS
-const realTimeUpdates = new RealTimeUpdates();
-
-// Modify the existing uploadFiles function to show real-time panel - KEPT EXACTLY AS IS
-const originalUploadFiles = window.uploadFiles;
-
-window.uploadFiles = async function() {
-    await originalUploadFiles();
-    realTimeUpdates.showPanel();
-};
-
-// Initialize when DOM is loaded - KEPT EXACTLY AS IS
-document.addEventListener('DOMContentLoaded', function() {
-    realTimeUpdates.initialize();
-});
-</script>
-
 </body>
 </html>
