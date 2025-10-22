@@ -321,7 +321,7 @@ async function uploadFiles() {
             });
 
             if (uploadResponse.ok) {
-                // 🔥 FIX: Pass device_id in the uploadComplete notification
+                // Pass device_id in the uploadComplete notification
                 const notificationPayload = {
                     action: 'uploadComplete',
                     fileKey: u.key,
