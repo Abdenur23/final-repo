@@ -219,129 +219,16 @@ function toggleUploadSection() {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeDeviceOptions);
 
-// ==================== PKCE AUTHENTICATION ====================
-
+// Rest of the existing Cognito code
 const cognitoConfig = {
     clientId: '7irso7dmmnp793egs9bhkl0t81',
     domain: 'auth.theweer.com',
     redirectUri: window.location.origin + window.location.pathname
 };
 
-// PKCE Helper Functions
-function generateRandomString(length) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-    let result = '';
-    const randomValues = new Uint8Array(length);
-    crypto.getRandomValues(randomValues);
-    for (let i = 0; i < length; i++) {
-        result += chars[randomValues[i] % chars.length];
-    }
-    return result;
-}
+function saveSession(tokens){ localStorage.setItem('cognitoSession', JSON.stringify(tokens)); }
+function getSession(){ return JSON.parse(localStorage.getItem('cognitoSession')); }
 
-async function generatePKCE() {
-    const codeVerifier = generateRandomString(128);
-    const encoder = new TextEncoder();
-    const data = encoder.encode(codeVerifier);
-    const hash = await crypto.subtle.digest('SHA-256', data);
-    const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(hash)))
-        .replace(/=/g, '')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_');
-    
-    return { codeVerifier, codeChallenge };
-}
-
-// Session Management - FIXED for PKCE token structure
-function saveSession(tokens){ 
-    console.log('💾 Saving tokens:', tokens);
-    localStorage.setItem('cognitoSession', JSON.stringify(tokens)); 
-}
-
-function getSession(){ 
-    const session = JSON.parse(localStorage.getItem('cognitoSession'));
-    console.log('🔍 Retrieved session:', session);
-    return session;
-}
-
-// Get the correct token for API calls
-function getAuthToken() {
-    const session = getSession();
-    // Try access_token first (for API Gateway), then id_token as fallback
-    return session?.access_token || session?.id_token;
-}
-
-// Updated Sign In Function with PKCE
-async function signin() {
-    const { codeVerifier, codeChallenge } = await generatePKCE();
-    localStorage.setItem('code_verifier', codeVerifier);
-    
-    const authUrl = `https://${cognitoConfig.domain}/oauth2/authorize?` +
-        `client_id=${cognitoConfig.clientId}&` +
-        `response_type=code&` +
-        `scope=email+openid+profile&` +
-        `redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}&` +
-        `code_challenge=${codeChallenge}&` +
-        `code_challenge_method=S256`;
-    
-    console.log('🔐 Redirecting to Cognito with PKCE...');
-    window.location.href = authUrl;
-}
-
-// Handle Auth Callback (replaces parseHashTokens)
-async function handleAuthCallback() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    
-    if (code) {
-        console.log('🔄 Handling authorization code callback...');
-        try {
-            const codeVerifier = localStorage.getItem('code_verifier');
-            const tokenResponse = await fetch(`https://${cognitoConfig.domain}/oauth2/token`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
-                    grant_type: 'authorization_code',
-                    client_id: cognitoConfig.clientId,
-                    code: code,
-                    redirect_uri: cognitoConfig.redirectUri,
-                    code_verifier: codeVerifier
-                })
-            });
-            
-            if (tokenResponse.ok) {
-                const tokens = await tokenResponse.json();
-                console.log('✅ Tokens received via PKCE:', tokens);
-                saveSession(tokens);
-                // Clean URL - remove the code parameter
-                window.history.replaceState({}, '', window.location.pathname);
-                localStorage.removeItem('code_verifier');
-                showSessionInfo();
-                
-                // Initialize WebSocket connection after successful auth
-                if (window.realtimeUpdates) {
-                    window.realtimeUpdates.initialize();
-                }
-            } else {
-                const error = await tokenResponse.text();
-                console.error('❌ Token exchange failed:', error);
-                alert('Authentication failed. Please try again.');
-            }
-        } catch (error) {
-            console.error('💥 Token exchange error:', error);
-            alert('Authentication error. Please try again.');
-        }
-    }
-}
-
-// Sign Out
-function signout() {
-    localStorage.removeItem('cognitoSession');
-    localStorage.removeItem('code_verifier');
-    window.location.href = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${encodeURIComponent(window.location.origin)}`;
-}
-
-// UI Functions
 function showAuthUI(){ 
     const authDiv = document.getElementById('auth-action');
     authDiv.innerHTML = `
@@ -350,45 +237,43 @@ function showAuthUI(){
     `;
 }
 
-function showSessionInfo(){
-    const session = getSession();
-    const tokenDiv = document.getElementById('token-display');
-    if(session && (session.id_token || session.access_token)){
-        try {
-            // Try to decode id_token first, fall back to access_token
-            const tokenToDecode = session.id_token || session.access_token;
-            const payload = JSON.parse(atob(tokenToDecode.split('.')[1]));
-            tokenDiv.innerHTML = `<h2>Signed in as ${payload.sub || payload.username}</h2>
-            <pre>${JSON.stringify(payload, null, 2)}</pre>`;
-            
-            // Show upload section if user is signed in and device is selected
-            const deviceSelected = document.getElementById('deviceSelect').value;
-            if (deviceSelected) {
-                document.getElementById('uploadSection').style.display = 'block';
-            }
-        } catch (e) {
-            tokenDiv.innerHTML = `<h2>Signed in</h2><p>Token format error: ${e.message}</p>`;
+function signin(){
+    window.location.href = `https://${cognitoConfig.domain}/login?client_id=${cognitoConfig.clientId}&response_type=token&scope=email+openid+profile&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`;
+}
+
+function signout(){
+    localStorage.removeItem('cognitoSession');
+    window.location.href = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${encodeURIComponent(window.location.origin)}`;
+}
+
+function parseHashTokens(){
+    if(location.hash){
+        const hash = location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const id_token = params.get('id_token');
+        const access_token = params.get('access_token');
+        if(id_token && access_token){
+            saveSession({id_token, access_token});
+            location.hash = '';
         }
-    } else {
-        tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
-        document.getElementById('uploadSection').style.display = 'none';
     }
 }
 
-// Initialize Auth
-function initializeAuth() {
-    // Handle auth callback on page load
-    handleAuthCallback();
-    showAuthUI();
-    showSessionInfo();
+function showSessionInfo(){
+    const session = getSession();
+    const tokenDiv = document.getElementById('token-display');
+    if(session && session.id_token){
+        const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+        tokenDiv.innerHTML = `<h2>Signed in as ${payload.sub}</h2>
+        <pre>${JSON.stringify(payload, null, 2)}</pre>`;
+    } else {
+        tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
+    }
 }
 
-// Initialize authentication when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    initializeAuth();
-});
-
-// ==================== FILE UPLOAD - FIXED TOKEN USAGE ====================
+parseHashTokens();
+showAuthUI();
+showSessionInfo();
 
 let selectedFiles = [];
 
@@ -398,23 +283,12 @@ document.getElementById('fileInput').addEventListener('change', (e)=>{
 });
 
 async function uploadFiles() {
-    const token = getAuthToken(); // Use the fixed token getter
+    const token = getSession()?.id_token;
     const deviceId = document.getElementById('deviceSelect').value;
 
-    if (!token) {
-        alert('Please sign in first');
-        return;
-    }
-    if (!deviceId) {
-        alert('Please select a device before uploading');
-        return;
-    }
-    if (selectedFiles.length !== 3) {
-        alert('Please select exactly 3 images');
-        return;
-    }
-
-    console.log('📤 Starting upload with token:', token.substring(0, 20) + '...');
+    if (!token) return alert('Please sign in first');
+    if (!deviceId) return alert('Please select a device before uploading');
+    if (selectedFiles.length !== 3) return alert('Please select exactly 3 images');
 
     const filesData = selectedFiles.map((f, i) => ({
         fileId: i + 1,
@@ -425,10 +299,7 @@ async function uploadFiles() {
     // Step 1: Get presigned URLs from Lambda
     const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
         method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json', 
-            'Authorization': token 
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': token },
         body: JSON.stringify({ files: filesData, device_id: deviceId })
     });
 
@@ -437,7 +308,6 @@ async function uploadFiles() {
 
     if (!res.ok || !data.uploadUrls) {
         resultDiv.innerHTML = `❌ Upload failed: ${data.error || JSON.stringify(data)}`;
-        console.error('Upload error details:', data);
         return;
     }
 
@@ -462,16 +332,13 @@ async function uploadFiles() {
                         palette_id: u.palette_id,
                         flavor: u.flavor,
                         cid: data.cid,
-                        device_id: deviceId
+                        device_id: deviceId // <-- IMPORTANT: Pass deviceId here
                     }
                 };
 
                 fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Authorization': token 
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': token },
                     body: JSON.stringify(notificationPayload)
                 });
             }
