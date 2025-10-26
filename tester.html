@@ -219,7 +219,6 @@ function toggleUploadSection() {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeDeviceOptions);
 
-// Rest of the existing Cognito code
 // --- PKCE helpers ---
 function base64urlencode(str){
     return btoa(String.fromCharCode.apply(null, new Uint8Array(str)))
@@ -308,7 +307,6 @@ function showSessionInfo(){
 await handleCodeExchange();
 showAuthUI();
 showSessionInfo();
-
 
 let selectedFiles = [];
 
