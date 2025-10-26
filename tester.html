@@ -3,153 +3,193 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cognito Auth Tester</title>
+<title>Cognito Auth Troubleshooter</title>
 <style>
 body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
 .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 h1,h2,h3 { color:#333; }
-#auth-action { margin-bottom: 20px; }
-#auth-action button { padding:10px 20px; font-size:16px; background-color:#f90; color:white; border:none; border-radius:5px; cursor:pointer; margin: 5px; }
-#token-display pre { background:#eee; padding:10px; border-radius:4px; overflow-x:auto; }
-.debug-info { background: #fff3cd; padding: 10px; border-radius: 4px; margin: 10px 0; font-family: monospace; font-size: 12px; }
+.test-section { background: #f8f9fa; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #007bff; }
+.test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+.success { background: #d4edda; border: 1px solid #c3e6cb; }
+.error { background: #f8d7da; border: 1px solid #f5c6cb; }
+.warning { background: #fff3cd; border: 1px solid #ffeaa7; }
+button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+pre { background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 4px; overflow-x: auto; }
 </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>AWS Cognito Authentication Status</h1>
-    <div id="auth-action"></div>
-    <div id="debug-info" class="debug-info"></div>
-    <div id="token-display"><h2>Not signed in</h2></div>
+    <h1>🔧 Cognito Domain Troubleshooter</h1>
+    <p>Testing: <code>auth.theweer.com</code></p>
+
+    <div class="test-section">
+        <h3>1. DNS Resolution Test</h3>
+        <button onclick="testDNS()">Test DNS</button>
+        <div id="dns-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. SSL Certificate Test</h3>
+        <button onclick="testSSL()">Test SSL</button>
+        <div id="ssl-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. Cognito Endpoint Tests</h3>
+        <button onclick="testEndpoints()">Test All Endpoints</button>
+        <div id="endpoints-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>4. Direct Authentication Test</h3>
+        <button onclick="testAuthentication()">Test Auth Flow</button>
+        <div id="auth-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>5. Alternative Solutions</h3>
+        <div id="solutions">
+            <p><strong>If custom domain continues to fail:</strong></p>
+            <button onclick="useCognitoDomain()">Use Default Cognito Domain</button>
+            <button onclick="showManualConfig()">Manual Configuration</button>
+        </div>
+    </div>
 </div>
 
 <script>
-// Debug function to test different endpoints
-function debugAuthEndpoints() {
-    const debugDiv = document.getElementById('debug-info');
-    const clientId = '73lf1h32phkqeb9ahu6tqcl9av';
-    const domain = 'auth.theweer.com';
-    const redirectUri = 'https://theweer.com/tester.html';
+// Test DNS resolution
+async function testDNS() {
+    const resultDiv = document.getElementById('dns-result');
+    resultDiv.innerHTML = '<div class="test-result warning">Testing DNS resolution...</div>';
+    
+    try {
+        // Try to fetch and see if DNS resolves
+        const response = await fetch('https://auth.theweer.com/', { 
+            method: 'HEAD',
+            mode: 'no-cors'
+        });
+        resultDiv.innerHTML = '<div class="test-result success">✅ DNS resolves successfully</div>';
+    } catch (error) {
+        resultDiv.innerHTML = `
+            <div class="test-result error">
+                ❌ DNS resolution failed: ${error.message}
+                <p><strong>Solution:</strong> Check your Route53 DNS configuration. The CNAME record for auth.theweer.com should point to your Cognito domain.</p>
+            </div>
+        `;
+    }
+}
+
+// Test SSL certificate
+async function testSSL() {
+    const resultDiv = document.getElementById('ssl-result');
+    resultDiv.innerHTML = '<div class="test-result warning">Testing SSL certificate...</div>';
+    
+    try {
+        const response = await fetch('https://auth.theweer.com/');
+        const certValid = response.status !== 525; // 525 = SSL Handshake Failed
+        
+        if (certValid) {
+            resultDiv.innerHTML = '<div class="test-result success">✅ SSL certificate is valid</div>';
+        } else {
+            resultDiv.innerHTML = '<div class="test-result error">❌ SSL certificate issue detected</div>';
+        }
+    } catch (error) {
+        if (error.message.includes('certificate') || error.message.includes('SSL')) {
+            resultDiv.innerHTML = `
+                <div class="test-result error">
+                    ❌ SSL Certificate Error: ${error.message}
+                    <p><strong>Solution:</strong> Check ACM certificate for auth.theweer.com in us-east-1 region</p>
+                </div>
+            `;
+        } else {
+            resultDiv.innerHTML = `<div class="test-result warning">⚠️ Could not verify SSL: ${error.message}</div>`;
+        }
+    }
+}
+
+// Test all Cognito endpoints
+async function testEndpoints() {
+    const resultDiv = document.getElementById('endpoints-result');
+    resultDiv.innerHTML = '<div class="test-result warning">Testing Cognito endpoints...</div>';
     
     const endpoints = [
-        {
-            name: 'OAuth2 Authorize',
-            url: `https://${domain}/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=email+openid+profile`
-        },
-        {
-            name: 'Login (Legacy)',
-            url: `https://${domain}/login?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=email+openid+profile`
-        },
-        {
-            name: 'OAuth2 Metadata',
-            url: `https://${domain}/.well-known/oauth-authorization-server`
-        },
-        {
-            name: 'OpenID Configuration',
-            url: `https://${domain}/.well-known/openid-configuration`
-        }
+        { path: '/.well-known/openid-configuration', name: 'OpenID Config' },
+        { path: '/.well-known/oauth-authorization-server', name: 'OAuth2 Config' },
+        { path: '/oauth2/authorize', name: 'OAuth2 Authorize' },
+        { path: '/login', name: 'Login UI' },
+        { path: '/oauth2/token', name: 'Token Endpoint' }
     ];
     
-    let debugHTML = '<h3>Debug Endpoints:</h3>';
-    endpoints.forEach(endpoint => {
-        debugHTML += `
-            <div style="margin: 10px 0;">
-                <strong>${endpoint.name}:</strong><br>
-                <a href="${endpoint.url}" target="_blank" style="font-size: 11px; word-break: break-all;">${endpoint.url}</a>
-            </div>
+    let results = [];
+    
+    for (const endpoint of endpoints) {
+        const url = `https://auth.theweer.com${endpoint.path}`;
+        try {
+            const response = await fetch(url, { method: 'HEAD' });
+            results.push({
+                name: endpoint.name,
+                url: url,
+                status: response.status,
+                statusText: response.statusText,
+                success: response.ok
+            });
+        } catch (error) {
+            results.push({
+                name: endpoint.name,
+                url: url,
+                status: 'Error',
+                statusText: error.message,
+                success: false
+            });
+        }
+    }
+    
+    let resultsHTML = '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
+    resultsHTML += '<tr><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc;">Endpoint</th><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc;">Status</th></tr>';
+    
+    results.forEach(result => {
+        const statusClass = result.success ? 'success' : (result.status === 403 ? 'warning' : 'error');
+        const statusIcon = result.success ? '✅' : (result.status === 403 ? '⚠️' : '❌');
+        
+        resultsHTML += `
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>${result.name}</strong><br><small>${result.url}</small></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;" class="${statusClass}">
+                    ${statusIcon} ${result.status} - ${result.statusText}
+                </td>
+            </tr>
         `;
     });
     
-    debugDiv.innerHTML = debugHTML;
+    resultsHTML += '</table>';
+    resultDiv.innerHTML = resultsHTML;
 }
 
-// Test the OAuth2 metadata endpoint
-async function testOAuthConfig() {
-    const domain = 'auth.theweer.com';
-    try {
-        const response = await fetch(`https://${domain}/.well-known/oauth-authorization-server`);
-        if (response.ok) {
-            const config = await response.json();
-            console.log('OAuth2 Configuration:', config);
-            document.getElementById('debug-info').innerHTML += `
-                <div style="background: #d4edda; padding: 10px; margin: 10px 0;">
-                    <strong>OAuth2 Config Found:</strong><br>
-                    Authorization Endpoint: ${config.authorization_endpoint}<br>
-                    Token Endpoint: ${config.token_endpoint}
-                </div>
-            `;
-            return config;
-        }
-    } catch (error) {
-        console.log('OAuth2 metadata not available, trying OpenID config...');
-        try {
-            const response = await fetch(`https://${domain}/.well-known/openid-configuration`);
-            if (response.ok) {
-                const config = await response.json();
-                console.log('OpenID Configuration:', config);
-                document.getElementById('debug-info').innerHTML += `
-                    <div style="background: #d4edda; padding: 10px; margin: 10px 0;">
-                        <strong>OpenID Config Found:</strong><br>
-                        Authorization Endpoint: ${config.authorization_endpoint}<br>
-                        Token Endpoint: ${config.token_endpoint}
-                    </div>
-                `;
-                return config;
-            }
-        } catch (error2) {
-            console.log('No configuration endpoints available');
-            document.getElementById('debug-info').innerHTML += `
-                <div style="background: #f8d7da; padding: 10px; margin: 10px 0;">
-                    <strong>No OAuth2/OpenID configuration found.</strong><br>
-                    This suggests the Cognito domain may not be properly configured.
-                </div>
-            `;
-        }
-    }
-    return null;
-}
-
-// Try different authorization methods
-function tryAuthorization() {
-    const clientId = '73lf1h32phkqeb9ahu6tqcl9av';
-    const domain = 'auth.theweer.com';
-    const redirectUri = 'https://theweer.com/tester.html';
+// Test authentication flow
+async function testAuthentication() {
+    const resultDiv = document.getElementById('auth-result');
+    resultDiv.innerHTML = '<div class="test-result warning">Testing authentication flow...</div>';
     
-    // Method 1: Standard OAuth2 with PKCE
     const verifier = genRandom();
     localStorage.setItem('pkce_verifier', verifier);
+    const challenge = await sha256(verifier);
     
-    sha256(verifier).then(challenge => {
-        // Try the standard OAuth2 authorize endpoint
-        const authUrl = `https://${domain}/oauth2/authorize?` + new URLSearchParams({
-            response_type: 'code',
-            client_id: clientId,
-            redirect_uri: redirectUri,
-            scope: 'email openid profile',
-            code_challenge_method: 'S256',
-            code_challenge: challenge
-        });
-        
-        console.log('Trying OAuth2 endpoint:', authUrl);
-        window.location.href = authUrl;
-    });
-}
-
-function tryLegacyAuthorization() {
-    const clientId = '73lf1h32phkqeb9ahu6tqcl9av';
-    const domain = 'auth.theweer.com';
-    const redirectUri = 'https://theweer.com/tester.html';
+    const authUrl = new URL('https://auth.theweer.com/oauth2/authorize');
+    authUrl.searchParams.append('response_type', 'code');
+    authUrl.searchParams.append('client_id', '73lf1h32phkqeb9ahu6tqcl9av');
+    authUrl.searchParams.append('redirect_uri', 'https://theweer.com/tester.html');
+    authUrl.searchParams.append('scope', 'email openid profile');
+    authUrl.searchParams.append('code_challenge_method', 'S256');
+    authUrl.searchParams.append('code_challenge', challenge);
     
-    // Method 2: Legacy endpoint (if OAuth2 doesn't work)
-    const legacyUrl = `https://${domain}/login?` + new URLSearchParams({
-        response_type: 'code',
-        client_id: clientId,
-        redirect_uri: redirectUri,
-        scope: 'email openid profile'
-    });
-    
-    console.log('Trying legacy endpoint:', legacyUrl);
-    window.location.href = legacyUrl;
+    resultDiv.innerHTML = `
+        <div class="test-result warning">
+            🔄 Attempting authentication...
+            <p><strong>Auth URL:</strong> <code>${authUrl.toString().substring(0, 100)}...</code></p>
+            <button onclick="window.location.href = '${authUrl.toString()}'">Open Auth Page</button>
+        </div>
+    `;
 }
 
 // PKCE helpers
@@ -169,128 +209,64 @@ function genRandom(){
     return base64urlencode(arr);
 }
 
-// Handle OAuth callback
-async function handleCodeExchange(){
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    const error = params.get('error');
-    
-    const debugDiv = document.getElementById('debug-info');
-    
-    if (error) {
-        debugDiv.innerHTML += `
-            <div style="background: #f8d7da; padding: 10px; margin: 10px 0;">
-                <strong>OAuth Error:</strong> ${error}<br>
-                Description: ${params.get('error_description')}
-            </div>
-        `;
-        return;
-    }
-    
-    if (code) {
-        debugDiv.innerHTML += `
-            <div style="background: #d4edda; padding: 10px; margin: 10px 0;">
-                <strong>Authorization Code Received!</strong><br>
-                Code: ${code.substring(0, 20)}...
-            </div>
-        `;
-        
-        // Try to exchange code for tokens
-        const verifier = localStorage.getItem('pkce_verifier');
-        if (verifier) {
-            const tokenUrl = `https://auth.theweer.com/oauth2/token`;
-            const body = new URLSearchParams({
-                grant_type: 'authorization_code',
-                client_id: '73lf1h32phkqeb9ahu6tqcl9av',
-                code: code,
-                redirect_uri: 'https://theweer.com/tester.html',
-                code_verifier: verifier
-            });
-            
-            try {
-                const response = await fetch(tokenUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: body
-                });
-                
-                if (response.ok) {
-                    const tokens = await response.json();
-                    localStorage.setItem('cognitoSession', JSON.stringify(tokens));
-                    debugDiv.innerHTML += `
-                        <div style="background: #d4edda; padding: 10px; margin: 10px 0;">
-                            <strong>Tokens Received Successfully!</strong><br>
-                            ID Token: ${tokens.id_token ? 'Yes' : 'No'}<br>
-                            Access Token: ${tokens.access_token ? 'Yes' : 'No'}
-                        </div>
-                    `;
-                } else {
-                    const errorText = await response.text();
-                    debugDiv.innerHTML += `
-                        <div style="background: #f8d7da; padding: 10px; margin: 10px 0;">
-                            <strong>Token Exchange Failed:</strong><br>
-                            Status: ${response.status}<br>
-                            Error: ${errorText}
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                debugDiv.innerHTML += `
-                    <div style="background: #f8d7da; padding: 10px; margin: 10px 0;">
-                        <strong>Token Exchange Error:</strong><br>
-                        ${error.message}
-                    </div>
-                `;
-            }
-        }
-        
-        // Clean URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-}
-
-function showAuthUI() {
-    document.getElementById('auth-action').innerHTML = `
-        <button onclick="tryAuthorization()">Sign In (OAuth2)</button>
-        <button onclick="tryLegacyAuthorization()">Sign In (Legacy)</button>
-        <button onclick="signout()">Sign Out</button>
+// Alternative solutions
+function useCognitoDomain() {
+    const solutionsDiv = document.getElementById('solutions');
+    solutionsDiv.innerHTML += `
+        <div class="test-result warning">
+            <h4>Using Default Cognito Domain</h4>
+            <p>Your default Cognito domain looks like: <code>your-pool-id.auth.us-east-1.amazoncognito.com</code></p>
+            <p>To find it:</p>
+            <ol>
+                <li>Go to AWS Cognito Console</li>
+                <li>Select your User Pool</li>
+                <li>Go to "App integration" → "Domain name"</li>
+                <li>Look for the "Cognito domain" section</li>
+            </ol>
+            <p><strong>Format:</strong> <code>[pool-name]-[random].auth.[region].amazoncognito.com</code></p>
+        </div>
     `;
 }
 
-function signout() {
-    localStorage.removeItem('cognitoSession');
-    localStorage.removeItem('pkce_verifier');
-    window.location.href = `https://auth.theweer.com/logout?client_id=73lf1h32phkqeb9ahu6tqcl9av&logout_uri=${encodeURIComponent('https://theweer.com/tester.html')}`;
+function showManualConfig() {
+    const solutionsDiv = document.getElementById('solutions');
+    solutionsDiv.innerHTML += `
+        <div class="test-result warning">
+            <h4>Manual Configuration Steps</h4>
+            <p><strong>1. Check Cognito Domain Status:</strong></p>
+            <ul>
+                <li>AWS Console → Cognito → User Pools → Your Pool → App Integration → Domain Name</li>
+                <li>Status should be "Active"</li>
+                <li>CloudFront distribution should be created</li>
+            </ul>
+            
+            <p><strong>2. Check ACM Certificate:</strong></p>
+            <ul>
+                <li>Certificate for auth.theweer.com must be in us-east-1 region</li>
+                <li>Certificate status should be "Issued"</li>
+            </ul>
+            
+            <p><strong>3. Check Route53 Configuration:</strong></p>
+            <ul>
+                <li>CNAME record for auth.theweer.com should point to the CloudFront distribution</li>
+                <li>Distribution domain looks like: d-[random].cloudfront.net</li>
+            </ul>
+            
+            <p><strong>4. Common Issues:</strong></p>
+            <ul>
+                <li>Certificate in wrong region (must be us-east-1 for CloudFront)</li>
+                <li>DNS propagation delay (can take up to 48 hours)</li>
+                <li>CloudFront distribution not deployed</li>
+            </ul>
+        </div>
+    `;
 }
 
-function showSessionInfo() {
-    const session = JSON.parse(localStorage.getItem('cognitoSession') || 'null');
-    const div = document.getElementById('token-display');
-    
-    if (session?.id_token) {
-        try {
-            const payload = JSON.parse(atob(session.id_token.split('.')[1]));
-            div.innerHTML = `<h2>Signed in as ${payload.email || payload.sub}</h2><pre>${JSON.stringify(payload, null, 2)}</pre>`;
-        } catch (error) {
-            div.innerHTML = `<h2>Signed in (token parsing error)</h2>`;
-        }
-    } else {
-        div.innerHTML = `<h2>Not signed in</h2>`;
-    }
-}
-
-// Initialize
-async function initializeApp() {
-    debugAuthEndpoints();
-    await testOAuthConfig();
-    await handleCodeExchange();
-    showAuthUI();
-    showSessionInfo();
-}
-
-initializeApp();
+// Run initial tests
+setTimeout(() => {
+    testDNS();
+    testSSL();
+}, 1000);
 </script>
 </body>
 </html>
