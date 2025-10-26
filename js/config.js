@@ -4,7 +4,7 @@ const CONFIG = {
         WS_URL: 'wss://h5akjyhdj6.execute-api.us-east-1.amazonaws.com/production'
     },
     AUTH: {
-        CLIENT_ID: 'your-client-id',
+        CLIENT_ID: '73lf1h32phkqeb9ahu6tqcl9av',
         REDIRECT_URI: window.location.origin + '/case.html'
     },
     PRODUCT: {
