@@ -4,21 +4,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to The Weer</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px; 
+            background-color: #f4f4f9; 
+            line-height: 1.6;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        }
+        h1 { color: #333; margin-bottom: 20px; }
+        #auth-container { 
+            margin: 20px 0; 
+            padding: 15px; 
+            background: #f8f9fa; 
+            border-radius: 5px; 
+        }
+        .nav-links { 
+            margin: 25px 0; 
+            padding: 15px; 
+            background: #e9ecef; 
+            border-radius: 5px; 
+        }
+        .nav-links a { 
+            display: inline-block; 
+            margin: 0 15px 10px 0; 
+            padding: 10px 20px; 
+            background: #007bff; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+        }
+        .nav-links a:hover { background: #0056b3; }
+        .user-info { 
+            padding: 15px; 
+            background: #d4edda; 
+            border: 1px solid #c3e6cb; 
+            border-radius: 5px; 
+            margin: 20px 0; 
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Welcome to Weer</h1>
+        
         <div id="nav-container"></div>
         
+        <div id="auth-container"></div>
+        
         <div id="user-welcome" style="display: none;" class="user-info">
-            <h3>Welcome back, <span id="user-display-name"></span>!</h3>
+            <h3>Welcome back!</h3>
             <p>You are signed in. You can now access all features.</p>
         </div>
         
         <div class="nav-links">
             <h3>Our Products:</h3>
             <a href="case.html">Custom Phone Cases</a>
+            <!-- Add more product links here as they are developed -->
         </div>
         
         <div>
@@ -27,20 +76,28 @@
         </div>
     </div>
 
-    <script src="js/config.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/navigation.js"></script>
+    <script src="auth.js"></script>
+    <!-- In the index.html file, update the user-welcome div: -->
+    <div id="user-welcome" style="display: none;" class="user-info">
+        <h3>Welcome back, <span id="user-display-name"></span>!</h3>
+        <p>You are signed in. You can now access all features.</p>
+    </div>
+    
     <script>
         async function initializeHome() {
-            await initializeAuth();
-            renderNavigation();
+            const isAuth = await initializeAuth();
             
-            const userInfo = getUserInfo();
-            if (userInfo) {
-                document.getElementById('user-display-name').textContent = userInfo.displayName;
-                document.getElementById('user-welcome').style.display = 'block';
+            // Show welcome message if authenticated
+            const userWelcome = document.getElementById('user-welcome');
+            const userDisplayName = document.getElementById('user-display-name');
+            
+            if (isAuth) {
+                const userInfo = getUserInfo();
+                userDisplayName.textContent = userInfo.displayName;
+                userWelcome.style.display = 'block';
             }
         }
+    
         document.addEventListener('DOMContentLoaded', initializeHome);
     </script>
 </body>
