@@ -460,8 +460,8 @@ styleSheet.textContent = `
 `;
 document.head.appendChild(styleSheet);
 
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    window.realtimeUpdates = new RealTimeUpdates();
-    window.realtimeUpdates.initialize();
-});
+// // Initialize
+// document.addEventListener('DOMContentLoaded', function() {
+//     window.realtimeUpdates = new RealTimeUpdates();
+//     window.realtimeUpdates.initialize();
+// });
