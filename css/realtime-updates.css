@@ -1,0 +1,297 @@
+.updates-container {
+    max-height: 600px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    background: #f9f9f9;
+}
+
+.progress-item {
+    background: white;
+    border: 1px solid #e1e1e1;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.progress-track {
+    margin-bottom: 10px;
+}
+
+.progress-stages {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.stage {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    background: #f0f0f0;
+    color: #666;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.stage.completed {
+    background: #4CAF50;
+    color: white;
+}
+
+.stage.active {
+    background: #2196F3;
+    color: white;
+    animation: pulse 1.5s infinite;
+}
+
+.progress-bar {
+    height: 6px;
+    background: #f0f0f0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #2196F3;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.timestamp {
+    font-size: 11px;
+    color: #888;
+    text-align: right;
+}
+
+/* Products */
+.products-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.product-card {
+    border: 2px solid #007bff;
+    padding: 20px;
+    border-radius: 12px;
+    background: #f8fbff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e6f2ff;
+}
+
+.product-card h4 {
+    margin: 0;
+    color: #0056b3;
+    font-size: 16px;
+    font-weight: 600;
+    flex: 1;
+}
+
+.product-price {
+    text-align: right;
+    font-weight: bold;
+    color: #28a745;
+    font-size: 1.1em;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #666;
+    font-size: 0.9em;
+    margin-right: 5px;
+}
+
+.discounted-price {
+    color: #dc3545;
+    font-size: 1.1em;
+}
+
+.discount-badge {
+    display: block;
+    background: #dc3545;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.8em;
+    margin-top: 2px;
+}
+
+.design-viewer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.main-image-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px;
+    min-height: 300px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.main-image-container:hover {
+    transform: scale(1.02);
+}
+
+.main-image {
+    max-width: 100%;
+    max-height: 280px;
+    object-fit: contain;
+}
+
+.image-thumbnails {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.thumbnail {
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.thumbnail:hover {
+    border-color: #007bff;
+}
+
+.thumbnail img {
+    width: 100%;
+    height: 80px;
+    object-fit: cover;
+}
+
+.add-to-cart-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    text-align: center;
+    font-size: 16px;
+    margin-top: 15px;
+    cursor: pointer;
+    border-radius: 6px;
+    width: 100%;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.add-to-cart-btn:hover {
+    background-color: #218838;
+}
+
+.start-over-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 20px auto;
+    display: block;
+}
+
+.start-over-btn:hover {
+    background: #545b62;
+}
+
+/* Modal styles */
+.image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+}
+
+.modal-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.connection-status {
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+.connected { background: #4CAF50; color: white; }
+.disconnected { background: #f44336; color: white; }
+.connecting { background: #ff9800; color: white; }
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .products-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .product-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .product-price {
+        text-align: left;
+    }
+    
+    .progress-stages {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .stage {
+        font-size: 10px;
+    }
+}
