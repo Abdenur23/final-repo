@@ -8,8 +8,7 @@
 body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
 .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 h1,h2,h3 { color:#333; }
-#auth-action { margin-bottom: 20px; }
-#auth-action button { padding:10px 20px; font-size:16px; background-color:#f90; color:white; border:none; border-radius:5px; cursor:pointer; }
+#auth-action { margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 5px; }
 #token-display pre { background:#eee; padding:10px; border-radius:4px; overflow-x:auto; }
 #token-display textarea { width:100%; height:100px; padding:10px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; resize:none; font-family:monospace; }
 #uploadSection { margin-top:20px; }
@@ -32,185 +31,78 @@ h1,h2,h3 { color:#333; }
 .acknowledge-section p { margin: 0 0 10px 0; font-size: 14px; }
 .acknowledge-section label { display: flex; align-items: flex-start; }
 .acknowledge-section input { margin-right: 8px; margin-top: 2px; }
+
+/* Auth required message */
+.auth-required { 
+    padding: 20px; 
+    background: #fff3cd; 
+    border: 1px solid #ffeaa7; 
+    border-radius: 5px; 
+    text-align: center; 
+    margin: 20px 0; 
+}
 </style>
 </head>
 <body>
 
 <div class="container">
+    <div id="nav-container"></div>
+    
     <h1>AWS Cognito Authentication Status</h1>
     <div id="auth-action"></div>
 
     <div id="token-display"><h2>Not signed in</h2></div>
     
-    <div class="device-selection">
-        <h2>Select Your Device</h2>
-        
-        <div class="brand-selection">
-            <label class="brand-option">
-                <input type="radio" name="brand" value="apple" checked> Apple
-            </label>
-            <label class="brand-option">
-                <input type="radio" name="brand" value="samsung"> Samsung
-            </label>
+    <div id="app-content" style="display: none;">
+        <div class="device-selection">
+            <h2>Select Your Device</h2>
+            
+            <div class="brand-selection">
+                <label class="brand-option">
+                    <input type="radio" name="brand" value="apple" checked> Apple
+                </label>
+                <label class="brand-option">
+                    <input type="radio" name="brand" value="samsung"> Samsung
+                </label>
+            </div>
+            
+            <label for="deviceSelect">Model:</label>
+            <select id="deviceSelect">
+                <option value="">-- Choose Model --</option>
+            </select>
+            
+            <div class="acknowledge-section" id="acknowledgeSection">
+                <p style="margin: 0 0 10px 0; font-size: 14px;">
+                    <strong>Important:</strong> For demonstration, we'll show your design on <span id="demoDevice">iPhone 16 Pro Max</span>. 
+                    Your actual order will be custom-made specifically for your selected device: <strong id="selectedDevice"></strong>.
+                </p>
+                <label>
+                    <input type="checkbox" id="acknowledgeCheckbox"> I understand my case and wallpaper will be custom-made for: <strong id="deviceName"></strong>
+                </label>
+            </div>
         </div>
-        
-        <label for="deviceSelect">Model:</label>
-        <select id="deviceSelect">
-            <option value="">-- Choose Model --</option>
-        </select>
-        
-        <div class="acknowledge-section" id="acknowledgeSection">
-            <p style="margin: 0 0 10px 0; font-size: 14px;">
-                <strong>Important:</strong> For demonstration, we'll show your design on <span id="demoDevice">iPhone 16 Pro Max</span>. 
-                Your actual order will be custom-made specifically for your selected device: <strong id="selectedDevice"></strong>.
-            </p>
-            <label>
-                <input type="checkbox" id="acknowledgeCheckbox"> I understand my case and wallpaper will be custom-made for: <strong id="deviceName"></strong>
-            </label>
+
+        <div id="uploadSection" style="display:none;">
+            <h2>Upload 3 Images</h2>
+            <input type="file" id="fileInput" multiple accept="image/*">
+            <br>
+            <button onclick="uploadFiles()">Upload</button>
+            <div id="uploadResult"></div>
         </div>
     </div>
-
-    <div id="uploadSection" style="display:none;">
-        <h2>Upload 3 Images</h2>
-        <input type="file" id="fileInput" multiple accept="image/*">
-        <br>
-        <button onclick="uploadFiles()">Upload</button>
-        <div id="uploadResult"></div>
+    
+    <div id="auth-required-message" class="auth-required" style="display: none;">
+        <h3>Authentication Required</h3>
+        <p>Please sign in to access the phone case customization features.</p>
+        <button onclick="signin()" style="padding: 10px 20px; background: #f90; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+            Sign In / Sign Up
+        </button>
     </div>
 </div>
 
+<script src="auth.js"></script>
 <script>
-// --- PKCE UTILITY FUNCTIONS ---
-function base64urlencode(buffer){
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-    for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary)
-        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-async function sha256(str){
-    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-    return base64urlencode(digest);
-}
-function genRandom(){ 
-    const arr = new Uint8Array(32); 
-    crypto.getRandomValues(arr); 
-    return base64urlencode(arr); 
-}
-
-// --- CONFIG & SESSION MANAGEMENT ---
-const cognitoConfig = {
-    // New Client ID applied here:
-    clientId: '73lf1h32phkqeb9ahu6tqcl9av',
-    domain: 'auth.theweer.com',
-    redirectUri: window.location.origin + window.location.pathname,
-    tokenEndpoint: `https://auth.theweer.com/oauth2/token` // Needed for PKCE token exchange
-};
-
-function saveSession(t){ localStorage.setItem('cognitoSession', JSON.stringify(t)); }
-function getSession(){ return JSON.parse(localStorage.getItem('cognitoSession')); }
-
-// --- AUTH FLOW FUNCTIONS (PKCE) ---
-
-function showAuthUI(){
-    const authDiv = document.getElementById('auth-action');
-    authDiv.innerHTML = `
-        <button onclick="signin()">Sign In / Sign Up</button>
-        <button onclick="signout()">Sign Out</button>
-    `;
-}
-
-async function signin(){
-    const verifier = genRandom();
-    localStorage.setItem('pkce_verifier', verifier);
-    const challenge = await sha256(verifier);
-    
-    const url =
-      `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code`
-      + `&client_id=${cognitoConfig.clientId}`
-      + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
-      + `&scope=email+openid+profile`
-      + `&code_challenge_method=S256`
-      + `&code_challenge=${challenge}`;
-      
-    window.location.href = url;
-}
-
-function signout(){
-    localStorage.removeItem('cognitoSession');
-    localStorage.removeItem('pkce_verifier');
-    window.location.href =
-      `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}`
-      + `&logout_uri=${encodeURIComponent(window.location.origin)}`;
-}
-
-async function handleCodeExchange(){
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    if(!code) return; // No code, so not a redirect from Cognito
-
-    const verifier = localStorage.getItem('pkce_verifier');
-    if (!verifier) {
-        console.error("PKCE Error: Code verifier not found in storage.");
-        // Clear the URL to remove the 'code' parameter even if exchange fails
-        window.history.replaceState({},document.title,cognitoConfig.redirectUri); 
-        return;
-    }
-
-    const body =
-      `grant_type=authorization_code`
-      + `&client_id=${cognitoConfig.clientId}`
-      + `&code=${code}`
-      + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
-      + `&code_verifier=${verifier}`;
-
-    try {
-        const res = await fetch(cognitoConfig.tokenEndpoint,{
-            method:'POST',
-            headers:{'Content-Type':'application/x-www-form-urlencoded'},
-            body
-        });
-        const tokens = await res.json();
-
-        if(res.ok && tokens.id_token) {
-            saveSession(tokens);
-            localStorage.removeItem('pkce_verifier'); // Clear verifier after successful use
-        } else {
-            console.error("Token exchange failed:", tokens.error_description || JSON.stringify(tokens));
-        }
-        
-        // Remove the code and state parameters from the URL
-        window.history.replaceState({},document.title,cognitoConfig.redirectUri);
-    } catch (error) {
-        console.error('Network or exchange error:', error);
-    }
-}
-
-function showSessionInfo(){
-    const session = getSession();
-    const tokenDiv = document.getElementById('token-display');
-    if(session && session.id_token){
-        const payload = JSON.parse(atob(session.id_token.split('.')[1]));
-        // Display email if available, otherwise sub
-        const userIdentifier = payload.email || payload.sub; 
-        tokenDiv.innerHTML = `<h2>Signed in as ${userIdentifier}</h2>
-        <pre>${JSON.stringify(payload, null, 2)}</pre>`;
-
-        //the following is to start realtime updates from aws. very critical.
-        if (!window.realtimeUpdates) {
-            window.realtimeUpdates = new RealTimeUpdates();
-            window.realtimeUpdates.initialize();
-        }
-
-    } else {
-        tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
-    }
-}
-
-
-// --- DEVICE DATA AND LOGIC (Unchanged) ---
+// --- DEVICE DATA AND LOGIC ---
 const devices = {
     apple: [
         { name: "iPhone 17", value: "iphone17" },
@@ -241,10 +133,8 @@ const devices = {
     ]
 };
 
-// --- API CALL FUNCTIONS (Updated to use Bearer token header) ---
-
+// --- API CALL FUNCTIONS ---
 async function updateCustomerDevice(deviceId) {
-    // Use ID Token for calls that require user identity/claims
     const token = getSession()?.id_token; 
     if (!token) {
         console.log('User not signed in, skipping device update');
@@ -257,7 +147,7 @@ async function updateCustomerDevice(deviceId) {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json', 
-                'Authorization': 'Bearer ' + token // Correct Bearer format
+                'Authorization': 'Bearer ' + token
             },
             body: JSON.stringify({ 
                 device_id: deviceId,
@@ -286,7 +176,6 @@ document.getElementById('fileInput').addEventListener('change', (e)=>{
 });
 
 async function uploadFiles() {
-    // Use ID Token for identity-based calls
     const token = getSession()?.id_token;
     const deviceId = document.getElementById('deviceSelect').value;
 
@@ -300,10 +189,9 @@ async function uploadFiles() {
         fileType: f.type
     }));
 
-    // Step 1: Get presigned URLs from Lambda
     const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, // Correct Bearer format
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ files: filesData, device_id: deviceId })
     });
 
@@ -315,7 +203,6 @@ async function uploadFiles() {
         return;
     }
 
-    // Step 2: Upload files and notify Lambda
     try {
         const uploadPromises = data.uploadUrls.map(async (u, idx) => {
             const uploadResponse = await fetch(u.uploadUrl, {
@@ -325,7 +212,6 @@ async function uploadFiles() {
             });
 
             if (uploadResponse.ok) {
-                // Step 3: Notify Lambda of complete upload
                 const notificationPayload = {
                     action: 'uploadComplete',
                     fileKey: u.key,
@@ -342,7 +228,7 @@ async function uploadFiles() {
 
                 fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, // Correct Bearer format
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify(notificationPayload)
                 });
             }
@@ -356,13 +242,45 @@ async function uploadFiles() {
         resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
     }
     
-    // Show the real-time panel for updates
     if (window.realtimeUpdates) {
         window.realtimeUpdates.showPanel();
     }
 }
 
-// --- UI / INITIALIZATION LOGIC (Unchanged) ---
+// --- UI MANAGEMENT ---
+function showSessionInfo() {
+    const userInfo = getUserInfo();
+    const tokenDiv = document.getElementById('token-display');
+    
+    if (userInfo) {
+        const session = getSession();
+        const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+        tokenDiv.innerHTML = `<h2>Signed in as ${userInfo.email}</h2>
+        <pre>${JSON.stringify(payload, null, 2)}</pre>`;
+
+        if (!window.realtimeUpdates) {
+            window.realtimeUpdates = new RealTimeUpdates();
+            window.realtimeUpdates.initialize();
+        }
+    } else {
+        tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
+    }
+}
+
+function toggleAppContent(show) {
+    const appContent = document.getElementById('app-content');
+    const authRequired = document.getElementById('auth-required-message');
+    
+    if (show) {
+        appContent.style.display = 'block';
+        authRequired.style.display = 'none';
+        initializeDeviceOptions();
+    } else {
+        appContent.style.display = 'none';
+        authRequired.style.display = 'block';
+    }
+}
+
 function initializeDeviceOptions() {
     updateDeviceOptions();
     
@@ -409,7 +327,6 @@ function showAcknowledgeSection() {
         document.getElementById('deviceName').textContent = selectedDevice;
         acknowledgeSection.style.display = 'block';
         
-        // Update customer device in database
         console.log('🔄 Device selected, updating database...');
         updateCustomerDevice(deviceValue);
     } else {
@@ -431,10 +348,9 @@ function toggleUploadSection() {
 
 // Initialize application
 async function initializeApp() {
-    await handleCodeExchange();
-    showAuthUI();
+    const isAuth = await initializeAuth();
     showSessionInfo();
-    initializeDeviceOptions();
+    toggleAppContent(isAuth);
 }
 
 // Start the application
