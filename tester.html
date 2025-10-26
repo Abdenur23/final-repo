@@ -287,11 +287,6 @@ async function uploadFiles() {
     if (!deviceId) return alert('Please select a device before uploading');
     if (selectedFiles.length !== 3) return alert('Please select exactly 3 images');
 
-    // Reset for new upload session
-    if (window.realtimeUpdates) {
-        window.realtimeUpdates.clearProgressForNewUpload();
-    }
-
     const filesData = selectedFiles.map((f, i) => ({
         fileId: i + 1,
         fileName: f.name,
@@ -301,7 +296,7 @@ async function uploadFiles() {
     // Step 1: Get presigned URLs from Lambda
     const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, // Correct Bearer format
         body: JSON.stringify({ files: filesData, device_id: deviceId })
     });
 
@@ -340,7 +335,7 @@ async function uploadFiles() {
 
                 fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, // Correct Bearer format
                     body: JSON.stringify(notificationPayload)
                 });
             }
