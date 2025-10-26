@@ -110,12 +110,210 @@ const devices = {
     ]
 };
 
-// Add this function to update customer device in database
+// PKCE Configuration
+const cognitoConfig = {
+    clientId: '7irso7dmmnp793egs9bhkl0t81',
+    domain: 'auth.theweer.com',
+    redirectUri: window.location.origin + window.location.pathname,
+    scopes: ['email', 'openid', 'profile'],
+    codeVerifierKey: 'cognito_pkce_code_verifier'
+};
+
+// PKCE Helper Functions
+function generateCodeVerifier() {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return btoa(String.fromCharCode(...array))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+}
+
+async function generateCodeChallenge(verifier) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(verifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    return btoa(String.fromCharCode(...new Uint8Array(digest)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+}
+
+function saveCodeVerifier(verifier) {
+    sessionStorage.setItem(cognitoConfig.codeVerifierKey, verifier);
+}
+
+function getCodeVerifier() {
+    return sessionStorage.getItem(cognitoConfig.codeVerifierKey);
+}
+
+function clearCodeVerifier() {
+    sessionStorage.removeItem(cognitoConfig.codeVerifierKey);
+}
+
+// Session Management
+function saveSession(tokens) { 
+    localStorage.setItem('cognitoSession', JSON.stringify(tokens)); 
+}
+
+function getSession() { 
+    const session = localStorage.getItem('cognitoSession');
+    return session ? JSON.parse(session) : null;
+}
+
+function clearSession() {
+    localStorage.removeItem('cognitoSession');
+}
+
+// Authentication Functions
+async function signin() {
+    try {
+        // Generate PKCE code verifier and challenge
+        const codeVerifier = generateCodeVerifier();
+        const codeChallenge = await generateCodeChallenge(codeVerifier);
+        
+        // Store code verifier for later use
+        saveCodeVerifier(codeVerifier);
+        
+        // Build authorization URL with PKCE parameters
+        const authUrl = new URL(`https://${cognitoConfig.domain}/oauth2/authorize`);
+        const params = {
+            client_id: cognitoConfig.clientId,
+            response_type: 'code',
+            scope: cognitoConfig.scopes.join('+'),
+            redirect_uri: cognitoConfig.redirectUri,
+            code_challenge: codeChallenge,
+            code_challenge_method: 'S256'
+        };
+        
+        Object.keys(params).forEach(key => 
+            authUrl.searchParams.append(key, params[key])
+        );
+        
+        // Redirect to Cognito
+        window.location.href = authUrl.toString();
+    } catch (error) {
+        console.error('Error during signin:', error);
+        alert('Error starting authentication: ' + error.message);
+    }
+}
+
+async function exchangeCodeForTokens(authorizationCode) {
+    try {
+        const codeVerifier = getCodeVerifier();
+        if (!codeVerifier) {
+            throw new Error('No code verifier found');
+        }
+
+        const tokenUrl = `https://${cognitoConfig.domain}/oauth2/token`;
+        const params = new URLSearchParams({
+            grant_type: 'authorization_code',
+            client_id: cognitoConfig.clientId,
+            code: authorizationCode,
+            redirect_uri: cognitoConfig.redirectUri,
+            code_verifier: codeVerifier
+        });
+
+        const response = await fetch(tokenUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params
+        });
+
+        if (!response.ok) {
+            throw new Error(`Token exchange failed: ${response.status}`);
+        }
+
+        const tokens = await response.json();
+        return tokens;
+    } catch (error) {
+        console.error('Error exchanging code for tokens:', error);
+        throw error;
+    }
+}
+
+function signout() {
+    clearSession();
+    clearCodeVerifier();
+    window.location.href = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${encodeURIComponent(window.location.origin)}`;
+}
+
+// Parse URL parameters and handle OAuth callback
+async function handleOAuthCallback() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const authorizationCode = urlParams.get('code');
+    const error = urlParams.get('error');
+
+    if (error) {
+        console.error('OAuth error:', error, urlParams.get('error_description'));
+        alert(`Authentication error: ${error}`);
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+    }
+
+    if (authorizationCode) {
+        try {
+            const tokens = await exchangeCodeForTokens(authorizationCode);
+            saveSession({
+                id_token: tokens.id_token,
+                access_token: tokens.access_token,
+                refresh_token: tokens.refresh_token
+            });
+            
+            // Clean up URL and code verifier
+            clearCodeVerifier();
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // Update UI
+            showAuthUI();
+            showSessionInfo();
+        } catch (error) {
+            console.error('Error handling OAuth callback:', error);
+            alert('Authentication failed: ' + error.message);
+        }
+    }
+}
+
+function showAuthUI() { 
+    const authDiv = document.getElementById('auth-action');
+    const session = getSession();
+    
+    if (session && session.id_token) {
+        authDiv.innerHTML = `<button onclick="signout()">Sign Out</button>`;
+    } else {
+        authDiv.innerHTML = `<button onclick="signin()">Sign In / Sign Up</button>`;
+    }
+}
+
+function showSessionInfo() {
+    const session = getSession();
+    const tokenDiv = document.getElementById('token-display');
+    
+    if (session && session.id_token) {
+        try {
+            const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+            tokenDiv.innerHTML = `
+                <h2>Signed in as ${payload.email || payload.sub}</h2>
+                <p><strong>Token Type:</strong> PKCE Authorization Code Flow</p>
+                <pre>${JSON.stringify(payload, null, 2)}</pre>
+            `;
+        } catch (error) {
+            tokenDiv.innerHTML = `<h2>Signed in (token parsing error)</h2>`;
+        }
+    } else {
+        tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
+    }
+}
+
+// Device Selection Functions
 async function updateCustomerDevice(deviceId) {
     const token = getSession()?.id_token;
     if (!token) {
         console.log('User not signed in, skipping device update');
-        return; // Only update if user is signed in
+        return;
     }
     
     try {
@@ -145,21 +343,17 @@ async function updateCustomerDevice(deviceId) {
     }
 }
 
-// Initialize device options
 function initializeDeviceOptions() {
     updateDeviceOptions();
     
-    // Add event listeners to radio buttons
     const brandRadios = document.querySelectorAll('input[name="brand"]');
     brandRadios.forEach(radio => {
         radio.addEventListener('change', updateDeviceOptions);
     });
     
-    // Add event listener to device select
     const deviceSelect = document.getElementById('deviceSelect');
     deviceSelect.addEventListener('change', showAcknowledgeSection);
     
-    // Add event listener to acknowledgment checkbox
     const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
     acknowledgeCheckbox.addEventListener('change', toggleUploadSection);
 }
@@ -178,7 +372,6 @@ function updateDeviceOptions() {
         deviceSelect.appendChild(opt);
     });
     
-    // Hide acknowledge section when brand changes
     document.getElementById('acknowledgeSection').style.display = 'none';
     document.getElementById('uploadSection').style.display = 'none';
     document.getElementById('acknowledgeCheckbox').checked = false;
@@ -196,7 +389,6 @@ function showAcknowledgeSection() {
         document.getElementById('deviceName').textContent = selectedDevice;
         acknowledgeSection.style.display = 'block';
         
-        // Update customer device in database
         console.log('🔄 Device selected, updating database...');
         updateCustomerDevice(deviceValue);
     } else {
@@ -216,115 +408,14 @@ function toggleUploadSection() {
     }
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    initializeDeviceOptions();
-    initializeAuth();
-});
-
-// --- PKCE helpers ---
-function base64urlencode(str){
-    return btoa(String.fromCharCode.apply(null, new Uint8Array(str)))
-        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-async function sha256(buffer){
-    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(buffer));
-    return base64urlencode(digest);
-}
-function genRandom(){ 
-    const arr = new Uint8Array(32); 
-    crypto.getRandomValues(arr); 
-    return base64urlencode(arr);
-}
-
-const cognitoConfig = {
-    clientId: '7irso7dmmnp793egs9bhkl0t81',
-    domain: 'auth.theweer.com',
-    redirectUri: window.location.origin + window.location.pathname,
-    tokenEndpoint: `https://auth.theweer.com/oauth2/token`
-};
-
-function saveSession(t){ localStorage.setItem('cognitoSession', JSON.stringify(t)); }
-function getSession(){ return JSON.parse(localStorage.getItem('cognitoSession')); }
-
-function showAuthUI(){
-    document.getElementById('auth-action').innerHTML = `
-        <button onclick="signin()">Sign In / Sign Up</button>
-        <button onclick="signout()">Sign Out</button>
-    `;
-}
-
-async function signin(){
-    const verifier = genRandom();
-    localStorage.setItem('pkce_verifier', verifier);
-    const challenge = await sha256(verifier);
-    const url =
-      `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code`
-      + `&client_id=${cognitoConfig.clientId}`
-      + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
-      + `&scope=email+openid+profile`
-      + `&code_challenge_method=S256`
-      + `&code_challenge=${challenge}`;
-    window.location.href = url;
-}
-
-function signout(){
-    localStorage.removeItem('cognitoSession');
-    localStorage.removeItem('pkce_verifier');
-    window.location.href =
-      `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}`
-      + `&logout_uri=${encodeURIComponent(window.location.origin)}`;
-}
-
-async function handleCodeExchange(){
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    if(!code) return;
-
-    const verifier = localStorage.getItem('pkce_verifier');
-    const body =
-      `grant_type=authorization_code`
-      + `&client_id=${cognitoConfig.clientId}`
-      + `&code=${code}`
-      + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
-      + `&code_verifier=${verifier}`;
-
-    const res = await fetch(cognitoConfig.tokenEndpoint,{
-        method:'POST',
-        headers:{'Content-Type':'application/x-www-form-urlencoded'},
-        body
-    });
-    const tokens = await res.json();
-    if(tokens.id_token) {
-        saveSession(tokens);
-        localStorage.removeItem('pkce_verifier');
-    }
-    window.history.replaceState({},document.title,cognitoConfig.redirectUri);
-}
-
-function showSessionInfo(){
-    const s = getSession();
-    const div = document.getElementById('token-display');
-    if(s?.id_token){
-        const payload = JSON.parse(atob(s.id_token.split('.')[1]));
-        div.innerHTML = `<h2>Signed in as ${payload.email || payload.sub}</h2><pre>${JSON.stringify(payload,null,2)}</pre>`;
-    } else {
-        div.innerHTML = `<h2>Not signed in</h2>`;
-    }
-}
-
-// Initialize authentication
-async function initializeAuth() {
-    await handleCodeExchange();
-    showAuthUI();
-    showSessionInfo();
-}
-
+// File Upload Functions
 let selectedFiles = [];
 
-document.getElementById('fileInput').addEventListener('change', (e)=>{
+document.getElementById('fileInput').addEventListener('change', (e) => {
     selectedFiles = Array.from(e.target.files);
-    if(selectedFiles.length !== 3) alert("Please select exactly 3 images");
+    if (selectedFiles.length !== 3) {
+        alert("Please select exactly 3 images");
+    }
 });
 
 async function uploadFiles() {
@@ -366,7 +457,6 @@ async function uploadFiles() {
             });
 
             if (uploadResponse.ok) {
-                // Pass device_id in the uploadComplete notification
                 const notificationPayload = {
                     action: 'uploadComplete',
                     fileKey: u.key,
@@ -377,7 +467,7 @@ async function uploadFiles() {
                         palette_id: u.palette_id,
                         flavor: u.flavor,
                         cid: data.cid,
-                        device_id: deviceId // <-- IMPORTANT: Pass deviceId here
+                        device_id: deviceId
                     }
                 };
 
@@ -402,6 +492,15 @@ async function uploadFiles() {
         window.realtimeUpdates.showPanel();
     }
 }
+
+// Initialize application
+document.addEventListener('DOMContentLoaded', function() {
+    initializeDeviceOptions();
+    handleOAuthCallback().then(() => {
+        showAuthUI();
+        showSessionInfo();
+    });
+});
 </script>
 
 <link rel="stylesheet" href="realtime-updates.css">
