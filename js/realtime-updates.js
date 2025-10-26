@@ -1,19 +1,13 @@
 class RealTimeUpdates {
     constructor() {
         this.socket = null;
-        this.isConnected = false;
-        this.progressItems = new Map();
         this.completedDesigns = new Map();
-        this.displayedDesigns = new Set();
-        this.hasUploaded = false;
-        this.promoManager = null;
+        this.progressItems = new Map();
     }
 
-    initialize(promoManager) {
-        this.promoManager = promoManager;
+    initialize() {
         this.setupWebSocket();
         this.renderUpdatesPanel();
-        this.showPanel();
     }
 
     setupWebSocket() {
@@ -27,16 +21,13 @@ class RealTimeUpdates {
         this.socket.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                console.log('WebSocket message received:', data);
                 this.handleUpdate(data);
             } catch (error) {
-                console.error('Error parsing WebSocket message:', error);
+                console.error('Error parsing message:', error);
             }
         };
 
         this.socket.onclose = () => {
-            console.log('WebSocket disconnected');
-            this.isConnected = false;
             setTimeout(() => this.setupWebSocket(), 5000);
         };
     }
@@ -48,7 +39,6 @@ class RealTimeUpdates {
                 action: 'authorize',
                 id_token: session.access_token
             }));
-            this.isConnected = true;
         }
     }
 
@@ -58,6 +48,20 @@ class RealTimeUpdates {
         } else if (data.type === 'image_update') {
             this.handleProgressUpdate(data);
         }
+    }
+
+    handleProgressUpdate(update) {
+        if (this.completedDesigns.size >= CONFIG.PRODUCT.REQUIRED_DESIGNS) return;
+
+        const designId = this.extractDesignId(update.fileName) || 'design';
+        let item = this.progressItems.get(designId);
+        
+        if (!item) {
+            item = this.createProgressItem(designId);
+            this.progressItems.set(designId, item);
+        }
+        
+        this.updateProgressItem(item, update.stage, update.timestamp);
     }
 
     handleDesignReady(designData) {
@@ -70,23 +74,6 @@ class RealTimeUpdates {
         }
     }
 
-    handleProgressUpdate(update) {
-        // Only show progress if we haven't completed all designs
-        if (this.completedDesigns.size >= CONFIG.PRODUCT.REQUIRED_DESIGNS) return;
-
-        const fileName = update.fileName;
-        const stage = update.stage;
-        const designId = this.extractDesignId(fileName) || fileName;
-
-        let progressItem = this.progressItems.get(designId);
-        if (!progressItem) {
-            progressItem = this.createProgressItem(designId);
-            this.progressItems.set(designId, progressItem);
-        }
-
-        this.updateProgressStages(progressItem, stage, update.timestamp);
-    }
-
     createProgressItem(designId) {
         const container = document.getElementById('realtimeUpdates');
         const item = document.createElement('div');
@@ -94,55 +81,55 @@ class RealTimeUpdates {
         item.className = 'progress-item';
         
         item.innerHTML = `
-            <div class="progress-track">
-                <div class="progress-stages">
-                    ${Object.values(CONFIG.STAGES).map(stage => 
-                        `<div class="stage" data-stage="${stage}">${stage}</div>`
-                    ).join('')}
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill"></div>
-                </div>
+            <div class="progress-stages">
+                <div class="stage" data-stage="uploading">Uploading</div>
+                <div class="stage" data-stage="processing">Processing</div>
+                <div class="stage" data-stage="generating">Generating</div>
+                <div class="stage" data-stage="finalizing">Finalizing</div>
             </div>
-            <div class="timestamp"></div>
+            <div style="font-size: 12px; color: #666; text-align: right;"></div>
         `;
         
         container.appendChild(item);
         return item;
     }
 
-    updateProgressStages(progressItem, currentStage, timestamp) {
-        const stages = progressItem.querySelectorAll('.stage');
-        const progressFill = progressItem.querySelector('.progress-fill');
-        const timestampEl = progressItem.querySelector('.timestamp');
+    updateProgressItem(item, currentStage, timestamp) {
+        const stages = item.querySelectorAll('.stage');
+        const timestampEl = item.querySelector('div:last-child');
         
-        let currentStageIndex = -1;
-        
-        stages.forEach((stage, index) => {
-            stage.classList.remove('completed', 'active');
-            if (stage.textContent === currentStage) {
-                currentStageIndex = index;
+        stages.forEach(stage => {
+            stage.classList.remove('active', 'completed');
+            if (stage.dataset.stage === currentStage.toLowerCase()) {
                 stage.classList.add('active');
-            } else if (currentStageIndex === -1 || index < currentStageIndex) {
-                stage.classList.add('completed');
             }
         });
-
-        // Update progress bar
-        const progressPercent = ((currentStageIndex + 1) / stages.length) * 100;
-        progressFill.style.width = `${progressPercent}%`;
         
         timestampEl.textContent = new Date(timestamp).toLocaleTimeString();
     }
 
     displayDesign(designData) {
         const designId = designData.designId;
-        if (this.displayedDesigns.has(designId)) return;
-        
-        this.displayedDesigns.add(designId);
-        
         const container = document.getElementById('realtimeUpdates');
-        const productElement = this.createProductElement(designData);
+        const imageUrls = Object.values(designData.imageUrls);
+        
+        const productElement = document.createElement('div');
+        productElement.className = 'product-card';
+        productElement.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                <h4 style="margin: 0;">${designData.paletteName || 'Custom Design'}</h4>
+                <div style="font-weight: bold; color: #28a745;">$${CONFIG.PRODUCT.PRICE}</div>
+            </div>
+            <img src="${imageUrls[0]}" class="product-image" onclick="realtimeUpdates.openModal('${imageUrls[0]}')">
+            <div class="image-thumbnails">
+                ${imageUrls.map(url => 
+                    `<img src="${url}" class="thumbnail" onclick="realtimeUpdates.openModal('${url}')">`
+                ).join('')}
+            </div>
+            <button class="add-to-cart-btn" onclick="realtimeUpdates.addToCart('${designId}')">
+                Add to Cart - $${CONFIG.PRODUCT.PRICE}
+            </button>
+        `;
         
         let productsContainer = document.getElementById('productsContainer');
         if (!productsContainer) {
@@ -156,159 +143,46 @@ class RealTimeUpdates {
         productsContainer.appendChild(productElement);
     }
 
-    createProductElement(designData) {
-        const designId = designData.designId;
-        const paletteName = designData.paletteName || 'Custom Design';
-        const imageUrls = Object.values(designData.imageUrls);
-        const discountedPrice = this.promoManager ? 
-            this.promoManager.getDiscountedPrice(CONFIG.PRODUCT.BASE_PRICE) : 
-            CONFIG.PRODUCT.BASE_PRICE;
-
-        const productElement = document.createElement('div');
-        productElement.id = `design-${designId}`;
-        productElement.className = 'product-card';
-        
-        productElement.innerHTML = `
-            <div class="product-header">
-                <h4>${paletteName}</h4>
-                <div class="product-price">
-                    ${this.promoManager && this.promoManager.isValidPromo ? 
-                        `<span class="original-price">$${CONFIG.PRODUCT.BASE_PRICE.toFixed(2)}</span>
-                         <span class="discounted-price">$${discountedPrice.toFixed(2)}</span>
-                         <span class="discount-badge">${this.promoManager.discountPercentage}% OFF</span>` :
-                        `$${CONFIG.PRODUCT.BASE_PRICE.toFixed(2)}`
-                    }
-                </div>
-            </div>
-            
-            <div class="design-viewer">
-                <div class="main-image-container" onclick="realtimeUpdates.openImageModal('${designId}', 0)">
-                    <img src="${imageUrls[0]}" alt="${paletteName}" class="main-image" />
-                </div>
-                <div class="image-thumbnails">
-                    ${imageUrls.map((url, index) => `
-                        <div class="thumbnail" onclick="realtimeUpdates.openImageModal('${designId}', ${index})">
-                            <img src="${url}" alt="Design view ${index + 1}" />
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-            
-            <button class="add-to-cart-btn" onclick="realtimeUpdates.addToCart('${designId}')">
-                Add to Cart - $${discountedPrice.toFixed(2)}
-            </button>
-        `;
-        
-        productElement._imageUrls = imageUrls;
-        return productElement;
-    }
-
-    openImageModal(designId, imageIndex) {
-        const design = this.completedDesigns.get(designId);
-        if (!design) return;
-
-        const imageUrls = Object.values(design.imageUrls);
-        const imageUrl = imageUrls[imageIndex];
-
-        // Create modal
+    openModal(imageUrl) {
         const modal = document.createElement('div');
         modal.className = 'image-modal';
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        `;
-
-        modal.innerHTML = `
-            <div class="modal-content" style="position: relative; max-width: 90%; max-height: 90%;">
-                <img src="${imageUrl}" alt="Full size design" 
-                     style="max-width: 100%; max-height: 90vh; object-fit: contain;" />
-                <button class="modal-close" 
-                        style="position: absolute; top: -40px; right: 0; background: none; border: none; color: white; font-size: 24px; cursor: pointer;">
-                    ×
-                </button>
-            </div>
-        `;
-
-        modal.querySelector('.modal-close').onclick = () => modal.remove();
-        modal.onclick = (e) => {
-            if (e.target === modal) modal.remove();
-        };
-
+        modal.onclick = () => modal.remove();
+        modal.innerHTML = `<img src="${imageUrl}" class="modal-image">`;
         document.body.appendChild(modal);
     }
 
     checkAllDesignsComplete() {
         if (this.completedDesigns.size >= CONFIG.PRODUCT.REQUIRED_DESIGNS) {
             this.showStartOverButton();
-            this.hideUploadSection();
+            document.getElementById('uploadSection').style.display = 'none';
         }
     }
 
     showStartOverButton() {
         const container = document.getElementById('realtimeUpdates');
-        const existingButton = document.getElementById('startOverBtn');
-        if (existingButton) return;
-
-        const startOverBtn = document.createElement('button');
-        startOverBtn.id = 'startOverBtn';
-        startOverBtn.textContent = 'Start Over';
-        startOverBtn.className = 'start-over-btn';
-        startOverBtn.onclick = () => this.startOver();
-
-        container.appendChild(startOverBtn);
+        const button = document.createElement('button');
+        button.textContent = 'Start Over';
+        button.style.cssText = 'padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 20px 0;';
+        button.onclick = () => this.startOver();
+        container.appendChild(button);
     }
 
     startOver() {
-        // Clear all designs and progress
         this.completedDesigns.clear();
-        this.displayedDesigns.clear();
         this.progressItems.clear();
-        this.hasUploaded = false;
-
-        // Clear UI
-        const productsContainer = document.getElementById('productsContainer');
-        if (productsContainer) productsContainer.remove();
-
-        const updatesContainer = document.getElementById('realtimeUpdates');
-        updatesContainer.innerHTML = '<h3>🔄 Processing Updates</h3>';
-
-        // Reset upload section
-        this.showUploadSection();
         
-        // Reset file input
-        if (window.uploadManager) {
-            window.uploadManager.reset();
-        }
-
-        // Remove start over button
-        const startOverBtn = document.getElementById('startOverBtn');
-        if (startOverBtn) startOverBtn.remove();
-    }
-
-    hideUploadSection() {
-        const uploadSection = document.getElementById('uploadSection');
-        if (uploadSection) uploadSection.style.display = 'none';
-    }
-
-    showUploadSection() {
-        const uploadSection = document.getElementById('uploadSection');
-        if (uploadSection) uploadSection.style.display = 'block';
+        const container = document.getElementById('realtimeUpdates');
+        container.innerHTML = '<h3>🔄 Processing Updates</h3>';
+        
+        document.getElementById('uploadSection').style.display = 'block';
+        document.getElementById('fileInput').value = '';
+        document.getElementById('uploadResult').innerHTML = '';
     }
 
     removeProgressItem(designId) {
         const item = document.getElementById(`progress-${designId}`);
-        if (item) {
-            item.remove();
-            this.progressItems.delete(designId);
-        }
+        if (item) item.remove();
+        this.progressItems.delete(designId);
     }
 
     extractDesignId(fileName) {
@@ -317,57 +191,19 @@ class RealTimeUpdates {
     }
 
     addToCart(designId) {
-        const design = this.completedDesigns.get(designId);
-        const paletteName = design.paletteName || 'Custom Design';
-        const discountedPrice = this.promoManager ? 
-            this.promoManager.getDiscountedPrice(CONFIG.PRODUCT.BASE_PRICE) : 
-            CONFIG.PRODUCT.BASE_PRICE;
-
-        alert(`Added ${paletteName} to cart! Price: $${discountedPrice.toFixed(2)}`);
-    }
-
-    updateAllProductPrices() {
-        const productCards = document.querySelectorAll('.product-card');
-        productCards.forEach(card => {
-            const priceElement = card.querySelector('.product-price');
-            const addToCartBtn = card.querySelector('.add-to-cart-btn');
-            
-            if (priceElement && addToCartBtn && this.promoManager) {
-                const discountedPrice = this.promoManager.getDiscountedPrice(CONFIG.PRODUCT.BASE_PRICE);
-                
-                priceElement.innerHTML = `
-                    <span class="original-price">$${CONFIG.PRODUCT.BASE_PRICE.toFixed(2)}</span>
-                    <span class="discounted-price">$${discountedPrice.toFixed(2)}</span>
-                    <span class="discount-badge">${this.promoManager.discountPercentage}% OFF</span>
-                `;
-                
-                addToCartBtn.textContent = `Add to Cart - $${discountedPrice.toFixed(2)}`;
-            }
-        });
-    }
-
-    resetForNewUpload() {
-        this.hasUploaded = true;
-        this.hideUploadSection();
+        alert(`Added to cart! Price: $${CONFIG.PRODUCT.PRICE}`);
     }
 
     renderUpdatesPanel() {
         if (document.getElementById('realtimePanel')) return;
 
         const uploadSection = document.getElementById('uploadSection');
-        const updatesHTML = `
-            <div id="realtimePanel" style="margin-top: 20px;">
-                <div id="realtimeUpdates" class="updates-container"></div>
-            </div>
-        `;
-        
         if (uploadSection) {
-            uploadSection.insertAdjacentHTML('afterend', updatesHTML);
+            uploadSection.insertAdjacentHTML('afterend', `
+                <div id="realtimePanel" style="margin-top: 20px;">
+                    <div id="realtimeUpdates" class="updates-container"></div>
+                </div>
+            `);
         }
-    }
-
-    showPanel() {
-        const panel = document.getElementById('realtimePanel');
-        if (panel) panel.style.display = 'block';
     }
 }
