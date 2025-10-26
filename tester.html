@@ -3,113 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cognito Auth - Working Version</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
-        .info { background: #e7f3ff; padding: 15px; margin: 10px 0; border-radius: 5px; }
-    </style>
+    <title>PKCE Test</title>
 </head>
 <body>
-    <h1>Cognito Authentication</h1>
-    
-    <div class="info">
-        <strong>Using Client:</strong> 7irso7dmmnp793egs9bhkl0t81 (Implicit Flow)<br>
-        <strong>Response Type:</strong> token
-    </div>
-    
-    <button onclick="signIn()">Sign In / Sign Up</button>
-    
-    <div id="userInfo" style="display: none; margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 5px;">
-        <h3>✅ Signed In Successfully!</h3>
-        <p><strong>Email:</strong> <span id="userEmail"></span></p>
-        <p><strong>User ID:</strong> <span id="userId"></span></p>
-        <button onclick="signOut()">Sign Out</button>
-    </div>
+    <h1>PKCE Authentication Test</h1>
+    <button onclick="startPKCE()">Start PKCE Flow</button>
+    <div id="result" style="margin-top: 20px;"></div>
 
     <script>
-        // Configuration that works (based on your working code)
         const config = {
-            clientId: '7irso7dmmnp793egs9bhkl0t81', // Use the client that works
-            redirectUri: 'https://theweer.com/tester.html',
-            cognitoDomain: 'https://auth.theweer.com',
-            scopes: 'email openid profile'
+            clientId: '73lf1h32phkqeb9ahu6tqcl9av',
+            redirectUri: 'https://theweer.com/tester.html', // Must match exactly in Cognito
+            cognitoDomain: 'https://auth.theweer.com'
         };
 
-        // Check for tokens in URL
-        function checkAuthentication() {
-            const hash = window.location.hash.substring(1);
-            const params = new URLSearchParams(hash);
+        // Generate secure random string
+        function generateRandomString(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+            let result = '';
+            const randomValues = new Uint8Array(length);
+            crypto.getRandomValues(randomValues);
+            for (let i = 0; i < length; i++) {
+                result += chars[randomValues[i] % chars.length];
+            }
+            return result;
+        }
+
+        // Generate code challenge from verifier
+        async function generateCodeChallenge(verifier) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(verifier);
+            const digest = await crypto.subtle.digest('SHA-256', data);
             
-            const accessToken = params.get('access_token');
-            const idToken = params.get('id_token');
-            const error = params.get('error');
+            // Base64URL encode
+            return btoa(String.fromCharCode(...new Uint8Array(digest)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=/g, '');
+        }
+
+        // Start PKCE flow
+        async function startPKCE() {
+            try {
+                // Generate code verifier and challenge
+                const codeVerifier = generateRandomString(64);
+                const codeChallenge = await generateCodeChallenge(codeVerifier);
+                
+                // Store verifier for later
+                localStorage.setItem('pkce_verifier', codeVerifier);
+                
+                // Build authorization URL
+                const authUrl = new URL(`${config.cognitoDomain}/oauth2/authorize`);
+                authUrl.searchParams.append('client_id', config.clientId);
+                authUrl.searchParams.append('response_type', 'code');
+                authUrl.searchParams.append('scope', 'email openid profile');
+                authUrl.searchParams.append('redirect_uri', config.redirectUri);
+                authUrl.searchParams.append('code_challenge_method', 'S256');
+                authUrl.searchParams.append('code_challenge', codeChallenge);
+                
+                console.log('PKCE Auth URL:', authUrl.toString());
+                document.getElementById('result').innerHTML = `Redirecting to: ${authUrl.toString()}`;
+                
+                // Redirect to Cognito
+                window.location.href = authUrl.toString();
+                
+            } catch (error) {
+                document.getElementById('result').innerHTML = `Error: ${error.message}`;
+                console.error('PKCE Error:', error);
+            }
+        }
+
+        // Handle callback - exchange code for tokens
+        async function handleCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const error = urlParams.get('error');
+            
+            const resultDiv = document.getElementById('result');
             
             if (error) {
-                console.log('Auth error:', error, params.get('error_description'));
+                resultDiv.innerHTML = `
+                    <h3>❌ OAuth Error</h3>
+                    <p><strong>Error:</strong> ${error}</p>
+                    <p><strong>Description:</strong> ${urlParams.get('error_description')}</p>
+                `;
                 return;
             }
             
-            if (accessToken && idToken) {
-                // Save tokens
-                localStorage.setItem('cognito_access_token', accessToken);
-                localStorage.setItem('cognito_id_token', idToken);
+            if (code) {
+                resultDiv.innerHTML = `<p>✅ Authorization code received: ${code.substring(0, 20)}...</p>`;
                 
-                // Show user info
-                showUserInfo();
-                
-                // Clear URL
-                window.location.hash = '';
-            } else if (localStorage.getItem('cognito_id_token')) {
-                // Already signed in
-                showUserInfo();
+                try {
+                    // Exchange code for tokens
+                    const codeVerifier = localStorage.getItem('pkce_verifier');
+                    
+                    if (!codeVerifier) {
+                        throw new Error('No code verifier found');
+                    }
+                    
+                    const tokenResponse = await fetch(`${config.cognitoDomain}/oauth2/token`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            grant_type: 'authorization_code',
+                            client_id: config.clientId,
+                            code: code,
+                            redirect_uri: config.redirectUri,
+                            code_verifier: codeVerifier
+                        })
+                    });
+                    
+                    if (!tokenResponse.ok) {
+                        const errorText = await tokenResponse.text();
+                        throw new Error(`Token exchange failed: ${tokenResponse.status} - ${errorText}`);
+                    }
+                    
+                    const tokens = await tokenResponse.json();
+                    
+                    resultDiv.innerHTML = `
+                        <h3>✅ PKCE Success!</h3>
+                        <p><strong>Access Token:</strong> ${tokens.access_token.substring(0, 50)}...</p>
+                        <p><strong>ID Token:</strong> ${tokens.id_token.substring(0, 50)}...</p>
+                        <p><strong>Token Type:</strong> ${tokens.token_type}</p>
+                        <p><strong>Expires In:</strong> ${tokens.expires_in} seconds</p>
+                    `;
+                    
+                    // Clean up URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    localStorage.removeItem('pkce_verifier');
+                    
+                } catch (error) {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Token Exchange Failed</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    `;
+                }
             }
         }
 
-        // Show user information
-        function showUserInfo() {
-            const idToken = localStorage.getItem('cognito_id_token');
-            if (!idToken) return;
-            
-            try {
-                const payload = JSON.parse(atob(idToken.split('.')[1]));
-                
-                document.getElementById('userEmail').textContent = payload.email || 'Not available';
-                document.getElementById('userId').textContent = payload.sub || 'Not available';
-                document.getElementById('userInfo').style.display = 'block';
-            } catch (error) {
-                console.error('Error parsing token:', error);
-            }
+        // Check if this is a callback
+        if (window.location.search.includes('code=') || window.location.search.includes('error=')) {
+            handleCallback();
         }
-
-        // Sign in
-        function signIn() {
-            const authUrl = `${config.cognitoDomain}/oauth2/authorize?` + new URLSearchParams({
-                client_id: config.clientId,
-                response_type: 'token', // Use token (implicit flow)
-                scope: config.scopes,
-                redirect_uri: config.redirectUri
-            });
-            
-            window.location.href = authUrl;
-        }
-
-        // Sign out
-        function signOut() {
-            localStorage.removeItem('cognito_access_token');
-            localStorage.removeItem('cognito_id_token');
-            document.getElementById('userInfo').style.display = 'none';
-            
-            // Optional: Redirect to logout
-            const logoutUrl = `${config.cognitoDomain}/logout?` + new URLSearchParams({
-                client_id: config.clientId,
-                logout_uri: config.redirectUri
-            });
-            // window.location.href = logoutUrl;
-        }
-
-        // Initialize
-        checkAuthentication();
     </script>
 </body>
 </html>
