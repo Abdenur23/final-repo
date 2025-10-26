@@ -197,6 +197,13 @@ function showSessionInfo(){
         const userIdentifier = payload.email || payload.sub; 
         tokenDiv.innerHTML = `<h2>Signed in as ${userIdentifier}</h2>
         <pre>${JSON.stringify(payload, null, 2)}</pre>`;
+
+        //the following is to start realtime updates from aws. very critical.
+        if (!window.realtimeUpdates) {
+            window.realtimeUpdates = new RealTimeUpdates();
+            window.realtimeUpdates.initialize();
+        }
+
     } else {
         tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
     }
