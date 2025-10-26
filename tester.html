@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PKCE Test</title>
+    <title>PKCE with Default Domain</title>
 </head>
 <body>
-    <h1>PKCE Authentication Test</h1>
+    <h1>PKCE with Default Cognito Domain</h1>
     <button onclick="startPKCE()">Start PKCE Flow</button>
     <div id="result" style="margin-top: 20px;"></div>
 
     <script>
+        // Use the DEFAULT Cognito domain (not custom domain)
         const config = {
             clientId: '73lf1h32phkqeb9ahu6tqcl9av',
-            redirectUri: 'https://theweer.com/tester.html', // Must match exactly in Cognito
-            cognitoDomain: 'https://auth.theweer.com'
+            redirectUri: 'https://theweer.com/tester.html',
+            // Use your default Cognito domain (find this in AWS Console)
+            cognitoDomain: 'https://us-east-1tjdoamtpp.auth.us-east-1.amazoncognito.com' // ← CHANGE THIS
         };
 
-        // Generate secure random string
         function generateRandomString(length) {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
             let result = '';
@@ -29,30 +30,23 @@
             return result;
         }
 
-        // Generate code challenge from verifier
         async function generateCodeChallenge(verifier) {
             const encoder = new TextEncoder();
             const data = encoder.encode(verifier);
             const digest = await crypto.subtle.digest('SHA-256', data);
-            
-            // Base64URL encode
             return btoa(String.fromCharCode(...new Uint8Array(digest)))
                 .replace(/\+/g, '-')
                 .replace(/\//g, '_')
                 .replace(/=/g, '');
         }
 
-        // Start PKCE flow
         async function startPKCE() {
             try {
-                // Generate code verifier and challenge
                 const codeVerifier = generateRandomString(64);
                 const codeChallenge = await generateCodeChallenge(codeVerifier);
                 
-                // Store verifier for later
                 localStorage.setItem('pkce_verifier', codeVerifier);
                 
-                // Build authorization URL
                 const authUrl = new URL(`${config.cognitoDomain}/oauth2/authorize`);
                 authUrl.searchParams.append('client_id', config.clientId);
                 authUrl.searchParams.append('response_type', 'code');
@@ -62,18 +56,13 @@
                 authUrl.searchParams.append('code_challenge', codeChallenge);
                 
                 console.log('PKCE Auth URL:', authUrl.toString());
-                document.getElementById('result').innerHTML = `Redirecting to: ${authUrl.toString()}`;
-                
-                // Redirect to Cognito
                 window.location.href = authUrl.toString();
                 
             } catch (error) {
                 document.getElementById('result').innerHTML = `Error: ${error.message}`;
-                console.error('PKCE Error:', error);
             }
         }
 
-        // Handle callback - exchange code for tokens
         async function handleCallback() {
             const urlParams = new URLSearchParams(window.location.search);
             const code = urlParams.get('code');
@@ -82,30 +71,16 @@
             const resultDiv = document.getElementById('result');
             
             if (error) {
-                resultDiv.innerHTML = `
-                    <h3>❌ OAuth Error</h3>
-                    <p><strong>Error:</strong> ${error}</p>
-                    <p><strong>Description:</strong> ${urlParams.get('error_description')}</p>
-                `;
+                resultDiv.innerHTML = `❌ Error: ${error} - ${urlParams.get('error_description')}`;
                 return;
             }
             
             if (code) {
-                resultDiv.innerHTML = `<p>✅ Authorization code received: ${code.substring(0, 20)}...</p>`;
-                
                 try {
-                    // Exchange code for tokens
                     const codeVerifier = localStorage.getItem('pkce_verifier');
-                    
-                    if (!codeVerifier) {
-                        throw new Error('No code verifier found');
-                    }
-                    
                     const tokenResponse = await fetch(`${config.cognitoDomain}/oauth2/token`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                         body: new URLSearchParams({
                             grant_type: 'authorization_code',
                             client_id: config.clientId,
@@ -115,35 +90,22 @@
                         })
                     });
                     
-                    if (!tokenResponse.ok) {
-                        const errorText = await tokenResponse.text();
-                        throw new Error(`Token exchange failed: ${tokenResponse.status} - ${errorText}`);
-                    }
-                    
                     const tokens = await tokenResponse.json();
                     
-                    resultDiv.innerHTML = `
-                        <h3>✅ PKCE Success!</h3>
-                        <p><strong>Access Token:</strong> ${tokens.access_token.substring(0, 50)}...</p>
-                        <p><strong>ID Token:</strong> ${tokens.id_token.substring(0, 50)}...</p>
-                        <p><strong>Token Type:</strong> ${tokens.token_type}</p>
-                        <p><strong>Expires In:</strong> ${tokens.expires_in} seconds</p>
-                    `;
-                    
-                    // Clean up URL
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    localStorage.removeItem('pkce_verifier');
+                    if (tokenResponse.ok) {
+                        resultDiv.innerHTML = `✅ PKCE Success! Tokens received.`;
+                        localStorage.removeItem('pkce_verifier');
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    } else {
+                        throw new Error(tokens.error || 'Token exchange failed');
+                    }
                     
                 } catch (error) {
-                    resultDiv.innerHTML = `
-                        <h3>❌ Token Exchange Failed</h3>
-                        <p><strong>Error:</strong> ${error.message}</p>
-                    `;
+                    resultDiv.innerHTML = `❌ Token exchange failed: ${error.message}`;
                 }
             }
         }
 
-        // Check if this is a callback
         if (window.location.search.includes('code=') || window.location.search.includes('error=')) {
             handleCallback();
         }
