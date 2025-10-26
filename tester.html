@@ -11,7 +11,6 @@ h1,h2,h3 { color:#333; }
 #auth-action { margin-bottom: 20px; }
 #auth-action button { padding:10px 20px; font-size:16px; background-color:#f90; color:white; border:none; border-radius:5px; cursor:pointer; }
 #token-display pre { background:#eee; padding:10px; border-radius:4px; overflow-x:auto; }
-#token-display textarea { width:100%; height:100px; padding:10px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; resize:none; font-family:monospace; }
 #uploadSection { margin-top:20px; }
 #uploadSection input { margin-bottom:10px; }
 #uploadSection button { padding:10px 20px; font-size:16px; background-color:#28a745; color:white; border:none; border-radius:5px; cursor:pointer; }
@@ -219,7 +218,11 @@ function toggleUploadSection() {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeDeviceOptions);
 
-// --- PKCE helpers ---
+// --- SOLUTION: Use the default Cognito domain for PKCE ---
+// Your custom domain works for implicit flow but has issues with PKCE
+// Let's use the default Cognito domain for PKCE flow
+
+// PKCE helpers
 function base64urlencode(str){
     return btoa(String.fromCharCode.apply(null, new Uint8Array(str)))
         .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -234,78 +237,126 @@ function genRandom(){
     return base64urlencode(arr);
 }
 
+// Use default Cognito domain for PKCE (you need to find this in AWS Console)
 const cognitoConfig = {
-    clientId: '73lf1h32phkqeb9ahu6tqcl9av', // Using your PKCE client ID
+    clientId: '73lf1h32phkqeb9ahu6tqcl9av',
+    // Use the default Cognito domain instead of custom domain for PKCE
+    domain: 'theweer.auth.us-east-1.amazoncognito.com', // ← CHANGE THIS to your actual default domain
+    redirectUri: 'https://theweer.com/tester.html',
+    tokenEndpoint: `https://theweer.auth.us-east-1.amazoncognito.com/oauth2/token` // ← Same here
+};
+
+// Alternative: If you want to try with custom domain but handle the redirect issue
+const cognitoConfigCustom = {
+    clientId: '73lf1h32phkqeb9ahu6tqcl9av',
     domain: 'auth.theweer.com',
-    redirectUri: 'https://theweer.com/tester.html', // Fixed redirect URI
+    redirectUri: 'https://theweer.com/tester.html',
     tokenEndpoint: `https://auth.theweer.com/oauth2/token`
 };
+
+// Let user choose which domain to use
+let useCustomDomain = false;
 
 function saveSession(t){ localStorage.setItem('cognitoSession', JSON.stringify(t)); }
 function getSession(){ return JSON.parse(localStorage.getItem('cognitoSession')); }
 
 function showAuthUI(){
     document.getElementById('auth-action').innerHTML = `
-        <button onclick="signin()">Sign In / Sign Up</button>
+        <div style="margin-bottom: 10px;">
+            <label>
+                <input type="checkbox" id="useCustomDomain" onchange="toggleDomain()"> 
+                Use Custom Domain (auth.theweer.com) - PKCE may not work
+            </label>
+        </div>
+        <button onclick="signinPKCE()">Sign In with PKCE (Recommended)</button>
+        <button onclick="signinImplicit()">Sign In with Implicit Flow</button>
         <button onclick="signout()">Sign Out</button>
     `;
 }
 
-async function signin(){
+function toggleDomain() {
+    useCustomDomain = document.getElementById('useCustomDomain').checked;
+    console.log('Using domain:', useCustomDomain ? 'Custom' : 'Default Cognito');
+}
+
+async function signinPKCE(){
+    const config = useCustomDomain ? cognitoConfigCustom : cognitoConfig;
+    
     try {
         const verifier = genRandom();
         localStorage.setItem('pkce_verifier', verifier);
+        localStorage.setItem('pkce_domain', config.domain); // Store which domain we used
         const challenge = await sha256(verifier);
         
-        // Use the correct OAuth2 authorization endpoint with PKCE
-        const url = new URL(`https://${cognitoConfig.domain}/oauth2/authorize`);
+        const url = new URL(`https://${config.domain}/oauth2/authorize`);
         url.searchParams.append('response_type', 'code');
-        url.searchParams.append('client_id', cognitoConfig.clientId);
-        url.searchParams.append('redirect_uri', cognitoConfig.redirectUri);
+        url.searchParams.append('client_id', config.clientId);
+        url.searchParams.append('redirect_uri', config.redirectUri);
         url.searchParams.append('scope', 'email openid profile');
         url.searchParams.append('code_challenge_method', 'S256');
         url.searchParams.append('code_challenge', challenge);
         
-        console.log('Redirecting to PKCE auth:', url.toString());
+        console.log('Redirecting to PKCE auth with domain:', config.domain);
+        console.log('Auth URL:', url.toString());
         window.location.href = url.toString();
     } catch (error) {
         console.error('Error initiating PKCE signin:', error);
-        alert('Error starting authentication: ' + error.message);
+        alert('Error starting PKCE authentication: ' + error.message);
     }
 }
 
+function signinImplicit(){
+    // Fallback to implicit flow that works with custom domain
+    const config = cognitoConfigCustom;
+    window.location.href = `https://${config.domain}/login?client_id=${config.clientId}&response_type=token&scope=email+openid+profile&redirect_uri=${encodeURIComponent(config.redirectUri)}`;
+}
+
 function signout(){
+    const session = getSession();
+    const domain = session?.pkce_domain || cognitoConfigCustom.domain;
+    
     localStorage.removeItem('cognitoSession');
     localStorage.removeItem('pkce_verifier');
+    localStorage.removeItem('pkce_domain');
     
-    const url = new URL(`https://${cognitoConfig.domain}/logout`);
-    url.searchParams.append('client_id', cognitoConfig.clientId);
-    url.searchParams.append('logout_uri', cognitoConfig.redirectUri);
-    
-    window.location.href = url.toString();
+    window.location.href = `https://${domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${encodeURIComponent(window.location.origin)}`;
+}
+
+// Handle both implicit and PKCE flows
+function parseHashTokens(){
+    if(location.hash){
+        // Implicit flow - tokens in hash
+        const hash = location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const id_token = params.get('id_token');
+        const access_token = params.get('access_token');
+        if(id_token && access_token){
+            saveSession({id_token, access_token, flow: 'implicit'});
+            location.hash = '';
+            return true;
+        }
+    }
+    return false;
 }
 
 async function handleCodeExchange(){
+    // PKCE flow - code in query string
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     
     if(!code) {
-        // Check for errors in the URL
-        const error = params.get('error');
-        if (error) {
-            console.error('OAuth error:', error, params.get('error_description'));
-            alert(`Authentication error: ${error}`);
-        }
-        return;
+        return false;
     }
 
     const verifier = localStorage.getItem('pkce_verifier');
+    const domain = localStorage.getItem('pkce_domain') || cognitoConfig.domain;
+    
     if (!verifier) {
         console.error('No PKCE verifier found');
-        alert('Authentication session expired');
-        return;
+        return false;
     }
 
+    const tokenEndpoint = `https://${domain}/oauth2/token`;
     const body = new URLSearchParams();
     body.append('grant_type', 'authorization_code');
     body.append('client_id', cognitoConfig.clientId);
@@ -314,7 +365,7 @@ async function handleCodeExchange(){
     body.append('code_verifier', verifier);
 
     try {
-        const res = await fetch(cognitoConfig.tokenEndpoint, {
+        const res = await fetch(tokenEndpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body
@@ -327,18 +378,23 @@ async function handleCodeExchange(){
         
         const tokens = await res.json();
         if(tokens.id_token) {
-            saveSession(tokens);
-            localStorage.removeItem('pkce_verifier'); // Clean up verifier
+            saveSession({...tokens, flow: 'pkce', pkce_domain: domain});
+            localStorage.removeItem('pkce_verifier');
+            localStorage.removeItem('pkce_domain');
             console.log('✅ Successfully signed in with PKCE!');
+            
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            return true;
         } else {
             throw new Error('No ID token received');
         }
-        
-        // Clean URL without code parameter
-        window.history.replaceState({}, document.title, window.location.pathname);
     } catch (error) {
         console.error('Token exchange error:', error);
-        alert('Authentication failed: ' + error.message);
+        // Fall back to implicit flow
+        console.log('PKCE failed, falling back to implicit flow');
+        signinImplicit();
+        return false;
     }
 }
 
@@ -348,7 +404,8 @@ function showSessionInfo(){
     if(s?.id_token){
         try {
             const payload = JSON.parse(atob(s.id_token.split('.')[1]));
-            div.innerHTML = `<h2>Signed in as ${payload.email || payload.sub}</h2><pre>${JSON.stringify(payload,null,2)}</pre>`;
+            const flow = s.flow || 'unknown';
+            div.innerHTML = `<h2>Signed in as ${payload.email || payload.sub} (${flow} flow)</h2><pre>${JSON.stringify(payload,null,2)}</pre>`;
         } catch (error) {
             div.innerHTML = `<h2>Signed in (token parsing error)</h2>`;
         }
@@ -403,7 +460,6 @@ async function uploadFiles() {
             });
 
             if (uploadResponse.ok) {
-                // Pass device_id in the uploadComplete notification
                 const notificationPayload = {
                     action: 'uploadComplete',
                     fileKey: u.key,
@@ -414,7 +470,7 @@ async function uploadFiles() {
                         palette_id: u.palette_id,
                         flavor: u.flavor,
                         cid: data.cid,
-                        device_id: deviceId // <-- IMPORTANT: Pass deviceId here
+                        device_id: deviceId
                     }
                 };
 
@@ -434,7 +490,6 @@ async function uploadFiles() {
         resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
     }
     
-    // Show the real-time panel for updates
     if (window.realtimeUpdates) {
         window.realtimeUpdates.showPanel();
     }
@@ -442,7 +497,14 @@ async function uploadFiles() {
 
 // Initialize application
 async function initializeApp() {
-    await handleCodeExchange();
+    // Try PKCE flow first
+    const pkceSuccess = await handleCodeExchange();
+    
+    // If PKCE didn't handle it, try implicit flow
+    if (!pkceSuccess) {
+        parseHashTokens();
+    }
+    
     showAuthUI();
     showSessionInfo();
 }
