@@ -41,12 +41,24 @@ class RealTimeUpdates {
         };
     }
 
+    // authenticateWebSocket() {
+    //     const session = this.getSession();
+    //     if (session && session.id_token) {
+    //         this.socket.send(JSON.stringify({
+    //             action: 'authorize',
+    //             id_token: session.id_token
+    //         }));
+    //         this.isConnected = true;
+    //     }
+    // }
+    // In realtime-updates.js
     authenticateWebSocket() {
         const session = this.getSession();
-        if (session && session.id_token) {
+        if (session && session.access_token) { // <-- Change to access_token
             this.socket.send(JSON.stringify({
                 action: 'authorize',
-                id_token: session.id_token
+                // CRITICAL FIX: Use access_token for Authorizer validation
+                id_token: session.access_token 
             }));
             this.isConnected = true;
         }
