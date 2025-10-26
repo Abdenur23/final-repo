@@ -3,112 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PKCE with Default Domain</title>
+    <title>App Client Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        .container {
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .info-box {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-    <h1>PKCE with Default Cognito Domain</h1>
-    <button onclick="startPKCE()">Start PKCE Flow</button>
-    <div id="result" style="margin-top: 20px;"></div>
+
+    <div class="container">
+        <h1>Welcome to theweer2 App</h1>
+        <p>Click the button below to sign in or sign up.</p>
+
+        <button id="authButton">Sign In / Sign Up</button>
+
+        <div class="info-box">
+            <p>Authentication provided by Cognito.</p>
+        </div>
+    </div>
 
     <script>
-        // Use the DEFAULT Cognito domain (not custom domain)
-        const config = {
-            clientId: '73lf1h32phkqeb9ahu6tqcl9av',
-            redirectUri: 'https://theweer.com/tester.html',
-            // Use your default Cognito domain (find this in AWS Console)
-            cognitoDomain: 'https://us-east-1tjdoamtpp.auth.us-east-1.amazoncognito.com' // ← CHANGE THIS
-        };
+        // **--- Your Cognito Configuration Details ---**
+        const COGNITO_DOMAIN = "https://us-east-1tjdoamtpp.auth.us-east-1.amazoncognito.com";
+        const CLIENT_ID = "73lf1h32phkqeb9ahu6tqcl9av";
+        // The URL where Cognito will redirect the user AFTER successful authentication.
+        // This MUST be one of the allowed callback URLs configured in your Cognito App Client.
+        const REDIRECT_URI = "https://theweer.com"; 
+        const SCOPE = "email openid phone profile";
+        // Recommended response type for modern web apps (Authorization Code Grant with PKCE)
+        const RESPONSE_TYPE = "code";
 
-        function generateRandomString(length) {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-            let result = '';
-            const randomValues = new Uint8Array(length);
-            crypto.getRandomValues(randomValues);
-            for (let i = 0; i < length; i++) {
-                result += chars[randomValues[i] % chars.length];
-            }
-            return result;
-        }
+        // Construct the full authorization URL for Cognito Hosted UI
+        const COGNITO_AUTH_URL = `${COGNITO_DOMAIN}/oauth2/authorize?` +
+            `response_type=${RESPONSE_TYPE}` +
+            `&client_id=${CLIENT_ID}` +
+            `&scope=${encodeURIComponent(SCOPE)}` +
+            `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
 
-        async function generateCodeChallenge(verifier) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(verifier);
-            const digest = await crypto.subtle.digest('SHA-256', data);
-            return btoa(String.fromCharCode(...new Uint8Array(digest)))
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=/g, '');
-        }
+        document.getElementById('authButton').addEventListener('click', () => {
+            // Redirect the user to the Cognito Hosted UI.
+            // This UI page handles both Sign-In and Sign-Up forms.
+            window.location.href = COGNITO_AUTH_URL;
+        });
 
-        async function startPKCE() {
-            try {
-                const codeVerifier = generateRandomString(64);
-                const codeChallenge = await generateCodeChallenge(codeVerifier);
-                
-                localStorage.setItem('pkce_verifier', codeVerifier);
-                
-                const authUrl = new URL(`${config.cognitoDomain}/oauth2/authorize`);
-                authUrl.searchParams.append('client_id', config.clientId);
-                authUrl.searchParams.append('response_type', 'code');
-                authUrl.searchParams.append('scope', 'email openid profile');
-                authUrl.searchParams.append('redirect_uri', config.redirectUri);
-                authUrl.searchParams.append('code_challenge_method', 'S256');
-                authUrl.searchParams.append('code_challenge', codeChallenge);
-                
-                console.log('PKCE Auth URL:', authUrl.toString());
-                window.location.href = authUrl.toString();
-                
-            } catch (error) {
-                document.getElementById('result').innerHTML = `Error: ${error.message}`;
-            }
-        }
-
-        async function handleCallback() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            const error = urlParams.get('error');
-            
-            const resultDiv = document.getElementById('result');
-            
-            if (error) {
-                resultDiv.innerHTML = `❌ Error: ${error} - ${urlParams.get('error_description')}`;
-                return;
-            }
-            
-            if (code) {
-                try {
-                    const codeVerifier = localStorage.getItem('pkce_verifier');
-                    const tokenResponse = await fetch(`${config.cognitoDomain}/oauth2/token`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                        body: new URLSearchParams({
-                            grant_type: 'authorization_code',
-                            client_id: config.clientId,
-                            code: code,
-                            redirect_uri: config.redirectUri,
-                            code_verifier: codeVerifier
-                        })
-                    });
-                    
-                    const tokens = await tokenResponse.json();
-                    
-                    if (tokenResponse.ok) {
-                        resultDiv.innerHTML = `✅ PKCE Success! Tokens received.`;
-                        localStorage.removeItem('pkce_verifier');
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    } else {
-                        throw new Error(tokens.error || 'Token exchange failed');
-                    }
-                    
-                } catch (error) {
-                    resultDiv.innerHTML = `❌ Token exchange failed: ${error.message}`;
-                }
-            }
-        }
-
-        if (window.location.search.includes('code=') || window.location.search.includes('error=')) {
-            handleCallback();
-        }
+        // NOTE: After successful login, the user is redirected to the REDIRECT_URI 
+        // with an authorization code, which your frontend application (e.g., React as mentioned)
+        // must then exchange for tokens.
     </script>
+
 </body>
 </html>
