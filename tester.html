@@ -121,22 +121,24 @@ const cognitoConfig = {
 
 // PKCE Helper Functions
 function generateCodeVerifier() {
-    const array = new Uint8Array(32);
+    const array = new Uint8Array(96);
     crypto.getRandomValues(array);
-    return btoa(String.fromCharCode(...array))
+    const verifier = btoa(String.fromCharCode(...array))
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=/g, '');
+    return verifier;
 }
 
 async function generateCodeChallenge(verifier) {
     const encoder = new TextEncoder();
     const data = encoder.encode(verifier);
     const digest = await crypto.subtle.digest('SHA-256', data);
-    return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    const challenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=/g, '');
+    return challenge;
 }
 
 function saveCodeVerifier(verifier) {
@@ -172,30 +174,41 @@ async function signin() {
         const codeVerifier = generateCodeVerifier();
         const codeChallenge = await generateCodeChallenge(codeVerifier);
         
+        console.log('Generated code verifier:', codeVerifier);
+        console.log('Generated code challenge:', codeChallenge);
+        
         // Store code verifier for later use
         saveCodeVerifier(codeVerifier);
         
         // Build authorization URL with PKCE parameters
-        const authUrl = new URL(`https://${cognitoConfig.domain}/oauth2/authorize`);
-        const params = {
+        const authParams = new URLSearchParams({
             client_id: cognitoConfig.clientId,
             response_type: 'code',
-            scope: cognitoConfig.scopes.join('+'),
+            scope: cognitoConfig.scopes.join(' '),
             redirect_uri: cognitoConfig.redirectUri,
             code_challenge: codeChallenge,
-            code_challenge_method: 'S256'
-        };
+            code_challenge_method: 'S256',
+            state: generateRandomString(16) // Add state parameter for security
+        });
         
-        Object.keys(params).forEach(key => 
-            authUrl.searchParams.append(key, params[key])
-        );
+        const authUrl = `https://${cognitoConfig.domain}/oauth2/authorize?${authParams.toString()}`;
         
+        console.log('Redirecting to:', authUrl);
         // Redirect to Cognito
-        window.location.href = authUrl.toString();
+        window.location.href = authUrl;
     } catch (error) {
         console.error('Error during signin:', error);
         alert('Error starting authentication: ' + error.message);
     }
+}
+
+function generateRandomString(length) {
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return btoa(String.fromCharCode(...array))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
 }
 
 async function exchangeCodeForTokens(authorizationCode) {
@@ -214,6 +227,7 @@ async function exchangeCodeForTokens(authorizationCode) {
             code_verifier: codeVerifier
         });
 
+        console.log('Exchanging code for tokens...');
         const response = await fetch(tokenUrl, {
             method: 'POST',
             headers: {
@@ -223,10 +237,13 @@ async function exchangeCodeForTokens(authorizationCode) {
         });
 
         if (!response.ok) {
-            throw new Error(`Token exchange failed: ${response.status}`);
+            const errorText = await response.text();
+            console.error('Token exchange failed:', response.status, errorText);
+            throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
         }
 
         const tokens = await response.json();
+        console.log('Tokens received successfully');
         return tokens;
     } catch (error) {
         console.error('Error exchanging code for tokens:', error);
@@ -245,10 +262,11 @@ async function handleOAuthCallback() {
     const urlParams = new URLSearchParams(window.location.search);
     const authorizationCode = urlParams.get('code');
     const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
 
     if (error) {
-        console.error('OAuth error:', error, urlParams.get('error_description'));
-        alert(`Authentication error: ${error}`);
+        console.error('OAuth error:', error, errorDescription);
+        alert(`Authentication error: ${error} - ${errorDescription}`);
         // Clean up URL
         window.history.replaceState({}, document.title, window.location.pathname);
         return;
@@ -256,6 +274,7 @@ async function handleOAuthCallback() {
 
     if (authorizationCode) {
         try {
+            console.log('Authorization code received, exchanging for tokens...');
             const tokens = await exchangeCodeForTokens(authorizationCode);
             saveSession({
                 id_token: tokens.id_token,
@@ -267,6 +286,7 @@ async function handleOAuthCallback() {
             clearCodeVerifier();
             window.history.replaceState({}, document.title, window.location.pathname);
             
+            console.log('Authentication successful');
             // Update UI
             showAuthUI();
             showSessionInfo();
