@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cognito Auth Tester</title>
+<title>Cognito Auth Tester (PKCE)</title>
 <style>
 body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
 .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -80,6 +80,130 @@ h1,h2,h3 { color:#333; }
 </div>
 
 <script>
+// --- PKCE UTILITY FUNCTIONS ---
+function base64urlencode(buffer){
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary)
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+async function sha256(str){
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+    return base64urlencode(digest);
+}
+function genRandom(){ 
+    const arr = new Uint8Array(32); 
+    crypto.getRandomValues(arr); 
+    return base64urlencode(arr); 
+}
+
+// --- CONFIG & SESSION MANAGEMENT ---
+const cognitoConfig = {
+    // New Client ID applied here:
+    clientId: '73lf1h32phkqeb9ahu6tqcl9av',
+    domain: 'auth.theweer.com',
+    redirectUri: window.location.origin + window.location.pathname,
+    tokenEndpoint: `https://auth.theweer.com/oauth2/token` // Needed for PKCE token exchange
+};
+
+function saveSession(t){ localStorage.setItem('cognitoSession', JSON.stringify(t)); }
+function getSession(){ return JSON.parse(localStorage.getItem('cognitoSession')); }
+
+// --- AUTH FLOW FUNCTIONS (PKCE) ---
+
+function showAuthUI(){
+    const authDiv = document.getElementById('auth-action');
+    authDiv.innerHTML = `
+        <button onclick="signin()">Sign In / Sign Up</button>
+        <button onclick="signout()">Sign Out</button>
+    `;
+}
+
+async function signin(){
+    const verifier = genRandom();
+    localStorage.setItem('pkce_verifier', verifier);
+    const challenge = await sha256(verifier);
+    
+    const url =
+      `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code`
+      + `&client_id=${cognitoConfig.clientId}`
+      + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
+      + `&scope=email+openid+profile`
+      + `&code_challenge_method=S256`
+      + `&code_challenge=${challenge}`;
+      
+    window.location.href = url;
+}
+
+function signout(){
+    localStorage.removeItem('cognitoSession');
+    localStorage.removeItem('pkce_verifier');
+    window.location.href =
+      `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}`
+      + `&logout_uri=${encodeURIComponent(window.location.origin)}`;
+}
+
+async function handleCodeExchange(){
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if(!code) return; // No code, so not a redirect from Cognito
+
+    const verifier = localStorage.getItem('pkce_verifier');
+    if (!verifier) {
+        console.error("PKCE Error: Code verifier not found in storage.");
+        // Clear the URL to remove the 'code' parameter even if exchange fails
+        window.history.replaceState({},document.title,cognitoConfig.redirectUri); 
+        return;
+    }
+
+    const body =
+      `grant_type=authorization_code`
+      + `&client_id=${cognitoConfig.clientId}`
+      + `&code=${code}`
+      + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
+      + `&code_verifier=${verifier}`;
+
+    try {
+        const res = await fetch(cognitoConfig.tokenEndpoint,{
+            method:'POST',
+            headers:{'Content-Type':'application/x-www-form-urlencoded'},
+            body
+        });
+        const tokens = await res.json();
+
+        if(res.ok && tokens.id_token) {
+            saveSession(tokens);
+            localStorage.removeItem('pkce_verifier'); // Clear verifier after successful use
+        } else {
+            console.error("Token exchange failed:", tokens.error_description || JSON.stringify(tokens));
+        }
+        
+        // Remove the code and state parameters from the URL
+        window.history.replaceState({},document.title,cognitoConfig.redirectUri);
+    } catch (error) {
+        console.error('Network or exchange error:', error);
+    }
+}
+
+function showSessionInfo(){
+    const session = getSession();
+    const tokenDiv = document.getElementById('token-display');
+    if(session && session.id_token){
+        const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+        // Display email if available, otherwise sub
+        const userIdentifier = payload.email || payload.sub; 
+        tokenDiv.innerHTML = `<h2>Signed in as ${userIdentifier}</h2>
+        <pre>${JSON.stringify(payload, null, 2)}</pre>`;
+    } else {
+        tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
+    }
+}
+
+
+// --- DEVICE DATA AND LOGIC (Unchanged) ---
 const devices = {
     apple: [
         { name: "iPhone 17", value: "iphone17" },
@@ -110,12 +234,14 @@ const devices = {
     ]
 };
 
-// Add this function to update customer device in database
+// --- API CALL FUNCTIONS (Updated to use Bearer token header) ---
+
 async function updateCustomerDevice(deviceId) {
-    const token = getSession()?.id_token;
+    // Use ID Token for calls that require user identity/claims
+    const token = getSession()?.id_token; 
     if (!token) {
         console.log('User not signed in, skipping device update');
-        return; // Only update if user is signed in
+        return; 
     }
     
     try {
@@ -124,7 +250,7 @@ async function updateCustomerDevice(deviceId) {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json', 
-                'Authorization': token 
+                'Authorization': 'Bearer ' + token // Correct Bearer format
             },
             body: JSON.stringify({ 
                 device_id: deviceId,
@@ -145,21 +271,102 @@ async function updateCustomerDevice(deviceId) {
     }
 }
 
-// Initialize device options
+let selectedFiles = [];
+
+document.getElementById('fileInput').addEventListener('change', (e)=>{
+    selectedFiles = Array.from(e.target.files);
+    if(selectedFiles.length !== 3) alert("Please select exactly 3 images");
+});
+
+async function uploadFiles() {
+    // Use ID Token for identity-based calls
+    const token = getSession()?.id_token;
+    const deviceId = document.getElementById('deviceSelect').value;
+
+    if (!token) return alert('Please sign in first');
+    if (!deviceId) return alert('Please select a device before uploading');
+    if (selectedFiles.length !== 3) return alert('Please select exactly 3 images');
+
+    const filesData = selectedFiles.map((f, i) => ({
+        fileId: i + 1,
+        fileName: f.name,
+        fileType: f.type
+    }));
+
+    // Step 1: Get presigned URLs from Lambda
+    const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, // Correct Bearer format
+        body: JSON.stringify({ files: filesData, device_id: deviceId })
+    });
+
+    const data = await res.json();
+    const resultDiv = document.getElementById('uploadResult');
+
+    if (!res.ok || !data.uploadUrls) {
+        resultDiv.innerHTML = `❌ Upload failed: ${data.error || JSON.stringify(data)}`;
+        return;
+    }
+
+    // Step 2: Upload files and notify Lambda
+    try {
+        const uploadPromises = data.uploadUrls.map(async (u, idx) => {
+            const uploadResponse = await fetch(u.uploadUrl, {
+                method: 'PUT',
+                body: selectedFiles[idx],
+                headers: { 'Content-Type': selectedFiles[idx].type }
+            });
+
+            if (uploadResponse.ok) {
+                // Step 3: Notify Lambda of complete upload
+                const notificationPayload = {
+                    action: 'uploadComplete',
+                    fileKey: u.key,
+                    metadata: {
+                        fileName: u.fileName,
+                        priority: u.priority,
+                        srcid: u.srcid,
+                        palette_id: u.palette_id,
+                        flavor: u.flavor,
+                        cid: data.cid,
+                        device_id: deviceId 
+                    }
+                };
+
+                fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, // Correct Bearer format
+                    body: JSON.stringify(notificationPayload)
+                });
+            }
+
+            return uploadResponse;
+        });
+
+        await Promise.all(uploadPromises);
+        resultDiv.innerHTML = `✅ All 3 files uploaded successfully! Processing started...`;
+    } catch (e) {
+        resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
+    }
+    
+    // Show the real-time panel for updates
+    if (window.realtimeUpdates) {
+        window.realtimeUpdates.showPanel();
+    }
+}
+
+// --- UI / INITIALIZATION LOGIC (Unchanged) ---
 function initializeDeviceOptions() {
     updateDeviceOptions();
     
-    // Add event listeners to radio buttons
     const brandRadios = document.querySelectorAll('input[name="brand"]');
     brandRadios.forEach(radio => {
         radio.addEventListener('change', updateDeviceOptions);
     });
     
-    // Add event listener to device select
     const deviceSelect = document.getElementById('deviceSelect');
     deviceSelect.addEventListener('change', showAcknowledgeSection);
     
-    // Add event listener to acknowledgment checkbox
     const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
     acknowledgeCheckbox.addEventListener('change', toggleUploadSection);
 }
@@ -178,7 +385,6 @@ function updateDeviceOptions() {
         deviceSelect.appendChild(opt);
     });
     
-    // Hide acknowledge section when brand changes
     document.getElementById('acknowledgeSection').style.display = 'none';
     document.getElementById('uploadSection').style.display = 'none';
     document.getElementById('acknowledgeCheckbox').checked = false;
@@ -216,147 +422,16 @@ function toggleUploadSection() {
     }
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeDeviceOptions);
-
-// Rest of the existing Cognito code
-const cognitoConfig = {
-    clientId: '7irso7dmmnp793egs9bhkl0t81',
-    domain: 'auth.theweer.com',
-    redirectUri: window.location.origin + window.location.pathname
-};
-
-function saveSession(tokens){ localStorage.setItem('cognitoSession', JSON.stringify(tokens)); }
-function getSession(){ return JSON.parse(localStorage.getItem('cognitoSession')); }
-
-function showAuthUI(){ 
-    const authDiv = document.getElementById('auth-action');
-    authDiv.innerHTML = `
-        <button onclick="signin()">Sign In / Sign Up</button>
-        <button onclick="signout()">Sign Out</button>
-    `;
+// Initialize application
+async function initializeApp() {
+    await handleCodeExchange();
+    showAuthUI();
+    showSessionInfo();
+    initializeDeviceOptions();
 }
 
-function signin(){
-    window.location.href = `https://${cognitoConfig.domain}/login?client_id=${cognitoConfig.clientId}&response_type=token&scope=email+openid+profile&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`;
-}
-
-function signout(){
-    localStorage.removeItem('cognitoSession');
-    window.location.href = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${encodeURIComponent(window.location.origin)}`;
-}
-
-function parseHashTokens(){
-    if(location.hash){
-        const hash = location.hash.substring(1);
-        const params = new URLSearchParams(hash);
-        const id_token = params.get('id_token');
-        const access_token = params.get('access_token');
-        if(id_token && access_token){
-            saveSession({id_token, access_token});
-            location.hash = '';
-        }
-    }
-}
-
-function showSessionInfo(){
-    const session = getSession();
-    const tokenDiv = document.getElementById('token-display');
-    if(session && session.id_token){
-        const payload = JSON.parse(atob(session.id_token.split('.')[1]));
-        tokenDiv.innerHTML = `<h2>Signed in as ${payload.sub}</h2>
-        <pre>${JSON.stringify(payload, null, 2)}</pre>`;
-    } else {
-        tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
-    }
-}
-
-parseHashTokens();
-showAuthUI();
-showSessionInfo();
-
-let selectedFiles = [];
-
-document.getElementById('fileInput').addEventListener('change', (e)=>{
-    selectedFiles = Array.from(e.target.files);
-    if(selectedFiles.length !== 3) alert("Please select exactly 3 images");
-});
-
-async function uploadFiles() {
-    const token = getSession()?.id_token;
-    const deviceId = document.getElementById('deviceSelect').value;
-
-    if (!token) return alert('Please sign in first');
-    if (!deviceId) return alert('Please select a device before uploading');
-    if (selectedFiles.length !== 3) return alert('Please select exactly 3 images');
-
-    const filesData = selectedFiles.map((f, i) => ({
-        fileId: i + 1,
-        fileName: f.name,
-        fileType: f.type
-    }));
-
-    // Step 1: Get presigned URLs from Lambda
-    const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': token },
-        body: JSON.stringify({ files: filesData, device_id: deviceId })
-    });
-
-    const data = await res.json();
-    const resultDiv = document.getElementById('uploadResult');
-
-    if (!res.ok || !data.uploadUrls) {
-        resultDiv.innerHTML = `❌ Upload failed: ${data.error || JSON.stringify(data)}`;
-        return;
-    }
-
-    // Step 2: Upload files and notify Lambda
-    try {
-        const uploadPromises = data.uploadUrls.map(async (u, idx) => {
-            const uploadResponse = await fetch(u.uploadUrl, {
-                method: 'PUT',
-                body: selectedFiles[idx],
-                headers: { 'Content-Type': selectedFiles[idx].type }
-            });
-
-            if (uploadResponse.ok) {
-                // Pass device_id in the uploadComplete notification
-                const notificationPayload = {
-                    action: 'uploadComplete',
-                    fileKey: u.key,
-                    metadata: {
-                        fileName: u.fileName,
-                        priority: u.priority,
-                        srcid: u.srcid,
-                        palette_id: u.palette_id,
-                        flavor: u.flavor,
-                        cid: data.cid,
-                        device_id: deviceId // <-- IMPORTANT: Pass deviceId here
-                    }
-                };
-
-                fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': token },
-                    body: JSON.stringify(notificationPayload)
-                });
-            }
-
-            return uploadResponse;
-        });
-
-        await Promise.all(uploadPromises);
-        resultDiv.innerHTML = `✅ All 3 files uploaded successfully! Processing started...`;
-    } catch (e) {
-        resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
-    }
-    
-    // Show the real-time panel for updates
-    if (window.realtimeUpdates) {
-        window.realtimeUpdates.showPanel();
-    }
-}
+// Start the application
+document.addEventListener('DOMContentLoaded', initializeApp);
 </script>
 
 <link rel="stylesheet" href="realtime-updates.css">
