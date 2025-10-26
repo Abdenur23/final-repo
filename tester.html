@@ -275,7 +275,7 @@ function genRandom(){
 const cognitoConfig = {
     clientId: '73lf1h32phkqeb9ahu6tqcl9av',
     domain: 'auth.theweer.com',
-    redirectUri: window.location.origin + window.location.pathname,
+    redirectUri: 'https://theweer.com/tester.html', // Fixed redirect URI
     tokenEndpoint: `https://auth.theweer.com/oauth2/token`
 };
 
@@ -290,52 +290,92 @@ function showAuthUI(){
 }
 
 async function signin(){
-    const verifier = genRandom();
-    localStorage.setItem('pkce_verifier', verifier);
-    const challenge = await sha256(verifier);
-    const url =
-      `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code`
-      + `&client_id=${cognitoConfig.clientId}`
-      + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
-      + `&scope=email+openid+profile`
-      + `&code_challenge_method=S256`
-      + `&code_challenge=${challenge}`;
-    window.location.href = url;
+    try {
+        const verifier = genRandom();
+        localStorage.setItem('pkce_verifier', verifier);
+        const challenge = await sha256(verifier);
+        
+        // Use the correct OAuth2 authorization endpoint
+        const url = new URL(`https://${cognitoConfig.domain}/oauth2/authorize`);
+        url.searchParams.append('response_type', 'code');
+        url.searchParams.append('client_id', cognitoConfig.clientId);
+        url.searchParams.append('redirect_uri', cognitoConfig.redirectUri);
+        url.searchParams.append('scope', 'email openid profile');
+        url.searchParams.append('code_challenge_method', 'S256');
+        url.searchParams.append('code_challenge', challenge);
+        
+        console.log('Redirecting to:', url.toString());
+        window.location.href = url.toString();
+    } catch (error) {
+        console.error('Error initiating signin:', error);
+        showNotification('Error starting authentication', 'error');
+    }
 }
 
 function signout(){
     localStorage.removeItem('cognitoSession');
-    window.location.href =
-      `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}`
-      + `&logout_uri=${encodeURIComponent(window.location.origin)}`;
+    localStorage.removeItem('pkce_verifier');
+    
+    // Use the correct logout endpoint
+    const url = new URL(`https://${cognitoConfig.domain}/logout`);
+    url.searchParams.append('client_id', cognitoConfig.clientId);
+    url.searchParams.append('logout_uri', cognitoConfig.redirectUri);
+    
+    window.location.href = url.toString();
 }
 
 async function handleCodeExchange(){
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
-    if(!code) return;
+    
+    if(!code) {
+        // Check for errors in the URL
+        const error = params.get('error');
+        if (error) {
+            console.error('OAuth error:', error, params.get('error_description'));
+            showNotification(`Authentication error: ${error}`, 'error');
+        }
+        return;
+    }
 
     const verifier = localStorage.getItem('pkce_verifier');
-    const body =
-      `grant_type=authorization_code`
-      + `&client_id=${cognitoConfig.clientId}`
-      + `&code=${code}`
-      + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
-      + `&code_verifier=${verifier}`;
+    if (!verifier) {
+        console.error('No PKCE verifier found');
+        showNotification('Authentication session expired', 'error');
+        return;
+    }
+
+    const body = new URLSearchParams();
+    body.append('grant_type', 'authorization_code');
+    body.append('client_id', cognitoConfig.clientId);
+    body.append('code', code);
+    body.append('redirect_uri', cognitoConfig.redirectUri);
+    body.append('code_verifier', verifier);
 
     try {
-        const res = await fetch(cognitoConfig.tokenEndpoint,{
-            method:'POST',
-            headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        const res = await fetch(cognitoConfig.tokenEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body
         });
+        
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+        }
+        
         const tokens = await res.json();
         if(tokens.id_token) {
             saveSession(tokens);
+            localStorage.removeItem('pkce_verifier'); // Clean up verifier
             showNotification('Successfully signed in!', 'success');
+        } else {
+            throw new Error('No ID token received');
         }
-        window.history.replaceState({},document.title,cognitoConfig.redirectUri);
+        
+        // Clean URL without code parameter
+        window.history.replaceState({}, document.title, cognitoConfig.redirectUri);
     } catch (error) {
+        console.error('Token exchange error:', error);
         handleApiError(error, 'authentication');
     }
 }
@@ -344,9 +384,15 @@ function showSessionInfo(){
     const s = getSession();
     const div = document.getElementById('token-display');
     if(s?.id_token){
-        const payload = JSON.parse(atob(s.id_token.split('.')[1]));
-        div.innerHTML = `<h2>Signed in as ${payload.email || payload.sub}</h2><pre>${JSON.stringify(payload,null,2)}</pre>`;
-    } else div.innerHTML = `<h2>Not signed in</h2>`;
+        try {
+            const payload = JSON.parse(atob(s.id_token.split('.')[1]));
+            div.innerHTML = `<h2>Signed in as ${payload.email || payload.sub}</h2><pre>${JSON.stringify(payload,null,2)}</pre>`;
+        } catch (error) {
+            div.innerHTML = `<h2>Signed in (token parsing error)</h2>`;
+        }
+    } else {
+        div.innerHTML = `<h2>Not signed in</h2>`;
+    }
 }
 
 // File validation
