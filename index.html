@@ -1,44 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>The Weer - Home</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to The Weer</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #ddd; }
-        .nav a { margin: 0 15px; text-decoration: none; color: #2563eb; font-weight: 500; }
-        .hero { text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; margin: 30px 0; }
-        .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin: 40px 0; }
-        .product-card { padding: 30px; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center; }
-        .auth-section { background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
-        .btn-primary { background: #2563eb; color: white; }
-        .btn-secondary { background: #dc2626; color: white; }
-        .user-info { background: #d1fae5; padding: 15px; border-radius: 6px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px; 
+            background-color: #f4f4f9; 
+            line-height: 1.6;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        }
+        h1 { color: #333; margin-bottom: 20px; }
+        #auth-container { 
+            margin: 20px 0; 
+            padding: 15px; 
+            background: #f8f9fa; 
+            border-radius: 5px; 
+        }
+        .nav-links { 
+            margin: 25px 0; 
+            padding: 15px; 
+            background: #e9ecef; 
+            border-radius: 5px; 
+        }
+        .nav-links a { 
+            display: inline-block; 
+            margin: 0 15px 10px 0; 
+            padding: 10px 20px; 
+            background: #007bff; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+        }
+        .nav-links a:hover { background: #0056b3; }
+        .user-info { 
+            padding: 15px; 
+            background: #d4edda; 
+            border: 1px solid #c3e6cb; 
+            border-radius: 5px; 
+            margin: 20px 0; 
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>The Weer</h1>
-        <div class="nav">
-            <a href="index.html">Home</a>
-            <a href="product1.html">Product 1</a>
-            <a href="product2.html">Product 2</a>
+    <div class="container">
+        <h1>Welcome to Weer</h1>
+        
+        <div id="nav-container"></div>
+        
+        <div id="auth-container"></div>
+        
+        <div id="user-welcome" style="display: none;" class="user-info">
+            <h3>Welcome back!</h3>
+            <p>You are signed in. You can now access all features.</p>
+        </div>
+        
+        <div class="nav-links">
+            <h3>Our Products:</h3>
+            <a href="case.html">Custom Phone Cases</a>
+            <!-- Add more product links here as they are developed -->
+        </div>
+        
+        <div>
+            <h3>About Weer</h3>
+            <p>We create amazing custom products. Sign in to get started!</p>
         </div>
     </div>
 
-    <div id="auth-section" class="auth-section">
-        <p>Checking authentication status...</p>
-    </div>
-
-    <div class="hero">
-        <h2>Welcome to The Weer</h2>
-        <p>Innovative solutions for modern businesses</p>
-    </div>
-
-    
     <script src="auth.js"></script>
     <script>
-        checkAuthStatus();
+        async function initializeHome() {
+            const isAuth = await initializeAuth();
+            
+            // Show welcome message if authenticated
+            const userWelcome = document.getElementById('user-welcome');
+            if (isAuth) {
+                userWelcome.style.display = 'block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeHome);
     </script>
 </body>
 </html>
