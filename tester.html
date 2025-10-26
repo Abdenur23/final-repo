@@ -217,7 +217,10 @@ function toggleUploadSection() {
 }
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeDeviceOptions);
+document.addEventListener('DOMContentLoaded', function() {
+    initializeDeviceOptions();
+    initializeAuth();
+});
 
 // --- PKCE helpers ---
 function base64urlencode(str){
@@ -267,6 +270,7 @@ async function signin(){
 
 function signout(){
     localStorage.removeItem('cognitoSession');
+    localStorage.removeItem('pkce_verifier');
     window.location.href =
       `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}`
       + `&logout_uri=${encodeURIComponent(window.location.origin)}`;
@@ -291,7 +295,10 @@ async function handleCodeExchange(){
         body
     });
     const tokens = await res.json();
-    if(tokens.id_token) saveSession(tokens);
+    if(tokens.id_token) {
+        saveSession(tokens);
+        localStorage.removeItem('pkce_verifier');
+    }
     window.history.replaceState({},document.title,cognitoConfig.redirectUri);
 }
 
@@ -300,13 +307,18 @@ function showSessionInfo(){
     const div = document.getElementById('token-display');
     if(s?.id_token){
         const payload = JSON.parse(atob(s.id_token.split('.')[1]));
-        div.innerHTML = `<h2>Signed in as ${payload.sub}</h2><pre>${JSON.stringify(payload,null,2)}</pre>`;
-    } else div.innerHTML = `<h2>Not signed in</h2>`;
+        div.innerHTML = `<h2>Signed in as ${payload.email || payload.sub}</h2><pre>${JSON.stringify(payload,null,2)}</pre>`;
+    } else {
+        div.innerHTML = `<h2>Not signed in</h2>`;
+    }
 }
 
-await handleCodeExchange();
-showAuthUI();
-showSessionInfo();
+// Initialize authentication
+async function initializeAuth() {
+    await handleCodeExchange();
+    showAuthUI();
+    showSessionInfo();
+}
 
 let selectedFiles = [];
 
