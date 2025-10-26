@@ -129,7 +129,6 @@ const devices = {
 
 // --- PKCE UTILITY FUNCTIONS ---
 function base64urlencode(buffer){
-    // If buffer is an ArrayBuffer (from crypto.subtle.digest), convert to string
     const bytes = new Uint8Array(buffer);
     let binary = '';
     for (let i = 0; i < bytes.byteLength; i++) {
@@ -145,8 +144,6 @@ async function sha256(str){
 function genRandom(){ 
     const arr = new Uint8Array(32); 
     crypto.getRandomValues(arr); 
-    // When converting Uint8Array to string for base64urlencode, pass the array itself
-    // and let the function handle the conversion
     return base64urlencode(arr); 
 }
 
@@ -274,10 +271,10 @@ function showSessionInfo(){
     } else div.innerHTML = `<h2>Not signed in</h2>`;
 }
 
-// --- API CALL FUNCTIONS (USING ACCESS TOKEN) ---
+// --- API CALL FUNCTIONS (USING ACCESS TOKEN WITH BEARER PREFIX) ---
 
 async function updateCustomerDevice(deviceId) {
-    // IMPORTANT: Using access_token for API authorization
+    // Using access_token for API authorization
     const token = getSession()?.access_token; 
     if (!token) {
         console.log('User not signed in, skipping device update');
@@ -290,7 +287,8 @@ async function updateCustomerDevice(deviceId) {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json', 
-                'Authorization': token // <-- Access Token is used here
+                // **FIXED: Correctly adding 'Bearer ' prefix**
+                'Authorization': 'Bearer ' + token 
             },
             body: JSON.stringify({ 
                 device_id: deviceId,
@@ -342,8 +340,8 @@ function validateFileSelection(files) {
 }
 
 async function uploadFiles() {
-    // IMPORTANT: Using access_token for API authorization
-    const token = getSession()?.access_token; 
+    // Using access_token for API authorization
+    const token = getSession()?.access_token;
     const deviceId = document.getElementById('deviceSelect').value;
 
     if (!token) return showNotification('Please sign in first', 'error');
@@ -368,7 +366,8 @@ async function uploadFiles() {
         // Step 1: Get presigned URLs from Lambda
         const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': token }, // <-- Access Token
+            // **FIXED: Correctly adding 'Bearer ' prefix**
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
             body: JSON.stringify({ files: filesData, device_id: deviceId })
         });
 
@@ -406,7 +405,8 @@ async function uploadFiles() {
 
             await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': token }, // <-- Access Token
+                // **FIXED: Correctly adding 'Bearer ' prefix**
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
                 body: JSON.stringify(notificationPayload)
             });
         });
@@ -415,7 +415,6 @@ async function uploadFiles() {
         resultDiv.innerHTML = `✅ All 3 files uploaded successfully! Processing started...`;
         showNotification('Files uploaded successfully! Processing your images...', 'success');
         
-        // Show the real-time panel for updates
         if (window.realtimeUpdates) {
             window.realtimeUpdates.showPanel();
         }
