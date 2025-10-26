@@ -4,25 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cognito OIDC Test</title>
-    <script src="https://cdn.jsdelivr.net/npm/oidc-client-ts@2.1.3/dist/oidc-client-ts.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; }
         button { padding: 10px 20px; margin: 10px; font-size: 16px; }
         .user-info { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 5px; }
         pre { background: #2d2d2d; color: #fff; padding: 15px; border-radius: 5px; overflow-x: auto; }
         .hidden { display: none; }
+        .token { word-break: break-all; font-size: 12px; }
     </style>
 </head>
 <body>
     <h1>Cognito OIDC Test</h1>
     
     <div id="signedOut">
-        <button id="signIn">Sign In / Sign Up</button>
+        <button onclick="signIn()">Sign In / Sign Up</button>
     </div>
     
     <div id="signedIn" class="hidden">
-        <button id="signOut">Sign Out</button>
-        <button id="refreshToken">Refresh Token</button>
+        <button onclick="signOut()">Sign Out</button>
+        <button onclick="refreshToken()">Refresh Token</button>
         
         <div class="user-info">
             <h3>User Info:</h3>
@@ -31,114 +31,257 @@
             <p><strong>Expires:</strong> <span id="tokenExpiry">-</span></p>
             
             <h4>Access Token:</h4>
-            <pre id="accessToken">-</pre>
+            <div class="token" id="accessToken">-</div>
             
             <h4>ID Token:</h4>
-            <pre id="idToken">-</pre>
+            <div class="token" id="idToken">-</div>
             
-            <h4>Full User Object:</h4>
-            <pre id="fullUser">-</pre>
+            <h4>Token Payload:</h4>
+            <pre id="tokenPayload">-</pre>
         </div>
     </div>
 
     <script>
-        // Configure OIDC client
+        // Configuration
         const config = {
-            authority: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_TJDOamTpp",
-            client_id: "73lf1h32phkqeb9ahu6tqcl9av",
-            redirect_uri: "https://theweer.com/tester.html",
-            response_type: "code",
-            scope: "email openid phone profile",
-            automaticSilentRenew: true,
-            loadUserInfo: true
+            clientId: "73lf1h32phkqeb9ahu6tqcl9av",
+            redirectUri: "https://theweer.com/tester.html",
+            cognitoDomain: "https://auth.theweer.com",
+            scopes: "email openid phone profile"
         };
-
-        // Create UserManager instance
-        const userManager = new Oidc.UserManager(config);
 
         // DOM elements
         const signedOutDiv = document.getElementById('signedOut');
         const signedInDiv = document.getElementById('signedIn');
-        const signInBtn = document.getElementById('signIn');
-        const signOutBtn = document.getElementById('signOut');
-        const refreshTokenBtn = document.getElementById('refreshToken');
 
-        // Check if user is already signed in
-        userManager.getUser().then(user => {
-            if (user) {
-                showUserInfo(user);
-            } else {
-                // Check for callback from OIDC provider
-                handleCallback();
+        // Check URL for tokens (implicit flow)
+        function checkUrlForTokens() {
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            
+            const accessToken = params.get('access_token');
+            const idToken = params.get('id_token');
+            
+            if (accessToken && idToken) {
+                // Save tokens
+                localStorage.setItem('cognito_access_token', accessToken);
+                localStorage.setItem('cognito_id_token', idToken);
+                
+                // Clear URL hash
+                window.location.hash = '';
+                
+                // Show user info
+                showUserInfo();
+                return true;
             }
-        });
+            return false;
+        }
 
-        // Handle OIDC callback
-        async function handleCallback() {
+        // Check URL for authorization code (PKCE flow)
+        function checkUrlForCode() {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            
+            if (code) {
+                exchangeCodeForTokens(code);
+                return true;
+            }
+            return false;
+        }
+
+        // Exchange authorization code for tokens (PKCE)
+        async function exchangeCodeForTokens(code) {
             try {
-                const user = await userManager.signinCallback();
-                if (user) {
-                    showUserInfo(user);
+                // You would need to store the code_verifier from the initial request
+                const verifier = localStorage.getItem('pkce_verifier');
+                
+                const response = await fetch(`${config.cognitoDomain}/oauth2/token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        grant_type: 'authorization_code',
+                        client_id: config.clientId,
+                        code: code,
+                        redirect_uri: config.redirectUri,
+                        code_verifier: verifier
+                    })
+                });
+                
+                const tokens = await response.json();
+                
+                if (tokens.access_token && tokens.id_token) {
+                    localStorage.setItem('cognito_access_token', tokens.access_token);
+                    localStorage.setItem('cognito_id_token', tokens.id_token);
+                    localStorage.setItem('cognito_refresh_token', tokens.refresh_token || '');
+                    
+                    // Clear URL parameters
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    
+                    showUserInfo();
                 }
             } catch (error) {
-                console.log('Not in callback flow:', error.message);
+                console.error('Token exchange failed:', error);
             }
         }
 
         // Show user information
-        function showUserInfo(user) {
-            signedOutDiv.classList.add('hidden');
-            signedInDiv.classList.remove('hidden');
+        function showUserInfo() {
+            const accessToken = localStorage.getItem('cognito_access_token');
+            const idToken = localStorage.getItem('cognito_id_token');
             
-            document.getElementById('userEmail').textContent = user.profile?.email || '-';
-            document.getElementById('userId').textContent = user.profile?.sub || '-';
-            document.getElementById('tokenExpiry').textContent = new Date(user.expires_at * 1000).toLocaleString();
-            document.getElementById('accessToken').textContent = user.access_token || '-';
-            document.getElementById('idToken').textContent = user.id_token || '-';
-            document.getElementById('fullUser').textContent = JSON.stringify(user, null, 2);
+            if (!accessToken || !idToken) {
+                signedOutDiv.classList.remove('hidden');
+                signedInDiv.classList.add('hidden');
+                return;
+            }
+            
+            try {
+                // Decode ID token payload
+                const payload = JSON.parse(atob(idToken.split('.')[1]));
+                
+                signedOutDiv.classList.add('hidden');
+                signedInDiv.classList.remove('hidden');
+                
+                document.getElementById('userEmail').textContent = payload.email || '-';
+                document.getElementById('userId').textContent = payload.sub || '-';
+                document.getElementById('tokenExpiry').textContent = new Date(payload.exp * 1000).toLocaleString();
+                document.getElementById('accessToken').textContent = accessToken.substring(0, 50) + '...';
+                document.getElementById('idToken').textContent = idToken.substring(0, 50) + '...';
+                document.getElementById('tokenPayload').textContent = JSON.stringify(payload, null, 2);
+            } catch (error) {
+                console.error('Error parsing token:', error);
+                signOut();
+            }
         }
 
-        // Event listeners
-        signInBtn.addEventListener('click', () => {
-            userManager.signinRedirect();
-        });
+        // Sign in with implicit flow (simple)
+        function signIn() {
+            const authUrl = `${config.cognitoDomain}/oauth2/authorize?` + new URLSearchParams({
+                client_id: config.clientId,
+                response_type: 'token',
+                scope: config.scopes,
+                redirect_uri: config.redirectUri
+            });
+            
+            window.location.href = authUrl;
+        }
 
-        signOutBtn.addEventListener('click', () => {
-            userManager.signoutRedirect();
-        });
+        // Sign in with PKCE (more secure)
+        async function signInPKCE() {
+            // Generate PKCE code verifier and challenge
+            const verifier = generateRandomString(64);
+            const challenge = await generateCodeChallenge(verifier);
+            
+            localStorage.setItem('pkce_verifier', verifier);
+            
+            const authUrl = `${config.cognitoDomain}/oauth2/authorize?` + new URLSearchParams({
+                client_id: config.clientId,
+                response_type: 'code',
+                scope: config.scopes,
+                redirect_uri: config.redirectUri,
+                code_challenge_method: 'S256',
+                code_challenge: challenge
+            });
+            
+            window.location.href = authUrl;
+        }
 
-        refreshTokenBtn.addEventListener('click', async () => {
-            try {
-                const user = await userManager.signinSilent();
-                showUserInfo(user);
-                alert('Token refreshed successfully!');
-            } catch (error) {
-                alert('Failed to refresh token: ' + error.message);
+        // Sign out
+        function signOut() {
+            localStorage.removeItem('cognito_access_token');
+            localStorage.removeItem('cognito_id_token');
+            localStorage.removeItem('cognito_refresh_token');
+            localStorage.removeItem('pkce_verifier');
+            
+            signedOutDiv.classList.remove('hidden');
+            signedInDiv.classList.add('hidden');
+            
+            // Optional: Redirect to Cognito logout
+            const logoutUrl = `${config.cognitoDomain}/logout?` + new URLSearchParams({
+                client_id: config.clientId,
+                logout_uri: config.redirectUri
+            });
+            // window.location.href = logoutUrl;
+        }
+
+        // Refresh token
+        async function refreshToken() {
+            const refreshToken = localStorage.getItem('cognito_refresh_token');
+            
+            if (!refreshToken) {
+                alert('No refresh token available. Please sign in again.');
+                return;
             }
-        });
+            
+            try {
+                const response = await fetch(`${config.cognitoDomain}/oauth2/token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        grant_type: 'refresh_token',
+                        client_id: config.clientId,
+                        refresh_token: refreshToken
+                    })
+                });
+                
+                const tokens = await response.json();
+                
+                if (tokens.access_token && tokens.id_token) {
+                    localStorage.setItem('cognito_access_token', tokens.access_token);
+                    localStorage.setItem('cognito_id_token', tokens.id_token);
+                    
+                    showUserInfo();
+                    alert('Token refreshed successfully!');
+                } else {
+                    throw new Error('Invalid token response');
+                }
+            } catch (error) {
+                console.error('Token refresh failed:', error);
+                alert('Token refresh failed. Please sign in again.');
+                signOut();
+            }
+        }
 
-        // Listen for token expirations and auto-renew
-        userManager.events.addAccessTokenExpiring(() => {
-            console.log('Access token expiring, attempting renewal...');
-        });
+        // PKCE helper functions
+        function generateRandomString(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+            let result = '';
+            const randomValues = new Uint8Array(length);
+            crypto.getRandomValues(randomValues);
+            for (let i = 0; i < length; i++) {
+                result += chars[randomValues[i] % chars.length];
+            }
+            return result;
+        }
 
-        userManager.events.addAccessTokenExpired(() => {
-            console.log('Access token expired');
-            alert('Session expired. Please sign in again.');
-            signedOutDiv.classList.remove('hidden');
-            signedInDiv.classList.add('hidden');
-        });
+        async function generateCodeChallenge(verifier) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(verifier);
+            const digest = await crypto.subtle.digest('SHA-256', data);
+            return btoa(String.fromCharCode(...new Uint8Array(digest)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=/g, '');
+        }
 
-        userManager.events.addUserLoaded((user) => {
-            console.log('User loaded', user);
-            showUserInfo(user);
-        });
+        // Initialize
+        function init() {
+            // Check for tokens in URL first
+            if (!checkUrlForTokens()) {
+                // If no tokens, check for authorization code
+                if (!checkUrlForCode()) {
+                    // If nothing in URL, check localStorage
+                    showUserInfo();
+                }
+            }
+        }
 
-        userManager.events.addUserUnloaded(() => {
-            console.log('User unloaded');
-            signedOutDiv.classList.remove('hidden');
-            signedInDiv.classList.add('hidden');
-        });
+        // Start the app
+        init();
     </script>
 </body>
 </html>
