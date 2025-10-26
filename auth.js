@@ -1,197 +1,3 @@
-// // // Cognito configuration
-// // const cognitoConfig = {
-// //     clientId: '7irso7dmmnp793egs9bhkl0t81',
-// //     domain: 'auth.theweer.com',
-// //     redirectUri: window.location.origin
-// // };
-
-// // // Check if user is authenticated
-// // async function checkAuthStatus() {
-// //     const authSection = document.getElementById('auth-section');
-    
-// //     try {
-// //         // Check for authentication code in URL (callback from Cognito)
-// //         const urlParams = new URLSearchParams(window.location.search);
-// //         const code = urlParams.get('code');
-        
-// //         if (code) {
-// //             // User just returned from Cognito - clear URL and show success
-// //             window.history.replaceState({}, document.title, window.location.pathname);
-// //             localStorage.setItem('cognitoToken', 'authenticated-' + Date.now());
-// //             authSection.innerHTML = `
-// //                 <div class="user-info">
-// //                     <p>✅ Successfully authenticated! Welcome back.</p>
-// //                     <button onclick="signOut()" class="btn-secondary">Sign Out</button>
-// //                 </div>
-// //             `;
-// //             if (typeof updateProductContent === 'function') {
-// //                 updateProductContent(true);
-// //             }
-// //             return;
-// //         }
-
-// //         // Check if we have a token in localStorage
-// //         const token = localStorage.getItem('cognitoToken');
-        
-// //         if (token) {
-// //             // User is signed in
-// //             authSection.innerHTML = `
-// //                 <div class="user-info">
-// //                     <p>✅ You are signed in</p>
-// //                     <button onclick="signOut()" class="btn-secondary">Sign Out</button>
-// //                 </div>
-// //             `;
-// //             if (typeof updateProductContent === 'function') {
-// //                 updateProductContent(true);
-// //             }
-// //         } else {
-// //             // User is not signed in
-// //             authSection.innerHTML = `
-// //                 <div>
-// //                     <p>🔒 You are not signed in</p>
-// //                     <button onclick="signIn()" class="btn-primary">Sign In</button>
-// //                     <button onclick="signUp()" class="btn-primary">Sign Up</button>
-// //                 </div>
-// //             `;
-// //             if (typeof updateProductContent === 'function') {
-// //                 updateProductContent(false);
-// //             }
-// //         }
-// //     } catch (error) {
-// //         console.error('Auth check error:', error);
-// //         authSection.innerHTML = `
-// //             <div>
-// //                 <p>❌ Error checking authentication status</p>
-// //                 <button onclick="signIn()" class="btn-primary">Sign In</button>
-// //                 <button onclick="signUp()" class="btn-primary">Sign Up</button>
-// //             </div>
-// //         `;
-// //     }
-// // }
-
-// // // Redirect to Cognito Hosted UI for sign in
-// // function signIn() {
-// //     const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
-// //     const loginUrl = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
-// //     window.location.href = loginUrl;
-// // }
-
-// // // Redirect to Cognito Hosted UI for sign up
-// // function signUp() {
-// //     const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
-// //     const signupUrl = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
-// //     window.location.href = signupUrl;
-// // }
-
-// // // Sign out function
-// // function signOut() {
-// //     // Clear local storage
-// //     localStorage.removeItem('cognitoToken');
-    
-// //     // Redirect to Cognito logout
-// //     const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
-// //     const logoutUrl = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${redirectUri}`;
-// //     window.location.href = logoutUrl;
-// // }
-// // Cognito configuration
-// // Cognito configuration
-// const cognitoConfig = {
-//     clientId: '7irso7dmmnp793egs9bhkl0t81',
-//     domain: 'auth.theweer.com',
-//     redirectUri: window.location.origin
-// };
-
-// // Check if user is authenticated
-// async function checkAuthStatus() {
-//     const authSection = document.getElementById('auth-section');
-    
-//     try {
-//         // Check for authentication code in URL (callback from Cognito)
-//         const urlParams = new URLSearchParams(window.location.search);
-//         const code = urlParams.get('code');
-        
-//         if (code) {
-//             // User just returned from Cognito - clear URL and show success
-//             window.history.replaceState({}, document.title, window.location.pathname);
-//             localStorage.setItem('cognitoToken', 'authenticated-' + Date.now());
-//             authSection.innerHTML = `
-//                 <div class="user-info">
-//                     <p>✅ Successfully authenticated! Welcome back.</p>
-//                     <button onclick="signOut()" class="btn-secondary">Sign Out</button>
-//                 </div>
-//             `;
-//             if (typeof updateProductContent === 'function') {
-//                 updateProductContent(true);
-//             }
-//             return;
-//         }
-
-//         // Check if we have a token in localStorage
-//         const token = localStorage.getItem('cognitoToken');
-        
-//         if (token) {
-//             // User is signed in
-//             authSection.innerHTML = `
-//                 <div class="user-info">
-//                     <p>✅ You are signed in</p>
-//                     <button onclick="signOut()" class="btn-secondary">Sign Out</button>
-//                 </div>
-//             `;
-//             if (typeof updateProductContent === 'function') {
-//                 updateProductContent(true);
-//             }
-//         } else {
-//             // User is not signed in
-//             authSection.innerHTML = `
-//                 <div>
-//                     <p>🔒 You are not signed in</p>
-//                     <button onclick="signIn()" class="btn-primary">Sign In</button>
-//                     <button onclick="signUp()" class="btn-primary">Sign Up</button>
-//                 </div>
-//             `;
-//             if (typeof updateProductContent === 'function') {
-//                 updateProductContent(false);
-//             }
-//         }
-//     } catch (error) {
-//         console.error('Auth check error:', error);
-//         authSection.innerHTML = `
-//             <div>
-//                 <p>❌ Error checking authentication status</p>
-//                 <button onclick="signIn()" class="btn-primary">Sign In</button>
-//                 <button onclick="signUp()" class="btn-primary">Sign Up</button>
-//             </div>
-//         `;
-//     }
-// }
-
-// // Redirect to Cognito Hosted UI for sign in
-// function signIn() {
-//     const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
-//     const loginUrl = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
-//     window.location.href = loginUrl;
-// }
-
-// // Redirect to Cognito Hosted UI for sign up
-// function signUp() {
-//     const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
-//     const signupUrl = `https://${cognitoConfig.domain}/oauth2/authorize?client_id=${cognitoConfig.clientId}&response_type=code&scope=email+openid&redirect_uri=${redirectUri}`;
-//     window.location.href = signupUrl;
-// }
-
-// // Sign out function
-// function signOut() {
-//     // Clear local storage
-//     localStorage.removeItem('cognitoToken');
-    
-//     // Redirect to Cognito logout
-//     const redirectUri = encodeURIComponent(cognitoConfig.redirectUri);
-//     const logoutUrl = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${redirectUri}`;
-//     window.location.href = logoutUrl;
-// }
-// --- SHARED AUTHENTICATION UTILITY ---
-// Save this as auth.js in the same directory
-
 // --- SHARED AUTHENTICATION UTILITY ---
 // Save this as auth.js in the same directory
 
@@ -239,14 +45,40 @@ function clearSession() {
     localStorage.removeItem('pkce_verifier');
 }
 
+function isTokenExpired() {
+    const session = getSession();
+    if (!session || !session.id_token) return true;
+    
+    try {
+        const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+        const exp = payload.exp * 1000; // Convert to milliseconds
+        const now = Date.now();
+        const bufferTime = 60000; // 1 minute buffer for network delays
+        
+        return now >= (exp - bufferTime);
+    } catch (e) {
+        console.error('Error checking token expiration:', e);
+        return true;
+    }
+}
+
 function isAuthenticated() {
     const session = getSession();
-    return !!(session && session.id_token);
+    if (!session || !session.id_token) return false;
+    
+    // Check if token is expired
+    if (isTokenExpired()) {
+        console.log('Token expired, clearing session');
+        clearSession();
+        return false;
+    }
+    
+    return true;
 }
 
 function getUserInfo() {
     const session = getSession();
-    if (session && session.id_token) {
+    if (session && session.id_token && !isTokenExpired()) {
         try {
             const payload = JSON.parse(atob(session.id_token.split('.')[1]));
             
@@ -386,16 +218,45 @@ function renderNavigation() {
     navContainer.innerHTML = navHTML;
 }
 
+// Auto-refresh token (optional - for longer sessions)
+function setupTokenRefresh() {
+    // Check token every minute
+    setInterval(() => {
+        if (isTokenExpired() && getSession()) {
+            console.log('Token expired, redirecting to signin');
+            clearSession();
+            // Force UI refresh on all pages
+            if (typeof toggleAppContent === 'function') {
+                toggleAppContent(false);
+            }
+            renderNavigation();
+            const authContainer = document.querySelector('[id*="auth"], #auth-action, #auth-container');
+            if (authContainer) {
+                renderAuthUI(authContainer.id);
+            }
+        }
+    }, 60000); // Check every minute
+}
+
 // Initialize auth for any page
 async function initializeAuth() {
     await handleCodeExchange();
     renderNavigation();
+    
+    // Check if token is expired and clear if needed
+    if (isTokenExpired() && getSession()) {
+        console.log('Token expired on page load, clearing session');
+        clearSession();
+    }
     
     // Render auth UI if container exists
     const authContainer = document.querySelector('[id*="auth"], #auth-action, #auth-container');
     if (authContainer) {
         renderAuthUI(authContainer.id);
     }
+    
+    // Start token expiration monitoring
+    setupTokenRefresh();
     
     return isAuthenticated();
 }
@@ -406,3 +267,4 @@ window.signout = signout;
 window.getSession = getSession;
 window.isAuthenticated = isAuthenticated;
 window.getUserInfo = getUserInfo;
+window.isTokenExpired = isTokenExpired;
