@@ -1,519 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cognito Auth Tester</title>
-<style>
-body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
-.container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-h1,h2,h3 { color:#333; }
-#auth-action { margin-bottom: 20px; }
-#auth-action button { padding:10px 20px; font-size:16px; background-color:#f90; color:white; border:none; border-radius:5px; cursor:pointer; }
-#token-display pre { background:#eee; padding:10px; border-radius:4px; overflow-x:auto; }
-#uploadSection { margin-top:20px; }
-#uploadSection input { margin-bottom:10px; }
-#uploadSection button { padding:10px 20px; font-size:16px; background-color:#28a745; color:white; border:none; border-radius:5px; cursor:pointer; }
-#uploadResult { margin-top:10px; font-weight:bold; }
-
-/* Device selection styles */
-.device-selection { margin: 20px 0; }
-.brand-selection { margin-bottom: 15px; }
-.brand-option { margin-right: 15px; }
-.acknowledge-section { 
-    margin: 15px 0; 
-    padding: 10px; 
-    background-color: #fff9e6; 
-    border: 1px solid #ffd166;
-    border-radius: 5px;
-    display: none;
-}
-.acknowledge-section p { margin: 0 0 10px 0; font-size: 14px; }
-.acknowledge-section label { display: flex; align-items: flex-start; }
-.acknowledge-section input { margin-right: 8px; margin-top: 2px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognito OIDC Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/oidc-client-ts@2.1.3/dist/oidc-client-ts.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .user-info { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 5px; }
+        pre { background: #2d2d2d; color: #fff; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
-
-<div class="container">
-    <h1>AWS Cognito Authentication Status</h1>
-    <div id="auth-action"></div>
-
-    <div id="token-display"><h2>Not signed in</h2></div>
+    <h1>Cognito OIDC Test</h1>
     
-    <div class="device-selection">
-        <h2>Select Your Device</h2>
-        
-        <div class="brand-selection">
-            <label class="brand-option">
-                <input type="radio" name="brand" value="apple" checked> Apple
-            </label>
-            <label class="brand-option">
-                <input type="radio" name="brand" value="samsung"> Samsung
-            </label>
-        </div>
-        
-        <label for="deviceSelect">Model:</label>
-        <select id="deviceSelect">
-            <option value="">-- Choose Model --</option>
-        </select>
-        
-        <div class="acknowledge-section" id="acknowledgeSection">
-            <p style="margin: 0 0 10px 0; font-size: 14px;">
-                <strong>Important:</strong> For demonstration, we'll show your design on <span id="demoDevice">iPhone 16 Pro Max</span>. 
-                Your actual order will be custom-made specifically for your selected device: <strong id="selectedDevice"></strong>.
-            </p>
-            <label>
-                <input type="checkbox" id="acknowledgeCheckbox"> I understand my case and wallpaper will be custom-made for: <strong id="deviceName"></strong>
-            </label>
-        </div>
+    <div id="signedOut">
+        <button id="signIn">Sign In / Sign Up</button>
     </div>
-
-    <div id="uploadSection" style="display:none;">
-        <h2>Upload 3 Images</h2>
-        <input type="file" id="fileInput" multiple accept="image/*">
-        <br>
-        <button onclick="uploadFiles()">Upload</button>
-        <div id="uploadResult"></div>
-    </div>
-</div>
-
-<script>
-const devices = {
-    apple: [
-        { name: "iPhone 17", value: "iphone17" },
-        { name: "iPhone Air", value: "iphoneair" },
-        { name: "iPhone 17 Pro", value: "iphone17pro" },
-        { name: "iPhone 17 Pro Max", value: "iphone17promax" },
-        { name: "iPhone 16", value: "iphone16" },
-        { name: "iPhone 16e", value: "iphone16e" },
-        { name: "iPhone 16 Plus", value: "iphone16plus" },
-        { name: "iPhone 16 Pro", value: "iphone16pro" },
-        { name: "iPhone 16 Pro Max", value: "iphone16promax" },
-        { name: "iPhone 14", value: "iphone14" },
-        { name: "iPhone 14 Plus", value: "iphone14plus" },
-        { name: "iPhone 14 Pro", value: "iphone14pro" },
-        { name: "iPhone 14 Pro Max", value: "iphone14promax" }
-    ],
-    samsung: [
-        { name: "Galaxy S25", value: "samsungs25" },
-        { name: "Galaxy S25+", value: "samsungs25plus" },
-        { name: "Galaxy S25 Ultra", value: "samsungs25ultra" },
-        { name: "Galaxy S24", value: "samsungs24" },
-        { name: "Galaxy S24+", value: "samsungs24plus" },
-        { name: "Galaxy S24 Ultra", value: "samsungs24ultra" },
-        { name: "Galaxy S23", value: "samsungs23" },
-        { name: "Galaxy S23+", value: "samsungs23plus" },
-        { name: "Galaxy S22", value: "samsungs22" },
-        { name: "Galaxy S21", value: "samsungs21" }
-    ]
-};
-
-// Add this function to update customer device in database
-async function updateCustomerDevice(deviceId) {
-    const token = getSession()?.id_token;
-    if (!token) {
-        console.log('User not signed in, skipping device update');
-        return; // Only update if user is signed in
-    }
     
-    try {
-        console.log('🚀 Calling Lambda to update device:', deviceId);
-        const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': token 
-            },
-            body: JSON.stringify({ 
-                device_id: deviceId,
-                action: 'updateDevice'
-            })
-        });
+    <div id="signedIn" class="hidden">
+        <button id="signOut">Sign Out</button>
+        <button id="refreshToken">Refresh Token</button>
         
-        console.log('📡 API Response status:', response.status);
-        if (response.ok) {
-            const result = await response.json();
-            console.log('✅ Device updated successfully:', result);
-        } else {
-            const error = await response.text();
-            console.error('❌ Failed to update device:', error);
-        }
-    } catch (error) {
-        console.error('💥 Error updating device:', error);
-    }
-}
-
-// Initialize device options
-function initializeDeviceOptions() {
-    updateDeviceOptions();
-    
-    // Add event listeners to radio buttons
-    const brandRadios = document.querySelectorAll('input[name="brand"]');
-    brandRadios.forEach(radio => {
-        radio.addEventListener('change', updateDeviceOptions);
-    });
-    
-    // Add event listener to device select
-    const deviceSelect = document.getElementById('deviceSelect');
-    deviceSelect.addEventListener('change', showAcknowledgeSection);
-    
-    // Add event listener to acknowledgment checkbox
-    const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
-    acknowledgeCheckbox.addEventListener('change', toggleUploadSection);
-}
-
-function updateDeviceOptions() {
-    const selectedBrand = document.querySelector('input[name="brand"]:checked').value;
-    const deviceSelect = document.getElementById('deviceSelect');
-    deviceSelect.innerHTML = '<option value="">-- Choose Model --</option>';
-    
-    if (!selectedBrand || !devices[selectedBrand]) return;
-    
-    devices[selectedBrand].forEach(d => {
-        const opt = document.createElement('option');
-        opt.value = d.value;
-        opt.textContent = d.name;
-        deviceSelect.appendChild(opt);
-    });
-    
-    // Hide acknowledge section when brand changes
-    document.getElementById('acknowledgeSection').style.display = 'none';
-    document.getElementById('uploadSection').style.display = 'none';
-    document.getElementById('acknowledgeCheckbox').checked = false;
-}
-
-function showAcknowledgeSection() {
-    const deviceSelect = document.getElementById('deviceSelect');
-    const acknowledgeSection = document.getElementById('acknowledgeSection');
-    
-    if (deviceSelect.value) {
-        const selectedDevice = deviceSelect.options[deviceSelect.selectedIndex].text;
-        const deviceValue = deviceSelect.value;
-        
-        document.getElementById('selectedDevice').textContent = selectedDevice;
-        document.getElementById('deviceName').textContent = selectedDevice;
-        acknowledgeSection.style.display = 'block';
-        
-        // Update customer device in database
-        console.log('🔄 Device selected, updating database...');
-        updateCustomerDevice(deviceValue);
-    } else {
-        acknowledgeSection.style.display = 'none';
-        document.getElementById('uploadSection').style.display = 'none';
-    }
-}
-
-function toggleUploadSection() {
-    const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
-    const uploadSection = document.getElementById('uploadSection');
-    
-    if (acknowledgeCheckbox.checked) {
-        uploadSection.style.display = 'block';
-    } else {
-        uploadSection.style.display = 'none';
-    }
-}
-
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeDeviceOptions);
-
-// --- SOLUTION: Use the default Cognito domain for PKCE ---
-// Your custom domain works for implicit flow but has issues with PKCE
-// Let's use the default Cognito domain for PKCE flow
-
-// PKCE helpers
-function base64urlencode(str){
-    return btoa(String.fromCharCode.apply(null, new Uint8Array(str)))
-        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-async function sha256(buffer){
-    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(buffer));
-    return base64urlencode(digest);
-}
-function genRandom(){ 
-    const arr = new Uint8Array(32); 
-    crypto.getRandomValues(arr); 
-    return base64urlencode(arr);
-}
-
-// Use default Cognito domain for PKCE (you need to find this in AWS Console)
-const cognitoConfig = {
-    clientId: '73lf1h32phkqeb9ahu6tqcl9av',
-    // Use the default Cognito domain instead of custom domain for PKCE
-    domain: 'theweer.auth.us-east-1.amazoncognito.com', // ← CHANGE THIS to your actual default domain
-    redirectUri: 'https://theweer.com/tester.html',
-    tokenEndpoint: `https://theweer.auth.us-east-1.amazoncognito.com/oauth2/token` // ← Same here
-};
-
-// Alternative: If you want to try with custom domain but handle the redirect issue
-const cognitoConfigCustom = {
-    clientId: '73lf1h32phkqeb9ahu6tqcl9av',
-    domain: 'auth.theweer.com',
-    redirectUri: 'https://theweer.com/tester.html',
-    tokenEndpoint: `https://auth.theweer.com/oauth2/token`
-};
-
-// Let user choose which domain to use
-let useCustomDomain = false;
-
-function saveSession(t){ localStorage.setItem('cognitoSession', JSON.stringify(t)); }
-function getSession(){ return JSON.parse(localStorage.getItem('cognitoSession')); }
-
-function showAuthUI(){
-    document.getElementById('auth-action').innerHTML = `
-        <div style="margin-bottom: 10px;">
-            <label>
-                <input type="checkbox" id="useCustomDomain" onchange="toggleDomain()"> 
-                Use Custom Domain (auth.theweer.com) - PKCE may not work
-            </label>
-        </div>
-        <button onclick="signinPKCE()">Sign In with PKCE (Recommended)</button>
-        <button onclick="signinImplicit()">Sign In with Implicit Flow</button>
-        <button onclick="signout()">Sign Out</button>
-    `;
-}
-
-function toggleDomain() {
-    useCustomDomain = document.getElementById('useCustomDomain').checked;
-    console.log('Using domain:', useCustomDomain ? 'Custom' : 'Default Cognito');
-}
-
-async function signinPKCE(){
-    const config = useCustomDomain ? cognitoConfigCustom : cognitoConfig;
-    
-    try {
-        const verifier = genRandom();
-        localStorage.setItem('pkce_verifier', verifier);
-        localStorage.setItem('pkce_domain', config.domain); // Store which domain we used
-        const challenge = await sha256(verifier);
-        
-        const url = new URL(`https://${config.domain}/oauth2/authorize`);
-        url.searchParams.append('response_type', 'code');
-        url.searchParams.append('client_id', config.clientId);
-        url.searchParams.append('redirect_uri', config.redirectUri);
-        url.searchParams.append('scope', 'email openid profile');
-        url.searchParams.append('code_challenge_method', 'S256');
-        url.searchParams.append('code_challenge', challenge);
-        
-        console.log('Redirecting to PKCE auth with domain:', config.domain);
-        console.log('Auth URL:', url.toString());
-        window.location.href = url.toString();
-    } catch (error) {
-        console.error('Error initiating PKCE signin:', error);
-        alert('Error starting PKCE authentication: ' + error.message);
-    }
-}
-
-function signinImplicit(){
-    // Fallback to implicit flow that works with custom domain
-    const config = cognitoConfigCustom;
-    window.location.href = `https://${config.domain}/login?client_id=${config.clientId}&response_type=token&scope=email+openid+profile&redirect_uri=${encodeURIComponent(config.redirectUri)}`;
-}
-
-function signout(){
-    const session = getSession();
-    const domain = session?.pkce_domain || cognitoConfigCustom.domain;
-    
-    localStorage.removeItem('cognitoSession');
-    localStorage.removeItem('pkce_verifier');
-    localStorage.removeItem('pkce_domain');
-    
-    window.location.href = `https://${domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${encodeURIComponent(window.location.origin)}`;
-}
-
-// Handle both implicit and PKCE flows
-function parseHashTokens(){
-    if(location.hash){
-        // Implicit flow - tokens in hash
-        const hash = location.hash.substring(1);
-        const params = new URLSearchParams(hash);
-        const id_token = params.get('id_token');
-        const access_token = params.get('access_token');
-        if(id_token && access_token){
-            saveSession({id_token, access_token, flow: 'implicit'});
-            location.hash = '';
-            return true;
-        }
-    }
-    return false;
-}
-
-async function handleCodeExchange(){
-    // PKCE flow - code in query string
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    
-    if(!code) {
-        return false;
-    }
-
-    const verifier = localStorage.getItem('pkce_verifier');
-    const domain = localStorage.getItem('pkce_domain') || cognitoConfig.domain;
-    
-    if (!verifier) {
-        console.error('No PKCE verifier found');
-        return false;
-    }
-
-    const tokenEndpoint = `https://${domain}/oauth2/token`;
-    const body = new URLSearchParams();
-    body.append('grant_type', 'authorization_code');
-    body.append('client_id', cognitoConfig.clientId);
-    body.append('code', code);
-    body.append('redirect_uri', cognitoConfig.redirectUri);
-    body.append('code_verifier', verifier);
-
-    try {
-        const res = await fetch(tokenEndpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body
-        });
-        
-        if (!res.ok) {
-            const errorText = await res.text();
-            throw new Error(`HTTP ${res.status}: ${errorText}`);
-        }
-        
-        const tokens = await res.json();
-        if(tokens.id_token) {
-            saveSession({...tokens, flow: 'pkce', pkce_domain: domain});
-            localStorage.removeItem('pkce_verifier');
-            localStorage.removeItem('pkce_domain');
-            console.log('✅ Successfully signed in with PKCE!');
+        <div class="user-info">
+            <h3>User Info:</h3>
+            <p><strong>Email:</strong> <span id="userEmail">-</span></p>
+            <p><strong>User ID:</strong> <span id="userId">-</span></p>
+            <p><strong>Expires:</strong> <span id="tokenExpiry">-</span></p>
             
-            // Clean URL
-            window.history.replaceState({}, document.title, window.location.pathname);
-            return true;
-        } else {
-            throw new Error('No ID token received');
-        }
-    } catch (error) {
-        console.error('Token exchange error:', error);
-        // Fall back to implicit flow
-        console.log('PKCE failed, falling back to implicit flow');
-        signinImplicit();
-        return false;
-    }
-}
+            <h4>Access Token:</h4>
+            <pre id="accessToken">-</pre>
+            
+            <h4>ID Token:</h4>
+            <pre id="idToken">-</pre>
+            
+            <h4>Full User Object:</h4>
+            <pre id="fullUser">-</pre>
+        </div>
+    </div>
 
-function showSessionInfo(){
-    const s = getSession();
-    const div = document.getElementById('token-display');
-    if(s?.id_token){
-        try {
-            const payload = JSON.parse(atob(s.id_token.split('.')[1]));
-            const flow = s.flow || 'unknown';
-            div.innerHTML = `<h2>Signed in as ${payload.email || payload.sub} (${flow} flow)</h2><pre>${JSON.stringify(payload,null,2)}</pre>`;
-        } catch (error) {
-            div.innerHTML = `<h2>Signed in (token parsing error)</h2>`;
-        }
-    } else {
-        div.innerHTML = `<h2>Not signed in</h2>`;
-    }
-}
+    <script>
+        // Configure OIDC client
+        const config = {
+            authority: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_TJDOamTpp",
+            client_id: "73lf1h32phkqeb9ahu6tqcl9av",
+            redirect_uri: "https://theweer.com/tester.html",
+            response_type: "code",
+            scope: "email openid phone profile",
+            automaticSilentRenew: true,
+            loadUserInfo: true
+        };
 
-let selectedFiles = [];
+        // Create UserManager instance
+        const userManager = new Oidc.UserManager(config);
 
-document.getElementById('fileInput').addEventListener('change', (e)=>{
-    selectedFiles = Array.from(e.target.files);
-    if(selectedFiles.length !== 3) alert("Please select exactly 3 images");
-});
+        // DOM elements
+        const signedOutDiv = document.getElementById('signedOut');
+        const signedInDiv = document.getElementById('signedIn');
+        const signInBtn = document.getElementById('signIn');
+        const signOutBtn = document.getElementById('signOut');
+        const refreshTokenBtn = document.getElementById('refreshToken');
 
-async function uploadFiles() {
-    const token = getSession()?.id_token;
-    const deviceId = document.getElementById('deviceSelect').value;
-
-    if (!token) return alert('Please sign in first');
-    if (!deviceId) return alert('Please select a device before uploading');
-    if (selectedFiles.length !== 3) return alert('Please select exactly 3 images');
-
-    const filesData = selectedFiles.map((f, i) => ({
-        fileId: i + 1,
-        fileName: f.name,
-        fileType: f.type
-    }));
-
-    // Step 1: Get presigned URLs from Lambda
-    const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': token },
-        body: JSON.stringify({ files: filesData, device_id: deviceId })
-    });
-
-    const data = await res.json();
-    const resultDiv = document.getElementById('uploadResult');
-
-    if (!res.ok || !data.uploadUrls) {
-        resultDiv.innerHTML = `❌ Upload failed: ${data.error || JSON.stringify(data)}`;
-        return;
-    }
-
-    // Step 2: Upload files and notify Lambda
-    try {
-        const uploadPromises = data.uploadUrls.map(async (u, idx) => {
-            const uploadResponse = await fetch(u.uploadUrl, {
-                method: 'PUT',
-                body: selectedFiles[idx],
-                headers: { 'Content-Type': selectedFiles[idx].type }
-            });
-
-            if (uploadResponse.ok) {
-                const notificationPayload = {
-                    action: 'uploadComplete',
-                    fileKey: u.key,
-                    metadata: {
-                        fileName: u.fileName,
-                        priority: u.priority,
-                        srcid: u.srcid,
-                        palette_id: u.palette_id,
-                        flavor: u.flavor,
-                        cid: data.cid,
-                        device_id: deviceId
-                    }
-                };
-
-                fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': token },
-                    body: JSON.stringify(notificationPayload)
-                });
+        // Check if user is already signed in
+        userManager.getUser().then(user => {
+            if (user) {
+                showUserInfo(user);
+            } else {
+                // Check for callback from OIDC provider
+                handleCallback();
             }
-
-            return uploadResponse;
         });
 
-        await Promise.all(uploadPromises);
-        resultDiv.innerHTML = `✅ All 3 files uploaded successfully! Processing started...`;
-    } catch (e) {
-        resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
-    }
-    
-    if (window.realtimeUpdates) {
-        window.realtimeUpdates.showPanel();
-    }
-}
+        // Handle OIDC callback
+        async function handleCallback() {
+            try {
+                const user = await userManager.signinCallback();
+                if (user) {
+                    showUserInfo(user);
+                }
+            } catch (error) {
+                console.log('Not in callback flow:', error.message);
+            }
+        }
 
-// Initialize application
-async function initializeApp() {
-    // Try PKCE flow first
-    const pkceSuccess = await handleCodeExchange();
-    
-    // If PKCE didn't handle it, try implicit flow
-    if (!pkceSuccess) {
-        parseHashTokens();
-    }
-    
-    showAuthUI();
-    showSessionInfo();
-}
+        // Show user information
+        function showUserInfo(user) {
+            signedOutDiv.classList.add('hidden');
+            signedInDiv.classList.remove('hidden');
+            
+            document.getElementById('userEmail').textContent = user.profile?.email || '-';
+            document.getElementById('userId').textContent = user.profile?.sub || '-';
+            document.getElementById('tokenExpiry').textContent = new Date(user.expires_at * 1000).toLocaleString();
+            document.getElementById('accessToken').textContent = user.access_token || '-';
+            document.getElementById('idToken').textContent = user.id_token || '-';
+            document.getElementById('fullUser').textContent = JSON.stringify(user, null, 2);
+        }
 
-// Start the application
-initializeApp();
-</script>
+        // Event listeners
+        signInBtn.addEventListener('click', () => {
+            userManager.signinRedirect();
+        });
 
-<link rel="stylesheet" href="realtime-updates.css">
-<script src="realtime-updates.js"></script>
+        signOutBtn.addEventListener('click', () => {
+            userManager.signoutRedirect();
+        });
+
+        refreshTokenBtn.addEventListener('click', async () => {
+            try {
+                const user = await userManager.signinSilent();
+                showUserInfo(user);
+                alert('Token refreshed successfully!');
+            } catch (error) {
+                alert('Failed to refresh token: ' + error.message);
+            }
+        });
+
+        // Listen for token expirations and auto-renew
+        userManager.events.addAccessTokenExpiring(() => {
+            console.log('Access token expiring, attempting renewal...');
+        });
+
+        userManager.events.addAccessTokenExpired(() => {
+            console.log('Access token expired');
+            alert('Session expired. Please sign in again.');
+            signedOutDiv.classList.remove('hidden');
+            signedInDiv.classList.add('hidden');
+        });
+
+        userManager.events.addUserLoaded((user) => {
+            console.log('User loaded', user);
+            showUserInfo(user);
+        });
+
+        userManager.events.addUserUnloaded(() => {
+            console.log('User unloaded');
+            signedOutDiv.classList.remove('hidden');
+            signedInDiv.classList.add('hidden');
+        });
+    </script>
 </body>
 </html>
