@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cognito Auth Tester (PKCE)</title>
+<title>Cognito Auth Tester</title>
 <style>
 body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
 .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -21,497 +21,342 @@ h1,h2,h3 { color:#333; }
 .device-selection { margin: 20px 0; }
 .brand-selection { margin-bottom: 15px; }
 .brand-option { margin-right: 15px; }
-.acknowledge-section { 
-    margin: 15px 0; 
-    padding: 10px; 
-    background-color: #fff9e6; 
-    border: 1px solid #ffd166;
-    border-radius: 5px;
-    display: none;
+.acknowledge-section { 
+    margin: 15px 0; 
+    padding: 10px; 
+    background-color: #fff9e6; 
+    border: 1px solid #ffd166;
+    border-radius: 5px;
+    display: none;
 }
 .acknowledge-section p { margin: 0 0 10px 0; font-size: 14px; }
 .acknowledge-section label { display: flex; align-items: flex-start; }
 .acknowledge-section input { margin-right: 8px; margin-top: 2px; }
-
-/* Loading states */
-.loading { opacity: 0.6; pointer-events: none; }
-.loading::after { content: ' (Loading...)'; font-style: italic; }
-
-/* Notification styles */
-.notification {
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 4px;
-    display: none;
-}
-.notification.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-.notification.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-.notification.warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
 </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>AWS Cognito Authentication Status</h1>
-    <div id="auth-action"></div>
+    <h1>AWS Cognito Authentication Status</h1>
+    <div id="auth-action"></div>
 
-    <div id="notification" class="notification"></div>
+    <div id="token-display"><h2>Not signed in</h2></div>
+    
+    <div class="device-selection">
+        <h2>Select Your Device</h2>
+        
+        <div class="brand-selection">
+            <label class="brand-option">
+                <input type="radio" name="brand" value="apple" checked> Apple
+            </label>
+            <label class="brand-option">
+                <input type="radio" name="brand" value="samsung"> Samsung
+            </label>
+        </div>
+        
+        <label for="deviceSelect">Model:</label>
+        <select id="deviceSelect">
+            <option value="">-- Choose Model --</option>
+        </select>
+        
+        <div class="acknowledge-section" id="acknowledgeSection">
+            <p style="margin: 0 0 10px 0; font-size: 14px;">
+                <strong>Important:</strong> For demonstration, we'll show your design on <span id="demoDevice">iPhone 16 Pro Max</span>. 
+                Your actual order will be custom-made specifically for your selected device: <strong id="selectedDevice"></strong>.
+            </p>
+            <label>
+                <input type="checkbox" id="acknowledgeCheckbox"> I understand my case and wallpaper will be custom-made for: <strong id="deviceName"></strong>
+            </label>
+        </div>
+    </div>
 
-    <div id="token-display"><h2>Not signed in</h2></div>
-    
-    <div class="device-selection">
-        <h2>Select Your Device</h2>
-        
-        <div class="brand-selection">
-            <label class="brand-option">
-                <input type="radio" name="brand" value="apple" checked> Apple
-            </label>
-            <label class="brand-option">
-                <input type="radio" name="brand" value="samsung"> Samsung
-            </label>
-        </div>
-        
-        <label for="deviceSelect">Model:</label>
-        <select id="deviceSelect">
-            <option value="">-- Choose Model --</option>
-        </select>
-        
-        <div class="acknowledge-section" id="acknowledgeSection">
-            <p style="margin: 0 0 10px 0; font-size: 14px;">
-                <strong>Important:</strong> For demonstration, we'll show your design on <span id="demoDevice">iPhone 16 Pro Max</span>. 
-                Your actual order will be custom-made specifically for your selected device: <strong id="selectedDevice"></strong>.
-            </p>
-            <label>
-                <input type="checkbox" id="acknowledgeCheckbox"> I understand my case and wallpaper will be custom-made for: <strong id="deviceName"></strong>
-            </label>
-        </div>
-    </div>
-
-    <div id="uploadSection" style="display:none;">
-        <h2>Upload 3 Images</h2>
-        <input type="file" id="fileInput" multiple accept="image/*">
-        <br>
-        <button onclick="uploadFiles()">Upload</button>
-        <div id="uploadResult"></div>
-    </div>
+    <div id="uploadSection" style="display:none;">
+        <h2>Upload 3 Images</h2>
+        <input type="file" id="fileInput" multiple accept="image/*">
+        <br>
+        <button onclick="uploadFiles()">Upload</button>
+        <div id="uploadResult"></div>
+    </div>
 </div>
 
 <script>
 const devices = {
-    apple: [
-        { name: "iPhone 17", value: "iphone17" },
-        { name: "iPhone Air", value: "iphoneair" },
-        { name: "iPhone 17 Pro", value: "iphone17pro" },
-        { name: "iPhone 17 Pro Max", value: "iphone17promax" },
-        { name: "iPhone 16", value: "iphone16" },
-        { name: "iPhone 16e", value: "iphone16e" },
-        { name: "iPhone 16 Plus", value: "iphone16plus" },
-        { name: "iPhone 16 Pro", value: "iphone16pro" },
-        { name: "iPhone 16 Pro Max", value: "iphone16promax" },
-        { name: "iPhone 14", value: "iphone14" },
-        { name: "iPhone 14 Plus", value: "iphone14plus" },
-        { name: "iPhone 14 Pro", value: "iphone14pro" },
-        { name: "iPhone 14 Pro Max", value: "iphone14promax" }
-    ],
-    samsung: [
-        { name: "Galaxy S25", value: "samsungs25" },
-        { name: "Galaxy S25+", value: "samsungs25plus" },
-        { name: "Galaxy S25 Ultra", value: "samsungs25ultra" },
-        { name: "Galaxy S24", value: "samsungs24" },
-        { name: "Galaxy S24+", value: "samsungs24plus" },
-        { name: "Galaxy S24 Ultra", value: "samsungs24ultra" },
-        { name: "Galaxy S23", value: "samsungs23" },
-        { name: "Galaxy S23+", value: "samsungs23plus" },
-        { name: "Galaxy S22", value: "samsungs22" },
-        { name: "Galaxy S21", value: "samsungs21" }
-    ]
+    apple: [
+        { name: "iPhone 17", value: "iphone17" },
+        { name: "iPhone Air", value: "iphoneair" },
+        { name: "iPhone 17 Pro", value: "iphone17pro" },
+        { name: "iPhone 17 Pro Max", value: "iphone17promax" },
+        { name: "iPhone 16", value: "iphone16" },
+        { name: "iPhone 16e", value: "iphone16e" },
+        { name: "iPhone 16 Plus", value: "iphone16plus" },
+        { name: "iPhone 16 Pro", value: "iphone16pro" },
+        { name: "iPhone 16 Pro Max", value: "iphone16promax" },
+        { name: "iPhone 14", value: "iphone14" },
+        { name: "iPhone 14 Plus", value: "iphone14plus" },
+        { name: "iPhone 14 Pro", value: "iphone14pro" },
+        { name: "iPhone 14 Pro Max", value: "iphone14promax" }
+    ],
+    samsung: [
+        { name: "Galaxy S25", value: "samsungs25" },
+        { name: "Galaxy S25+", value: "samsungs25plus" },
+        { name: "Galaxy S25 Ultra", value: "samsungs25ultra" },
+        { name: "Galaxy S24", value: "samsungs24" },
+        { name: "Galaxy S24+", value: "samsungs24plus" },
+        { name: "Galaxy S24 Ultra", value: "samsungs24ultra" },
+        { name: "Galaxy S23", value: "samsungs23" },
+        { name: "Galaxy S23+", value: "samsungs23plus" },
+        { name: "Galaxy S22", value: "samsungs22" },
+        { name: "Galaxy S21", value: "samsungs21" }
+    ]
 };
 
-// --- PKCE UTILITY FUNCTIONS ---
-function base64urlencode(buffer){
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-    for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary)
-        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-async function sha256(str){
-    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-    return base64urlencode(digest);
-}
-function genRandom(){ 
-    const arr = new Uint8Array(32); 
-    crypto.getRandomValues(arr); 
-    return base64urlencode(arr); 
-}
-
-// --- CONFIG & SESSION MANAGEMENT ---
-const cognitoConfig = {
-    clientId: '73lf1h32phkqeb9ahu6tqcl9av',
-    domain: 'auth.theweer.com',
-    redirectUri: window.location.origin + window.location.pathname,
-    tokenEndpoint: `https://auth.theweer.com/oauth2/token`
-};
-
-function saveSession(t){ localStorage.setItem('cognitoSession', JSON.stringify(t)); }
-function getSession(){ return JSON.parse(localStorage.getItem('cognitoSession')); }
-
-// Notification system
-function showNotification(message, type = 'info') {
-    const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.className = `notification ${type}`;
-    notification.style.display = 'block';
-    
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 5000);
-}
-
-// Enhanced error handling
-function handleApiError(error, context = 'operation') {
-    console.error(`Error in ${context}:`, error);
-    showNotification(`Failed to complete ${context}. Please try again.`, 'error');
-}
-
-// Loading state management
-function setLoadingState(elementId, isLoading) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    
-    if (isLoading) {
-        element.disabled = true;
-        element.classList.add('loading');
-    } else {
-        element.disabled = false;
-        element.classList.remove('loading');
-    }
-}
-
-
-// --- AUTH FLOW FUNCTIONS (PKCE) ---
-
-function showAuthUI(){
-    document.getElementById('auth-action').innerHTML = `
-        <button onclick="signin()">Sign In / Sign Up</button>
-        <button onclick="signout()">Sign Out</button>
-    `;
-}
-
-async function signin(){
-    const verifier = genRandom();
-    localStorage.setItem('pkce_verifier', verifier);
-    const challenge = await sha256(verifier);
-    const url =
-      `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code`
-      + `&client_id=${cognitoConfig.clientId}`
-      + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
-      + `&scope=email+openid+profile`
-      + `&code_challenge_method=S256`
-      + `&code_challenge=${challenge}`;
-    window.location.href = url;
-}
-
-function signout(){
-    localStorage.removeItem('cognitoSession');
-    localStorage.removeItem('pkce_verifier');
-    window.location.href =
-      `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}`
-      + `&logout_uri=${encodeURIComponent(window.location.origin)}`;
-}
-
-async function handleCodeExchange(){
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    if(!code) return;
-
-    const verifier = localStorage.getItem('pkce_verifier');
-    if (!verifier) {
-        console.error("PKCE Error: Code verifier not found in storage.");
-        return;
-    }
-
-    const body =
-      `grant_type=authorization_code`
-      + `&client_id=${cognitoConfig.clientId}`
-      + `&code=${code}`
-      + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
-      + `&code_verifier=${verifier}`;
-
-    try {
-        const res = await fetch(cognitoConfig.tokenEndpoint,{
-            method:'POST',
-            headers:{'Content-Type':'application/x-www-form-urlencoded'},
-            body
-        });
-        const tokens = await res.json();
-
-        if(res.ok && tokens.id_token) {
-            saveSession(tokens);
-            localStorage.removeItem('pkce_verifier'); // Clear verifier after successful use
-            showNotification('Successfully signed in!', 'success');
-        } else {
-            throw new Error(tokens.error_description || "Token exchange failed.");
-        }
-        // Clean the URL after exchange regardless of success
-        window.history.replaceState({},document.title,cognitoConfig.redirectUri);
-    } catch (error) {
-        handleApiError(error, 'authentication');
-    }
-}
-
-function showSessionInfo(){
-    const s = getSession();
-    const div = document.getElementById('token-display');
-    if(s?.id_token){
-        const payload = JSON.parse(atob(s.id_token.split('.')[1]));
-        div.innerHTML = `<h2>Signed in as ${payload.email || payload.sub}</h2><pre>${JSON.stringify(payload,null,2)}</pre>`;
-    } else div.innerHTML = `<h2>Not signed in</h2>`;
-}
-
-// --- API CALL FUNCTIONS (USING ACCESS TOKEN WITH BEARER PREFIX) ---
-
+// Add this function to update customer device in database
 async function updateCustomerDevice(deviceId) {
-    // Using access_token for API authorization
-    const token = getSession()?.access_token; 
-    if (!token) {
-        console.log('User not signed in, skipping device update');
-        return; 
-    }
-    
-    try {
-        console.log('🚀 Calling Lambda to update device:', deviceId);
-        const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                // **FIXED: Correctly adding 'Bearer ' prefix**
-                'Authorization': 'Bearer ' + token 
-            },
-            body: JSON.stringify({ 
-                device_id: deviceId,
-                action: 'updateDevice'
-            })
-        });
-        
-        console.log('📡 API Response status:', response.status);
-        if (response.ok) {
-            const result = await response.json();
-            console.log('✅ Device updated successfully:', result);
-            showNotification('Device selection saved successfully', 'success');
-        } else {
-            const error = await response.text();
-            console.error('❌ Failed to update device:', error);
-            showNotification('Failed to save device selection', 'error');
-        }
-    } catch (error) {
-        console.error('💥 Error updating device:', error);
-        showNotification('Network error saving device selection', 'error');
-    }
+    const token = getSession()?.id_token;
+    if (!token) {
+        console.log('User not signed in, skipping device update');
+        return; // Only update if user is signed in
+    }
+    
+    try {
+        console.log('🚀 Calling Lambda to update device:', deviceId);
+        const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': token 
+            },
+            body: JSON.stringify({ 
+                device_id: deviceId,
+                action: 'updateDevice'
+            })
+        });
+        
+        console.log('📡 API Response status:', response.status);
+        if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Device updated successfully:', result);
+        } else {
+            const error = await response.text();
+            console.error('❌ Failed to update device:', error);
+        }
+    } catch (error) {
+        console.error('💥 Error updating device:', error);
+    }
 }
 
-
-let selectedFiles = [];
-
-// File validation
-function validateFileSelection(files) {
-    if (files.length !== 3) {
-        return { valid: false, message: "Please select exactly 3 images" };
-    }
-    
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    const invalidFiles = files.filter(f => !validTypes.includes(f.type));
-    
-    if (invalidFiles.length > 0) {
-        return { valid: false, message: "Please select valid image files (JPEG, PNG, GIF, WebP)" };
-    }
-    
-    // Check file sizes (5MB max)
-    const maxSize = 5 * 1024 * 1024;
-    const oversizedFiles = files.filter(f => f.size > maxSize);
-    
-    if (oversizedFiles.length > 0) {
-        return { valid: false, message: "Files must be smaller than 5MB" };
-    }
-    
-    return { valid: true };
-}
-
-async function uploadFiles() {
-    // Using access_token for API authorization
-    const token = getSession()?.access_token;
-    const deviceId = document.getElementById('deviceSelect').value;
-
-    if (!token) return showNotification('Please sign in first', 'error');
-    if (!deviceId) return showNotification('Please select a device before uploading', 'error');
-    
-    const validation = validateFileSelection(selectedFiles);
-    if (!validation.valid) {
-        return showNotification(validation.message, 'error');
-    }
-
-    setLoadingState('uploadSection', true);
-    const resultDiv = document.getElementById('uploadResult');
-    resultDiv.innerHTML = 'Uploading files...';
-
-    const filesData = selectedFiles.map((f, i) => ({
-        fileId: i + 1,
-        fileName: f.name,
-        fileType: f.type
-    }));
-
-    try {
-        // Step 1: Get presigned URLs from Lambda
-        const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
-            method: 'POST',
-            // **FIXED: Correctly adding 'Bearer ' prefix**
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
-            body: JSON.stringify({ files: filesData, device_id: deviceId })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.uploadUrls) {
-            throw new Error(data.error || JSON.stringify(data));
-        }
-
-        // Step 2: Upload files and notify Lambda
-        const uploadPromises = data.uploadUrls.map(async (u, idx) => {
-            const uploadResponse = await fetch(u.uploadUrl, {
-                method: 'PUT',
-                body: selectedFiles[idx],
-                headers: { 'Content-Type': selectedFiles[idx].type }
-            });
-
-            if (!uploadResponse.ok) {
-                throw new Error(`Failed to upload ${selectedFiles[idx].name}`);
-            }
-
-            const notificationPayload = {
-                action: 'uploadComplete',
-                fileKey: u.key,
-                metadata: {
-                    fileName: u.fileName,
-                    priority: u.priority,
-                    srcid: u.srcid,
-                    palette_id: u.palette_id,
-                    flavor: u.flavor,
-                    cid: data.cid,
-                    device_id: deviceId
-                }
-            };
-
-            await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
-                method: 'POST',
-                // **FIXED: Correctly adding 'Bearer ' prefix**
-                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
-                body: JSON.stringify(notificationPayload)
-            });
-        });
-
-        await Promise.all(uploadPromises);
-        resultDiv.innerHTML = `✅ All 3 files uploaded successfully! Processing started...`;
-        showNotification('Files uploaded successfully! Processing your images...', 'success');
-        
-        if (window.realtimeUpdates) {
-            window.realtimeUpdates.showPanel();
-        }
-    } catch (error) {
-        console.error('Upload error:', error);
-        resultDiv.innerHTML = `❌ Error uploading files: ${error.message}`;
-        showNotification('Failed to upload files', 'error');
-    } finally {
-        setLoadingState('uploadSection', false);
-    }
-}
-
-
-// --- UI / INITIALIZATION LOGIC (Device Selection) ---
-
+// Initialize device options
 function initializeDeviceOptions() {
-    updateDeviceOptions();
-    const brandRadios = document.querySelectorAll('input[name="brand"]');
-    brandRadios.forEach(radio => { radio.addEventListener('change', updateDeviceOptions); });
-    const deviceSelect = document.getElementById('deviceSelect');
-    deviceSelect.addEventListener('change', showAcknowledgeSection);
-    const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
-    acknowledgeCheckbox.addEventListener('change', toggleUploadSection);
+    updateDeviceOptions();
+    
+    // Add event listeners to radio buttons
+    const brandRadios = document.querySelectorAll('input[name="brand"]');
+    brandRadios.forEach(radio => {
+        radio.addEventListener('change', updateDeviceOptions);
+    });
+    
+    // Add event listener to device select
+    const deviceSelect = document.getElementById('deviceSelect');
+    deviceSelect.addEventListener('change', showAcknowledgeSection);
+    
+    // Add event listener to acknowledgment checkbox
+    const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
+    acknowledgeCheckbox.addEventListener('change', toggleUploadSection);
 }
 
 function updateDeviceOptions() {
-    const selectedBrand = document.querySelector('input[name="brand"]:checked').value;
-    const deviceSelect = document.getElementById('deviceSelect');
-    deviceSelect.innerHTML = '<option value="">-- Choose Model --</option>';
-    if (!selectedBrand || !devices[selectedBrand]) return;
-    devices[selectedBrand].forEach(d => {
-        const opt = document.createElement('option');
-        opt.value = d.value;
-        opt.textContent = d.name;
-        deviceSelect.appendChild(opt);
-    });
-    document.getElementById('acknowledgeSection').style.display = 'none';
-    document.getElementById('uploadSection').style.display = 'none';
-    document.getElementById('acknowledgeCheckbox').checked = false;
+    const selectedBrand = document.querySelector('input[name="brand"]:checked').value;
+    const deviceSelect = document.getElementById('deviceSelect');
+    deviceSelect.innerHTML = '<option value="">-- Choose Model --</option>';
+    
+    if (!selectedBrand || !devices[selectedBrand]) return;
+    
+    devices[selectedBrand].forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.value;
+        opt.textContent = d.name;
+        deviceSelect.appendChild(opt);
+    });
+    
+    // Hide acknowledge section when brand changes
+    document.getElementById('acknowledgeSection').style.display = 'none';
+    document.getElementById('uploadSection').style.display = 'none';
+    document.getElementById('acknowledgeCheckbox').checked = false;
 }
 
 function showAcknowledgeSection() {
-    const deviceSelect = document.getElementById('deviceSelect');
-    const acknowledgeSection = document.getElementById('acknowledgeSection');
-    
-    if (deviceSelect.value) {
-        const selectedDevice = deviceSelect.options[deviceSelect.selectedIndex].text;
-        const deviceValue = deviceSelect.value;
-        
-        document.getElementById('selectedDevice').textContent = selectedDevice;
-        document.getElementById('deviceName').textContent = selectedDevice;
-        acknowledgeSection.style.display = 'block';
-        
-        // Update customer device in database
-        console.log('🔄 Device selected, updating database...');
-        updateCustomerDevice(deviceValue);
-    } else {
-        acknowledgeSection.style.display = 'none';
-        document.getElementById('uploadSection').style.display = 'none';
-    }
+    const deviceSelect = document.getElementById('deviceSelect');
+    const acknowledgeSection = document.getElementById('acknowledgeSection');
+    
+    if (deviceSelect.value) {
+        const selectedDevice = deviceSelect.options[deviceSelect.selectedIndex].text;
+        const deviceValue = deviceSelect.value;
+        
+        document.getElementById('selectedDevice').textContent = selectedDevice;
+        document.getElementById('deviceName').textContent = selectedDevice;
+        acknowledgeSection.style.display = 'block';
+        
+        // Update customer device in database
+        console.log('🔄 Device selected, updating database...');
+        updateCustomerDevice(deviceValue);
+    } else {
+        acknowledgeSection.style.display = 'none';
+        document.getElementById('uploadSection').style.display = 'none';
+    }
 }
 
 function toggleUploadSection() {
-    const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
-    const uploadSection = document.getElementById('uploadSection');
-    
-    if (acknowledgeCheckbox.checked) {
-        uploadSection.style.display = 'block';
-    } else {
-        uploadSection.style.display = 'none';
-    }
+    const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
+    const uploadSection = document.getElementById('uploadSection');
+    
+    if (acknowledgeCheckbox.checked) {
+        uploadSection.style.display = 'block';
+    } else {
+        uploadSection.style.display = 'none';
+    }
 }
 
-// File Input Handler
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeDeviceOptions);
+
+// Rest of the existing Cognito code
+const cognitoConfig = {
+    clientId: '7irso7dmmnp793egs9bhkl0t81',
+    domain: 'auth.theweer.com',
+    redirectUri: window.location.origin + window.location.pathname
+};
+
+function saveSession(tokens){ localStorage.setItem('cognitoSession', JSON.stringify(tokens)); }
+function getSession(){ return JSON.parse(localStorage.getItem('cognitoSession')); }
+
+function showAuthUI(){ 
+    const authDiv = document.getElementById('auth-action');
+    authDiv.innerHTML = `
+        <button onclick="signin()">Sign In / Sign Up</button>
+        <button onclick="signout()">Sign Out</button>
+    `;
+}
+
+function signin(){
+    window.location.href = `https://${cognitoConfig.domain}/login?client_id=${cognitoConfig.clientId}&response_type=token&scope=email+openid+profile&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`;
+}
+
+function signout(){
+    localStorage.removeItem('cognitoSession');
+    window.location.href = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${encodeURIComponent(window.location.origin)}`;
+}
+
+function parseHashTokens(){
+    if(location.hash){
+        const hash = location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const id_token = params.get('id_token');
+        const access_token = params.get('access_token');
+        if(id_token && access_token){
+            saveSession({id_token, access_token});
+            location.hash = '';
+        }
+    }
+}
+
+function showSessionInfo(){
+    const session = getSession();
+    const tokenDiv = document.getElementById('token-display');
+    if(session && session.id_token){
+        const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+        tokenDiv.innerHTML = `<h2>Signed in as ${payload.sub}</h2>
+        <pre>${JSON.stringify(payload, null, 2)}</pre>`;
+    } else {
+        tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
+    }
+}
+
+parseHashTokens();
+showAuthUI();
+showSessionInfo();
+
+let selectedFiles = [];
+
 document.getElementById('fileInput').addEventListener('change', (e)=>{
-    selectedFiles = Array.from(e.target.files);
-    const validation = validateFileSelection(selectedFiles);
-    if (!validation.valid) {
-        showNotification(validation.message, 'warning');
-        selectedFiles = [];
-        e.target.value = '';
-    }
+    selectedFiles = Array.from(e.target.files);
+    if(selectedFiles.length !== 3) alert("Please select exactly 3 images");
 });
 
+async function uploadFiles() {
+    const token = getSession()?.id_token;
+    const deviceId = document.getElementById('deviceSelect').value;
 
-// Initialize application
-async function initializeApp() {
-    await handleCodeExchange();
-    showAuthUI();
-    showSessionInfo();
+    if (!token) return alert('Please sign in first');
+    if (!deviceId) return alert('Please select a device before uploading');
+    if (selectedFiles.length !== 3) return alert('Please select exactly 3 images');
+
+    const filesData = selectedFiles.map((f, i) => ({
+        fileId: i + 1,
+        fileName: f.name,
+        fileType: f.type
+    }));
+
+    // Step 1: Get presigned URLs from Lambda
+    const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': token },
+        body: JSON.stringify({ files: filesData, device_id: deviceId })
+    });
+
+    const data = await res.json();
+    const resultDiv = document.getElementById('uploadResult');
+
+    if (!res.ok || !data.uploadUrls) {
+        resultDiv.innerHTML = `❌ Upload failed: ${data.error || JSON.stringify(data)}`;
+        return;
+    }
+
+    // Step 2: Upload files and notify Lambda
+    try {
+        const uploadPromises = data.uploadUrls.map(async (u, idx) => {
+            const uploadResponse = await fetch(u.uploadUrl, {
+                method: 'PUT',
+                body: selectedFiles[idx],
+                headers: { 'Content-Type': selectedFiles[idx].type }
+            });
+
+            if (uploadResponse.ok) {
+                // Pass device_id in the uploadComplete notification
+                const notificationPayload = {
+                    action: 'uploadComplete',
+                    fileKey: u.key,
+                    metadata: {
+                        fileName: u.fileName,
+                        priority: u.priority,
+                        srcid: u.srcid,
+                        palette_id: u.palette_id,
+                        flavor: u.flavor,
+                        cid: data.cid,
+                        device_id: deviceId // <-- IMPORTANT: Pass deviceId here
+                    }
+                };
+
+                fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': token },
+                    body: JSON.stringify(notificationPayload)
+                });
+            }
+
+            return uploadResponse;
+        });
+
+        await Promise.all(uploadPromises);
+        resultDiv.innerHTML = `✅ All 3 files uploaded successfully! Processing started...`;
+    } catch (e) {
+        resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
+    }
+    
+    // Show the real-time panel for updates
+    if (window.realtimeUpdates) {
+        window.realtimeUpdates.showPanel();
+    }
 }
-
-// Start the application
-document.addEventListener('DOMContentLoaded', () => {
-    initializeDeviceOptions();
-    initializeApp();
-});
 </script>
 
 <link rel="stylesheet" href="realtime-updates.css">
