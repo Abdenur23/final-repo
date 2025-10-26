@@ -192,6 +192,9 @@
 // --- SHARED AUTHENTICATION UTILITY ---
 // Save this as auth.js in the same directory
 
+// --- SHARED AUTHENTICATION UTILITY ---
+// Save this as auth.js in the same directory
+
 // --- PKCE UTILITY FUNCTIONS ---
 function base64urlencode(buffer){
     const bytes = new Uint8Array(buffer);
@@ -246,10 +249,21 @@ function getUserInfo() {
     if (session && session.id_token) {
         try {
             const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+            
+            // Priority order for display name:
+            // 1. name (from Profile scope)
+            // 2. given_name (from Profile scope)  
+            // 3. email (from Email scope)
+            // 4. sub (from OpenID scope)
+            const displayName = payload.name || payload.given_name || payload.email || payload.sub;
+            
             return {
                 email: payload.email,
                 sub: payload.sub,
-                name: payload.name || payload.email
+                name: payload.name,
+                given_name: payload.given_name,
+                family_name: payload.family_name,
+                displayName: displayName
             };
         } catch (e) {
             console.error('Error parsing token:', e);
@@ -268,7 +282,7 @@ async function signin(){
       `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code`
       + `&client_id=${cognitoConfig.clientId}`
       + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
-      + `&scope=email+openid+profile`
+      + `&scope=email+openid+profile`  // This includes Email, OpenID, and Profile scopes
       + `&code_challenge_method=S256`
       + `&code_challenge=${challenge}`;
       
@@ -334,7 +348,7 @@ function renderAuthUI(authContainerId) {
     if (userInfo) {
         authDiv.innerHTML = `
             <div style="display: flex; align-items: center; gap: 15px;">
-                <span>Welcome, ${userInfo.email}</span>
+                <span>Welcome, ${userInfo.displayName}</span>
                 <button onclick="signout()" style="padding: 5px 10px; background: #ff4444; color: white; border: none; border-radius: 3px; cursor: pointer;">Sign Out</button>
             </div>
         `;
@@ -350,6 +364,7 @@ function renderNavigation() {
     if (!navContainer) return;
     
     const currentPage = window.location.pathname.split('/').pop();
+    const userInfo = getUserInfo();
     
     let navHTML = '<div style="margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 5px;">';
     navHTML += '<strong>Navigation:</strong> ';
@@ -360,6 +375,11 @@ function renderNavigation() {
     
     if (currentPage !== 'case.html') {
         navHTML += '<a href="case.html" style="margin: 0 10px;">Phone Cases</a>';
+    }
+    
+    // Show user info in navigation if available
+    if (userInfo) {
+        navHTML += `<span style="margin-left: 15px; color: #666;">Hello, ${userInfo.displayName}</span>`;
     }
     
     navHTML += '</div>';
