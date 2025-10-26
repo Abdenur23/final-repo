@@ -77,17 +77,27 @@
     </div>
 
     <script src="auth.js"></script>
+    <!-- In the index.html file, update the user-welcome div: -->
+    <div id="user-welcome" style="display: none;" class="user-info">
+        <h3>Welcome back, <span id="user-display-name"></span>!</h3>
+        <p>You are signed in. You can now access all features.</p>
+    </div>
+    
     <script>
         async function initializeHome() {
             const isAuth = await initializeAuth();
             
             // Show welcome message if authenticated
             const userWelcome = document.getElementById('user-welcome');
+            const userDisplayName = document.getElementById('user-display-name');
+            
             if (isAuth) {
+                const userInfo = getUserInfo();
+                userDisplayName.textContent = userInfo.displayName;
                 userWelcome.style.display = 'block';
             }
         }
-
+    
         document.addEventListener('DOMContentLoaded', initializeHome);
     </script>
 </body>
