@@ -11,7 +11,7 @@ const CONFIG = {
     TOTAL_EXPECTED_DESIGNS: 3,
     // Auth Configuration
     AUTH: {
-        CLIENT_ID: '7k7q2t6a4d7f3s5b8g6v3r5t2y9',
+        CLIENT_ID: '73lf1h32phkqeb9ahu6tqcl9av',
         REDIRECT_URI: window.location.origin + window.location.pathname,
         DOMAIN: 'weer.auth.us-east-1.amazoncognito.com'
     },
