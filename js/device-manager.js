@@ -1,46 +1,31 @@
-// Device selection and management
 class DeviceManager {
     constructor() {
-        this.devices = {
-            apple: [
-                { name: "iPhone 17", value: "iphone17" },
-                { name: "iPhone Air", value: "iphoneair" },
-                { name: "iPhone 17 Pro", value: "iphone17pro" },
-                { name: "iPhone 17 Pro Max", value: "iphone17promax" },
-                { name: "iPhone 16", value: "iphone16" },
-                { name: "iPhone 16e", value: "iphone16e" },
-                { name: "iPhone 16 Plus", value: "iphone16plus" },
-                { name: "iPhone 16 Pro", value: "iphone16pro" },
-                { name: "iPhone 16 Pro Max", value: "iphone16promax" }
-            ],
-            samsung: [
-                { name: "Galaxy S25", value: "samsungs25" },
-                { name: "Galaxy S25+", value: "samsungs25plus" },
-                { name: "Galaxy S25 Ultra", value: "samsungs25ultra" },
-                { name: "Galaxy S24", value: "samsungs24" },
-                { name: "Galaxy S24+", value: "samsungs24plus" },
-                { name: "Galaxy S24 Ultra", value: "samsungs24ultra" }
-            ]
-        };
-        this.selectedDevice = null;
+        this.selectedFiles = [];
+        this.initializeEventListeners();
     }
 
-    initialize() {
-        this.setupEventListeners();
-        this.updateDeviceOptions();
-    }
-
-    setupEventListeners() {
+    initializeEventListeners() {
+        // Brand selection
         const brandRadios = document.querySelectorAll('input[name="brand"]');
         brandRadios.forEach(radio => {
             radio.addEventListener('change', () => this.updateDeviceOptions());
         });
-
+        
+        // Device selection
         const deviceSelect = document.getElementById('deviceSelect');
-        deviceSelect.addEventListener('change', (e) => this.onDeviceSelect(e.target.value));
-
+        deviceSelect.addEventListener('change', () => this.showAcknowledgeSection());
+        
+        // Acknowledge checkbox
         const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
-        acknowledgeCheckbox.addEventListener('change', (e) => this.toggleUploadSection(e.target.checked));
+        acknowledgeCheckbox.addEventListener('change', () => this.toggleUploadSection());
+        
+        // File input
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            this.selectedFiles = Array.from(e.target.files);
+            if (this.selectedFiles.length !== 3) {
+                alert("Please select exactly 3 images");
+            }
+        });
     }
 
     updateDeviceOptions() {
@@ -48,9 +33,9 @@ class DeviceManager {
         const deviceSelect = document.getElementById('deviceSelect');
         deviceSelect.innerHTML = '<option value="">-- Choose Model --</option>';
         
-        if (!selectedBrand || !this.devices[selectedBrand]) return;
+        if (!selectedBrand || !CONFIG.DEVICES[selectedBrand]) return;
         
-        this.devices[selectedBrand].forEach(device => {
+        CONFIG.DEVICES[selectedBrand].forEach(device => {
             const option = document.createElement('option');
             option.value = device.value;
             option.textContent = device.name;
@@ -60,29 +45,23 @@ class DeviceManager {
         this.hideAcknowledgeSection();
     }
 
-    async onDeviceSelect(deviceValue) {
-        if (!deviceValue) {
-            this.hideAcknowledgeSection();
-            return;
-        }
-
+    showAcknowledgeSection() {
         const deviceSelect = document.getElementById('deviceSelect');
-        const selectedDeviceName = deviceSelect.options[deviceSelect.selectedIndex].text;
-        
-        this.selectedDevice = {
-            value: deviceValue,
-            name: selectedDeviceName
-        };
-
-        this.showAcknowledgeSection(selectedDeviceName);
-        await this.updateCustomerDevice(deviceValue);
-    }
-
-    showAcknowledgeSection(deviceName) {
         const acknowledgeSection = document.getElementById('acknowledgeSection');
-        document.getElementById('selectedDevice').textContent = deviceName;
-        document.getElementById('deviceName').textContent = deviceName;
-        acknowledgeSection.style.display = 'block';
+        
+        if (deviceSelect.value) {
+            const selectedDevice = deviceSelect.options[deviceSelect.selectedIndex].text;
+            const deviceValue = deviceSelect.value;
+            
+            document.getElementById('selectedDevice').textContent = selectedDevice;
+            document.getElementById('deviceName').textContent = selectedDevice;
+            acknowledgeSection.style.display = 'block';
+            
+            console.log('🔄 Device selected, updating database...');
+            this.updateCustomerDevice(deviceValue);
+        } else {
+            this.hideAcknowledgeSection();
+        }
     }
 
     hideAcknowledgeSection() {
@@ -91,19 +70,23 @@ class DeviceManager {
         document.getElementById('acknowledgeCheckbox').checked = false;
     }
 
-    toggleUploadSection(show) {
-        document.getElementById('uploadSection').style.display = show ? 'block' : 'none';
+    toggleUploadSection() {
+        const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
+        const uploadSection = document.getElementById('uploadSection');
+        
+        uploadSection.style.display = acknowledgeCheckbox.checked ? 'block' : 'none';
     }
 
     async updateCustomerDevice(deviceId) {
-        const token = getSession()?.id_token;
+        const token = getSession()?.id_token; 
         if (!token) {
             console.log('User not signed in, skipping device update');
-            return;
+            return; 
         }
         
         try {
-            const response = await fetch(CONFIG.API.BASE_URL + CONFIG.API.UPLOAD_ENDPOINT, {
+            console.log('🚀 Calling Lambda to update device:', deviceId);
+            const response = await fetch(`${CONFIG.API_BASE_URL}/upload`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json', 
@@ -115,17 +98,25 @@ class DeviceManager {
                 })
             });
             
+            console.log('📡 API Response status:', response.status);
             if (response.ok) {
-                console.log('✅ Device updated successfully');
+                const result = await response.json();
+                console.log('✅ Device updated successfully:', result);
             } else {
-                console.error('❌ Failed to update device');
+                const error = await response.text();
+                console.error('❌ Failed to update device:', error);
             }
         } catch (error) {
             console.error('💥 Error updating device:', error);
         }
     }
 
-    getSelectedDevice() {
-        return this.selectedDevice;
+    getSelectedFiles() {
+        return this.selectedFiles;
+    }
+
+    clearSelectedFiles() {
+        this.selectedFiles = [];
+        document.getElementById('fileInput').value = '';
     }
 }
