@@ -9,7 +9,12 @@ const CONFIG = {
     // Product
     PRODUCT_PRICE: 34.00,
     TOTAL_EXPECTED_DESIGNS: 3,
-    
+    // Auth Configuration
+    AUTH: {
+        CLIENT_ID: '7k7q2t6a4d7f3s5b8g6v3r5t2y9',
+        REDIRECT_URI: window.location.origin + window.location.pathname,
+        DOMAIN: 'weer.auth.us-east-1.amazoncognito.com'
+    },
     // Device data
     DEVICES: {
         apple: [
