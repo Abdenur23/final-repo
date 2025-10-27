@@ -20,6 +20,7 @@ class Application {
         const isAuthenticated = await initializeAuth();
         this.showSessionInfo();
         this.toggleAppContent(isAuthenticated);
+        this.renderAuthActions(); // Add this line
 
         if (isAuthenticated) {
             this.realtimeUpdates.initialize();
@@ -37,6 +38,26 @@ class Application {
             <pre>${JSON.stringify(payload, null, 2)}</pre>`;
         } else {
             tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
+        }
+    }
+
+    renderAuthActions() {
+        const authActionDiv = document.getElementById('auth-action');
+        const userInfo = getUserInfo();
+        
+        if (userInfo) {
+            authActionDiv.innerHTML = `
+                <p>Welcome, <strong>${userInfo.displayName}</strong>!</p>
+                <button onclick="window.app.signout()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Sign Out
+                </button>
+            `;
+        } else {
+            authActionDiv.innerHTML = `
+                <button onclick="window.app.signin()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Sign In / Sign Up
+                </button>
+            `;
         }
     }
 
@@ -68,6 +89,15 @@ class Application {
 
     startOver() {
         this.uploadManager.startOver();
+    }
+
+    // Auth functions
+    signin() {
+        signin();
+    }
+
+    signout() {
+        signout();
     }
 }
 
