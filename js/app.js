@@ -1,120 +1,78 @@
-// Initialize managers
-const productManager = new ProductManager();
-const fileManager = new FileManager();
-const uploadManager = new UploadManager();
-const uiManager = new UIManager();
-const designManager = new DesignManager();
-
-// DOM Elements
-const uploadArea = document.getElementById('uploadArea');
-const fileInput = document.getElementById('fileInput');
-const browseBtn = document.getElementById('browseBtn');
-const uploadBtn = document.getElementById('uploadBtn');
-const consentCheckbox = document.getElementById('consentCheckbox');
-
-document.addEventListener('DOMContentLoaded', () => {
-    initializeApp();
-});
-
-function initializeApp() {
-    // Set up product-specific UI
-    productManager.updateProductUI();
-    
-    // Initialize event listeners
-    initializeDragAndDrop();
-    initializeEventListeners();
-}
-
-function initializeDragAndDrop() {
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, preventDefaults, false);
-    });
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'), false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'), false);
-    });
-
-    uploadArea.addEventListener('drop', handleDrop, false);
-}
-
-function initializeEventListeners() {
-    browseBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', handleFileSelect);
-    consentCheckbox.addEventListener('change', () => uiManager.validateUpload(fileManager.selectedFiles.size === fileManager.MAX_FILES));
-    uploadBtn.addEventListener('click', handleUpload);
-}
-
-function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-}
-
-function handleDrop(e) {
-    const dt = e.dataTransfer;
-    const files = Array.from(dt.files).filter(file => file.type.startsWith('image/'));
-    if (files.length > 0) {
-        fileManager.handleFiles(files);
-    }
-}
-
-function handleFileSelect(event) {
-    const files = Array.from(event.target.files).filter(file => file.type.startsWith('image/'));
-    if (files.length > 0) {
-        fileManager.handleFiles(files);
-    }
-}
-
-async function handleUpload() {
-    if (fileManager.selectedFiles.size !== fileManager.MAX_FILES || !consentCheckbox.checked) {
-        return;
+class Application {
+    constructor() {
+        this.deviceManager = null;
+        this.promoManager = null;
+        this.uploadManager = null;
+        this.realtimeUpdates = null;
     }
 
-    uiManager.showProgress();
+    async initialize() {
+        // Initialize managers
+        this.promoManager = new PromoManager();
+        this.deviceManager = new DeviceManager();
+        this.uploadManager = new UploadManager(this.deviceManager, this.promoManager);
+        this.realtimeUpdates = new RealTimeUpdates(this.promoManager, this.uploadManager);
 
-    try {
-        // Prepare files data
-        const filesData = Array.from(fileManager.selectedFiles.entries()).map(([fileId, file]) => ({
-            fileId: fileId,
-            fileName: file.name,
-            fileType: file.type
-        }));
+        // Set up global references
+        window.app = this;
 
-        // Get presigned URLs and upload files
-        const uploadUrls = await uploadManager.uploadFiles(filesData);
-        const fileProgressMap = uiManager.createProgressBars(uploadUrls);
-        uiManager.progressText.textContent = 'Uploading your images...';
+        // Initialize auth and UI
+        const isAuthenticated = await initializeAuth();
+        this.showSessionInfo();
+        this.toggleAppContent(isAuthenticated);
 
-        // Upload all files
-        const uploadPromises = uploadUrls.map(async (urlData) => {
-            const file = fileManager.selectedFiles.get(urlData.fileId);
-            const progressData = fileProgressMap.get(urlData.fileId);
-            
-            return uploadManager.uploadFileToS3(urlData, file, (percent) => {
-                uiManager.updateProgress(progressData, percent);
-            });
-        });
+        if (isAuthenticated) {
+            this.realtimeUpdates.initialize();
+        }
+    }
 
-        await Promise.all(uploadPromises);
-
-        // Files uploaded successfully - show processing state
-        uiManager.progressContainer.style.display = 'none';
-        uiManager.showSuccess();
+    showSessionInfo() {
+        const userInfo = getUserInfo();
+        const tokenDiv = document.getElementById('token-display');
         
-        // Show design processing (placeholder for now)
-        setTimeout(() => {
-            designManager.showProcessingState();
-        }, 1000);
+        if (userInfo) {
+            const session = getSession();
+            const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+            tokenDiv.innerHTML = `<h2>Signed in as ${userInfo.displayName}</h2>
+            <pre>${JSON.stringify(payload, null, 2)}</pre>`;
+        } else {
+            tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
+        }
+    }
 
-    } catch (error) {
-        console.error('Upload error:', error);
-        uiManager.showError(error);
+    toggleAppContent(show) {
+        const appContent = document.getElementById('app-content');
+        const authRequired = document.getElementById('auth-required-message');
+        const promoSection = document.getElementById('promoSection');
+        
+        if (show) {
+            appContent.style.display = 'block';
+            authRequired.style.display = 'none';
+            promoSection.style.display = 'block'; // Always show promo when authenticated
+            this.deviceManager.updateDeviceOptions();
+        } else {
+            appContent.style.display = 'none';
+            authRequired.style.display = 'block';
+            promoSection.style.display = 'none';
+        }
+    }
+
+    // Global functions for HTML onclick handlers
+    applyPromoCode() {
+        this.promoManager.applyPromoCode();
+    }
+
+    uploadFiles() {
+        this.uploadManager.uploadFiles();
+    }
+
+    startOver() {
+        this.uploadManager.startOver();
     }
 }
 
-// Export for global access
-window.fileManager = fileManager;
-window.designManager = designManager;
+// Initialize application when DOM is loaded
+document.addEventListener('DOMContentLoaded', async () => {
+    window.app = new Application();
+    await window.app.initialize();
+});
