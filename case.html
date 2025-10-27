@@ -41,6 +41,49 @@ h1,h2,h3 { color:#333; }
     text-align: center; 
     margin: 20px 0; 
 }
+
+/* Promo code section */
+.promo-section { 
+    margin: 20px 0; 
+    padding: 15px; 
+    background: #f8f9fa; 
+    border-radius: 8px; 
+    border: 1px solid #e9ecef;
+    display: none;
+}
+.promo-input-group { display: flex; gap: 10px; margin-bottom: 10px; }
+.promo-input-group input { flex: 1; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px; }
+.promo-input-group button { padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; }
+.promo-message { font-size: 14px; margin-top: 5px; }
+
+/* Start over button */
+.start-over-section { 
+    text-align: center; 
+    margin: 20px 0; 
+    padding: 15px; 
+    display: none;
+}
+.start-over-btn { 
+    padding: 12px 24px; 
+    background: #6c757d; 
+    color: white; 
+    border: none; 
+    border-radius: 6px; 
+    cursor: pointer;
+    font-size: 16px;
+}
+.start-over-btn:hover { background: #5a6268; }
+
+/* Upload success message */
+.upload-success { 
+    padding: 15px; 
+    background: #d4edda; 
+    border: 1px solid #c3e6cb; 
+    border-radius: 5px; 
+    color: #155724;
+    margin: 15px 0;
+    text-align: center;
+}
 </style>
 </head>
 <body>
@@ -82,12 +125,27 @@ h1,h2,h3 { color:#333; }
             </div>
         </div>
 
+        <!-- Promo Code Section -->
+        <div class="promo-section" id="promoSection">
+            <h3>💳 Have a Promo Code?</h3>
+            <div class="promo-input-group">
+                <input type="text" id="promoCodeInput" placeholder="Enter promo code">
+                <button onclick="applyPromoCode()">Apply</button>
+            </div>
+            <div id="promoMessage" class="promo-message"></div>
+        </div>
+
         <div id="uploadSection" style="display:none;">
             <h2>Upload 3 Images</h2>
             <input type="file" id="fileInput" multiple accept="image/*">
             <br>
-            <button onclick="uploadFiles()">Upload</button>
+            <button onclick="uploadFiles()">Upload Images</button>
             <div id="uploadResult"></div>
+        </div>
+
+        <!-- Start Over Section -->
+        <div class="start-over-section" id="startOverSection">
+            <button class="start-over-btn" onclick="startOver()">Start Over with New Images</button>
         </div>
     </div>
     
@@ -102,6 +160,17 @@ h1,h2,h3 { color:#333; }
 
 <script src="auth.js"></script>
 <script>
+// --- CONFIG ---
+const CONFIG = {
+    productPrice: 34.00
+};
+
+// --- GLOBAL STATE ---
+let selectedFiles = [];
+let promoDiscount = 0;
+let completedDesignsCount = 0;
+const totalExpectedDesigns = 3;
+
 // --- DEVICE DATA AND LOGIC ---
 const devices = {
     apple: [
@@ -132,6 +201,125 @@ const devices = {
         { name: "Galaxy S21", value: "samsungs21" }
     ]
 };
+
+// --- PROMO CODE FUNCTIONS ---
+async function applyPromoCode() {
+    const promoCode = document.getElementById('promoCodeInput').value.trim();
+    const messageDiv = document.getElementById('promoMessage');
+    
+    if (!promoCode) {
+        messageDiv.innerHTML = '<span style="color: #dc3545;">Please enter a promo code</span>';
+        return;
+    }
+
+    const token = getSession()?.id_token;
+    if (!token) {
+        messageDiv.innerHTML = '<span style="color: #dc3545;">Please sign in first</span>';
+        return;
+    }
+
+    try {
+        messageDiv.innerHTML = '<span style="color: #6c757d;">Validating promo code...</span>';
+        
+        const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ 
+                action: 'validatePromo',
+                promo_code: promoCode
+            })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result.valid) {
+                promoDiscount = result.discount_percent || 0;
+                messageDiv.innerHTML = `<span style="color: #28a745;">✅ Promo code applied! ${promoDiscount}% discount activated</span>`;
+                
+                // Update prices for existing products
+                updateProductPrices();
+            } else {
+                messageDiv.innerHTML = '<span style="color: #dc3545;">❌ Invalid promo code</span>';
+                promoDiscount = 0;
+                updateProductPrices();
+            }
+        } else {
+            const error = await response.text();
+            messageDiv.innerHTML = '<span style="color: #dc3545;">❌ Error validating promo code</span>';
+            console.error('Promo validation error:', error);
+        }
+    } catch (error) {
+        messageDiv.innerHTML = '<span style="color: #dc3545;">❌ Network error validating promo code</span>';
+        console.error('Promo code error:', error);
+    }
+}
+
+function updateProductPrices() {
+    const productCards = document.querySelectorAll('.product-card');
+    productCards.forEach(card => {
+        const originalPrice = CONFIG.productPrice;
+        const discountedPrice = originalPrice * (1 - promoDiscount / 100);
+        
+        const priceElement = card.querySelector('.product-price');
+        const cartButton = card.querySelector('.add-to-cart-btn');
+        
+        if (promoDiscount > 0) {
+            priceElement.innerHTML = `
+                <span style="text-decoration: line-through; color: #6c757d; margin-right: 8px;">$${originalPrice.toFixed(2)}</span>
+                <span style="color: #28a745;">$${discountedPrice.toFixed(2)}</span>
+                <div style="font-size: 12px; color: #28a745;">${promoDiscount}% OFF</div>
+            `;
+            cartButton.textContent = `Add to Cart - $${discountedPrice.toFixed(2)}`;
+        } else {
+            priceElement.textContent = `$${originalPrice.toFixed(2)}`;
+            cartButton.textContent = `Add to Cart - $${originalPrice.toFixed(2)}`;
+        }
+    });
+}
+
+// --- UPLOAD CONTROL FUNCTIONS ---
+function hideUploadSection() {
+    document.getElementById('uploadSection').style.display = 'none';
+    document.getElementById('promoSection').style.display = 'none';
+}
+
+function showStartOverButton() {
+    document.getElementById('startOverSection').style.display = 'block';
+}
+
+function showUploadSection() {
+    document.getElementById('uploadSection').style.display = 'block';
+    document.getElementById('promoSection').style.display = 'block';
+    document.getElementById('startOverSection').style.display = 'none';
+}
+
+function startOver() {
+    // Clear all displayed products and updates
+    const updatesContainer = document.getElementById('realtimeUpdates');
+    const productsContainer = document.getElementById('productsContainer');
+    
+    if (updatesContainer) updatesContainer.innerHTML = '';
+    if (productsContainer) productsContainer.innerHTML = '';
+    
+    // Reset state
+    completedDesignsCount = 0;
+    selectedFiles = [];
+    document.getElementById('fileInput').value = '';
+    
+    // Reset realtime updates
+    if (window.realtimeUpdates) {
+        window.realtimeUpdates.pendingImages.clear();
+        window.realtimeUpdates.completedDesigns.clear();
+        window.realtimeUpdates.processedFiles.clear();
+        window.realtimeUpdates.hasDisplayedProduct = false;
+    }
+    
+    // Show upload section again
+    showUploadSection();
+}
 
 // --- API CALL FUNCTIONS ---
 async function updateCustomerDevice(deviceId) {
@@ -168,8 +356,6 @@ async function updateCustomerDevice(deviceId) {
     }
 }
 
-let selectedFiles = [];
-
 document.getElementById('fileInput').addEventListener('change', (e)=>{
     selectedFiles = Array.from(e.target.files);
     if(selectedFiles.length !== 3) alert("Please select exactly 3 images");
@@ -182,6 +368,13 @@ async function uploadFiles() {
     if (!token) return alert('Please sign in first');
     if (!deviceId) return alert('Please select a device before uploading');
     if (selectedFiles.length !== 3) return alert('Please select exactly 3 images');
+
+    // Show upload success message
+    const resultDiv = document.getElementById('uploadResult');
+    resultDiv.innerHTML = '<div class="upload-success">✅ All 3 files uploaded successfully! Processing started...</div>';
+
+    // Hide upload section immediately after upload
+    hideUploadSection();
 
     const filesData = selectedFiles.map((f, i) => ({
         fileId: i + 1,
@@ -196,10 +389,10 @@ async function uploadFiles() {
     });
 
     const data = await res.json();
-    const resultDiv = document.getElementById('uploadResult');
 
     if (!res.ok || !data.uploadUrls) {
-        resultDiv.innerHTML = `❌ Upload failed: ${data.error || JSON.stringify(data)}`;
+        resultDiv.innerHTML = `<div style="color: #dc3545;">❌ Upload failed: ${data.error || JSON.stringify(data)}</div>`;
+        showUploadSection(); // Show upload section again if failed
         return;
     }
 
@@ -237,9 +430,10 @@ async function uploadFiles() {
         });
 
         await Promise.all(uploadPromises);
-        resultDiv.innerHTML = `✅ All 3 files uploaded successfully! Processing started...`;
+        // Success message already shown above
     } catch (e) {
-        resultDiv.innerHTML = `❌ Error uploading files: ${e.message}`;
+        resultDiv.innerHTML = `<div style="color: #dc3545;">❌ Error uploading files: ${e.message}</div>`;
+        showUploadSection(); // Show upload section again if failed
     }
     
     if (window.realtimeUpdates) {
@@ -312,6 +506,7 @@ function updateDeviceOptions() {
     
     document.getElementById('acknowledgeSection').style.display = 'none';
     document.getElementById('uploadSection').style.display = 'none';
+    document.getElementById('promoSection').style.display = 'none';
     document.getElementById('acknowledgeCheckbox').checked = false;
 }
 
@@ -332,17 +527,21 @@ function showAcknowledgeSection() {
     } else {
         acknowledgeSection.style.display = 'none';
         document.getElementById('uploadSection').style.display = 'none';
+        document.getElementById('promoSection').style.display = 'none';
     }
 }
 
 function toggleUploadSection() {
     const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
     const uploadSection = document.getElementById('uploadSection');
+    const promoSection = document.getElementById('promoSection');
     
     if (acknowledgeCheckbox.checked) {
         uploadSection.style.display = 'block';
+        promoSection.style.display = 'block';
     } else {
         uploadSection.style.display = 'none';
+        promoSection.style.display = 'none';
     }
 }
 
