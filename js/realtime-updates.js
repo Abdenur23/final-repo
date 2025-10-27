@@ -372,7 +372,6 @@ class RealTimeUpdates {
         const uploadSection = document.getElementById('uploadSection');
         const updatesHTML = `
             <div id="realtimePanel" style="margin-top: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
-                <h3>🔄 Processing Updates</h3>
                 <div id="realtimeUpdates" class="updates-container"></div>
             </div>
         `;
