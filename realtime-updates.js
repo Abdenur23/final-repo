@@ -7,6 +7,8 @@ class RealTimeUpdates {
         this.processedFiles = new Set();
         this.productPrice = 34;
         this.hasDisplayedProduct = false;
+        this.completedDesignsCount = 0;
+        this.totalExpectedDesigns = 3;
     }
 
     initialize() {
@@ -41,23 +43,11 @@ class RealTimeUpdates {
         };
     }
 
-    // authenticateWebSocket() {
-    //     const session = this.getSession();
-    //     if (session && session.id_token) {
-    //         this.socket.send(JSON.stringify({
-    //             action: 'authorize',
-    //             id_token: session.id_token
-    //         }));
-    //         this.isConnected = true;
-    //     }
-    // }
-    // In realtime-updates.js
     authenticateWebSocket() {
         const session = this.getSession();
-        if (session && session.access_token) { // <-- Change to access_token
+        if (session && session.access_token) {
             this.socket.send(JSON.stringify({
                 action: 'authorize',
-                // CRITICAL FIX: Use access_token for Authorizer validation
                 id_token: session.access_token 
             }));
             this.isConnected = true;
@@ -73,16 +63,14 @@ class RealTimeUpdates {
         }
         
         if (data.type === 'image_update') {
-            // Only show progress updates if no products have been displayed yet
-            if (!this.hasDisplayedProduct) {
-                const fileKey = data.fileName + '_' + data.stage;
-                if (this.processedFiles.has(fileKey)) {
-                    console.log('Skipping duplicate file update:', fileKey);
-                    return;
-                }
-                this.processedFiles.add(fileKey);
-                this.updateImageStatus(data);
+            // Show progress updates regardless of product display status
+            const fileKey = data.fileName + '_' + data.stage;
+            if (this.processedFiles.has(fileKey)) {
+                console.log('Skipping duplicate file update:', fileKey);
+                return;
             }
+            this.processedFiles.add(fileKey);
+            this.updateImageStatus(data);
         }
     }
 
@@ -92,22 +80,25 @@ class RealTimeUpdates {
         const designId = designData.designId;
         if (!this.completedDesigns.has(designId)) {
             this.completedDesigns.set(designId, designData);
+            this.completedDesignsCount++;
             this.displayDesign(designData);
             this.removeProgressItem(designId);
             
             // Mark that we've displayed at least one product
             this.hasDisplayedProduct = true;
             
-            // Clear all progress updates once we have products
-            this.clearAllProgressUpdates();
+            // Check if all designs are complete
+            if (this.completedDesignsCount >= this.totalExpectedDesigns) {
+                this.showStartOverButton();
+            }
         }
     }
 
-    clearAllProgressUpdates() {
-        const container = document.getElementById('realtimeUpdates');
-        const progressItems = container.querySelectorAll('.progress-item');
-        progressItems.forEach(item => item.remove());
-        this.pendingImages.clear();
+    showStartOverButton() {
+        // This will be called from case.html
+        if (typeof showStartOverButton === 'function') {
+            showStartOverButton();
+        }
     }
 
     updateImageStatus(update) {
@@ -146,10 +137,20 @@ class RealTimeUpdates {
         const paletteName = designData.paletteName || 'Custom Design';
         const imageUrls = Object.values(designData.imageUrls);
         
+        const discountedPrice = this.productPrice * (1 - (window.promoDiscount || 0) / 100);
+        const displayPrice = (window.promoDiscount > 0) ? discountedPrice : this.productPrice;
+        
         productElement.innerHTML = `
             <div class="product-header">
                 <h4>${paletteName}</h4>
-                <div class="product-price">$${this.productPrice.toFixed(2)}</div>
+                <div class="product-price">
+                    ${window.promoDiscount > 0 ? 
+                        `<span style="text-decoration: line-through; color: #6c757d; margin-right: 8px;">$${this.productPrice.toFixed(2)}</span>
+                         <span style="color: #28a745;">$${displayPrice.toFixed(2)}</span>
+                         <div style="font-size: 12px; color: #28a745;">${window.promoDiscount}% OFF</div>` :
+                        `$${this.productPrice.toFixed(2)}`
+                    }
+                </div>
             </div>
             
             <div class="design-viewer">
@@ -158,7 +159,8 @@ class RealTimeUpdates {
                          class="main-image"
                          onload="this.style.opacity='1'" 
                          onerror="this.style.display='none'"
-                         style="opacity: 0; transition: opacity 0.3s ease;" />
+                         style="opacity: 0; transition: opacity 0.3s ease; cursor: pointer;"
+                         onclick="realtimeUpdates.openImagePopup('${designId}', 0)" />
                 </div>
                 <div class="image-navigation">
                     <button class="nav-btn prev-btn" onclick="realtimeUpdates.navigateImage('${designId}', -1)">‹</button>
@@ -170,7 +172,7 @@ class RealTimeUpdates {
             </div>
             
             <button class="add-to-cart-btn" onclick="realtimeUpdates.addToCart('${designId}')">
-                Add to Cart - $${this.productPrice.toFixed(2)}
+                Add to Cart - $${displayPrice.toFixed(2)}
             </button>
         `;
         
@@ -189,6 +191,88 @@ class RealTimeUpdates {
         }
         
         productsContainer.appendChild(productElement);
+    }
+
+    openImagePopup(designId, imageIndex) {
+        const productElement = document.getElementById(`design-${designId}`);
+        if (!productElement || !productElement._imageUrls) return;
+        
+        const imageUrl = productElement._imageUrls[imageIndex];
+        
+        // Create popup overlay
+        const popup = document.createElement('div');
+        popup.className = 'image-popup-overlay';
+        popup.innerHTML = `
+            <div class="image-popup-content">
+                <button class="popup-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
+                <img src="${imageUrl}" alt="Full size preview" class="popup-image">
+                <div class="popup-navigation">
+                    <button class="nav-btn" onclick="realtimeUpdates.navigatePopupImage('${designId}', ${imageIndex}, -1)">‹</button>
+                    <span class="popup-counter">${imageIndex + 1} / ${productElement._imageUrls.length}</span>
+                    <button class="nav-btn" onclick="realtimeUpdates.navigatePopupImage('${designId}', ${imageIndex}, 1)">›</button>
+                </div>
+            </div>
+        `;
+        
+        popup.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        `;
+        
+        popup.querySelector('.image-popup-content').style.cssText = `
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+        `;
+        
+        popup.querySelector('.popup-image').style.cssText = `
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+        `;
+        
+        popup.querySelector('.popup-close').style.cssText = `
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        `;
+        
+        popup.querySelector('.popup-navigation').style.cssText = `
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+            color: white;
+        `;
+        
+        document.body.appendChild(popup);
+        
+        // Close on overlay click
+        popup.addEventListener('click', (e) => {
+            if (e.target === popup) popup.remove();
+        });
+    }
+
+    navigatePopupImage(designId, currentIndex, direction) {
+        const productElement = document.getElementById(`design-${designId}`);
+        if (!productElement || !productElement._imageUrls) return;
+        
+        const newIndex = (currentIndex + direction + productElement._imageUrls.length) % productElement._imageUrls.length;
+        this.openImagePopup(designId, newIndex);
     }
 
     navigateImage(designId, direction) {
@@ -210,6 +294,7 @@ class RealTimeUpdates {
         mainImage.style.opacity = '0';
         setTimeout(() => {
             mainImage.src = images[currentIndex];
+            mainImage.onclick = () => this.openImagePopup(designId, currentIndex);
             currentImageSpan.textContent = currentIndex + 1;
             mainImage.style.opacity = '1';
         }, 150);
@@ -218,7 +303,10 @@ class RealTimeUpdates {
     addToCart(designId) {
         const design = this.completedDesigns.get(designId);
         const paletteName = design.paletteName || 'Custom Design';
-        alert(`Added ${paletteName} to cart! Price: $${this.productPrice.toFixed(2)}`);
+        const discountedPrice = this.productPrice * (1 - (window.promoDiscount || 0) / 100);
+        const displayPrice = (window.promoDiscount > 0) ? discountedPrice : this.productPrice;
+        
+        alert(`Added ${paletteName} to cart! Price: $${displayPrice.toFixed(2)}`);
     }
 
     createProgressItem(itemKey) {
@@ -227,20 +315,44 @@ class RealTimeUpdates {
         item.id = `progress-${itemKey}`;
         item.className = 'progress-item';
         
-        const friendlyName = itemKey.startsWith('design_') 
-            ? `Phone Case: ${itemKey.replace('design_', '').replace('_', ' - ')}`
-            : this.formatFileName(itemKey);
+        // Use friendly stage names instead of file names
+        const friendlyName = this.getFriendlyStageName(itemKey);
             
         item.innerHTML = `
             <div class="progress-content">
                 <div class="file-name">${friendlyName}</div>
-                <div class="current-stage">Starting...</div>
-                <div class="timestamp"></div>
+                <div class="current-stage">🔄 Processing started...</div>
+                <div class="timestamp">${new Date().toLocaleTimeString()}</div>
             </div>
             <div class="image-container"></div>
         `;
         container.appendChild(item);
         return item;
+    }
+
+    getFriendlyStageName(itemKey) {
+        if (itemKey.includes('design_')) {
+            const parts = itemKey.replace('design_', '').split('_');
+            return `Creating Design ${parts[0]} - Style ${parts[1]}`;
+        }
+        
+        // Map technical stage names to user-friendly ones
+        const stageMap = {
+            'upload': '📤 Uploading your image',
+            'processing': '🔄 Processing image',
+            'analysis': '🔍 Analyzing design',
+            'generation': '🎨 Generating phone case',
+            'rendering': '📱 Creating 3D preview',
+            'finalizing': '✨ Finalizing design'
+        };
+        
+        for (const [tech, friendly] of Object.entries(stageMap)) {
+            if (itemKey.toLowerCase().includes(tech)) {
+                return friendly;
+            }
+        }
+        
+        return '🔄 Processing your design';
     }
 
     removeProgressItem(designId) {
@@ -253,12 +365,35 @@ class RealTimeUpdates {
 
     updateProgressItem(item, stage, timestamp, imageUrl) {
         const stageElement = item.querySelector('.current-stage');
-        stageElement.textContent = stage;
+        const friendlyStage = this.getFriendlyStageName(stage);
+        stageElement.textContent = friendlyStage;
         item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
         
         if (imageUrl) {
             this.addImageToProgressItem(item, imageUrl);
         }
+        
+        // Add visual feedback for progress
+        item.style.borderLeftColor = this.getStageColor(stage);
+    }
+
+    getStageColor(stage) {
+        const colors = {
+            'upload': '#ffc107',
+            'processing': '#17a2b8', 
+            'analysis': '#6610f2',
+            'generation': '#fd7e14',
+            'rendering': '#20c997',
+            'finalizing': '#28a745'
+        };
+        
+        for (const [tech, color] of Object.entries(colors)) {
+            if (stage.toLowerCase().includes(tech)) {
+                return color;
+            }
+        }
+        
+        return '#6f42c1';
     }
 
     addImageToProgressItem(item, imageUrl) {
@@ -274,11 +409,6 @@ class RealTimeUpdates {
         img.style.transition = 'opacity 0.3s ease';
         
         imageContainer.appendChild(img);
-    }
-
-    formatFileName(name) {
-        const filename = name.split('/').pop();
-        return filename.length > 30 ? filename.substring(0, 27) + '...' : filename;
     }
 
     getSession() {
@@ -325,15 +455,16 @@ styleSheet.textContent = `
     border-radius: 12px;
     background: #f8fbff;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    width: 320px;
-    min-height: 400px;
+    width: 100%;
+    max-width: 400px;
+    min-height: 500px;
     display: flex;
     flex-direction: column;
 }
 .product-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 2px solid #e6f2ff;
@@ -343,11 +474,15 @@ styleSheet.textContent = `
     color: #0056b3;
     font-size: 18px;
     font-weight: 600;
+    flex: 1;
+    margin-right: 15px;
 }
 .product-price {
     font-weight: bold;
     color: #28a745;
-    font-size: 1.2em;
+    font-size: 1.1em;
+    text-align: right;
+    min-width: 100px;
 }
 .design-viewer {
     flex: 1;
@@ -364,12 +499,15 @@ styleSheet.textContent = `
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     padding: 10px;
-    min-height: 300px;
+    min-height: 350px;
+    max-height: 400px;
 }
 .main-image {
     max-width: 100%;
-    max-height: 280px;
+    max-height: 100%;
     object-fit: contain;
+    width: auto;
+    height: auto;
 }
 .image-navigation {
     display: flex;
@@ -420,27 +558,31 @@ styleSheet.textContent = `
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
-    margin: 5px 0;
+    padding: 12px;
+    margin: 8px 0;
     border-left: 4px solid #ffc107;
     background: #fff8e6;
-    border-radius: 4px;
+    border-radius: 6px;
     gap: 15px;
+    transition: all 0.3s ease;
 }
 .progress-content {
     flex: 1;
 }
 .progress-content .file-name {
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    color: #333;
 }
 .progress-content .current-stage {
     color: #007bff;
-    font-size: 0.9em;
+    font-size: 0.95em;
+    font-weight: 500;
 }
 .progress-content .timestamp {
     color: #666;
     font-size: 0.8em;
+    margin-top: 4px;
 }
 .image-container {
     flex-shrink: 0;
@@ -457,11 +599,30 @@ styleSheet.textContent = `
     max-height: 600px;
     overflow-y: auto;
 }
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .product-card {
+        width: 100%;
+        max-width: none;
+        min-height: 450px;
+        padding: 15px;
+    }
+    .main-image-container {
+        min-height: 300px;
+        max-height: 350px;
+    }
+    .product-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .product-price {
+        text-align: left;
+    }
+}
 `;
 document.head.appendChild(styleSheet);
 
-// // Initialize
-// document.addEventListener('DOMContentLoaded', function() {
-//     window.realtimeUpdates = new RealTimeUpdates();
-//     window.realtimeUpdates.initialize();
-// });
+// Initialize global promo discount
+window.promoDiscount = 0;
