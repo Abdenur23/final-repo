@@ -42,14 +42,13 @@ h1,h2,h3 { color:#333; }
     margin: 20px 0; 
 }
 
-/* Promo code section */
+/* Promo code section - ALWAYS VISIBLE when authenticated */
 .promo-section { 
     margin: 20px 0; 
     padding: 15px; 
     background: #f8f9fa; 
     border-radius: 8px; 
     border: 1px solid #e9ecef;
-    display: none;
 }
 .promo-input-group { display: flex; gap: 10px; margin-bottom: 10px; }
 .promo-input-group input { flex: 1; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px; }
@@ -125,7 +124,7 @@ h1,h2,h3 { color:#333; }
             </div>
         </div>
 
-        <!-- Promo Code Section -->
+        <!-- Promo Code Section - ALWAYS VISIBLE when authenticated -->
         <div class="promo-section" id="promoSection">
             <h3>💳 Have a Promo Code?</h3>
             <div class="promo-input-group">
@@ -233,10 +232,14 @@ async function applyPromoCode() {
             })
         });
 
+        console.log('Promo validation response status:', response.status);
+        
         if (response.ok) {
             const result = await response.json();
-            if (result.valid) {
-                promoDiscount = result.discount_percent || 0;
+            console.log('Promo validation result:', result);
+            
+            if (result.valid === true || result.discount_percentage > 0) {
+                promoDiscount = result.discount_percentage || 30; // Default to 30% if not specified
                 messageDiv.innerHTML = `<span style="color: #28a745;">✅ Promo code applied! ${promoDiscount}% discount activated</span>`;
                 
                 // Update prices for existing products
@@ -247,13 +250,17 @@ async function applyPromoCode() {
                 updateProductPrices();
             }
         } else {
-            const error = await response.text();
+            const errorText = await response.text();
+            console.error('Promo validation error response:', errorText);
             messageDiv.innerHTML = '<span style="color: #dc3545;">❌ Error validating promo code</span>';
-            console.error('Promo validation error:', error);
+            promoDiscount = 0;
+            updateProductPrices();
         }
     } catch (error) {
+        console.error('Promo code network error:', error);
         messageDiv.innerHTML = '<span style="color: #dc3545;">❌ Network error validating promo code</span>';
-        console.error('Promo code error:', error);
+        promoDiscount = 0;
+        updateProductPrices();
     }
 }
 
@@ -283,7 +290,7 @@ function updateProductPrices() {
 // --- UPLOAD CONTROL FUNCTIONS ---
 function hideUploadSection() {
     document.getElementById('uploadSection').style.display = 'none';
-    document.getElementById('promoSection').style.display = 'none';
+    // NOTE: Promo section stays visible always
 }
 
 function showStartOverButton() {
@@ -292,8 +299,8 @@ function showStartOverButton() {
 
 function showUploadSection() {
     document.getElementById('uploadSection').style.display = 'block';
-    document.getElementById('promoSection').style.display = 'block';
     document.getElementById('startOverSection').style.display = 'none';
+    // Promo section is always visible, no need to show/hide it
 }
 
 function startOver() {
@@ -308,6 +315,7 @@ function startOver() {
     completedDesignsCount = 0;
     selectedFiles = [];
     document.getElementById('fileInput').value = '';
+    document.getElementById('uploadResult').innerHTML = '';
     
     // Reset realtime updates
     if (window.realtimeUpdates) {
@@ -315,6 +323,7 @@ function startOver() {
         window.realtimeUpdates.completedDesigns.clear();
         window.realtimeUpdates.processedFiles.clear();
         window.realtimeUpdates.hasDisplayedProduct = false;
+        window.realtimeUpdates.completedDesignsCount = 0;
     }
     
     // Show upload section again
@@ -369,7 +378,7 @@ async function uploadFiles() {
     if (!deviceId) return alert('Please select a device before uploading');
     if (selectedFiles.length !== 3) return alert('Please select exactly 3 images');
 
-    // Show upload success message
+    // Show upload success message IMMEDIATELY
     const resultDiv = document.getElementById('uploadResult');
     resultDiv.innerHTML = '<div class="upload-success">✅ All 3 files uploaded successfully! Processing started...</div>';
 
@@ -382,21 +391,22 @@ async function uploadFiles() {
         fileType: f.type
     }));
 
-    const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ files: filesData, device_id: deviceId })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || !data.uploadUrls) {
-        resultDiv.innerHTML = `<div style="color: #dc3545;">❌ Upload failed: ${data.error || JSON.stringify(data)}</div>`;
-        showUploadSection(); // Show upload section again if failed
-        return;
-    }
-
     try {
+        const res = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ files: filesData, device_id: deviceId })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.uploadUrls) {
+            resultDiv.innerHTML = `<div style="color: #dc3545;">❌ Upload failed: ${data.error || JSON.stringify(data)}</div>`;
+            showUploadSection(); // Show upload section again if failed
+            return;
+        }
+
+        // Upload files to S3
         const uploadPromises = data.uploadUrls.map(async (u, idx) => {
             const uploadResponse = await fetch(u.uploadUrl, {
                 method: 'PUT',
@@ -419,6 +429,7 @@ async function uploadFiles() {
                     }
                 };
 
+                // Notify Lambda about upload completion
                 fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -430,7 +441,8 @@ async function uploadFiles() {
         });
 
         await Promise.all(uploadPromises);
-        // Success message already shown above
+        // Success message already shown above - it stays visible
+        
     } catch (e) {
         resultDiv.innerHTML = `<div style="color: #dc3545;">❌ Error uploading files: ${e.message}</div>`;
         showUploadSection(); // Show upload section again if failed
@@ -464,14 +476,17 @@ function showSessionInfo() {
 function toggleAppContent(show) {
     const appContent = document.getElementById('app-content');
     const authRequired = document.getElementById('auth-required-message');
+    const promoSection = document.getElementById('promoSection');
     
     if (show) {
         appContent.style.display = 'block';
         authRequired.style.display = 'none';
+        promoSection.style.display = 'block'; // Always show promo when authenticated
         initializeDeviceOptions();
     } else {
         appContent.style.display = 'none';
         authRequired.style.display = 'block';
+        promoSection.style.display = 'none';
     }
 }
 
@@ -506,7 +521,6 @@ function updateDeviceOptions() {
     
     document.getElementById('acknowledgeSection').style.display = 'none';
     document.getElementById('uploadSection').style.display = 'none';
-    document.getElementById('promoSection').style.display = 'none';
     document.getElementById('acknowledgeCheckbox').checked = false;
 }
 
@@ -527,21 +541,17 @@ function showAcknowledgeSection() {
     } else {
         acknowledgeSection.style.display = 'none';
         document.getElementById('uploadSection').style.display = 'none';
-        document.getElementById('promoSection').style.display = 'none';
     }
 }
 
 function toggleUploadSection() {
     const acknowledgeCheckbox = document.getElementById('acknowledgeCheckbox');
     const uploadSection = document.getElementById('uploadSection');
-    const promoSection = document.getElementById('promoSection');
     
     if (acknowledgeCheckbox.checked) {
         uploadSection.style.display = 'block';
-        promoSection.style.display = 'block';
     } else {
         uploadSection.style.display = 'none';
-        promoSection.style.display = 'none';
     }
 }
 
