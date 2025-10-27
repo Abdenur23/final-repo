@@ -1,18 +1,58 @@
 .products-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 15px;
     margin-top: 20px;
+    align-items: start;
 }
+
 .product-card {
     border: 2px solid #007bff;
-    padding: 20px;
-    border-radius: 12px;
+    padding: 15px;
+    border-radius: 10px;
     background: #f8fbff;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    min-height: 500px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    min-height: 450px;
     display: flex;
     flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+.product-card:last-child {
+    grid-column: 1 / -1;
+}
+
+/* When we have multiple products, adjust layout */
+.products-container:has(.product-card:nth-child(n+2)) {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* Compact mode for multiple products */
+.compact-layout .product-card {
+    min-height: 400px;
+    padding: 12px;
+}
+
+.compact-layout .main-image-container {
+    min-height: 280px;
+    max-height: 320px;
+}
+
+.compact-layout .product-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+/* New product highlight */
+.product-card.new-product {
+    border-color: #28a745;
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3);
+    animation: pulseHighlight 2s ease-in-out;
+}
+
+@keyframes pulseHighlight {
+    0%, 100% { border-color: #28a745; }
+    50% { border-color: #007bff; }
 }
 .product-header {
     display: flex;
