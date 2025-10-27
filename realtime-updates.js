@@ -137,17 +137,19 @@ class RealTimeUpdates {
         const paletteName = designData.paletteName || 'Custom Design';
         const imageUrls = Object.values(designData.imageUrls);
         
-        const discountedPrice = this.productPrice * (1 - (window.promoDiscount || 0) / 100);
-        const displayPrice = (window.promoDiscount > 0) ? discountedPrice : this.productPrice;
+        // Get current promo discount from global scope
+        const currentDiscount = window.promoDiscount || 0;
+        const discountedPrice = this.productPrice * (1 - currentDiscount / 100);
+        const displayPrice = (currentDiscount > 0) ? discountedPrice : this.productPrice;
         
         productElement.innerHTML = `
             <div class="product-header">
                 <h4>${paletteName}</h4>
                 <div class="product-price">
-                    ${window.promoDiscount > 0 ? 
+                    ${currentDiscount > 0 ? 
                         `<span style="text-decoration: line-through; color: #6c757d; margin-right: 8px;">$${this.productPrice.toFixed(2)}</span>
                          <span style="color: #28a745;">$${displayPrice.toFixed(2)}</span>
-                         <div style="font-size: 12px; color: #28a745;">${window.promoDiscount}% OFF</div>` :
+                         <div style="font-size: 12px; color: #28a745;">${currentDiscount}% OFF</div>` :
                         `$${this.productPrice.toFixed(2)}`
                     }
                 </div>
@@ -186,6 +188,7 @@ class RealTimeUpdates {
             productsContainer = document.createElement('div');
             productsContainer.id = 'productsContainer';
             productsContainer.className = 'products-container';
+            // Clear the updates container and add products header
             container.innerHTML = '<h3>Your Custom Phone Cases</h3>';
             container.appendChild(productsContainer);
         }
@@ -199,12 +202,16 @@ class RealTimeUpdates {
         
         const imageUrl = productElement._imageUrls[imageIndex];
         
+        // Remove any existing popup
+        const existingPopup = document.querySelector('.image-popup-overlay');
+        if (existingPopup) existingPopup.remove();
+        
         // Create popup overlay
         const popup = document.createElement('div');
         popup.className = 'image-popup-overlay';
         popup.innerHTML = `
             <div class="image-popup-content">
-                <button class="popup-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
+                <button class="popup-close" onclick="realtimeUpdates.closeImagePopup()">&times;</button>
                 <img src="${imageUrl}" alt="Full size preview" class="popup-image">
                 <div class="popup-navigation">
                     <button class="nav-btn" onclick="realtimeUpdates.navigatePopupImage('${designId}', ${imageIndex}, -1)">‹</button>
@@ -214,57 +221,27 @@ class RealTimeUpdates {
             </div>
         `;
         
-        popup.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        `;
-        
-        popup.querySelector('.image-popup-content').style.cssText = `
-            position: relative;
-            max-width: 90vw;
-            max-height: 90vh;
-        `;
-        
-        popup.querySelector('.popup-image').style.cssText = `
-            max-width: 100%;
-            max-height: 80vh;
-            object-fit: contain;
-        `;
-        
-        popup.querySelector('.popup-close').style.cssText = `
-            position: absolute;
-            top: -40px;
-            right: 0;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 30px;
-            cursor: pointer;
-        `;
-        
-        popup.querySelector('.popup-navigation').style.cssText = `
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin-top: 20px;
-            color: white;
-        `;
-        
         document.body.appendChild(popup);
         
         // Close on overlay click
         popup.addEventListener('click', (e) => {
-            if (e.target === popup) popup.remove();
+            if (e.target === popup) this.closeImagePopup();
         });
+        
+        // Close on escape key
+        document.addEventListener('keydown', this.handlePopupKeydown);
+    }
+
+    closeImagePopup() {
+        const popup = document.querySelector('.image-popup-overlay');
+        if (popup) popup.remove();
+        document.removeEventListener('keydown', this.handlePopupKeydown);
+    }
+
+    handlePopupKeydown = (e) => {
+        if (e.key === 'Escape') {
+            this.closeImagePopup();
+        }
     }
 
     navigatePopupImage(designId, currentIndex, direction) {
@@ -272,7 +249,8 @@ class RealTimeUpdates {
         if (!productElement || !productElement._imageUrls) return;
         
         const newIndex = (currentIndex + direction + productElement._imageUrls.length) % productElement._imageUrls.length;
-        this.openImagePopup(designId, newIndex);
+        this.closeImagePopup();
+        setTimeout(() => this.openImagePopup(designId, newIndex), 50);
     }
 
     navigateImage(designId, direction) {
@@ -303,8 +281,9 @@ class RealTimeUpdates {
     addToCart(designId) {
         const design = this.completedDesigns.get(designId);
         const paletteName = design.paletteName || 'Custom Design';
-        const discountedPrice = this.productPrice * (1 - (window.promoDiscount || 0) / 100);
-        const displayPrice = (window.promoDiscount > 0) ? discountedPrice : this.productPrice;
+        const currentDiscount = window.promoDiscount || 0;
+        const discountedPrice = this.productPrice * (1 - currentDiscount / 100);
+        const displayPrice = (currentDiscount > 0) ? discountedPrice : this.productPrice;
         
         alert(`Added ${paletteName} to cart! Price: $${displayPrice.toFixed(2)}`);
     }
@@ -327,6 +306,10 @@ class RealTimeUpdates {
             <div class="image-container"></div>
         `;
         container.appendChild(item);
+        
+        // Ensure updates container is visible
+        this.showPanel();
+        
         return item;
     }
 
@@ -443,10 +426,9 @@ class RealTimeUpdates {
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
 .products-container {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 20px;
-    justify-content: center;
     margin-top: 20px;
 }
 .product-card {
@@ -455,8 +437,6 @@ styleSheet.textContent = `
     border-radius: 12px;
     background: #f8fbff;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    width: 100%;
-    max-width: 400px;
     min-height: 500px;
     display: flex;
     flex-direction: column;
@@ -596,29 +576,127 @@ styleSheet.textContent = `
     background: white;
 }
 .updates-container {
-    max-height: 600px;
+    max-height: 400px;
     overflow-y: auto;
+}
+
+/* Image Popup Styles */
+.image-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.image-popup-content {
+    position: relative;
+    max-width: 95vw;
+    max-height: 95vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.popup-close {
+    position: absolute;
+    top: -50px;
+    right: 0;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 40px;
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+}
+
+.popup-image {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+}
+
+.popup-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin-top: 20px;
+    color: white;
+}
+
+.popup-navigation .nav-btn {
+    background: rgba(255,255,255,0.2);
+    border: 2px solid white;
+}
+
+.popup-navigation .nav-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.popup-counter {
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 60px;
+    text-align: center;
 }
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
+    .products-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
     .product-card {
         width: 100%;
-        max-width: none;
         min-height: 450px;
         padding: 15px;
+        margin: 0;
     }
+    
     .main-image-container {
         min-height: 300px;
         max-height: 350px;
     }
+    
     .product-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
     }
+    
     .product-price {
         text-align: left;
+    }
+    
+    .popup-close {
+        top: -60px;
+        right: -10px;
+        font-size: 50px;
+    }
+    
+    .popup-navigation {
+        gap: 20px;
+    }
+    
+    .popup-navigation .nav-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
     }
 }
 `;
