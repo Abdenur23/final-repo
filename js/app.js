@@ -97,6 +97,10 @@ class Application {
     }
 
     signout() {
+        // Clear promo data through the manager
+        this.promoManager.clearPromoData();
+        
+        // Call the global signout function
         signout();
     }
 }
