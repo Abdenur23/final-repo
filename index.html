@@ -1,104 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to The Weer</title>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 40px; 
-            background-color: #f4f4f9; 
-            line-height: 1.6;
-        }
-        .container { 
-            max-width: 800px; 
-            margin: 0 auto; 
-            background: white; 
-            padding: 30px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-        }
-        h1 { color: #333; margin-bottom: 20px; }
-        #auth-container { 
-            margin: 20px 0; 
-            padding: 15px; 
-            background: #f8f9fa; 
-            border-radius: 5px; 
-        }
-        .nav-links { 
-            margin: 25px 0; 
-            padding: 15px; 
-            background: #e9ecef; 
-            border-radius: 5px; 
-        }
-        .nav-links a { 
-            display: inline-block; 
-            margin: 0 15px 10px 0; 
-            padding: 10px 20px; 
-            background: #007bff; 
-            color: white; 
-            text-decoration: none; 
-            border-radius: 5px; 
-        }
-        .nav-links a:hover { background: #0056b3; }
-        .user-info { 
-            padding: 15px; 
-            background: #d4edda; 
-            border: 1px solid #c3e6cb; 
-            border-radius: 5px; 
-            margin: 20px 0; 
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cognito Auth Tester (PKCE)</title>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/realtime-updates.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to Weer</h1>
-        
-        <div id="nav-container"></div>
-        
-        <div id="auth-container"></div>
-        
-        <div id="user-welcome" style="display: none;" class="user-info">
-            <h3>Welcome back!</h3>
-            <p>You are signed in. You can now access all features.</p>
-        </div>
-        
-        <div class="nav-links">
-            <h3>Our Products:</h3>
-            <a href="case.html">Custom Phone Cases</a>
-            <!-- Add more product links here as they are developed -->
-        </div>
-        
-        <div>
-            <h3>About Weer</h3>
-            <p>We create amazing custom products. Sign in to get started!</p>
-        </div>
-    </div>
 
-    <script src="auth.js"></script>
-    <!-- In the index.html file, update the user-welcome div: -->
-    <div id="user-welcome" style="display: none;" class="user-info">
-        <h3>Welcome back, <span id="user-display-name"></span>!</h3>
-        <p>You are signed in. You can now access all features.</p>
+<div class="container">
+    <div id="nav-container"></div>
+    
+    <h1>AWS Cognito Authentication Status</h1>
+    <div id="auth-action"></div>
+
+    <div id="token-display"><h2>Not signed in</h2></div>
+    
+    <div id="app-content" style="display: none;">
+        <div class="device-selection">
+            <h2>Select Your Device</h2>
+            
+            <div class="brand-selection">
+                <label class="brand-option">
+                    <input type="radio" name="brand" value="apple" checked> Apple
+                </label>
+                <label class="brand-option">
+                    <input type="radio" name="brand" value="samsung"> Samsung
+                </label>
+            </div>
+            
+            <label for="deviceSelect">Model:</label>
+            <select id="deviceSelect">
+                <option value="">-- Choose Model --</option>
+            </select>
+            
+            <div class="acknowledge-section" id="acknowledgeSection">
+                <p style="margin: 0 0 10px 0; font-size: 14px;">
+                    <strong>Important:</strong> For demonstration, we'll show your design on <span id="demoDevice">iPhone 16 Pro Max</span>. 
+                    Your actual order will be custom-made specifically for your selected device: <strong id="selectedDevice"></strong>.
+                </p>
+                <label>
+                    <input type="checkbox" id="acknowledgeCheckbox"> I understand my case and wallpaper will be custom-made for: <strong id="deviceName"></strong>
+                </label>
+            </div>
+        </div>
+
+        <!-- Promo Code Section - ALWAYS VISIBLE when authenticated -->
+        <div class="promo-section" id="promoSection">
+            <h3>💳 Have a Promo Code? 
+                <span id="activePromoBadge" class="active-promo-badge" style="display: none;">
+                    Active: <span id="activePromoPercent">0</span>% OFF
+                </span>
+            </h3>
+            <div class="promo-input-group">
+                <input type="text" id="promoCodeInput" placeholder="Enter promo code">
+                <button onclick="window.app.applyPromoCode()">Apply</button>
+            </div>
+            <div id="promoMessage" class="promo-message"></div>
+        </div>
+
+        <div id="uploadSection" style="display:none;">
+            <h2>Upload 3 Images</h2>
+            <input type="file" id="fileInput" multiple accept="image/*">
+            <br>
+            <button onclick="window.app.uploadFiles()">Upload Images</button>
+            <div id="uploadResult"></div>
+        </div>
+
+        <!-- Start Over Section -->
+        <div class="start-over-section" id="startOverSection">
+            <button class="start-over-btn" onclick="window.app.startOver()">Start Over with New Images</button>
+        </div>
     </div>
     
-    <script>
-        async function initializeHome() {
-            const isAuth = await initializeAuth();
-            
-            // Show welcome message if authenticated
-            const userWelcome = document.getElementById('user-welcome');
-            const userDisplayName = document.getElementById('user-display-name');
-            
-            if (isAuth) {
-                const userInfo = getUserInfo();
-                userDisplayName.textContent = userInfo.displayName;
-                userWelcome.style.display = 'block';
-            }
-        }
-    
-        document.addEventListener('DOMContentLoaded', initializeHome);
-    </script>
+    <div id="auth-required-message" class="auth-required" style="display: none;">
+        <h3>Authentication Required</h3>
+        <p>Please sign in to access the phone case customization features.</p>
+        <button onclick="signin()" style="padding: 10px 20px; background: #f90; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+            Sign In / Sign Up
+        </button>
+    </div>
+</div>
+
+<script src="config/constants.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/device-manager.js"></script>
+<script src="js/promo-manager.js"></script>
+<script src="js/upload-manager.js"></script>
+<script src="js/realtime-updates.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
