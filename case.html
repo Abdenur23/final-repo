@@ -54,6 +54,14 @@ h1,h2,h3 { color:#333; }
 .promo-input-group input { flex: 1; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px; }
 .promo-input-group button { padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; }
 .promo-message { font-size: 14px; margin-top: 5px; }
+.active-promo-badge {
+    background: #28a745;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 10px;
+}
 
 /* Start over button */
 .start-over-section { 
@@ -126,7 +134,11 @@ h1,h2,h3 { color:#333; }
 
         <!-- Promo Code Section - ALWAYS VISIBLE when authenticated -->
         <div class="promo-section" id="promoSection">
-            <h3>💳 Have a Promo Code?</h3>
+            <h3>💳 Have a Promo Code? 
+                <span id="activePromoBadge" class="active-promo-badge" style="display: none;">
+                    Active: <span id="activePromoPercent">0</span>% OFF
+                </span>
+            </h3>
             <div class="promo-input-group">
                 <input type="text" id="promoCodeInput" placeholder="Enter promo code">
                 <button onclick="applyPromoCode()">Apply</button>
@@ -166,9 +178,37 @@ const CONFIG = {
 
 // --- GLOBAL STATE ---
 let selectedFiles = [];
-let promoDiscount = 0;
+let activePromoDiscount = 0; // Always use the highest valid discount
 let completedDesignsCount = 0;
 const totalExpectedDesigns = 3;
+
+// Load promo discount from localStorage on page load
+function loadPromoDiscount() {
+    const savedDiscount = localStorage.getItem('activePromoDiscount');
+    if (savedDiscount !== null) {
+        activePromoDiscount = parseInt(savedDiscount);
+        updatePromoBadge();
+        updateAllProductPrices();
+    }
+}
+
+// Save promo discount to localStorage
+function savePromoDiscount() {
+    localStorage.setItem('activePromoDiscount', activePromoDiscount.toString());
+}
+
+// Update the active promo badge
+function updatePromoBadge() {
+    const badge = document.getElementById('activePromoBadge');
+    const percentSpan = document.getElementById('activePromoPercent');
+    
+    if (activePromoDiscount > 0) {
+        percentSpan.textContent = activePromoDiscount;
+        badge.style.display = 'inline-block';
+    } else {
+        badge.style.display = 'none';
+    }
+}
 
 // --- DEVICE DATA AND LOGIC ---
 const devices = {
@@ -239,52 +279,75 @@ async function applyPromoCode() {
             console.log('Promo validation result:', result);
             
             if (result.valid === true || result.discount_percentage > 0) {
-                promoDiscount = result.discount_percentage || 30; // Default to 30% if not specified
-                messageDiv.innerHTML = `<span style="color: #28a745;">✅ Promo code applied! ${promoDiscount}% discount activated</span>`;
+                const newDiscount = result.discount_percentage || 30;
                 
-                // Update prices for existing products
-                updateProductPrices();
+                // Only update if the new discount is higher than current active discount
+                if (newDiscount > activePromoDiscount) {
+                    activePromoDiscount = newDiscount;
+                    savePromoDiscount();
+                    updatePromoBadge();
+                    updateAllProductPrices();
+                    
+                    messageDiv.innerHTML = `<span style="color: #28a745;">✅ Promo code applied! ${activePromoDiscount}% discount activated and will apply to all products</span>`;
+                } else {
+                    messageDiv.innerHTML = `<span style="color: #ffc107;">ℹ️ You already have an active ${activePromoDiscount}% discount. This code offers ${newDiscount}% which is not better.</span>`;
+                }
+                
+                // Clear the input field on successful validation
+                document.getElementById('promoCodeInput').value = '';
+                
             } else {
+                // Invalid promo code - but keep current active discount if any
                 messageDiv.innerHTML = '<span style="color: #dc3545;">❌ Invalid promo code</span>';
-                promoDiscount = 0;
-                updateProductPrices();
+                
+                if (activePromoDiscount > 0) {
+                    messageDiv.innerHTML += `<br><span style="color: #17a2b8;">Your current ${activePromoDiscount}% discount remains active.</span>`;
+                }
             }
         } else {
             const errorText = await response.text();
             console.error('Promo validation error response:', errorText);
             messageDiv.innerHTML = '<span style="color: #dc3545;">❌ Error validating promo code</span>';
-            promoDiscount = 0;
-            updateProductPrices();
+            
+            if (activePromoDiscount > 0) {
+                messageDiv.innerHTML += `<br><span style="color: #17a2b8;">Your current ${activePromoDiscount}% discount remains active.</span>`;
+            }
         }
     } catch (error) {
         console.error('Promo code network error:', error);
         messageDiv.innerHTML = '<span style="color: #dc3545;">❌ Network error validating promo code</span>';
-        promoDiscount = 0;
-        updateProductPrices();
+        
+        if (activePromoDiscount > 0) {
+            messageDiv.innerHTML += `<br><span style="color: #17a2b8;">Your current ${activePromoDiscount}% discount remains active.</span>`;
+        }
     }
 }
 
-function updateProductPrices() {
+function updateAllProductPrices() {
     const productCards = document.querySelectorAll('.product-card');
     productCards.forEach(card => {
-        const originalPrice = CONFIG.productPrice;
-        const discountedPrice = originalPrice * (1 - promoDiscount / 100);
-        
-        const priceElement = card.querySelector('.product-price');
-        const cartButton = card.querySelector('.add-to-cart-btn');
-        
-        if (promoDiscount > 0) {
-            priceElement.innerHTML = `
-                <span style="text-decoration: line-through; color: #6c757d; margin-right: 8px;">$${originalPrice.toFixed(2)}</span>
-                <span style="color: #28a745;">$${discountedPrice.toFixed(2)}</span>
-                <div style="font-size: 12px; color: #28a745;">${promoDiscount}% OFF</div>
-            `;
-            cartButton.textContent = `Add to Cart - $${discountedPrice.toFixed(2)}`;
-        } else {
-            priceElement.textContent = `$${originalPrice.toFixed(2)}`;
-            cartButton.textContent = `Add to Cart - $${originalPrice.toFixed(2)}`;
-        }
+        updateProductPrice(card);
     });
+}
+
+function updateProductPrice(productCard) {
+    const originalPrice = CONFIG.productPrice;
+    const discountedPrice = originalPrice * (1 - activePromoDiscount / 100);
+    
+    const priceElement = productCard.querySelector('.product-price');
+    const cartButton = productCard.querySelector('.add-to-cart-btn');
+    
+    if (activePromoDiscount > 0) {
+        priceElement.innerHTML = `
+            <span style="text-decoration: line-through; color: #6c757d; margin-right: 8px;">$${originalPrice.toFixed(2)}</span>
+            <span style="color: #28a745;">$${discountedPrice.toFixed(2)}</span>
+            <div style="font-size: 12px; color: #28a745;">${activePromoDiscount}% OFF</div>
+        `;
+        cartButton.textContent = `Add to Cart - $${discountedPrice.toFixed(2)}`;
+    } else {
+        priceElement.textContent = `$${originalPrice.toFixed(2)}`;
+        cartButton.textContent = `Add to Cart - $${originalPrice.toFixed(2)}`;
+    }
 }
 
 // --- UPLOAD CONTROL FUNCTIONS ---
@@ -311,13 +374,13 @@ function startOver() {
     if (updatesContainer) updatesContainer.innerHTML = '';
     if (productsContainer) productsContainer.innerHTML = '';
     
-    // Reset state
+    // Reset state (but keep promo discount!)
     completedDesignsCount = 0;
     selectedFiles = [];
     document.getElementById('fileInput').value = '';
     document.getElementById('uploadResult').innerHTML = '';
     
-    // Reset realtime updates
+    // Reset realtime updates (but keep promo discount!)
     if (window.realtimeUpdates) {
         window.realtimeUpdates.pendingImages.clear();
         window.realtimeUpdates.completedDesigns.clear();
@@ -560,6 +623,7 @@ async function initializeApp() {
     const isAuth = await initializeAuth();
     showSessionInfo();
     toggleAppContent(isAuth);
+    loadPromoDiscount(); // Load saved promo discount
 }
 
 // Start the application
