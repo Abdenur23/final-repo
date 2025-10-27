@@ -34,8 +34,7 @@ class Application {
         if (userInfo) {
             const session = getSession();
             const payload = JSON.parse(atob(session.id_token.split('.')[1]));
-            tokenDiv.innerHTML = `<h2>Signed in as ${userInfo.displayName}</h2>
-            // <pre>${JSON.stringify(payload, null, 2)}</pre>`;
+            tokenDiv.innerHTML = `<h2>Signed in as ${userInfo.displayName}</h2>`;
         } else {
             tokenDiv.innerHTML = `<h2>Not signed in</h2>`;
         }
