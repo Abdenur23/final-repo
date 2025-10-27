@@ -115,29 +115,8 @@ class UploadManager {
     }
 
     startOver() {
-        // Clear all displayed products and updates
-        const updatesContainer = document.getElementById('realtimeUpdates');
-        const productsContainer = document.getElementById('productsContainer');
-        
-        if (updatesContainer) updatesContainer.innerHTML = '';
-        if (productsContainer) productsContainer.innerHTML = '';
-        
-        // Reset state (but keep promo discount!)
-        this.completedDesignsCount = 0;
-        this.deviceManager.clearSelectedFiles();
-        document.getElementById('uploadResult').innerHTML = '';
-        
-        // Reset realtime updates (but keep promo discount!)
-        if (window.realtimeUpdates) {
-            // Use the correct method name - it should be clear() or reset the internal state
-            window.realtimeUpdates.clearPendingUpdates();
-        }
-        
-        // Show upload section again
-        this.showUploadSection();
-        
-        // Reset the file input to make it visible and usable
-        this.resetFileInput();
+        // Simply refresh the page - this will reset everything to initial state
+        window.location.reload();
     }
 
     resetFileInput() {
