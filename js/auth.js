@@ -40,9 +40,29 @@ function getSession(){
     return session ? JSON.parse(session) : null;
 }
 
+function clearUserData() {
+    // Clear promo data
+    localStorage.removeItem('activePromoDiscount');
+    
+    // Clear any upload-related data
+    localStorage.removeItem('userUploads');
+    localStorage.removeItem('deviceSelection');
+    
+    // Clear any shopping cart data
+    localStorage.removeItem('shoppingCart');
+    
+    // Add future user-specific data cleanup here
+    
+    console.log('All user-specific data cleared');
+}
+
 function clearSession() {
+    // Clear Cognito session
     localStorage.removeItem('cognitoSession');
     localStorage.removeItem('pkce_verifier');
+    
+    // Clear all user-specific data
+    clearUserData();
 }
 
 function isTokenExpired() {
