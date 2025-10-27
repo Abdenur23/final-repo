@@ -397,8 +397,6 @@
 // }
 
 
-
-
 class RealTimeUpdates {
     constructor(promoManager, uploadManager) {
         this.promoManager = promoManager;
@@ -500,11 +498,15 @@ class RealTimeUpdates {
             const friendlyName = this.getFriendlyStageName(itemKey);
             const { id, html } = this.uiManager.createProgressItem(itemKey, friendlyName);
             const container = document.getElementById('realtimeUpdates');
-            container.insertAdjacentHTML('beforeend', html);
-            uiItem = document.getElementById(id);
+            if (container) {
+                container.insertAdjacentHTML('beforeend', html);
+                uiItem = document.getElementById(id);
+            }
         }
 
-        this.updateProgressItemElement(uiItem, progressItem);
+        if (uiItem) {
+            this.updateProgressItemElement(uiItem, progressItem);
+        }
     }
 
     updateProgressItemElement(itemElement, progressItem) {
@@ -525,6 +527,11 @@ class RealTimeUpdates {
 
     displayDesign(designData) {
         const container = document.getElementById('realtimeUpdates');
+        if (!container) {
+            console.error('RealTimeUpdates container not found');
+            return;
+        }
+
         const designId = designData.designId;
         
         // Remove existing design if present
@@ -545,38 +552,63 @@ class RealTimeUpdates {
         // Create product card
         const { html, metadata } = this.uiManager.createProductCard(designData, priceInfo);
         
-        // Ensure products container exists
+        // Ensure products container exists - FIXED LOGIC
         let productsContainer = document.getElementById('productsContainer');
         if (!productsContainer) {
             productsContainer = this.createProductsContainer(container);
         }
         
-        productsContainer.insertAdjacentHTML('beforeend', html);
-        const productElement = document.getElementById(`design-${designId}`);
-        
-        // Setup navigation
-        this.imageHandler.setupProductNavigation(
-            productElement, 
-            designId, 
-            metadata.imageUrls
-        );
+        if (productsContainer) {
+            productsContainer.insertAdjacentHTML('beforeend', html);
+            const productElement = document.getElementById(`design-${designId}`);
+            
+            // Setup navigation
+            this.imageHandler.setupProductNavigation(
+                productElement, 
+                designId, 
+                metadata.imageUrls
+            );
 
-        // Setup add to cart button
-        const cartBtn = productElement.querySelector('.add-to-cart-btn');
-        cartBtn.addEventListener('click', () => this.addToCart(designId));
+            // Setup add to cart button
+            const cartBtn = productElement.querySelector('.add-to-cart-btn');
+            cartBtn.addEventListener('click', () => this.addToCart(designId));
+        } else {
+            console.error('Products container could not be created');
+        }
     }
 
     createProductsContainer(parentContainer) {
-        const { html } = this.uiManager.createProductsContainer();
-        parentContainer.innerHTML = '';
-        parentContainer.insertAdjacentHTML('beforeend', html);
-        return document.getElementById('productsContainer');
+        try {
+            // Clear the updates container and add products structure
+            parentContainer.innerHTML = `
+                <div class="products-section">
+                    <h3>Your Custom Phone Cases</h3>
+                    <div id="productsContainer" class="products-container"></div>
+                </div>
+            `;
+            return document.getElementById('productsContainer');
+        } catch (error) {
+            console.error('Error creating products container:', error);
+            return null;
+        }
     }
 
-    
-    
-    // ... keep existing helper methods (getFriendlyStageName, getStageColor, addImageToProgressItem, etc.)
-    // These remain the same as in original implementation
+    addImageToProgressItem(item, imageUrl) {
+        const imageContainer = item.querySelector('.image-container');
+        if (imageContainer) {
+            imageContainer.innerHTML = '';
+            
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = 'Processing preview';
+            img.className = 'progress-thumbnail';
+            img.onload = () => img.style.opacity = '1';
+            img.style.opacity = '0';
+            img.style.transition = 'opacity 0.3s ease';
+            
+            imageContainer.appendChild(img);
+        }
+    }
 
     getFriendlyStageName(itemKey) {
         if (itemKey.includes('design_')) {
@@ -594,28 +626,6 @@ class RealTimeUpdates {
         return '🔄 Processing your design';
     }
 
-    removeProgressItem(designId) {
-        const item = document.getElementById(`progress-${designId}`);
-        if (item) {
-            item.remove();
-            this.pendingImages.delete(designId);
-        }
-    }
-
-    updateProgressItem(item, stage, timestamp, imageUrl) {
-        const stageElement = item.querySelector('.current-stage');
-        const friendlyStage = this.getFriendlyStageName(stage);
-        stageElement.textContent = friendlyStage;
-        item.querySelector('.timestamp').textContent = new Date(timestamp).toLocaleTimeString();
-        
-        if (imageUrl) {
-            this.addImageToProgressItem(item, imageUrl);
-        }
-        
-        // Add visual feedback for progress
-        item.style.borderLeftColor = this.getStageColor(stage);
-    }
-
     getStageColor(stage) {
         for (const [tech, color] of Object.entries(CONFIG.STAGE_COLORS)) {
             if (stage.toLowerCase().includes(tech)) {
@@ -626,23 +636,24 @@ class RealTimeUpdates {
         return '#6f42c1';
     }
 
-    addImageToProgressItem(item, imageUrl) {
-        const imageContainer = item.querySelector('.image-container');
-        imageContainer.innerHTML = '';
-        
-        const img = document.createElement('img');
-        img.src = imageUrl;
-        img.alt = 'Processing preview';
-        img.className = 'progress-thumbnail';
-        img.onload = () => img.style.opacity = '1';
-        img.style.opacity = '0';
-        img.style.transition = 'opacity 0.3s ease';
-        
-        imageContainer.appendChild(img);
+    removeProgressItem(designId) {
+        const item = document.getElementById(`progress-${designId}`);
+        if (item) {
+            item.remove();
+            this.progressTracker.pendingItems.delete(designId);
+        }
     }
 
-    getSession() {
-        return JSON.parse(localStorage.getItem('cognitoSession'));
+    addToCart(designId) {
+        const design = this.progressTracker.getCompletedDesign(designId);
+        if (design) {
+            const paletteName = design.paletteName || 'Custom Design';
+            const currentDiscount = this.promoManager.getActiveDiscount();
+            const discountedPrice = CONFIG.PRODUCT_PRICE * (1 - currentDiscount / 100);
+            const displayPrice = (currentDiscount > 0) ? discountedPrice : CONFIG.PRODUCT_PRICE;
+            
+            alert(`Added ${paletteName} to cart! Price: $${displayPrice.toFixed(2)}`);
+        }
     }
 
     renderUpdatesPanel() {
@@ -668,55 +679,24 @@ class RealTimeUpdates {
     }
 
     reset() {
-        this.pendingImages.clear();
-        this.completedDesigns.clear();
-        this.processedFiles.clear();
-        this.hasDisplayedProduct = false;
-    }
-
-    addToCart(designId) {
-        const design = this.progressTracker.getCompletedDesign(designId);
-        const paletteName = design.paletteName || 'Custom Design';
-        const currentDiscount = this.promoManager.getActiveDiscount();
-        const discountedPrice = CONFIG.PRODUCT_PRICE * (1 - currentDiscount / 100);
-        const displayPrice = (currentDiscount > 0) ? discountedPrice : CONFIG.PRODUCT_PRICE;
-        
-        alert(`Added ${paletteName} to cart! Price: $${displayPrice.toFixed(2)}`);
-    }
-
-    removeProgressItem(designId) {
-        const item = document.getElementById(`progress-${designId}`);
-        if (item) {
-            item.remove();
-            this.progressTracker.pendingItems.delete(designId);
-        }
-    }
-
-    renderUpdatesPanel() {
-        if (document.getElementById('realtimePanel')) return;
-
-        const uploadSection = document.getElementById('uploadSection');
-        const updatesHTML = this.uiManager.createUpdatesPanel();
-        
-        if (uploadSection) {
-            uploadSection.insertAdjacentHTML('afterend', updatesHTML);
-        } else {
-            document.body.insertAdjacentHTML('beforeend', updatesHTML);
-        }
-    }
-
-    showPanel() {
-        const panel = document.getElementById('realtimePanel');
-        if (panel) panel.style.display = 'block';
-    }
-
-    reset() {
         this.progressTracker.reset();
         this.hasDisplayedProduct = false;
         this.websocketManager.disconnect();
+        
+        // Clear UI
+        const updatesContainer = document.getElementById('realtimeUpdates');
+        if (updatesContainer) {
+            updatesContainer.innerHTML = '';
+        }
     }
 
     getSession() {
-        return JSON.parse(localStorage.getItem('cognitoSession'));
+        try {
+            const session = localStorage.getItem('cognitoSession');
+            return session ? JSON.parse(session) : null;
+        } catch (error) {
+            console.error('Error getting session:', error);
+            return null;
+        }
     }
 }
