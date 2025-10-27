@@ -13,7 +13,7 @@ const CONFIG = {
     AUTH: {
         CLIENT_ID: '73lf1h32phkqeb9ahu6tqcl9av',
         REDIRECT_URI: window.location.origin + window.location.pathname,
-        DOMAIN: 'weer.auth.us-east-1.amazoncognito.com'
+        DOMAIN: 'auth.theweer.com'
     },
     // Device data
     DEVICES: {
