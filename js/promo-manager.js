@@ -16,7 +16,12 @@ class PromoManager {
     savePromoDiscount() {
         localStorage.setItem('activePromoDiscount', this.activePromoDiscount.toString());
     }
-
+    clearPromoData() {
+        this.activePromoDiscount = 0;
+        localStorage.removeItem('activePromoDiscount');
+        this.updatePromoBadge();
+        this.updateAllProductPrices();
+    }
     updatePromoBadge() {
         const badge = document.getElementById('activePromoBadge');
         const percentSpan = document.getElementById('activePromoPercent');
