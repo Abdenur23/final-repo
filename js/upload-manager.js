@@ -129,11 +129,34 @@ class UploadManager {
         
         // Reset realtime updates (but keep promo discount!)
         if (window.realtimeUpdates) {
-            window.realtimeUpdates.reset();
+            // Use the correct method name - it should be clear() or reset the internal state
+            window.realtimeUpdates.clearPendingUpdates();
         }
         
         // Show upload section again
         this.showUploadSection();
+        
+        // Reset the file input to make it visible and usable
+        this.resetFileInput();
+    }
+
+    resetFileInput() {
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput) {
+            fileInput.value = ''; // This clears the selected files
+        }
+        
+        // Make sure the upload section is fully visible and functional
+        const uploadSection = document.getElementById('uploadSection');
+        if (uploadSection) {
+            uploadSection.style.display = 'block';
+        }
+        
+        // Reset any upload messages
+        const uploadResult = document.getElementById('uploadResult');
+        if (uploadResult) {
+            uploadResult.innerHTML = '';
+        }
     }
 
     incrementCompletedDesigns() {
