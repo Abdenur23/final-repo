@@ -70,32 +70,31 @@ class PromoManager {
                 const result = await response.json();
                 console.log('Promo validation result:', result);
                 
-                if (result.valid === true || result.discount_percentage > 0) {
-                    const newDiscount = result.discount_percentage || 30;
-                    
-                    // Only update if the new discount is higher than current active discount
+                if (result.valid === true) {
+                    // Only proceed if the promo is valid
+                    const newDiscount = result.discount_percentage || 0;
+                
                     if (newDiscount > this.activePromoDiscount) {
                         this.activePromoDiscount = newDiscount;
                         this.savePromoDiscount();
                         this.updatePromoBadge();
                         this.updateAllProductPrices();
-                        
-                        messageDiv.innerHTML = `<span style="color: #28a745;">✅ Promo code applied! ${this.activePromoDiscount}% discount activated and will apply to all products</span>`;
+                
+                        messageDiv.innerHTML =
+                            `<span style="color: #28a745;">✅ Promo code applied! ${newDiscount}% discount activated and will apply to all products</span>`;
                     } else {
-                        messageDiv.innerHTML = `<span style="color: #ffc107;">ℹ️ You already have an active ${this.activePromoDiscount}% discount. This code offers ${newDiscount}% which is not better.</span>`;
+                        messageDiv.innerHTML =
+                            `<span style="color: #ffc107;">ℹ️ You already have an active ${this.activePromoDiscount}% discount. This code offers ${newDiscount}% which is not better.</span>`;
                     }
-                    
-                    // Clear the input field on successful validation
+                
+                    // Clear input field on successful validation
                     document.getElementById('promoCodeInput').value = '';
-                    
                 } else {
-                    // Invalid promo code - but keep current active discount if any
-                    messageDiv.innerHTML = '<span style="color: #dc3545;">❌ Invalid promo code</span>';
-                    
-                    if (this.activePromoDiscount > 0) {
-                        messageDiv.innerHTML += `<br><span style="color: #17a2b8;">Your current ${this.activePromoDiscount}% discount remains active.</span>`;
-                    }
+                    // Promo is invalid
+                    messageDiv.innerHTML =
+                        `<span style="color: #dc3545;">❌ Invalid promo code</span>`;
                 }
+
             } else {
                 const errorText = await response.text();
                 console.error('Promo validation error response:', errorText);
