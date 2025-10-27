@@ -137,8 +137,8 @@ class RealTimeUpdates {
         const paletteName = designData.paletteName || 'Custom Design';
         const imageUrls = Object.values(designData.imageUrls);
         
-        // Get current promo discount from global scope
-        const currentDiscount = window.promoDiscount || 0;
+        // Get current active discount from global scope - this is the key fix
+        const currentDiscount = window.activePromoDiscount || 0;
         const discountedPrice = this.productPrice * (1 - currentDiscount / 100);
         const displayPrice = (currentDiscount > 0) ? discountedPrice : this.productPrice;
         
@@ -281,7 +281,7 @@ class RealTimeUpdates {
     addToCart(designId) {
         const design = this.completedDesigns.get(designId);
         const paletteName = design.paletteName || 'Custom Design';
-        const currentDiscount = window.promoDiscount || 0;
+        const currentDiscount = window.activePromoDiscount || 0;
         const discountedPrice = this.productPrice * (1 - currentDiscount / 100);
         const displayPrice = (currentDiscount > 0) ? discountedPrice : this.productPrice;
         
@@ -702,5 +702,5 @@ styleSheet.textContent = `
 `;
 document.head.appendChild(styleSheet);
 
-// Initialize global promo discount
-window.promoDiscount = 0;
+// Initialize global promo discount - use the same variable name as case.html
+window.activePromoDiscount = window.activePromoDiscount || 0;
