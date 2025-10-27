@@ -1,186 +1,145 @@
-// File upload management
 class UploadManager {
-    constructor() {
-        this.selectedFiles = [];
-        this.uploadInProgress = false;
+    constructor(deviceManager, promoManager) {
+        this.deviceManager = deviceManager;
+        this.promoManager = promoManager;
+        this.completedDesignsCount = 0;
     }
 
-    initialize() {
-        this.setupEventListeners();
+    hideUploadSection() {
+        document.getElementById('uploadSection').style.display = 'none';
     }
 
-    setupEventListeners() {
-        const fileInput = document.getElementById('fileInput');
-        if (fileInput) {
-            fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
-        }
-
-        const uploadBtn = document.querySelector('button[onclick="uploadFiles()"]');
-        if (uploadBtn) {
-            uploadBtn.onclick = () => this.uploadFiles();
-        }
+    showUploadSection() {
+        document.getElementById('uploadSection').style.display = 'block';
+        document.getElementById('startOverSection').style.display = 'none';
     }
 
-    handleFileSelect(event) {
-        this.selectedFiles = Array.from(event.target.files);
-        if (this.selectedFiles.length !== CONFIG.PRODUCT.MAX_IMAGES) {
-            this.showMessage('Please select exactly 3 images', 'warning');
-        }
+    showStartOverButton() {
+        document.getElementById('startOverSection').style.display = 'block';
     }
 
     async uploadFiles() {
-        if (this.uploadInProgress) return;
-        
         const token = getSession()?.id_token;
-        const deviceId = document.getElementById('deviceSelect')?.value;
+        const deviceId = document.getElementById('deviceSelect').value;
+        const selectedFiles = this.deviceManager.getSelectedFiles();
 
-        if (!token) {
-            this.showMessage('Please sign in first', 'error');
-            return;
-        }
+        if (!token) return alert('Please sign in first');
+        if (!deviceId) return alert('Please select a device before uploading');
+        if (selectedFiles.length !== 3) return alert('Please select exactly 3 images');
 
-        if (!deviceId) {
-            this.showMessage('Please select a device before uploading', 'error');
-            return;
-        }
+        // Show upload success message IMMEDIATELY
+        const resultDiv = document.getElementById('uploadResult');
+        resultDiv.innerHTML = '<div class="upload-success">✅ All 3 files uploaded successfully! Processing started...</div>';
 
-        if (this.selectedFiles.length !== CONFIG.PRODUCT.MAX_IMAGES) {
-            this.showMessage('Please select exactly 3 images', 'error');
-            return;
-        }
+        // Hide upload section immediately after upload
+        this.hideUploadSection();
 
-        this.uploadInProgress = true;
-        this.disableUploadInterface();
-
-        try {
-            const result = await this.processUpload(token, deviceId);
-            this.showMessage('✅ All 3 files uploaded successfully! Processing started...', 'success');
-            
-            // Initialize realtime updates
-            if (window.realtimeUpdates) {
-                window.realtimeUpdates.showPanel();
-                window.realtimeUpdates.resetForNewUpload();
-            }
-        } catch (error) {
-            this.showMessage(`❌ Upload failed: ${error.message}`, 'error');
-        } finally {
-            this.uploadInProgress = false;
-            this.enableUploadInterface();
-        }
-    }
-
-    async processUpload(token, deviceId) {
-        const filesData = this.selectedFiles.map((file, index) => ({
+        const filesData = selectedFiles.map((file, index) => ({
             fileId: index + 1,
             fileName: file.name,
             fileType: file.type
         }));
 
-        const response = await fetch(CONFIG.API.BASE_URL + CONFIG.API.UPLOAD_ENDPOINT, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': 'Bearer ' + token 
-            },
-            body: JSON.stringify({ 
-                files: filesData, 
-                device_id: deviceId 
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.uploadUrls) {
-            throw new Error(data.error || 'Upload preparation failed');
-        }
-
-        // Upload files to S3
-        await this.uploadToS3(data.uploadUrls);
-        return data;
-    }
-
-    async uploadToS3(uploadUrls) {
-        const uploadPromises = uploadUrls.map(async (uploadInfo, index) => {
-            const response = await fetch(uploadInfo.uploadUrl, {
-                method: 'PUT',
-                body: this.selectedFiles[index],
-                headers: { 'Content-Type': this.selectedFiles[index].type }
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/upload`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': 'Bearer ' + token 
+                },
+                body: JSON.stringify({ 
+                    files: filesData, 
+                    device_id: deviceId 
+                })
             });
 
-            if (!response.ok) {
-                throw new Error(`Failed to upload ${uploadInfo.fileName}`);
+            const data = await response.json();
+
+            if (!response.ok || !data.uploadUrls) {
+                resultDiv.innerHTML = `<div style="color: #dc3545;">❌ Upload failed: ${data.error || JSON.stringify(data)}</div>`;
+                this.showUploadSection(); // Show upload section again if failed
+                return;
             }
 
-            // Notify backend of upload completion
-            await this.notifyUploadComplete(uploadInfo);
+            // Upload files to S3
+            await this.uploadToS3(data.uploadUrls, selectedFiles, data.cid, deviceId, token);
+
+        } catch (error) {
+            resultDiv.innerHTML = `<div style="color: #dc3545;">❌ Error uploading files: ${error.message}</div>`;
+            this.showUploadSection(); // Show upload section again if failed
+        }
+        
+        if (window.realtimeUpdates) {
+            window.realtimeUpdates.showPanel();
+        }
+    }
+
+    async uploadToS3(uploadUrls, selectedFiles, cid, deviceId, token) {
+        const uploadPromises = uploadUrls.map(async (uploadInfo, index) => {
+            const uploadResponse = await fetch(uploadInfo.uploadUrl, {
+                method: 'PUT',
+                body: selectedFiles[index],
+                headers: { 'Content-Type': selectedFiles[index].type }
+            });
+
+            if (uploadResponse.ok) {
+                const notificationPayload = {
+                    action: 'uploadComplete',
+                    fileKey: uploadInfo.key,
+                    metadata: {
+                        fileName: uploadInfo.fileName,
+                        priority: uploadInfo.priority,
+                        srcid: uploadInfo.srcid,
+                        palette_id: uploadInfo.palette_id,
+                        flavor: uploadInfo.flavor,
+                        cid: cid,
+                        device_id: deviceId 
+                    }
+                };
+
+                // Notify Lambda about upload completion
+                await fetch(`${CONFIG.API_BASE_URL}/upload`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': 'Bearer ' + token 
+                    },
+                    body: JSON.stringify(notificationPayload)
+                });
+            }
+
+            return uploadResponse;
         });
 
         await Promise.all(uploadPromises);
     }
 
-    async notifyUploadComplete(uploadInfo) {
-        const token = getSession()?.id_token;
-        const notificationPayload = {
-            action: 'uploadComplete',
-            fileKey: uploadInfo.key,
-            metadata: {
-                fileName: uploadInfo.fileName,
-                priority: uploadInfo.priority,
-                srcid: uploadInfo.srcid,
-                palette_id: uploadInfo.palette_id,
-                flavor: uploadInfo.flavor,
-                cid: uploadInfo.cid,
-                device_id: document.getElementById('deviceSelect')?.value
-            }
-        };
-
-        await fetch(CONFIG.API.BASE_URL + CONFIG.API.UPLOAD_ENDPOINT, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': 'Bearer ' + token 
-            },
-            body: JSON.stringify(notificationPayload)
-        });
-    }
-
-    showMessage(message, type) {
-        const resultDiv = document.getElementById('uploadResult');
-        if (resultDiv) {
-            resultDiv.innerHTML = `
-                <div class="upload-message ${type}">
-                    ${message}
-                </div>
-            `;
-        }
-    }
-
-    disableUploadInterface() {
-        const fileInput = document.getElementById('fileInput');
-        const uploadBtn = document.querySelector('button[onclick="uploadFiles()"]');
+    startOver() {
+        // Clear all displayed products and updates
+        const updatesContainer = document.getElementById('realtimeUpdates');
+        const productsContainer = document.getElementById('productsContainer');
         
-        if (fileInput) fileInput.disabled = true;
-        if (uploadBtn) {
-            uploadBtn.disabled = true;
-            uploadBtn.textContent = 'Uploading...';
-        }
-    }
-
-    enableUploadInterface() {
-        const fileInput = document.getElementById('fileInput');
-        const uploadBtn = document.querySelector('button[onclick="uploadFiles()"]');
+        if (updatesContainer) updatesContainer.innerHTML = '';
+        if (productsContainer) productsContainer.innerHTML = '';
         
-        if (fileInput) fileInput.disabled = false;
-        if (uploadBtn) {
-            uploadBtn.disabled = false;
-            uploadBtn.textContent = 'Upload';
+        // Reset state (but keep promo discount!)
+        this.completedDesignsCount = 0;
+        this.deviceManager.clearSelectedFiles();
+        document.getElementById('uploadResult').innerHTML = '';
+        
+        // Reset realtime updates (but keep promo discount!)
+        if (window.realtimeUpdates) {
+            window.realtimeUpdates.reset();
         }
+        
+        // Show upload section again
+        this.showUploadSection();
     }
 
-    reset() {
-        this.selectedFiles = [];
-        const fileInput = document.getElementById('fileInput');
-        if (fileInput) fileInput.value = '';
-        this.showMessage('', '');
+    incrementCompletedDesigns() {
+        this.completedDesignsCount++;
+        if (this.completedDesignsCount >= CONFIG.TOTAL_EXPECTED_DESIGNS) {
+            this.showStartOverButton();
+        }
     }
 }
