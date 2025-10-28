@@ -60,12 +60,29 @@ class ImageNavigationHandler {
     openImagePopup(designId, imageIndex, imageUrls) {
         this.closeAllPopups();
         
-        const popupHtml = window.app.uiManager.createImagePopup(designId, imageIndex, imageUrls);
+        // Create popup directly instead of relying on uiManager
+        const popupHtml = this.createImagePopup(designId, imageIndex, imageUrls);
         document.body.insertAdjacentHTML('beforeend', popupHtml);
         
         const popup = document.querySelector('.image-popup-overlay');
         this.setupPopupNavigation(popup, designId, imageIndex, imageUrls);
         this.currentPopups.add(popup);
+    }
+    
+    createImagePopup(designId, imageIndex, imageUrls) {
+        return `
+            <div class="image-popup-overlay">
+                <div class="image-popup-content">
+                    <button class="popup-close">&times;</button>
+                    <img src="${imageUrls[imageIndex]}" alt="Full size preview" class="popup-image">
+                    <div class="popup-navigation">
+                        <button class="nav-btn prev-btn">‹</button>
+                        <span class="popup-counter">${imageIndex + 1} / ${imageUrls.length}</span>
+                        <button class="nav-btn next-btn">›</button>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     setupPopupNavigation(popup, designId, currentIndex, imageUrls) {
