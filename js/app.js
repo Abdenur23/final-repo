@@ -64,16 +64,24 @@ class Application {
         const appContent = document.getElementById('app-content');
         const authRequired = document.getElementById('auth-required-message');
         const promoSection = document.getElementById('promoSection');
+        const deviceSection = document.querySelector('.device-selection'); // Add device section
         
-        if (show) {
+        // Check if session is actually valid
+        const isActuallyAuthenticated = show && isAuthenticated();
+        
+        if (isActuallyAuthenticated) {
             appContent.style.display = 'block';
             authRequired.style.display = 'none';
-            promoSection.style.display = 'block'; // Always show promo when authenticated
+            promoSection.style.display = 'block';
+            if (deviceSection) deviceSection.style.display = 'block';
             this.deviceManager.updateDeviceOptions();
         } else {
             appContent.style.display = 'none';
             authRequired.style.display = 'block';
             promoSection.style.display = 'none';
+            if (deviceSection) deviceSection.style.display = 'none';
+            // Clear any sensitive data
+            this.promoManager.clearPromoData();
         }
     }
 
