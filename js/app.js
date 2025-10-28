@@ -18,11 +18,15 @@ class Application {
 
         // Initialize auth and UI
         const isAuthenticated = await initializeAuth();
+        
+        // Force re-check of actual authentication status
+        const actualAuthStatus = isAuthenticated && !isTokenExpired();
+        
         this.showSessionInfo();
-        this.toggleAppContent(isAuthenticated);
-        this.renderAuthActions(); // Add this line
-
-        if (isAuthenticated) {
+        this.toggleAppContent(actualAuthStatus);
+        this.renderAuthActions();
+    
+        if (actualAuthStatus) {
             this.realtimeUpdates.initialize();
         }
     }
