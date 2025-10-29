@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flower Wave Animation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .flower {
+            position: absolute;
+            pointer-events: none;
+            transition: transform 0.1s ease-out;
+            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+        }
+        
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="info">
+            <div>Flowers: <span id="flowerCount">0</span></div>
+            <div>FPS: <span id="fps">0</span></div>
+        </div>
+    </div>
+
+    <script>
+        class FlowerWave {
+            constructor() {
+                this.container = document.getElementById('container');
+                this.flowers = [];
+                this.flowerElements = [];
+                this.lastTime = 0;
+                this.frameCount = 0;
+                this.fps = 0;
+                
+                // Wave parameters
+                this.waveAmplitude = 100;
+                this.waveFrequency = 0.01;
+                this.waveSpeed = 2;
+                this.time = 0;
+                
+                // Flower parameters
+                this.flowerSize = 60;
+                this.flowersPerRow = 8;
+                this.verticalSpacing = 80;
+                this.horizontalSpacing = 70;
+                
+                // Depth parameters (inspired by Python script)
+                this.depthLayers = {
+                    TINY: { scale: 0.6, opacity: 0.7, blur: 2, speedMultiplier: 1.2 },
+                    SMALL: { scale: 0.8, opacity: 0.85, blur: 1, speedMultiplier: 1.0 },
+                    MEDIUM: { scale: 1.0, opacity: 1.0, blur: 0, speedMultiplier: 0.8 }
+                };
+                
+                this.init();
+            }
+            
+            async init() {
+                await this.loadFlowers();
+                this.createFlowerWave();
+                this.animate();
+                
+                // Handle resize
+                window.addEventListener('resize', () => this.handleResize());
+            }
+            
+            async loadFlowers() {
+                // Load flower images from the anime_flowers_processed folder
+                this.flowerImages = [];
+                
+                for (let i = 1; i <= 100; i++) { // Load up to 100 flowers
+                    const filename = `anime_flowers_processed/anime-flower-${i.toString().padStart(3, '0')}.png`;
+                    
+                    try {
+                        const img = new Image();
+                        img.src = filename;
+                        img.crossOrigin = "anonymous";
+                        
+                        await new Promise((resolve, reject) => {
+                            img.onload = resolve;
+                            img.onerror = reject;
+                        });
+                        
+                        // Assign random depth layer
+                        const layers = Object.keys(this.depthLayers);
+                        const randomLayer = layers[Math.floor(Math.random() * layers.length)];
+                        
+                        this.flowerImages.push({
+                            image: img,
+                            layer: randomLayer,
+                            id: i
+                        });
+                        
+                    } catch (error) {
+                        // Stop loading if file doesn't exist
+                        break;
+                    }
+                }
+                
+                console.log(`Loaded ${this.flowerImages.length} flowers`);
+                document.getElementById('flowerCount').textContent = this.flowerImages.length;
+            }
+            
+            createFlowerWave() {
+                this.container.innerHTML = '';
+                this.flowerElements = [];
+                
+                if (this.flowerImages.length === 0) return;
+                
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight;
+                
+                // Create multiple rows of flowers
+                for (let row = 0; row < 6; row++) {
+                    for (let col = 0; col < this.flowersPerRow; col++) {
+                        const flowerData = this.flowerImages[
+                            (row * this.flowersPerRow + col) % this.flowerImages.length
+                        ];
+                        
+                        if (!flowerData) continue;
+                        
+                        const flower = this.createFlowerElement(flowerData, row, col);
+                        this.container.appendChild(flower.element);
+                        this.flowerElements.push(flower);
+                    }
+                }
+            }
+            
+            createFlowerElement(flowerData, row, col) {
+                const layerConfig = this.depthLayers[flowerData.layer];
+                const element = document.createElement('img');
+                
+                element.className = 'flower';
+                element.src = flowerData.image.src;
+                element.style.width = `${this.flowerSize * layerConfig.scale}px`;
+                element.style.height = 'auto';
+                element.style.opacity = layerConfig.opacity;
+                element.style.filter += ` blur(${layerConfig.blur}px)`;
+                
+                return {
+                    element: element,
+                    row: row,
+                    col: col,
+                    layer: flowerData.layer,
+                    layerConfig: layerConfig,
+                    baseX: col * this.horizontalSpacing,
+                    baseY: window.innerHeight + row * this.verticalSpacing, // Start below screen
+                    id: flowerData.id
+                };
+            }
+            
+            animate(currentTime = 0) {
+                requestAnimationFrame((time) => this.animate(time));
+                
+                // Calculate FPS
+                this.frameCount++;
+                if (currentTime - this.lastTime >= 1000) {
+                    this.fps = Math.round((this.frameCount * 1000) / (currentTime - this.lastTime));
+                    this.frameCount = 0;
+                    this.lastTime = currentTime;
+                    document.getElementById('fps').textContent = this.fps;
+                }
+                
+                this.time += 0.016; // Roughly 60fps
+                this.updateFlowerPositions();
+            }
+            
+            updateFlowerPositions() {
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight;
+                
+                this.flowerElements.forEach(flower => {
+                    // Calculate wave movement (like string behind a car)
+                    const waveOffset = Math.sin(
+                        (flower.baseX * this.waveFrequency) + 
+                        (this.time * this.waveSpeed * flower.layerConfig.speedMultiplier)
+                    ) * this.waveAmplitude;
+                    
+                    // Calculate vertical movement (flowers rise up and disappear)
+                    const verticalProgress = (this.time * 0.3) + (flower.row * 0.5) + (flower.col * 0.1);
+                    const verticalOffset = (verticalProgress * 50) % (screenHeight + 500) - 200;
+                    
+                    // Calculate horizontal position with wave
+                    let x = flower.baseX + waveOffset - 100; // Start from left
+                    
+                    // Make flowers move from left to right slightly
+                    x += (this.time * 10 * flower.layerConfig.speedMultiplier) % (screenWidth + 400);
+                    
+                    // Update position
+                    flower.element.style.transform = `translate(${x}px, ${screenHeight - verticalOffset}px) rotate(${waveOffset * 0.5}deg)`;
+                    
+                    // Reset position if flower goes too far right
+                    if (x > screenWidth + 200) {
+                        flower.baseX = -200;
+                    }
+                });
+            }
+            
+            handleResize() {
+                // Recreate flower wave on resize
+                this.createFlowerWave();
+            }
+        }
+        
+        // Initialize the flower wave when page loads
+        window.addEventListener('load', () => {
+            new FlowerWave();
+        });
+        
+        // Add some interactive elements
+        document.addEventListener('click', (e) => {
+            // Change wave parameters on click for variety
+            const wave = document.querySelector('.flower')?.__flowerWave;
+            if (wave) {
+                wave.waveAmplitude = 50 + Math.random() * 100;
+                wave.waveFrequency = 0.005 + Math.random() * 0.01;
+            }
+        });
+    </script>
+</body>
+</html>
