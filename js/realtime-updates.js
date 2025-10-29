@@ -52,44 +52,44 @@ class RealTimeUpdates {
             return;
         }
         
-        else if (data.type === 'image_update') {
+        if (data.type === 'image_update') {
             this.handleImageUpdate(data);
-        }
-    }
-
-    handleDesignReady(designData) {
-        console.log('Complete design ready:', designData);
-        
-        const designId = designData.designId;
-        if (!this.progressTracker.getCompletedDesign(designId)) {
-            this.progressTracker.markComplete(designId, designData);
-            this.uploadManager.incrementCompletedDesigns();
-            this.displayDesign(designData);
-            this.removeProgressItem(designId);
-            
-            this.hasDisplayedProduct = true;
         }
     }
 
     handleImageUpdate(update) {
         console.log('Individual image update:', update);
         
-        if (this.progressTracker.isDuplicateUpdate(update.fileName, update.stage)) {
-            console.log('Skipping duplicate file update:', update.fileName);
+        // Extract the base file identifier (without stage-specific parts)
+        const baseFileName = this.extractBaseFileName(update.fileName);
+        const stage = update.stage;
+        
+        // Check if we've already processed this exact stage for this file
+        const duplicateKey = `${baseFileName}_${stage}`;
+        if (this.progressTracker.isDuplicateUpdate(duplicateKey, stage)) {
+            console.log('Skipping duplicate file stage update:', duplicateKey);
             return;
         }
-
+    
         const fileName = update.fileName;
         const designId = this.progressTracker.extractDesignId(fileName);
-        const itemKey = designId || fileName;
+        const itemKey = designId || baseFileName; // Use base file name for tracking
         
         let progressItem = this.progressTracker.trackProgress(itemKey);
         this.progressTracker.updateProgress(itemKey, update.stage, {
             imageUrl: update.imageUrl,
             timestamp: update.timestamp
         });
-
+    
         this.updateProgressUI(itemKey, progressItem);
+    }
+    
+    // Add this helper method to extract base file name
+    extractBaseFileName(fileName) {
+        // Remove path and stage-specific prefixes to get the base file identifier
+        // Example: "enhanced/ensd_priority_1_cid_e5e0c3ad..." -> "priority_1_cid_e5e0c3ad"
+        const match = fileName.match(/(priority_\d+_cid_[^_]+)/);
+        return match ? match[1] : fileName;
     }
 
     updateProgressUI(itemKey, progressItem) {
