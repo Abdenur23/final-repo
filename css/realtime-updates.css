@@ -587,3 +587,19 @@
     left: 50%;
     transform: translate(-50%, -50%);
 }
+/* --- NEW CODE: Visual Notification for New Designs --- */
+
+/* Highlight new product card for a few seconds */
+.product-card.new-design-highlight {
+    /* Use a pulsating or strong shadow to draw user's attention */
+    box-shadow: 0 0 15px 5px rgba(25, 135, 84, 0.9), 0 0 5px 1px rgba(25, 135, 84, 0.5); /* Strong green glow */
+    border-color: #28a745; /* Change border color */
+}
+
+/* Ensure the base product-card has a transition to make the highlight smooth */
+.product-card {
+    /* ... existing styles ... */
+    transition: transform 0.2s ease, box-shadow 0.5s ease, border-color 0.5s ease; /* Ensure box-shadow and border-color are included */
+    position: relative;
+    overflow: hidden;
+}
