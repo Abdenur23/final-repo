@@ -48,21 +48,18 @@ const CONFIG = {
     
     // Stage mappings for user-friendly display
     STAGE_MAP: {
-        'upload': '📤 Uploading your image',
-        'processing': '🔄 Processing image',
-        'analysis': '🔍 Analyzing design',
-        'generation': '🎨 Generating phone case',
-        'rendering': '📱 Creating 3D preview',
-        'finalizing': '✨ Finalizing design'
+        'enhancing image': '🧪 Enhancing your image',
+        'preparing wallpaper and case': '🧩 Preparing wallpaper and case',
+        'producing design': '🎨 Generating your phone case design',
+        'mockup ready': '✅ Your design is ready'
     },
     
     // Stage colors for progress indicators
     STAGE_COLORS: {
-        'upload': '#ffc107',
-        'processing': '#17a2b8',
-        'analysis': '#6610f2',
-        'generation': '#fd7e14',
-        'rendering': '#20c997',
-        'finalizing': '#28a745'
+        'enhancing image': '#17a2b8',     // Teal
+        'preparing wallpaper and case': '#6610f2', // Purple
+        'producing design': '#fd7e14',     // Orange
+        'mockup ready': '#28a745'          // Green success
     }
+
 };
