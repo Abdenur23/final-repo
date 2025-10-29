@@ -242,6 +242,42 @@ class RealTimeUpdates {
             return null;
         }
     }
+    updateDesignsCounter() {
+        this.completedDesignsCount++;
+        const designsReadyElement = document.getElementById('designs-ready');
+        if (designsReadyElement) {
+            designsReadyElement.textContent = this.completedDesignsCount;
+            
+            const remaining = this.totalExpectedDesigns - this.completedDesignsCount;
+            const notification = document.getElementById('processing-notification');
+            
+            if (notification && remaining > 0) {
+                const message = notification.querySelector('p:last-of-type');
+                if (message) {
+                    message.innerHTML = `
+                        <strong>${remaining} more design${remaining > 1 ? 's' : ''} being processed...</strong>
+                        Designs ready: <span id="designs-ready">${this.completedDesignsCount}</span> / ${this.totalExpectedDesigns}
+                    `;
+                }
+            }
+            
+            // When all designs are complete, update notification
+            if (remaining === 0) {
+                setTimeout(() => {
+                    if (notification) {
+                        notification.innerHTML = `
+                            <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 15px; margin: 10px 0;">
+                                <h4 style="margin: 0 0 10px 0; color: #155724;">✅ All Designs Complete!</h4>
+                                <p style="margin: 0; color: #155724;">
+                                    All ${this.totalExpectedDesigns} designs are ready. You can now start over with new images.
+                                </p>
+                            </div>
+                        `;
+                    }
+                }, 500);
+            }
+        }
+    }
 
     addImageToProgressItem(item, imageUrl) {
         const imageContainer = item.querySelector('.image-container');
