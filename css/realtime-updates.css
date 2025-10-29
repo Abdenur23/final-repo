@@ -29,10 +29,11 @@
 
 /* Product card - Fixed image containment */
 .product-card {
-    border: 2px solid #007bff;
+    background: rgba(248, 251, 255, 0.85); /* Added transparency */
+    backdrop-filter: blur(10px); /* Optional glass effect */
+    border: 2px solid rgba(0, 123, 255, 0.3); /* More transparent border */
     padding: 15px;
     border-radius: 10px;
-    background: #f8fbff;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
@@ -42,7 +43,6 @@
     position: relative;
     overflow: hidden; /* Prevent any content from overflowing */
 }
-
 .product-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -208,7 +208,8 @@
     align-items: center;
     padding: 10px;
     border-left: 4px solid #ffc107;
-    background: #fff8e6;
+    background: rgba(255, 248, 230, 0.85); /* Added transparency */
+    backdrop-filter: blur(10px); /* Optional glass effect */
     border-radius: 6px;
     gap: 12px;
     transition: all 0.3s ease;
@@ -269,7 +270,8 @@
     width: 100%;
     margin: 15px 0 0 0;
     padding: 15px;
-    background: #f8f9fa;
+    background: rgba(248, 249, 250, 0.85); /* Added transparency */
+    backdrop-filter: blur(10px); /* Optional glass effect */
     border-radius: 8px;
     border: 1px solid #e9ecef;
 }
