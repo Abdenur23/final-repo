@@ -3,39 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Flower Wave (String Effect) - Fixed</title>
+    <title>Dynamic Flower Wave (Proportional)</title>
     <style>
-        /* Base Styles */
+        /* Base Styles (Unchanged) */
         body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
+            margin: 0; padding: 0; overflow: hidden;
             background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
-            height: 100vh;
-            width: 100vw;
+            height: 100vh; width: 100vw;
         }
-        
         #container {
-            position: relative;
-            width: 100%;
-            height: 100%;
+            position: relative; width: 100%; height: 100%;
         }
-        
-        /* Flower Styles - optimized for performance */
         .flower {
-            position: absolute;
-            pointer-events: none;
+            position: absolute; pointer-events: none;
             will-change: transform, opacity, filter;
-            /* Using bottom:0 and left:0 as a reference anchor */
-            bottom: 0; 
-            left: 0;
+            bottom: 0; left: 0; /* Anchor to bottom-left */
         }
-        
         .flower img {
-            display: block;
-            width: 100%;
-            height: auto;
-            /* Ensures the bottom-center of the flower is the anchor point */
+            display: block; width: 100%; height: auto;
             transform-origin: 50% 100%;
             filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.3));
         }
@@ -46,6 +31,11 @@
     </div>
 
     <script>
+        // Helper function for random range (min inclusive, max exclusive)
+        function randRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
         class FlowerWave {
             constructor() {
                 this.container = document.getElementById('container');
@@ -54,26 +44,48 @@
                 this.time = 0;
 
                 // --- Configuration ---
-                this.FLOWER_COUNT = 70;
-                this.FLOWER_SPACING = 30; 
-                this.FLOW_SPEED = 2.0; // Slightly faster flow for visibility
+                this.FLOWER_COUNT = 120; // Increased count for density
+                this.FLOW_SPEED = 2.5; // Flow speed
+                this.FLOWER_SPACING = 35; // Base spacing for initial X-position
 
-                // Wave Parameters (The shape of the trailing string)
-                this.WAVE_AMPLITUDE = 150; // Increased amplitude for a bigger wave
+                // Proportional Sizing: Max width of a MEDIUM flower (as fraction of screen width)
+                this.MAX_FLOWER_SIZE_FRAC = 0.045; // Max 4.5% of the screen width for the largest flower
+                
+                // --- WAVE PARAMETERS ---
+                this.WAVE_AMPLITUDE = 180; // Max height of the wave in pixels (increased)
                 this.WAVE_FREQUENCY = 0.005; 
-                this.WAVE_PHASE_SPEED = 0.03; 
-
-                // Depth parameters
-                this.depthLayers = {
-                    TINY: { scale: 0.6, opacity: 0.5, blur: 2.5, zIndex: 1, speedMult: 0.8 },
-                    SMALL: { scale: 1.0, opacity: 0.8, blur: 1.0, zIndex: 5, speedMult: 1.0 },
-                    MEDIUM: { scale: 1.5, opacity: 1.0, blur: 0.0, zIndex: 10, speedMult: 1.2 }
+                this.WAVE_PHASE_SPEED = 0.035; 
+                
+                // NEW: Defines the vertical spread of the flower's placement (analogous to the Python band mask)
+                // This is the maximum vertical offset (UPWARDS) from the bottom of the screen.
+                this.WAVE_HEIGHT = 400; // Flowers spread vertically up to 400px from the bottom line
+                
+                // --- DEPTH & PROPORTION (Mirroring Python Logic) ---
+                this.PROPORTIONAL_LAYERS = {
+                    // P_CUM: Cumulative probability used for selection (0 to 1)
+                    // SIZE_RANGE: Multiplier applied to MAX_FLOWER_SIZE_FRAC (matches Python's proportional ranges)
+                    
+                    "TINY": { 
+                        P_CUM: 0.65, // 65% of flowers are TINY
+                        size_range: [0.006 / this.MAX_FLOWER_SIZE_FRAC, 0.013 / this.MAX_FLOWER_SIZE_FRAC], // ~13% to ~28% of max size
+                        opacity: [0.62, 0.78], blur: [2.0, 3.5], zIndex: 1, speedMult: 0.8 
+                    },
+                    "SMALL": { 
+                        P_CUM: 0.95, // 30% of flowers are SMALL (0.95 - 0.65)
+                        size_range: [0.013 / this.MAX_FLOWER_SIZE_FRAC, 0.028 / this.MAX_FLOWER_SIZE_FRAC], // ~28% to ~62% of max size
+                        opacity: [0.78, 0.90], blur: [1.0, 2.0], zIndex: 5, speedMult: 1.0 
+                    },
+                    "MEDIUM": { 
+                        P_CUM: 1.0, // 5% of flowers are MEDIUM (1.0 - 0.95)
+                        size_range: [0.028 / this.MAX_FLOWER_SIZE_FRAC, 1.0], // ~62% to 100% of max size
+                        opacity: [0.92, 1.00], blur: [0.0, 1.0], zIndex: 10, speedMult: 1.2 
+                    }
                 };
 
                 this.init();
             }
 
-            // --- Initialization (Loaders unchanged) ---
+            // --- Initialization and Loading (Loading logic remains the same) ---
             async init() {
                 await this.loadFlowerAssets();
                 if (this.flowerImages.length === 0) {
@@ -85,6 +97,7 @@
             }
 
             async loadFlowerAssets() {
+                // [Image loading logic from previous step]
                 for (let i = 1; i <= 100; i++) {
                     const filename = `anime_flowers_processed/anime-flower-${i.toString().padStart(3, '0')}.png`;
                     try {
@@ -99,17 +112,29 @@
                         break;
                     }
                 }
-                console.log(`Loaded ${this.flowerImages.length} unique flower images.`);
             }
 
+            // --- Flower Creation (New Proportional Logic) ---
             createFlowerElements() {
-                const layers = Object.keys(this.depthLayers);
+                const W = window.innerWidth;
+                const layers = Object.keys(this.PROPORTIONAL_LAYERS);
                 
                 for (let i = 0; i < this.FLOWER_COUNT; i++) {
                     const flowerData = this.flowerImages[Math.floor(Math.random() * this.flowerImages.length)];
-                    const layerKey = layers[Math.floor(Math.random() * layers.length)];
-                    const layerConfig = this.depthLayers[layerKey];
+                    
+                    // --- 1. PROPORTIONAL LAYER SELECTION ---
+                    const p = Math.random();
+                    let layerKey = 'TINY'; // Default
+                    if (p > this.PROPORTIONAL_LAYERS['TINY'].P_CUM) {
+                         layerKey = p <= this.PROPORTIONAL_LAYERS['SMALL'].P_CUM ? 'SMALL' : 'MEDIUM';
+                    }
+                    const layerConfig = this.PROPORTIONAL_LAYERS[layerKey];
 
+                    // --- 2. PROPORTIONAL SIZING ---
+                    const [sizeMinMult, sizeMaxMult] = layerConfig.size_range;
+                    const maxFlowerWidth = W * this.MAX_FLOWER_SIZE_FRAC;
+                    const targetWidth = randRange(maxFlowerWidth * sizeMinMult, maxFlowerWidth * sizeMaxMult);
+                    
                     const element = document.createElement('div');
                     element.className = 'flower';
                     element.style.zIndex = layerConfig.zIndex;
@@ -117,11 +142,12 @@
                     const imgEl = document.createElement('img');
                     imgEl.src = flowerData.image.src;
                     
-                    // The flower's natural height is required for positioning correction
-                    const actualWidth = flowerData.image.naturalWidth;
-                    imgEl.style.width = `${actualWidth * layerConfig.scale}px`;
-                    element.style.opacity = layerConfig.opacity;
-                    element.style.filter = `blur(${layerConfig.blur}px)`;
+                    // The flower's natural ratio is used to set the new scaled width
+                    imgEl.style.width = `${targetWidth}px`;
+                    
+                    // --- 3. APPLY DEPTH STYLES ---
+                    element.style.opacity = randRange(...layerConfig.opacity);
+                    element.style.filter = `blur(${randRange(...layerConfig.blur)}px)`;
 
                     element.appendChild(imgEl);
                     this.container.appendChild(element);
@@ -129,22 +155,19 @@
                     this.flowerElements.push({
                         element: element,
                         layerConfig: layerConfig,
-                        pathOffset: i * this.FLOWER_SPACING, 
-                        x_pos: window.innerWidth + i * this.FLOWER_SPACING, 
-                        // Store the scaled width, which determines the element's actual size on screen
-                        scaledWidth: actualWidth * layerConfig.scale
+                        // Start the element outside the right edge
+                        x_pos: W + i * this.FLOWER_SPACING, 
+                        scaledWidth: targetWidth,
+                        // NEW: A random vertical offset for organic spread (analogous to the parabola band)
+                        verticalOffset: randRange(0, this.WAVE_HEIGHT) 
                     });
                 }
             }
 
-            // --- Animation Loop ---
+            // --- Animation Loop (Modified for Wider Wave Spread) ---
 
             updateFlowerPositions() {
                 const W = window.innerWidth;
-                const H = window.innerHeight; // The absolute bottom edge
-                
-                // Define the anchor line for the wave path, slightly above the bottom of the screen
-                const WAVE_ANCHOR_Y = H; 
                 
                 this.time += 0.016; 
 
@@ -154,39 +177,50 @@
                     // 1. Horizontal Movement (moves left)
                     flower.x_pos -= this.FLOW_SPEED * config.speedMult;
 
-                    // 2. Calculate the wave path (Y offset is now NEGATIVE to go UP)
+                    // 2. Calculate the wave path (Y offset)
+                    // The wave only controls the *sine motion*, not the vertical placement.
                     const waveYOffset = this.WAVE_AMPLITUDE * Math.sin(
                         (flower.x_pos * this.WAVE_FREQUENCY) + (this.time * this.WAVE_PHASE_SPEED * config.speedMult)
                     );
                     
-                    // 3. Vertical Transformation (The FIX!)
-                    // We apply `translateY` to move the flower UPWARDS from its `bottom: 0` CSS anchor.
-                    // The flower image height is implicitly handled by the `bottom: 0` CSS property.
-                    // We need the wave to lift the flower *up* from the bottom, so the wave offset must be negative.
-                    const y_transform = -waveYOffset;
+                    // 3. Vertical Transformation (The FIX + Proportional Spread)
+                    // The flower's final Y position is the sum of:
+                    // - Its random vertical spread offset (`flower.verticalOffset`)
+                    // - The dynamic wave motion (`waveYOffset`)
+                    // We negate it to lift the flower UP from the bottom: 0 anchor.
+                    const y_transform = -(flower.verticalOffset + waveYOffset);
                     
                     // 4. Apply transformation
-                    // The 'flower' element has `bottom: 0` and `left: 0`. We translate it horizontally
-                    // by `flower.x_pos` and vertically by `y_transform` (lifting it up).
                     flower.element.style.transform = `translate3d(${flower.x_pos}px, ${y_transform}px, 0)`;
 
                     // 5. Recycling
                     if (flower.x_pos < -flower.scaledWidth) {
+                        // Reset flower to the far right with new random properties
                         flower.x_pos = W + this.FLOWER_SPACING * 2;
                         
-                        // Randomly assign a new layer configuration upon recycle
-                        const layers = Object.keys(this.depthLayers);
-                        const newLayerKey = layers[Math.floor(Math.random() * layers.length)];
-                        const newConfig = this.depthLayers[newLayerKey];
-                        
+                        // Re-select layer (important for proportional distribution)
+                        const p = Math.random();
+                        let newLayerKey = 'TINY';
+                        if (p > this.PROPORTIONAL_LAYERS['TINY'].P_CUM) {
+                            newLayerKey = p <= this.PROPORTIONAL_LAYERS['SMALL'].P_CUM ? 'SMALL' : 'MEDIUM';
+                        }
+                        const newConfig = this.PROPORTIONAL_LAYERS[newLayerKey];
                         flower.layerConfig = newConfig;
-                        flower.scaledWidth = flower.scaledWidth / flower.layerConfig.scale * newConfig.scale;
+
+                        // Re-size proportionally
+                        const [sizeMinMult, sizeMaxMult] = newConfig.size_range;
+                        const maxFlowerWidth = W * this.MAX_FLOWER_SIZE_FRAC;
+                        const newWidth = randRange(maxFlowerWidth * sizeMinMult, maxFlowerWidth * sizeMaxMult);
+                        flower.scaledWidth = newWidth;
                         
                         // Re-apply visual styles for the new layer
                         flower.element.style.zIndex = newConfig.zIndex;
-                        flower.element.style.opacity = newConfig.opacity;
-                        flower.element.style.filter = `blur(${newConfig.blur}px)`;
-                        flower.element.firstChild.style.width = `${flower.scaledWidth}px`;
+                        flower.element.style.opacity = randRange(...newConfig.opacity);
+                        flower.element.style.filter = `blur(${randRange(...newConfig.blur)}px)`;
+                        flower.element.firstChild.style.width = `${newWidth}px`;
+                        
+                        // Re-assign a random vertical offset for organic spread
+                        flower.verticalOffset = randRange(0, this.WAVE_HEIGHT); 
                     }
                 });
             }
