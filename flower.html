@@ -3,206 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Flower Wave</title>
+    <title>Dynamic Flower Wave (String Effect)</title>
     <style>
+        /* Base Styles */
         body {
             margin: 0;
-            overflow: hidden; /* Hide flowers when they move off-screen */
-            background-color: #f7f7f7; /* Light background for contrast */
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA); /* Sky to light blue background */
             height: 100vh;
             width: 100vw;
         }
-
-        /* The container for all flowers */
-        #flower-wave-container {
+        
+        #container {
             position: relative;
             width: 100%;
             height: 100%;
         }
-
-        /* Base styling for a single flower element */
+        
+        /* Flower Styles - optimized for performance */
         .flower {
             position: absolute;
+            bottom: 0; /* Anchor point for the wave */
             left: 0;
-            bottom: 0;
-            transition: opacity 0.3s ease-out, transform 0.1s linear; /* Smooth fade-out */
-            will-change: transform, opacity; /* Performance optimization */
+            pointer-events: none;
+            /* Use transform for animation; removed CSS transition for frame-by-frame updates */
+            will-change: transform, opacity, filter;
         }
         
         .flower img {
             display: block;
-            pointer-events: none; /* Ignore mouse clicks on the image itself */
-            transform-origin: bottom left; /* Rotate around the base */
+            width: 100%;
+            height: auto;
+            /* Ensures the center of the wave is the bottom of the flower */
+            transform-origin: 50% 100%;
+            filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.3));
         }
     </style>
 </head>
 <body>
+    <div id="container">
+        </div>
 
-<div id="flower-wave-container">
-    </div>
+    <script>
+        class FlowerWave {
+            constructor() {
+                this.container = document.getElementById('container');
+                this.flowerElements = [];
+                this.flowerImages = [];
+                this.time = 0;
 
-<script>
-    // --- Configuration ---
-    const FLOWER_COUNT = 70; // Total number of flower elements in the wave
-    const FLOWER_SIZE = 80; // Base size in pixels (matches target_size=80 in your Python script)
-    const ASSET_FOLDER = 'anime_flowers_processed'; // Subfolder name
-    const FLOWER_PREFIX = 'anime-flower-'; // Match your file naming convention
+                // --- Configuration ---
+                this.FLOWER_COUNT = 70; // Total number of flowers on the screen
+                this.FLOWER_SPACING = 30; // Horizontal distance between flowers on the path
+                this.FLOW_SPEED = 2.0; // Speed of the wave's horizontal flow (pixels per frame)
 
-    // Flower Depth-of-Field (DOF) styles (Simplified from your Python script)
-    // Affects size (scale) and transparency (opacity)
-    const DOF_STYLES = {
-        // TINY and SMALL are far/blurry. MEDIUM is close/sharp.
-        TINY: { scale: [0.6, 0.9], opacity: [0.4, 0.7] },
-        SMALL: { scale: [0.9, 1.3], opacity: [0.7, 0.9] },
-        MEDIUM: { scale: [1.3, 1.8], opacity: [0.9, 1.0] }
-    };
+                // Wave Parameters (The shape of the trailing string)
+                this.WAVE_AMPLITUDE = 100; // Max height of the wave in pixels
+                this.WAVE_FREQUENCY = 0.005; // How compressed the wave is horizontally
+                this.WAVE_PHASE_SPEED = 0.03; // Speed of the wave's movement (how fast it propagates)
 
-    // Wave configuration (tuned for a string-like movement)
-    const WAVE_AMPLITUDE = 0.15; // Max wave height as a fraction of screen height (15%)
-    const WAVE_FREQUENCY = 0.005; // Horizontal compression/stretch
-    const WAVE_SPEED = 0.005; // Speed of the wave's horizontal movement
-    
-    // Horizontal space flowers cover (from 0% to MAX_WAVE_WIDTH_PCT)
-    const MAX_WAVE_WIDTH_PCT = 120; // 120% of screen width to allow them to flow off-screen
+                // Depth parameters (Simplified from your original and Python code)
+                this.depthLayers = {
+                    TINY: { scale: 0.6, opacity: 0.5, blur: 2.5, zIndex: 1, speedMult: 0.8 },
+                    SMALL: { scale: 1.0, opacity: 0.8, blur: 1.0, zIndex: 5, speedMult: 1.0 },
+                    MEDIUM: { scale: 1.5, opacity: 1.0, blur: 0.0, zIndex: 10, speedMult: 1.2 }
+                };
 
-    // --- Utility Functions ---
-
-    /** Get random value within range */
-    function randRange(min, max) {
-        return Math.random() * (max - min) + min;
-    }
-
-    /** Pre-calculate flower styles based on depth */
-    function createFlowerData(count) {
-        const styles = ['TINY', 'SMALL', 'MEDIUM'];
-        let data = [];
-        
-        // Randomly assign depth styles
-        for (let i = 0; i < count; i++) {
-            const styleKey = styles[Math.floor(randRange(0, styles.length))];
-            const style = DOF_STYLES[styleKey];
-            const size = FLOWER_SIZE * randRange(...style.scale);
-            
-            data.push({
-                // Select a random flower index (assuming files are 1-based, e.g., 001.png to N.png)
-                fileIndex: Math.floor(randRange(1, 10)), // Assuming at least 10 flowers exist
-                size: size,
-                opacity: randRange(...style.opacity),
-                style: styleKey
-            });
-        }
-        return data;
-    }
-
-    // --- Core Logic ---
-
-    // Array to hold the dynamic properties of each flower
-    const flowerElements = [];
-    const flowerData = createFlowerData(FLOWER_COUNT);
-
-    /** Initialize all flower elements and append them to the DOM */
-    function initializeFlowers() {
-        const container = document.getElementById('flower-wave-container');
-
-        flowerData.forEach((data, i) => {
-            const flowerEl = document.createElement('div');
-            flowerEl.className = 'flower';
-            flowerEl.style.zIndex = data.style === 'MEDIUM' ? 10 : (data.style === 'SMALL' ? 5 : 1);
-            
-            const imgEl = document.createElement('img');
-            // Construct the path to the PNG image
-            const imgNumber = String(data.fileIndex).padStart(3, '0');
-            imgEl.src = `${ASSET_FOLDER}/${FLOWER_PREFIX}${imgNumber}.png`;
-            imgEl.alt = 'Flower';
-            imgEl.style.width = `${data.size}px`;
-            imgEl.style.height = `${data.size}px`;
-
-            flowerEl.appendChild(imgEl);
-            container.appendChild(flowerEl);
-            
-            // Store the element reference and its static data
-            flowerElements.push({
-                element: flowerEl,
-                img: imgEl,
-                data: data,
-                // Assign a unique position/time offset along the wave (from 0 to 1)
-                t_offset: i / (FLOWER_COUNT - 1) 
-            });
-        });
-    }
-
-    /** Update the position of all flowers based on the dynamic wave path */
-    let time = 0; // Global time variable for wave movement
-    function updateWave() {
-        const W = window.innerWidth;
-        const H = window.innerHeight;
-        const A = H * WAVE_AMPLITUDE; // Actual wave amplitude in pixels
-
-        // The 'car' moves off the left side of the screen over time
-        const waveShift = time * WAVE_SPEED * W; 
-
-        flowerElements.forEach((flower, i) => {
-            const t = flower.t_offset; // Position along the string (0 to 1)
-            
-            // 1. Calculate the target X position: starts off-screen right and moves left
-            // It goes from W * MAX_WAVE_WIDTH_PCT at t=0 to 0 at t=1
-            const waveWidth = W * (MAX_WAVE_WIDTH_PCT / 100);
-            let x_initial = W - (t * waveWidth); 
-            
-            // Add the wave shift (makes the entire wave pattern move left)
-            let x_pos = x_initial - waveShift;
-            
-            // 2. Calculate the wave Y position (like a string being dragged)
-            // Use sine wave for a clean, continuous path
-            const waveY = Math.sin(x_pos * WAVE_FREQUENCY) * A;
-
-            // 3. Final Y position: Starts from the bottom and follows the wave path
-            // The wave crests are *above* the bottom line (H)
-            let y_pos = H + waveY; // Start at the bottom (H) and add/subtract wave height (A)
-
-            // 4. Calculate Alpha (fade-in/fade-out)
-            let opacity = flower.data.opacity;
-            
-            // Fade-in from the bottom-left corner
-            if (x_pos > W * 0.95) { // If near the far right edge (string attachment point)
-                 opacity = 0; // Force hidden at the far end before it enters the screen
-            } else if (x_pos > W) {
-                // Flowers before they enter the screen are hidden
-                opacity = 0;
-            } else if (x_pos > W * 0.8) {
-                // Fade in as they enter the screen (from 80% to 100% of W)
-                opacity = flower.data.opacity * (1 - (x_pos - W * 0.8) / (W * 0.2)); 
-            } else if (x_pos < -flower.data.size) { 
-                // Fade out/hide completely after they exit the screen on the left
-                opacity = 0;
+                this.init();
             }
-            
-            // 5. Apply transformations and opacity
-            flower.element.style.opacity = opacity;
-            
-            // Use CSS transform for smooth, hardware-accelerated movement
-            // Flowers start at bottom-left corner (0, H) and flow up and along the wave.
-            flower.element.style.transform = `translate3d(${x_pos}px, ${y_pos}px, 0)`;
 
+            // --- Initialization ---
+
+            async init() {
+                await this.loadFlowerAssets();
+                if (this.flowerImages.length === 0) {
+                    console.error("No flower images loaded. Check your 'anime_flowers_processed' folder.");
+                    return;
+                }
+                this.createFlowerElements();
+                this.animate();
+            }
+
+            async loadFlowerAssets() {
+                // Reuse your robust loading logic to load all available images
+                for (let i = 1; i <= 100; i++) {
+                    const filename = `anime_flowers_processed/anime-flower-${i.toString().padStart(3, '0')}.png`;
+                    try {
+                        const img = new Image();
+                        img.src = filename;
+                        await new Promise((resolve, reject) => {
+                            img.onload = resolve;
+                            // Treat 404/error as the end of the image sequence
+                            img.onerror = () => reject(new Error('Image load failed or does not exist')); 
+                        });
+                        this.flowerImages.push({
+                            image: img,
+                            id: i
+                        });
+                    } catch (error) {
+                        break; // Stop loading on the first missing file
+                    }
+                }
+                console.log(`Loaded ${this.flowerImages.length} unique flower images.`);
+            }
+
+            createFlowerElements() {
+                const layers = Object.keys(this.depthLayers);
+                
+                for (let i = 0; i < this.FLOWER_COUNT; i++) {
+                    // Randomly select image and depth layer for each element
+                    const flowerData = this.flowerImages[Math.floor(Math.random() * this.flowerImages.length)];
+                    const layerKey = layers[Math.floor(Math.random() * layers.length)];
+                    const layerConfig = this.depthLayers[layerKey];
+
+                    const element = document.createElement('div');
+                    element.className = 'flower';
+                    element.style.zIndex = layerConfig.zIndex;
+
+                    const imgEl = document.createElement('img');
+                    imgEl.src = flowerData.image.src;
+                    
+                    // Apply depth styles via CSS properties
+                    imgEl.style.width = `${flowerData.image.naturalWidth * layerConfig.scale}px`;
+                    element.style.opacity = layerConfig.opacity;
+                    element.style.filter = `blur(${layerConfig.blur}px)`;
+
+                    element.appendChild(imgEl);
+                    this.container.appendChild(element);
+
+                    this.flowerElements.push({
+                        element: element,
+                        layerConfig: layerConfig,
+                        // Initial position offset on the horizontal path
+                        pathOffset: i * this.FLOWER_SPACING, 
+                        // Start the element outside the right edge
+                        x_pos: window.innerWidth + i * this.FLOWER_SPACING, 
+                        // Start the element at the bottom of the screen
+                        y_pos: window.innerHeight, 
+                        width: flowerData.image.naturalWidth * layerConfig.scale
+                    });
+                }
+            }
+
+            // --- Animation Loop ---
+
+            updateFlowerPositions() {
+                const W = window.innerWidth;
+                const H = window.innerHeight;
+
+                this.time += 0.016; // Time increment for wave animation
+
+                this.flowerElements.forEach(flower => {
+                    const config = flower.layerConfig;
+                    
+                    // 1. Move the flower left based on flow speed and depth multiplier
+                    flower.x_pos -= this.FLOW_SPEED * config.speedMult;
+
+                    // 2. Calculate the dynamic wave path
+                    // The wave's vertical position is based on the current X position and the time (phase)
+                    const waveY = this.WAVE_AMPLITUDE * Math.sin(
+                        (flower.x_pos * this.WAVE_FREQUENCY) + (this.time * this.WAVE_PHASE_SPEED * config.speedMult)
+                    );
+                    
+                    // 3. Final Y position: Starts from the bottom anchor (H) and follows the wave
+                    // We subtract `flower.width` since we are transforming the element's top-left corner
+                    const y_transform = H + waveY - (flower.width || 0); 
+                    
+                    // 4. Apply transformation (using translate3d for better performance)
+                    flower.element.style.transform = `translate3d(${flower.x_pos}px, ${y_transform}px, 0)`;
+
+                    // 5. Recycling (The "car" has passed this flower)
+                    if (flower.x_pos < -flower.width) {
+                        // Reset the flower to the far right to re-enter the wave
+                        flower.x_pos = W + this.FLOWER_SPACING * 2;
+                        
+                        // Give it a random layer/speed again for variety
+                        const layers = Object.keys(this.depthLayers);
+                        const newLayerKey = layers[Math.floor(Math.random() * layers.length)];
+                        flower.layerConfig = this.depthLayers[newLayerKey];
+                        
+                        // Re-apply visual styles for the new layer
+                        flower.element.style.zIndex = flower.layerConfig.zIndex;
+                        flower.element.style.opacity = flower.layerConfig.opacity;
+                        flower.element.style.filter = `blur(${flower.layerConfig.blur}px)`;
+                    }
+                });
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                this.updateFlowerPositions();
+            }
+        }
+
+        // Initialize the flower wave when page loads
+        window.addEventListener('load', () => {
+            new FlowerWave();
         });
-
-        // Increment time for the next frame
-        time += 1;
-        
-        // Use requestAnimationFrame for smooth animation
-        requestAnimationFrame(updateWave);
-    }
-
-    // --- Execution ---
-
-    initializeFlowers();
-    // Set the initial position of the 'car' to start the wave near the bottom left
-    document.getElementById('flower-wave-container').style.transform = `translateY(-${FLOWER_SIZE}px) translateX(-${FLOWER_SIZE/2}px)`; 
-    
-    // Start the animation loop
-    updateWave();
-
-</script>
-
+    </script>
 </body>
 </html>
