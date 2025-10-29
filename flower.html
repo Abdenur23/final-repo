@@ -3,16 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Flower Wave (Refined Positional Depth)</title>
+    <title>Dynamic Flower Wave (Fixed Scale & Dynamic DOF)</title>
     <style>
-        /* Base Styles (Unchanged) */
         body {
             margin: 0; padding: 0; overflow: hidden;
             background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
             height: 100vh; width: 100vw;
         }
         #container {
-            position: relative; width: 100%; height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            /* The container now holds the fixed-size virtual canvas */
+            width: 100%; 
+            height: 100%; 
+            transform-origin: 0 0; /* Ensures correct scaling from top-left */
         }
         .flower {
             position: absolute; pointer-events: none;
@@ -35,7 +40,6 @@
             return Math.random() * (max - min) + min;
         }
 
-        // NEW: Linear interpolation function to map a value from one range to another
         function map(value, inMin, inMax, outMin, outMax) {
             return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
         }
@@ -46,27 +50,31 @@
                 this.flowerElements = [];
                 this.flowerImages = [];
                 this.time = 0;
+                
+                // --- NEW: FIXED VIRTUAL CANVAS DIMENSIONS ---
+                // All flower calculations are based on this width
+                this.VIRTUAL_WIDTH = 1440; 
+                this.VIRTUAL_HEIGHT = 800; // Used for vertical scale reference
 
-                // --- Configuration (HIGH IMPACT ADJUSTMENTS) ---
+                // --- Configuration ---
                 this.FLOWER_COUNT = 200; 
                 this.FLOW_SPEED = 1.0; 
                 this.FLOWER_SPACING = 25; 
 
-                // Proportional Sizing
+                // Flower Size (based on VIRTUAL_WIDTH)
                 this.MAX_FLOWER_SIZE_FRAC = 0.12; 
                 
-                // --- WAVE PARAMETERS ---
+                // --- WAVE PARAMETERS (based on VIRTUAL_HEIGHT) ---
                 this.WAVE_AMPLITUDE = 250; 
                 this.WAVE_FREQUENCY = 0.005; 
                 this.WAVE_PHASE_SPEED = 0.02; 
                 
-                // Defines the vertical spread of the flower's placement 
+                // Defines the maximum vertical spread (depth)
                 this.WAVE_HEIGHT = 600; 
                 
-                // --- DEPTH & PROPORTION (Toned down blur and refined ranges) ---
+                // --- DEPTH & PROPORTION ---
                 const pythonMediumMax = 0.048; 
                 const pythonTinyMin = 0.006;
-                const pythonTinyMax = 0.013;
                 const pythonSmallMin = 0.013;
                 const pythonSmallMax = 0.028;
                 const pythonMediumMin = 0.028;
@@ -76,90 +84,87 @@
                         P_CUM: 0.65, 
                         size_range: [pythonTinyMin / pythonMediumMax, pythonTinyMax / pythonMediumMax],
                         opacity_range: [0.65, 0.85], 
-                        blur_range: [1.0, 2.0], // Reduced blur max
+                        blur_range: [1.0, 2.0], // Max blur for furthest flowers
                         zIndex: 1, speedMult: 0.8 
                     },
                     "SMALL": { 
                         P_CUM: 0.95, 
                         size_range: [pythonSmallMin / pythonMediumMax, pythonSmallMax / pythonMediumMax],
                         opacity_range: [0.80, 0.95], 
-                        blur_range: [0.5, 1.5], // Reduced blur max
+                        blur_range: [0.5, 1.5], 
                         zIndex: 5, speedMult: 1.0 
                     },
                     "MEDIUM": { 
                         P_CUM: 1.0, 
                         size_range: [pythonMediumMin / pythonMediumMax, 1.0], 
                         opacity_range: [0.90, 1.00], 
-                        blur_range: [0.0, 0.5], // Almost no blur
+                        blur_range: [0.0, 0.5], // Foreground is mostly sharp
                         zIndex: 10, speedMult: 1.2 
                     }
                 };
-
+                
+                window.addEventListener('resize', this.handleResize.bind(this));
+                this.handleResize(); // Initial scaling
                 this.init();
             }
 
-            // --- Initialization and Loading (Unchanged) ---
-            async init() {
-                await this.loadFlowerAssets();
-                if (this.flowerImages.length === 0) {
-                    console.error("No flower images loaded. Check your 'anime_flowers_processed' folder.");
-                    return;
-                }
-                this.createFlowerElements();
-                this.animate();
-            }
-
-            async loadFlowerAssets() {
-                for (let i = 1; i <= 100; i++) {
-                    const filename = `anime_flowers_processed/anime-flower-${i.toString().padStart(3, '0')}.png`;
-                    try {
-                        const img = new Image();
-                        img.src = filename;
-                        await new Promise((resolve, reject) => {
-                            img.onload = resolve;
-                            img.onerror = () => reject(new Error('Image load failed or does not exist')); 
-                        });
-                        this.flowerImages.push({ image: img, id: i });
-                    } catch (error) {
-                        break;
-                    }
-                }
-            }
-
-            // --- Function to Calculate Depth Properties ---
-            calculateDepthProps(layerConfig, verticalOffset) {
-                // Normalize vertical position (0 at bottom, 1 at max WAVE_HEIGHT)
-                const normY = verticalOffset / this.WAVE_HEIGHT;
+            // --- NEW: SCALE HANDLER ---
+            handleResize() {
+                const W = window.innerWidth;
+                const H = window.innerHeight;
                 
-                // We want blur/opacity to increase as the flower moves UP (further away).
-                // Medium flowers (foreground) should have almost no blur regardless of position.
+                // Calculate the scale factor (only scales based on width)
+                const scaleX = W / this.VIRTUAL_WIDTH;
+                const scaleY = H / this.VIRTUAL_HEIGHT;
+                
+                // Use a combination of scale factors to keep a good view
+                // For a wave anchored to the bottom, we usually only scale by width (scaleX)
+                // but we also need to adjust the position of the container
+                this.container.style.width = `${this.VIRTUAL_WIDTH}px`;
+                this.container.style.height = `${this.VIRTUAL_HEIGHT}px`;
+                
+                // Scale the entire virtual canvas to fit the screen width
+                this.container.style.transform = `scale(${scaleX})`;
+                
+                // Since the height isn't fully contained, we need to adjust the bottom position
+                // We anchor the container to the bottom edge using the height difference
+                const translateY = H - (this.VIRTUAL_HEIGHT * scaleX);
+                this.container.style.transform = `scale(${scaleX}) translateY(${translateY / scaleX}px)`;
+                
+            }
+            // --- End Scale Handler ---
 
-                let blur;
-                let opacity;
+            // --- Function to Calculate Depth Properties (Updated for Dynamic DOF) ---
+            calculateDepthProps(layerConfig, depthPhase) {
+                // depthPhase cycles from 0 (deep/blurry) to 1 (shallow/clear) and back to 0
+                
+                const blurRange = layerConfig.blur_range;
+                const opacityRange = layerConfig.opacity_range;
 
                 if (layerConfig.zIndex === 10) { // MEDIUM (Foreground)
-                    // Keep MEDIUM flowers mostly sharp, regardless of height, but allow a tiny variance.
-                    blur = randRange(layerConfig.blur_range[0], layerConfig.blur_range[1]);
-                    opacity = randRange(layerConfig.opacity_range[0], layerConfig.opacity_range[1]);
-                } else { // SMALL and TINY (Mid/Background)
-                    // Blend between the layer's min blur/opacity and max blur/opacity based on height (normY).
-                    // Flowers higher up (normY close to 1) get more blur and less opacity.
-                    
-                    blur = map(normY, 0, 1, layerConfig.blur_range[0], layerConfig.blur_range[1]);
-                    opacity = map(normY, 0, 1, layerConfig.opacity_range[1], layerConfig.opacity_range[0]);
-                    
-                    // Add a small randomized jitter on top of the positional effect
-                    blur = Math.min(layerConfig.blur_range[1], blur * randRange(0.9, 1.1));
-                    opacity = Math.max(layerConfig.opacity_range[0], opacity * randRange(0.95, 1.05));
+                    // MEDIUM flowers always stay sharpest/clearest
+                    return { 
+                        blur: randRange(blurRange[0], blurRange[1]),
+                        opacity: randRange(opacityRange[0], opacityRange[1])
+                    };
                 }
                 
-                return { blur, opacity };
+                // For SMALL and TINY, interpolate between the blurry (deep) and clear (shallow) ends
+                // When depthPhase is 0, they are max blur, min opacity (furthest)
+                // When depthPhase is 1, they are min blur, max opacity (closest)
+                
+                const blur = map(depthPhase, 0, 1, blurRange[1], blurRange[0]);
+                const opacity = map(depthPhase, 0, 1, opacityRange[0], opacityRange[1]);
+                
+                return { 
+                    blur: Math.max(blurRange[0], blur * randRange(0.9, 1.1)),
+                    opacity: Math.min(opacityRange[1], opacity * randRange(0.95, 1.05))
+                };
             }
 
-
-            // --- Flower Creation ---
+            // --- Flower Creation (Updated to use VIRTUAL_WIDTH) ---
             createFlowerElements() {
-                const W = window.innerWidth;
+                const W = this.VIRTUAL_WIDTH;
                 
                 for (let i = 0; i < this.FLOWER_COUNT; i++) {
                     const flowerData = this.flowerImages[Math.floor(Math.random() * this.flowerImages.length)];
@@ -175,8 +180,12 @@
                     const maxFlowerWidthPx = W * this.MAX_FLOWER_SIZE_FRAC;
                     const targetWidth = randRange(maxFlowerWidthPx * sizeMinMult, maxFlowerWidthPx * sizeMaxMult);
                     
-                    const verticalOffset = randRange(0, this.WAVE_HEIGHT);
-                    const { blur, opacity } = this.calculateDepthProps(layerConfig, verticalOffset);
+                    // NEW: Assign a random starting point in the depth cycle (0 to 2*PI)
+                    const depthPhaseOffset = randRange(0, Math.PI * 2);
+                    
+                    // Calculate initial depth properties
+                    const depthPhase = 0.5 + 0.5 * Math.cos(depthPhaseOffset); // Initial phase (0 to 1)
+                    const { blur, opacity } = this.calculateDepthProps(layerConfig, depthPhase);
                     
                     const element = document.createElement('div');
                     element.className = 'flower';
@@ -186,7 +195,6 @@
                     imgEl.src = flowerData.image.src;
                     imgEl.style.width = `${targetWidth}px`;
                     
-                    // Apply initial calculated depth properties
                     element.style.opacity = opacity;
                     element.style.filter = `blur(${blur}px)`;
 
@@ -198,43 +206,56 @@
                         layerConfig: layerConfig,
                         x_pos: W + i * this.FLOWER_SPACING, 
                         scaledWidth: targetWidth,
-                        verticalOffset: verticalOffset, // Store the position
+                        // NEW: Vertical offset and depth cycle phase are separate
+                        waveYOffset: randRange(0, this.WAVE_HEIGHT), 
+                        depthPhaseOffset: depthPhaseOffset,
+                        depthSpeed: randRange(0.3, 0.6) * layerConfig.speedMult, // Speed of blur/unblur cycle
                     });
                 }
             }
 
             // --- Animation Loop ---
             updateFlowerPositions() {
-                const W = window.innerWidth;
+                const W = this.VIRTUAL_WIDTH;
                 
                 this.time += 0.016; 
 
                 this.flowerElements.forEach(flower => {
                     const config = flower.layerConfig;
                     
-                    // 1. Horizontal Movement (moves left)
+                    // 1. Horizontal Movement 
                     flower.x_pos -= this.FLOW_SPEED * config.speedMult;
 
-                    // 2. Calculate the wave path (Y offset)
-                    const waveYOffset = this.WAVE_AMPLITUDE * Math.sin(
+                    // 2. Wave Motion (Y offset)
+                    const waveY = this.WAVE_AMPLITUDE * Math.sin(
                         (flower.x_pos * this.WAVE_FREQUENCY) + (this.time * this.WAVE_PHASE_SPEED * config.speedMult)
                     );
                     
-                    // 3. Vertical Transformation (Combined vertical spread and wave motion)
-                    const y_transform = -(flower.verticalOffset + waveYOffset);
+                    // 3. Dynamic Depth Cycle
+                    flower.depthPhaseOffset += 0.01 * flower.depthSpeed;
+                    const depthPhase = 0.5 + 0.5 * Math.cos(flower.depthPhaseOffset); // Cycles 0 -> 1 -> 0
                     
-                    // 4. Apply transformation
+                    // 4. Vertical Transformation (Y position is now static waveYOffset + dynamic waveY)
+                    const y_transform = -(flower.waveYOffset + waveY);
+                    
+                    // 5. Apply Position Transform
                     flower.element.style.transform = `translate3d(${flower.x_pos}px, ${y_transform}px, 0)`;
 
-                    // 5. Recycling
+                    // 6. Apply Dynamic Depth Styles (Blurring Back and Forth)
+                    const { blur, opacity } = this.calculateDepthProps(config, depthPhase);
+                    flower.element.style.opacity = opacity;
+                    flower.element.style.filter = `blur(${blur}px)`;
+
+
+                    // 7. Recycling
                     if (flower.x_pos < -flower.scaledWidth) {
                         flower.x_pos = W + this.FLOWER_SPACING * 2;
                         
-                        // Re-select layer and size (proportional logic)
+                        // [Flower recycling logic remains the same for layer/size/z-index]
                         const p = Math.random();
                         let newLayerKey = 'TINY';
                         if (p > this.PROPORTIONAL_LAYERS['TINY'].P_CUM) {
-                            newLayerKey = p <= this.PROPORTIONAL_LAYERS['SMALL'].P_UM ? 'SMALL' : 'MEDIUM';
+                            newLayerKey = p <= this.PROPORTIONAL_LAYERS['SMALL'].P_CUM ? 'SMALL' : 'MEDIUM';
                         }
                         const newConfig = this.PROPORTIONAL_LAYERS[newLayerKey];
                         flower.layerConfig = newConfig;
@@ -244,17 +265,14 @@
                         const newWidth = randRange(maxFlowerWidthPx * sizeMinMult, maxFlowerWidthPx * sizeMaxMult);
                         flower.scaledWidth = newWidth;
                         flower.element.firstChild.style.width = `${newWidth}px`;
-                        
-                        // Re-assign vertical offset and RE-CALCULATE DEPTH PROPS
-                        const newVerticalOffset = randRange(0, this.WAVE_HEIGHT);
-                        flower.verticalOffset = newVerticalOffset;
-                        
-                        const { blur, opacity } = this.calculateDepthProps(newConfig, newVerticalOffset);
-
-                        // 6. Apply recalculated depth and z-index
                         flower.element.style.zIndex = newConfig.zIndex;
-                        flower.element.style.opacity = opacity;
-                        flower.element.style.filter = `blur(${blur}px)`;
+                        
+                        // Reset depth cycle for new flower
+                        flower.depthPhaseOffset = randRange(0, Math.PI * 2); 
+                        flower.depthSpeed = randRange(0.3, 0.6) * newConfig.speedMult;
+                        
+                        // Randomize wave path offset
+                        flower.waveYOffset = randRange(0, this.WAVE_HEIGHT); 
                     }
                 });
             }
