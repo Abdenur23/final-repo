@@ -209,7 +209,7 @@ class RealTimeUpdates {
         // Create product card
         const { html, metadata } = this.uiManager.createProductCard(designData, priceInfo);
         
-        // Ensure products container exists - FIXED LOGIC
+        // Ensure products container exists
         let productsContainer = document.getElementById('productsContainer');
         if (!productsContainer) {
             productsContainer = this.createProductsContainer(container);
@@ -218,6 +218,26 @@ class RealTimeUpdates {
         if (productsContainer) {
             productsContainer.insertAdjacentHTML('beforeend', html);
             const productElement = document.getElementById(`design-${designId}`);
+            
+            // =======================================================
+            // ✨ NEW LOGIC FOR SCROLLING AND USER NOTIFICATION
+            // =======================================================
+            
+            // 1. Scroll the products container to make the new card visible
+            // 'end' is usually a good setting for horizontal scrolling if using grid/flex
+            // For vertical scrolling, 'start' or 'nearest' might be better depending on layout.
+            // Using 'nearest' for general safety.
+            productElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // 2. Add a temporary highlight class for notification (requires the new CSS)
+            productElement.classList.add('new-design-highlight');
+            
+            // 3. Remove the highlight after a delay (e.g., 3 seconds)
+            setTimeout(() => {
+                productElement.classList.remove('new-design-highlight');
+            }, 3000); 
+
+            // =======================================================
             
             // Setup navigation
             this.imageHandler.setupProductNavigation(
