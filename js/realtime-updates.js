@@ -299,7 +299,6 @@ class RealTimeUpdates {
         const uploadSection = document.getElementById('uploadSection');
         const updatesHTML = `
             <div id="realtimePanel" style="margin-top: 20px;">
-                <h3>Processing Progress</h3>
                 <div id="realtimeUpdates" class="updates-container">
                     <div class="progress-train"></div>
                 </div>
