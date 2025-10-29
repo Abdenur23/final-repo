@@ -105,42 +105,49 @@ class RealTimeUpdates {
         const match = fileName.match(/(priority_\d+_cid_[^_]+)/);
         return match ? match[1] : fileName;
     }
-
+    
     updateProgressUI(itemKey, progressItem) {
         const container = document.getElementById('realtimeUpdates');
         if (!container) return;
-
-        // Ensure we have the horizontal train container
+    
+        // 1. Ensure we have the horizontal train container
         let trainContainer = container.querySelector('.progress-train');
         if (!trainContainer) {
             container.innerHTML = '<div class="progress-train"></div>';
             trainContainer = container.querySelector('.progress-train');
         }
-
-        // Add each stage as a separate train car
-        progressItem.stages.forEach((stage, index) => {
-            const stageId = `${itemKey}-${stage.stage}-${index}`;
-            let stageElement = document.getElementById(`progress-train-${stageId}`);
+    
+        // 2. Identify the NEWEST stage (the last one in the array)
+        const latestStageIndex = progressItem.stages.length - 1;
+        const stage = progressItem.stages[latestStageIndex];
+        
+        // 3. Create a STABLE ID for the train car (using stage.stage instead of index)
+        // NOTE: This assumes an image file only passes through each 'stage' once.
+        const stageId = `${itemKey}-${stage.stage}`;
+        let stageElement = document.getElementById(`progress-train-${stageId}`);
+        
+        // 4. If the car does NOT exist, create and append it (a new update)
+        if (!stageElement) {
+            const friendlyName = this.getFriendlyStageName(stage.stage);
             
-            if (!stageElement) {
-                const friendlyName = this.getFriendlyStageName(stage.stage);
-                const { id, html } = this.uiManager.createProgressTrainItem(
-                    stageId, 
-                    friendlyName, 
-                    stage.stage, 
-                    stage.imageUrl
-                );
-                
-                trainContainer.insertAdjacentHTML('beforeend', html);
-                stageElement = document.getElementById(id);
-            }
-
-            if (stageElement) {
-                this.updateProgressTrainElement(stageElement, stage);
-            }
-        });
-
-        // Scroll to the latest update
+            // Pass the stable stageId to the UI component creator
+            const { id, html } = this.uiManager.createProgressTrainItem(
+                stageId, 
+                friendlyName, 
+                stage.stage, 
+                stage.imageUrl
+            );
+            
+            trainContainer.insertAdjacentHTML('beforeend', html);
+            stageElement = document.getElementById(id);
+        } 
+        
+        // 5. If the car EXISTS (or was just created), update its content
+        if (stageElement) {
+            this.updateProgressTrainElement(stageElement, stage);
+        }
+    
+        // 6. Scroll to the latest update
         trainContainer.scrollLeft = trainContainer.scrollWidth;
     }
 
