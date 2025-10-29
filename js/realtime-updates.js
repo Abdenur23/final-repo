@@ -52,7 +52,7 @@ class RealTimeUpdates {
             return;
         }
         
-        if (data.type === 'image_update') {
+        else if (data.type === 'image_update') {
             this.handleImageUpdate(data);
         }
     }
