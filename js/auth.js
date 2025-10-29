@@ -241,21 +241,41 @@ function renderNavigation() {
 // Add this function to auth.js
 function checkAuthAndUpdateUI() {
     const isAuthenticated = isAuthenticated();
+    const userInfo = getUserInfo();
     
-    // Toggle app content based on auth status
+    // Update the main content visibility
     const appContent = document.getElementById('app-content');
     const authRequired = document.getElementById('auth-required-message');
+    const authActionDiv = document.getElementById('auth-action');
     
-    if (isAuthenticated) {
+    if (isAuthenticated && userInfo) {
+        // User is authenticated - show app content
         if (appContent) appContent.style.display = 'block';
         if (authRequired) authRequired.style.display = 'none';
+        
+        // Show welcome message and sign out button
+        if (authActionDiv) {
+            authActionDiv.innerHTML = `
+                <p>Welcome, <strong>${userInfo.displayName}</strong>!</p>
+                <button onclick="window.app.signout()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Sign Out
+                </button>
+            `;
+        }
     } else {
+        // User is NOT authenticated - show sign in button only
         if (appContent) appContent.style.display = 'none';
         if (authRequired) authRequired.style.display = 'block';
+        
+        // Show sign in button
+        if (authActionDiv) {
+            authActionDiv.innerHTML = `
+                <button onclick="window.app.signin()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Sign In / Sign Up
+                </button>
+            `;
+        }
     }
-    
-    // Update auth buttons
-    renderAuthActions();
 }
 
 // Update the existing setupTokenRefresh function in auth.js
