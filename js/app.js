@@ -62,6 +62,11 @@ class Application {
                 </button>
             `;
         }
+        
+        // Update the main UI visibility
+        if (window.checkAuthAndUpdateUI) {
+            checkAuthAndUpdateUI();
+        }
     }
 
     toggleAppContent(show) {
