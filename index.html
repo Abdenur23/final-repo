@@ -17,23 +17,19 @@
     <h1>Welcome</h1>
     <p>Create your custom phone case</p>
     
-    <div id="auth-action">
-        <button onclick="signin()" class="btn btn-primary">Sign In / Sign Up</button>
-    </div>
+    <div id="auth-action"></div>
     
     <div style="margin-top: 30px;">
         <a href="case.html" class="btn btn-secondary">Go to Case Designer</a>
     </div>
 
+<script src="config/constants.js"></script>
 <script src="js/auth.js"></script>
 <script>
-    // Simple auth check for index page
-    if (isAuthenticated()) {
-        document.getElementById('auth-action').innerHTML = `
-            <p>Welcome! You are signed in.</p>
-            <button onclick="signout()" class="btn btn-primary">Sign Out</button>
-        `;
-    }
+    // Use the same initialization as case.html
+    document.addEventListener('DOMContentLoaded', async () => {
+        await initializeAuth();
+    });
 </script>
 </body>
 </html>
