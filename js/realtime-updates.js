@@ -56,7 +56,21 @@ class RealTimeUpdates {
             this.handleImageUpdate(data);
         }
     }
-
+    // Update handleDesignReady method:
+    handleDesignReady(designData) {
+        console.log('Complete design ready:', designData);
+        
+        const designId = designData.designId;
+        if (!this.progressTracker.getCompletedDesign(designId)) {
+            this.progressTracker.markComplete(designId, designData);
+            this.uploadManager.incrementCompletedDesigns();
+            this.displayDesign(designData);
+            this.removeProgressItem(designId);
+            this.updateDesignsCounter(); // Add this line
+            
+            this.hasDisplayedProduct = true;
+        }
+    }
     handleImageUpdate(update) {
         console.log('Individual image update:', update);
         
