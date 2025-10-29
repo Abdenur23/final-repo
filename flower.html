@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Flower Wave (High Impact, Mobile Scaled)</title>
+    <title>Dynamic Flower Wave (Refined Positional Depth)</title>
     <style>
         /* Base Styles (Unchanged) */
         body {
@@ -31,9 +31,13 @@
     </div>
 
     <script>
-        // Helper function for random range (min inclusive, max exclusive)
         function randRange(min, max) {
             return Math.random() * (max - min) + min;
+        }
+
+        // NEW: Linear interpolation function to map a value from one range to another
+        function map(value, inMin, inMax, outMin, outMax) {
+            return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
         }
 
         class FlowerWave {
@@ -44,23 +48,23 @@
                 this.time = 0;
 
                 // --- Configuration (HIGH IMPACT ADJUSTMENTS) ---
-                this.FLOWER_COUNT = 200; // **Increased Density**
-                this.FLOW_SPEED = 1.0; // **Slower Flow**
+                this.FLOWER_COUNT = 200; 
+                this.FLOW_SPEED = 1.0; 
                 this.FLOWER_SPACING = 25; 
 
-                // Proportional Sizing: Max width of a MEDIUM flower (as fraction of screen width)
-                this.MAX_FLOWER_SIZE_FRAC = 0.12; // **MASSIVE SCALE INCREASE (12% of screen width)**
+                // Proportional Sizing
+                this.MAX_FLOWER_SIZE_FRAC = 0.12; 
                 
                 // --- WAVE PARAMETERS ---
-                this.WAVE_AMPLITUDE = 250; // **Higher Wave Peaks**
+                this.WAVE_AMPLITUDE = 250; 
                 this.WAVE_FREQUENCY = 0.005; 
                 this.WAVE_PHASE_SPEED = 0.02; 
                 
                 // Defines the vertical spread of the flower's placement 
-                this.WAVE_HEIGHT = 600; // **Wider Vertical Band Spread**
+                this.WAVE_HEIGHT = 600; 
                 
-                // --- DEPTH & PROPORTION (Based on Python script) ---
-                const pythonMediumMax = 0.048; // Max frac from Python's MEDIUM_RANGE 
+                // --- DEPTH & PROPORTION (Toned down blur and refined ranges) ---
+                const pythonMediumMax = 0.048; 
                 const pythonTinyMin = 0.006;
                 const pythonTinyMax = 0.013;
                 const pythonSmallMin = 0.013;
@@ -70,19 +74,24 @@
                 this.PROPORTIONAL_LAYERS = {
                     "TINY": { 
                         P_CUM: 0.65, 
-                        // The size range multipliers are kept relative to maintain the distribution ratio
                         size_range: [pythonTinyMin / pythonMediumMax, pythonTinyMax / pythonMediumMax],
-                        opacity: [0.62, 0.78], blur: [2.0, 3.5], zIndex: 1, speedMult: 0.8 
+                        opacity_range: [0.65, 0.85], 
+                        blur_range: [1.0, 2.0], // Reduced blur max
+                        zIndex: 1, speedMult: 0.8 
                     },
                     "SMALL": { 
                         P_CUM: 0.95, 
                         size_range: [pythonSmallMin / pythonMediumMax, pythonSmallMax / pythonMediumMax],
-                        opacity: [0.78, 0.90], blur: [1.0, 2.0], zIndex: 5, speedMult: 1.0 
+                        opacity_range: [0.80, 0.95], 
+                        blur_range: [0.5, 1.5], // Reduced blur max
+                        zIndex: 5, speedMult: 1.0 
                     },
                     "MEDIUM": { 
                         P_CUM: 1.0, 
                         size_range: [pythonMediumMin / pythonMediumMax, 1.0], 
-                        opacity: [0.92, 1.00], blur: [0.0, 1.0], zIndex: 10, speedMult: 1.2 
+                        opacity_range: [0.90, 1.00], 
+                        blur_range: [0.0, 0.5], // Almost no blur
+                        zIndex: 10, speedMult: 1.2 
                     }
                 };
 
@@ -117,6 +126,37 @@
                 }
             }
 
+            // --- Function to Calculate Depth Properties ---
+            calculateDepthProps(layerConfig, verticalOffset) {
+                // Normalize vertical position (0 at bottom, 1 at max WAVE_HEIGHT)
+                const normY = verticalOffset / this.WAVE_HEIGHT;
+                
+                // We want blur/opacity to increase as the flower moves UP (further away).
+                // Medium flowers (foreground) should have almost no blur regardless of position.
+
+                let blur;
+                let opacity;
+
+                if (layerConfig.zIndex === 10) { // MEDIUM (Foreground)
+                    // Keep MEDIUM flowers mostly sharp, regardless of height, but allow a tiny variance.
+                    blur = randRange(layerConfig.blur_range[0], layerConfig.blur_range[1]);
+                    opacity = randRange(layerConfig.opacity_range[0], layerConfig.opacity_range[1]);
+                } else { // SMALL and TINY (Mid/Background)
+                    // Blend between the layer's min blur/opacity and max blur/opacity based on height (normY).
+                    // Flowers higher up (normY close to 1) get more blur and less opacity.
+                    
+                    blur = map(normY, 0, 1, layerConfig.blur_range[0], layerConfig.blur_range[1]);
+                    opacity = map(normY, 0, 1, layerConfig.opacity_range[1], layerConfig.opacity_range[0]);
+                    
+                    // Add a small randomized jitter on top of the positional effect
+                    blur = Math.min(layerConfig.blur_range[1], blur * randRange(0.9, 1.1));
+                    opacity = Math.max(layerConfig.opacity_range[0], opacity * randRange(0.95, 1.05));
+                }
+                
+                return { blur, opacity };
+            }
+
+
             // --- Flower Creation ---
             createFlowerElements() {
                 const W = window.innerWidth;
@@ -135,6 +175,9 @@
                     const maxFlowerWidthPx = W * this.MAX_FLOWER_SIZE_FRAC;
                     const targetWidth = randRange(maxFlowerWidthPx * sizeMinMult, maxFlowerWidthPx * sizeMaxMult);
                     
+                    const verticalOffset = randRange(0, this.WAVE_HEIGHT);
+                    const { blur, opacity } = this.calculateDepthProps(layerConfig, verticalOffset);
+                    
                     const element = document.createElement('div');
                     element.className = 'flower';
                     element.style.zIndex = layerConfig.zIndex;
@@ -143,8 +186,9 @@
                     imgEl.src = flowerData.image.src;
                     imgEl.style.width = `${targetWidth}px`;
                     
-                    element.style.opacity = randRange(...layerConfig.opacity);
-                    element.style.filter = `blur(${randRange(...layerConfig.blur)}px)`;
+                    // Apply initial calculated depth properties
+                    element.style.opacity = opacity;
+                    element.style.filter = `blur(${blur}px)`;
 
                     element.appendChild(imgEl);
                     this.container.appendChild(element);
@@ -154,7 +198,7 @@
                         layerConfig: layerConfig,
                         x_pos: W + i * this.FLOWER_SPACING, 
                         scaledWidth: targetWidth,
-                        verticalOffset: randRange(0, this.WAVE_HEIGHT) 
+                        verticalOffset: verticalOffset, // Store the position
                     });
                 }
             }
@@ -186,29 +230,31 @@
                     if (flower.x_pos < -flower.scaledWidth) {
                         flower.x_pos = W + this.FLOWER_SPACING * 2;
                         
-                        // Re-select layer (important for proportional distribution)
+                        // Re-select layer and size (proportional logic)
                         const p = Math.random();
                         let newLayerKey = 'TINY';
                         if (p > this.PROPORTIONAL_LAYERS['TINY'].P_CUM) {
-                            newLayerKey = p <= this.PROPORTIONAL_LAYERS['SMALL'].P_CUM ? 'SMALL' : 'MEDIUM';
+                            newLayerKey = p <= this.PROPORTIONAL_LAYERS['SMALL'].P_UM ? 'SMALL' : 'MEDIUM';
                         }
                         const newConfig = this.PROPORTIONAL_LAYERS[newLayerKey];
                         flower.layerConfig = newConfig;
 
-                        // Re-size proportionally
                         const [sizeMinMult, sizeMaxMult] = newConfig.size_range;
                         const maxFlowerWidthPx = W * this.MAX_FLOWER_SIZE_FRAC;
                         const newWidth = randRange(maxFlowerWidthPx * sizeMinMult, maxFlowerWidthPx * sizeMaxMult);
                         flower.scaledWidth = newWidth;
-                        
-                        // Re-apply visual styles for the new layer
-                        flower.element.style.zIndex = newConfig.zIndex;
-                        flower.element.style.opacity = randRange(...newConfig.opacity);
-                        flower.element.style.filter = `blur(${randRange(...newConfig.blur)}px)`;
                         flower.element.firstChild.style.width = `${newWidth}px`;
                         
-                        // Re-assign a random vertical offset for organic spread
-                        flower.verticalOffset = randRange(0, this.WAVE_HEIGHT); 
+                        // Re-assign vertical offset and RE-CALCULATE DEPTH PROPS
+                        const newVerticalOffset = randRange(0, this.WAVE_HEIGHT);
+                        flower.verticalOffset = newVerticalOffset;
+                        
+                        const { blur, opacity } = this.calculateDepthProps(newConfig, newVerticalOffset);
+
+                        // 6. Apply recalculated depth and z-index
+                        flower.element.style.zIndex = newConfig.zIndex;
+                        flower.element.style.opacity = opacity;
+                        flower.element.style.filter = `blur(${blur}px)`;
                     }
                 });
             }
