@@ -238,9 +238,7 @@ function renderNavigation() {
     navContainer.innerHTML = navHTML;
 }
 
-// Add this function to auth.js
 function checkAuthAndUpdateUI() {
-    const isAuthenticated = isAuthenticated();
     const userInfo = getUserInfo();
     
     // Update the main content visibility
@@ -248,7 +246,7 @@ function checkAuthAndUpdateUI() {
     const authRequired = document.getElementById('auth-required-message');
     const authActionDiv = document.getElementById('auth-action');
     
-    if (isAuthenticated && userInfo) {
+    if (userInfo) {
         // User is authenticated - show app content
         if (appContent) appContent.style.display = 'block';
         if (authRequired) authRequired.style.display = 'none';
@@ -257,7 +255,7 @@ function checkAuthAndUpdateUI() {
         if (authActionDiv) {
             authActionDiv.innerHTML = `
                 <p>Welcome, <strong>${userInfo.displayName}</strong>!</p>
-                <button onclick="window.app.signout()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                <button onclick="signout()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
                     Sign Out
                 </button>
             `;
@@ -270,7 +268,7 @@ function checkAuthAndUpdateUI() {
         // Show sign in button
         if (authActionDiv) {
             authActionDiv.innerHTML = `
-                <button onclick="window.app.signin()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                <button onclick="signin()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
                     Sign In / Sign Up
                 </button>
             `;
