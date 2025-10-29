@@ -3,19 +3,29 @@ body {
     font-family: Arial, sans-serif; 
     margin: 0;
     padding: 0;
-    background-color: #f4f4f9; 
+    background-color: transparent; /* Changed from #f4f4f9 */
     min-height: 100vh;
 }
 
 .container { 
     max-width: 100%;
     margin: 0;
-    background: white; 
+    background: transparent; /* Changed from white */
     padding: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+    box-shadow: none; /* Removed shadow */
     min-height: 100vh;
 }
-
+/* Make all main UI containers translucent */
+.device-selection, 
+.promo-section, 
+#uploadSection,
+#auth-action,
+.auth-required,
+.upload-success {
+    background: rgba(248, 249, 250, 0.85); /* Added transparency */
+    backdrop-filter: blur(10px); /* Optional glass effect */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Lighter border */
+}
 /* Header and main content area */
 h1, h2, h3 { 
     color: #333; 
