@@ -238,27 +238,39 @@ function renderNavigation() {
     navContainer.innerHTML = navHTML;
 }
 
-// Auto-refresh token (optional - for longer sessions)
+// Add this function to auth.js
+function checkAuthAndUpdateUI() {
+    const isAuthenticated = isAuthenticated();
+    
+    // Toggle app content based on auth status
+    const appContent = document.getElementById('app-content');
+    const authRequired = document.getElementById('auth-required-message');
+    
+    if (isAuthenticated) {
+        if (appContent) appContent.style.display = 'block';
+        if (authRequired) authRequired.style.display = 'none';
+    } else {
+        if (appContent) appContent.style.display = 'none';
+        if (authRequired) authRequired.style.display = 'block';
+    }
+    
+    // Update auth buttons
+    renderAuthActions();
+}
+
+// Update the existing setupTokenRefresh function in auth.js
 function setupTokenRefresh() {
     // Check token every minute
     setInterval(() => {
         if (isTokenExpired() && getSession()) {
-            console.log('Token expired, redirecting to signin');
+            console.log('Token expired, clearing session');
             clearSession();
-            // Force UI refresh on all pages
-            if (typeof toggleAppContent === 'function') {
-                toggleAppContent(false);
-            }
-            renderNavigation();
-            const authContainer = document.querySelector('[id*="auth"], #auth-action, #auth-container');
-            if (authContainer) {
-                renderAuthUI(authContainer.id);
-            }
+            checkAuthAndUpdateUI(); // ← Add this line
         }
-    }, 60000); // Check every minute
+    }, 60000);
 }
 
-// Initialize auth for any page
+// Update the existing initializeAuth function in auth.js
 async function initializeAuth() {
     await handleCodeExchange();
     renderNavigation();
@@ -268,6 +280,8 @@ async function initializeAuth() {
         console.log('Token expired on page load, clearing session');
         clearSession();
     }
+    
+    checkAuthAndUpdateUI(); // ← Add this line
     
     // Render auth UI if container exists
     const authContainer = document.querySelector('[id*="auth"], #auth-action, #auth-container');
@@ -280,7 +294,6 @@ async function initializeAuth() {
     
     return isAuthenticated();
 }
-
 // Make functions available globally
 window.signin = signin;
 window.signout = signout;
