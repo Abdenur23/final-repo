@@ -1,102 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Custom Phone Cases</title>
-<link rel="stylesheet" href="css/main.css">
-<link rel="stylesheet" href="css/realtime-updates.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Phone Cases</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/realtime-updates.css">
 </head>
 <body>
-
-<div class="container">
+  <div class="container">
     <div style="text-align: center; margin: 20px 0;">
-        <img src="logo.png" alt="Logo" style="height: 60px;">
+      <img src="logo.png" alt="Logo" style="height: 60px;">
     </div>
+
     <div id="nav-container"></div>
-    
-    <!-- MAIN TITLE -->
-    <h1>Design Your Custom Phone Case</h1>
+
+    <!-- REST OF YOUR EXISTING case.html CODE REMAINS EXACTLY THE SAME -->
+    <h1>Custom Phone Cases</h1>
 
     <div id="auth-action"></div>
-    <div id="token-display"><h2>Not signed in</h2></div>
-    
+
+    <div id="token-display">
+      <h2>Not signed in</h2>
+    </div>
+
     <div id="app-content" style="display: none;">
-        <div class="device-selection">
-            <h2>Choose Your Phone Model</h2>
-            
-            <div class="brand-selection">
-                <label class="brand-option">
-                    <input type="radio" name="brand" value="apple" checked> Apple
-                </label>
-                <label class="brand-option">
-                    <input type="radio" name="brand" value="samsung"> Samsung
-                </label>
-            </div>
-            
-            <label for="deviceSelect">Model:</label>
-            <select id="deviceSelect">
-                <option value="">-- Select Your Model --</option>
-            </select>
-            
-            <div class="acknowledge-section" id="acknowledgeSection">
-                <p style="margin: 0 0 10px 0; font-size: 14px;">
-                    <strong>Note:</strong> A preview will be shown using <span id="demoDevice">iPhone 16 Pro Max</span>. 
-                    Your actual order will be crafted specifically for your selected model: <strong id="selectedDevice"></strong>.
-                </p>
-                <label>
-                    <input type="checkbox" id="acknowledgeCheckbox"> I understand my case and wallpaper will be designed for: <strong id="deviceName"></strong>
-                </label>
-            </div>
+      <div class="device-selection">
+        <h2>Select Your Phone Model to Start</h2>
+
+        <div class="brand-selection">
+          <label class="brand-option">
+            <input type="radio" name="brand" value="apple" checked> Apple
+          </label>
+          <label class="brand-option">
+            <input type="radio" name="brand" value="samsung"> Samsung
+          </label>
         </div>
 
-        <!-- Promo Code Section -->
-        <div class="promo-section" id="promoSection">
-            <h3>💳 Apply a Promo Code 
-                <span id="activePromoBadge" class="active-promo-badge" style="display: none;">
-                    Active: <span id="activePromoPercent">0</span>% OFF
-                </span>
-            </h3>
-            <div class="promo-input-group">
-                <input type="text" id="promoCodeInput" placeholder="Enter promo code">
-                <button onclick="window.app.applyPromoCode()">Apply</button>
-            </div>
-            <div id="promoMessage" class="promo-message"></div>
-        </div>
+        <label for="deviceSelect">Model:</label>
+        <select id="deviceSelect">
+          <option value="">-- Choose Model --</option>
+        </select>
 
-        <div id="uploadSection" style="display:none;">
-            <h2>Upload Your Images</h2>
-            <input type="file" id="fileInput" multiple accept="image/*">
-            <br>
-            <button onclick="window.app.uploadFiles()">Upload Images</button>
-            <div id="uploadResult"></div>
+        <div class="acknowledge-section" id="acknowledgeSection">
+          <p style="margin: 0 0 10px 0; font-size: 14px;">
+            <strong>Important:</strong> For demonstration, we'll show your design on
+            <span id="demoDevice">iPhone 16 Pro Max</span>. Your actual order will be custom-made
+            specifically for your selected device: <strong id="selectedDevice"></strong>.
+          </p>
+          <label>
+            <input type="checkbox" id="acknowledgeCheckbox">
+            I understand my case and wallpaper will be custom-made for:
+            <strong id="deviceName"></strong>
+          </label>
         </div>
+      </div>
 
-        <!-- Start Over Section -->
-        <div class="start-over-section" id="startOverSection">
-            <button class="start-over-btn" onclick="window.app.startOver()">Start Over with New Images</button>
+      <!-- Promo Code Section - ALWAYS VISIBLE when authenticated -->
+      <div class="promo-section" id="promoSection">
+        <h3>
+          💳 Have a Promo Code?
+          <span id="activePromoBadge" class="active-promo-badge" style="display: none;">
+            Active: <span id="activePromoPercent">0</span>% OFF
+          </span>
+        </h3>
+        <div class="promo-input-group">
+          <input type="text" id="promoCodeInput" placeholder="Enter promo code">
+          <button onclick="window.app.applyPromoCode()">Apply</button>
         </div>
-    </div>
-    
-    <div id="auth-required-message" class="auth-required" style="display: none;">
-        <h3>Sign In Required</h3>
-        <p>Please sign in to personalize and create your custom phone case.</p>
-        <button onclick="signin()" style="padding: 10px 20px; background: #f90; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">
-            Sign In / Sign Up
+        <div id="promoMessage" class="promo-message"></div>
+      </div>
+
+      <div id="uploadSection" style="display:none;">
+        <h2>Upload 3 Images</h2>
+        <input type="file" id="fileInput" multiple accept="image/*">
+        <br>
+        <button onclick="window.app.uploadFiles()">Upload Images</button>
+        <div id="uploadResult"></div>
+      </div>
+
+      <!-- Start Over Section -->
+      <div class="start-over-section" id="startOverSection">
+        <button class="start-over-btn" onclick="window.app.startOver()">
+          Start Over with New Images
         </button>
+      </div>
     </div>
-</div>
 
-<script src="config/constants.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/device-manager.js"></script>
-<script src="js/promo-manager.js"></script>
-<script src="js/upload-manager.js"></script>
-<script src="js/websocket-manager.js"></script>
-<script src="js/progress-tracker.js"></script>
-<script src="js/ui-components-manager.js"></script>
-<script src="js/image-navigation-handler.js"></script>
-<script src="js/realtime-updates.js"></script>
-<script src="js/app.js"></script>
+    <div id="auth-required-message" class="auth-required" style="display: none;">
+      <h3>Authentication Required</h3>
+      <p>Please sign in to access the phone case customization features.</p>
+      <button onclick="signin()" style="padding: 10px 20px; background: #f90; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+        Sign In / Sign Up
+      </button>
+    </div>
+  </div>
+
+  <script src="config/constants.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/device-manager.js"></script>
+  <script src="js/promo-manager.js"></script>
+  <script src="js/upload-manager.js"></script>
+
+  <!-- Update your HTML to include the new modular files -->
+  <script src="js/websocket-manager.js"></script>
+  <script src="js/progress-tracker.js"></script>
+  <script src="js/ui-components-manager.js"></script>
+  <script src="js/image-navigation-handler.js"></script>
+  <script src="js/realtime-updates.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
