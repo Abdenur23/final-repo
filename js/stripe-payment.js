@@ -22,7 +22,7 @@ class StripePayment {
             alert('Payment system not ready. Please try again.');
             return;
         }
-
+    
         try {
             // Get user session for authentication
             const session = this.getUserSession();
@@ -30,50 +30,74 @@ class StripePayment {
                 alert('Please sign in to proceed with checkout.');
                 return;
             }
-
+    
+            console.log('Creating checkout session for design:', designData.designId);
+            console.log('Price info:', priceInfo);
+            console.log('Using API endpoint:', CONFIG.API_ENDPOINT);
+    
+            const requestBody = {
+                action: 'createCheckoutSession',
+                designId: designData.designId,
+                paletteName: designData.paletteName || 'Custom Phone Case',
+                imageUrls: designData.imageUrls,
+                price: priceInfo.discounted,
+                originalPrice: priceInfo.original,
+                discount: priceInfo.discount,
+                currency: 'usd'
+            };
+    
+            console.log('Request body:', requestBody);
+    
             const response = await fetch(CONFIG.API_ENDPOINT, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session.access_token}`
                 },
-                body: JSON.stringify({
-                    action: 'createCheckoutSession',
-                    designId: designData.designId,
-                    paletteName: designData.paletteName || 'Custom Phone Case',
-                    imageUrls: designData.imageUrls,
-                    price: priceInfo.discounted,
-                    originalPrice: priceInfo.original,
-                    discount: priceInfo.discount,
-                    currency: 'usd'
-                })
+                body: JSON.stringify(requestBody)
             });
-
+    
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+    
+            const responseText = await response.text();
+            console.log('Response text:', responseText);
+    
             if (!response.ok) {
-                throw new Error('Failed to create checkout session');
+                throw new Error(`HTTP ${response.status}: ${responseText}`);
             }
-
-            const result = await response.json();
+    
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Failed to parse JSON response:', responseText);
+                throw new Error('Invalid response from server');
+            }
+    
+            console.log('Parsed result:', result);
             
             if (result.sessionId) {
+                console.log('Redirecting to Stripe Checkout with session:', result.sessionId);
                 // Redirect to Stripe Checkout
                 const stripeResult = await this.stripe.redirectToCheckout({ 
                     sessionId: result.sessionId 
                 });
                 
                 if (stripeResult.error) {
+                    console.error('Stripe redirect error:', stripeResult.error);
                     alert('Checkout error: ' + stripeResult.error.message);
                 }
             } else {
-                throw new Error('No session ID received from server');
+                console.error('No sessionId in response:', result);
+                throw new Error('No session ID received from server: ' + (result.error || JSON.stringify(result)));
             }
             
         } catch (error) {
             console.error('Checkout error:', error);
-            alert('Error starting checkout. Please try again.');
+            alert('Error starting checkout. Please try again. Check console for details.');
         }
     }
-
     async addToCart(designId, realTimeUpdates) {
         const design = realTimeUpdates.progressTracker.getCompletedDesign(designId);
         if (!design) {
