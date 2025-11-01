@@ -41,7 +41,11 @@
                     return;
                 }
 
-                console.log('Creating checkout session...');
+                // Get user info including email
+                const userInfo = getUserInfo();
+                const userEmail = userInfo ? userInfo.email : null;
+
+                console.log('Creating checkout session for user:', userEmail);
                 
                 const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
                     method: 'POST',
@@ -52,6 +56,7 @@
                     body: JSON.stringify({
                         action: 'createCheckoutSession',
                         price: 100,
+                        user_email: userEmail
                     })
                 });
 
@@ -70,11 +75,25 @@
                 });
 
                 if (result.error) {
-                    alert(result.error.message);
+                    handleStripeError(result.error);
                 }
             } catch (error) {
                 console.error('Error:', error);
                 alert('An error occurred during checkout: ' + error.message);
+            }
+        }
+
+        function handleStripeError(error) {
+            const message = error.message.toLowerCase();
+            
+            if (message.includes('address') || message.includes('zip') || message.includes('postal')) {
+                alert('Address verification failed. Please ensure your billing address matches exactly with what your bank has on file.');
+            } else if (message.includes('cvc') || message.includes('security') || message.includes('code')) {
+                alert('CVC verification failed. Please check the 3-digit security code on the back of your card.');
+            } else if (message.includes('declined')) {
+                alert('Your card was declined. This could be due to address mismatch, insufficient funds, or bank restrictions. Please try again or use a different payment method.');
+            } else {
+                alert('Payment error: ' + error.message);
             }
         }
     </script>
