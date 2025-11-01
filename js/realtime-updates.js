@@ -357,16 +357,21 @@ class RealTimeUpdates {
         this.progressTracker.pendingItems.delete(designId);
     }
 
-    addToCart(designId) {
-        const design = this.progressTracker.getCompletedDesign(designId);
-        if (design) {
-            const paletteName = design.paletteName || 'Custom Design';
-            const currentDiscount = this.promoManager.getActiveDiscount();
-            const discountedPrice = CONFIG.PRODUCT_PRICE * (1 - currentDiscount / 100);
-            const displayPrice = (currentDiscount > 0) ? discountedPrice : CONFIG.PRODUCT_PRICE;
+    // addToCart(designId) {
+    //     const design = this.progressTracker.getCompletedDesign(designId);
+    //     if (design) {
+    //         const paletteName = design.paletteName || 'Custom Design';
+    //         const currentDiscount = this.promoManager.getActiveDiscount();
+    //         const discountedPrice = CONFIG.PRODUCT_PRICE * (1 - currentDiscount / 100);
+    //         const displayPrice = (currentDiscount > 0) ? discountedPrice : CONFIG.PRODUCT_PRICE;
             
-            alert(`Added ${paletteName} to cart! Price: $${displayPrice.toFixed(2)}`);
-        }
+    //         alert(`Added ${paletteName} to cart! Price: $${displayPrice.toFixed(2)}`);
+    //     }
+    // }
+    
+    // In the addToCart method, replace with:
+    addToCart(designId) {
+        window.stripePayment.addToCart(designId, this);
     }
 
     // UPDATED METHOD
