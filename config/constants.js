@@ -8,7 +8,7 @@ const CONFIG = {
 
     // Stripe Configuration
     STRIPE_PUBLISHABLE_KEY: 'pk_test_51SMYv7DBeWU7VJzLNGNEY9wllekcfhQZaMndBcGbvbK5zA7gROVkeWX5lAd8By9QCXVqAinfe5TkHlURcml7Eky700lHbTzbU1', // Replace with your actual key
-    API_ENDPOINT: `${API_BASE_URL}/upload`,
+    API_ENDPOINT: 'https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload',
     
     // Product
     PRODUCT_PRICE: 34.00,
