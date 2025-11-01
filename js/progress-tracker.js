@@ -30,6 +30,16 @@ class ProgressTracker {
         }
     }
 
+    // markComplete(itemKey, result) {
+    //     const item = this.pendingItems.get(itemKey);
+    //     if (item) {
+    //         item.completed = true;
+    //         item.completionTime = Date.now();
+    //         item.result = result;
+    //         this.pendingItems.delete(itemKey);
+    //         this.completedDesigns.set(itemKey, result);
+    //     }
+    // }
     markComplete(itemKey, result) {
         const item = this.pendingItems.get(itemKey);
         if (item) {
@@ -37,8 +47,9 @@ class ProgressTracker {
             item.completionTime = Date.now();
             item.result = result;
             this.pendingItems.delete(itemKey);
-            this.completedDesigns.set(itemKey, result);
         }
+        // ALWAYS store in completedDesigns, regardless of pending status
+        this.completedDesigns.set(itemKey, result);
     }
 
     isDuplicateUpdate(fileName, stage) {
