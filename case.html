@@ -15,14 +15,15 @@
     </div>
     <div id="nav-container"></div>
     
-    <!-- REST OF YOUR EXISTING case.html CODE REMAINS EXACTLY THE SAME -->
-    <h1>Custom Phone Cases</h1>
+    <!-- MAIN TITLE -->
+    <h1>Design Your Custom Phone Case</h1>
+
     <div id="auth-action"></div>
     <div id="token-display"><h2>Not signed in</h2></div>
     
     <div id="app-content" style="display: none;">
         <div class="device-selection">
-            <h2>Select Your Phone Model to Start</h2>
+            <h2>Choose Your Phone Model</h2>
             
             <div class="brand-selection">
                 <label class="brand-option">
@@ -35,23 +36,23 @@
             
             <label for="deviceSelect">Model:</label>
             <select id="deviceSelect">
-                <option value="">-- Choose Model --</option>
+                <option value="">-- Select Your Model --</option>
             </select>
             
             <div class="acknowledge-section" id="acknowledgeSection">
                 <p style="margin: 0 0 10px 0; font-size: 14px;">
-                    <strong>Important:</strong> For demonstration, we'll show your design on <span id="demoDevice">iPhone 16 Pro Max</span>. 
-                    Your actual order will be custom-made specifically for your selected device: <strong id="selectedDevice"></strong>.
+                    <strong>Note:</strong> A preview will be shown using <span id="demoDevice">iPhone 16 Pro Max</span>. 
+                    Your actual order will be crafted specifically for your selected model: <strong id="selectedDevice"></strong>.
                 </p>
                 <label>
-                    <input type="checkbox" id="acknowledgeCheckbox"> I understand my case and wallpaper will be custom-made for: <strong id="deviceName"></strong>
+                    <input type="checkbox" id="acknowledgeCheckbox"> I understand my case and wallpaper will be designed for: <strong id="deviceName"></strong>
                 </label>
             </div>
         </div>
 
-        <!-- Promo Code Section - ALWAYS VISIBLE when authenticated -->
+        <!-- Promo Code Section -->
         <div class="promo-section" id="promoSection">
-            <h3>💳 Have a Promo Code? 
+            <h3>💳 Apply a Promo Code 
                 <span id="activePromoBadge" class="active-promo-badge" style="display: none;">
                     Active: <span id="activePromoPercent">0</span>% OFF
                 </span>
@@ -64,7 +65,7 @@
         </div>
 
         <div id="uploadSection" style="display:none;">
-            <h2>Upload 3 Images</h2>
+            <h2>Upload Your Images</h2>
             <input type="file" id="fileInput" multiple accept="image/*">
             <br>
             <button onclick="window.app.uploadFiles()">Upload Images</button>
@@ -78,8 +79,8 @@
     </div>
     
     <div id="auth-required-message" class="auth-required" style="display: none;">
-        <h3>Authentication Required</h3>
-        <p>Please sign in to access the phone case customization features.</p>
+        <h3>Sign In Required</h3>
+        <p>Please sign in to personalize and create your custom phone case.</p>
         <button onclick="signin()" style="padding: 10px 20px; background: #f90; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">
             Sign In / Sign Up
         </button>
@@ -91,7 +92,6 @@
 <script src="js/device-manager.js"></script>
 <script src="js/promo-manager.js"></script>
 <script src="js/upload-manager.js"></script>
-<!-- Update your HTML to include the new modular files -->
 <script src="js/websocket-manager.js"></script>
 <script src="js/progress-tracker.js"></script>
 <script src="js/ui-components-manager.js"></script>
