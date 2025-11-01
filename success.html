@@ -1,14 +1,220 @@
-<!-- success.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Payment Successful - TheWeer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Successful - TheWeer</title>
+    <script src="js/auth.js"></script>
+    <style>
+        .success-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .address-section {
+            background: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+        }
+        .receipt-notice {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .avs-status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .avs-pass {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .avs-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
 </head>
 <body>
-    <div style="text-align: center; padding: 50px;">
-        <h1>✅ Payment Successful!</h1>
-        <p>Thank you for your order. Your custom phone case is being processed.</p>
-        <a href="/">Return to Home</a>
+    <div id="auth-action"></div>
+    <div id="nav-container"></div>
+    
+    <div class="success-container">
+        <h1>🎉 Order Successful!</h1>
+        <div id="loading-message">
+            <p>Retrieving your order details...</p>
+        </div>
+        
+        <div id="order-details" style="display: none;">
+            <div class="receipt-notice">
+                <h3>📧 Receipt Sent</h3>
+                <p>Your receipt has been sent to <strong id="customer-email"></strong>. Please check your inbox (and spam folder).</p>
+                <p><small>Need a copy? Email us at <a href="mailto:support@theweer.com">support@theweer.com</a></small></p>
+            </div>
+            
+            <h3>Order Information</h3>
+            <p><strong>Order ID:</strong> <span id="order-id"></span></p>
+            <p><strong>Amount:</strong> $<span id="order-amount"></span></p>
+            <p><strong>Status:</strong> <span id="payment-status"></span></p>
+            
+            <div id="avs-results"></div>
+            
+            <div id="billing-address-section" class="address-section">
+                <h4>Billing Address</h4>
+                <div id="billing-address"></div>
+            </div>
+            
+            <div id="shipping-address-section" class="address-section">
+                <h4>Shipping Address</h4>
+                <div id="shipping-address"></div>
+            </div>
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <p><strong>Next Steps:</strong></p>
+                <ul>
+                    <li>You will receive a shipping confirmation email within 24 hours</li>
+                    <li>Expected delivery: 3-5 business days</li>
+                    <li>Tracking information will be sent to your email</li>
+                </ul>
+            </div>
+            
+            <div style="margin-top: 30px; text-align: center;">
+                <a href="index.html" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">Return to Home</a>
+            </div>
+        </div>
+        
+        <div id="error-message" style="display: none; color: red;">
+            <p>There was an error retrieving your order details. Please contact support with your session ID.</p>
+            <p>Session ID: <span id="error-session-id"></span></p>
+        </div>
     </div>
+
+    <script>
+        async function initializeSuccessPage() {
+            await initializeAuth();
+            
+            // Get session ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session_id');
+            
+            if (!sessionId) {
+                showError('No session ID found in URL');
+                return;
+            }
+            
+            // Retrieve session details from Lambda
+            await retrieveSessionDetails(sessionId);
+        }
+        
+        async function retrieveSessionDetails(sessionId) {
+            try {
+                const session = getSession();
+                if (!session || !session.id_token) {
+                    showError('Please sign in to view order details');
+                    return;
+                }
+                
+                const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.id_token}`
+                    },
+                    body: JSON.stringify({
+                        action: 'getSessionDetails',
+                        session_id: sessionId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const sessionData = await response.json();
+                displayOrderDetails(sessionData);
+                
+            } catch (error) {
+                console.error('Error retrieving session details:', error);
+                showError('Failed to retrieve order details: ' + error.message);
+            }
+        }
+        
+        function displayOrderDetails(sessionData) {
+            document.getElementById('loading-message').style.display = 'none';
+            document.getElementById('order-details').style.display = 'block';
+            
+            // Basic order info
+            document.getElementById('order-id').textContent = sessionData.id;
+            document.getElementById('order-amount').textContent = (sessionData.amount_total / 100).toFixed(2);
+            document.getElementById('payment-status').textContent = sessionData.payment_status;
+            document.getElementById('customer-email').textContent = sessionData.customer_email || 'Not provided';
+            
+            // Display AVS results
+            displayAVSResults(sessionData.avs_checks);
+            
+            // Display addresses
+            if (sessionData.billing_address) {
+                document.getElementById('billing-address').innerHTML = formatAddress(sessionData.billing_address);
+            } else {
+                document.getElementById('billing-address-section').style.display = 'none';
+            }
+            
+            if (sessionData.shipping_address) {
+                document.getElementById('shipping-address').innerHTML = formatAddress(sessionData.shipping_address);
+            } else {
+                document.getElementById('shipping-address-section').style.display = 'none';
+            }
+        }
+        
+        function displayAVSResults(avsChecks) {
+            if (!avsChecks) return;
+            
+            const avsContainer = document.getElementById('avs-results');
+            const zipCheck = avsChecks.address_postal_code_check;
+            const addressCheck = avsChecks.address_line1_check;
+            const cvcCheck = avsChecks.cvc_check;
+            
+            let avsHTML = '<h4>Address Verification</h4>';
+            
+            if (zipCheck === 'pass' && addressCheck === 'pass') {
+                avsHTML += '<div class="avs-status avs-pass">✅ Address verified successfully</div>';
+            } else if (zipCheck === 'pass' || cvcCheck === 'pass') {
+                avsHTML += '<div class="avs-status avs-warning">⚠️ Partial verification - order processing</div>';
+            } else {
+                avsHTML += '<div class="avs-status avs-warning">⚠️ Address verification pending</div>';
+            }
+            
+            avsContainer.innerHTML = avsHTML;
+        }
+        
+        function formatAddress(address) {
+            return `
+                <p>${address.line1}</p>
+                ${address.line2 ? `<p>${address.line2}</p>` : ''}
+                <p>${address.city}, ${address.state} ${address.postal_code}</p>
+                <p>${address.country}</p>
+            `;
+        }
+        
+        function showError(message) {
+            document.getElementById('loading-message').style.display = 'none';
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('error-session-id').textContent = new URLSearchParams(window.location.search).get('session_id');
+            console.error(message);
+        }
+        
+        // Initialize the page
+        initializeSuccessPage();
+    </script>
 </body>
 </html>
