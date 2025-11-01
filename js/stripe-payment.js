@@ -24,9 +24,9 @@ class StripePayment {
         }
     
         try {
-            // Get user session for authentication
+            // Get user session for authentication - USE ID_TOKEN NOT ACCESS_TOKEN
             const session = this.getUserSession();
-            if (!session || !session.access_token) {
+            if (!session || !session.id_token) {  // Changed from access_token to id_token
                 alert('Please sign in to proceed with checkout.');
                 return;
             }
@@ -52,7 +52,7 @@ class StripePayment {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
+                    'Authorization': `Bearer ${session.id_token}`  // Changed from access_token to id_token
                 },
                 body: JSON.stringify(requestBody)
             });
