@@ -60,6 +60,8 @@ class ProgressTracker {
     }
 
     getCompletedDesign(designId) {
+        console.log('Looking for design:', designId);
+        console.log('Available designs:', Array.from(this.completedDesigns.keys()));
         return this.completedDesigns.get(designId);
     }
 
