@@ -23,11 +23,17 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
+                        action: 'createCheckoutSession', // ← ADD THIS LINE
                         price: 3400, // $34.00 in cents
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const session = await response.json();
+                console.log('Session response:', session);
                 
                 // Redirect to Stripe Checkout
                 const result = await stripe.redirectToCheckout({
@@ -39,7 +45,7 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred during checkout');
+                alert('An error occurred during checkout: ' + error.message);
             }
         });
     </script>
