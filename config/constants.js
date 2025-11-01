@@ -11,7 +11,7 @@ const CONFIG = {
     API_ENDPOINT: 'https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload',
     
     // Product
-    PRODUCT_PRICE: 34.00,
+    PRODUCT_PRICE: 1.00,//make it $34
     TOTAL_EXPECTED_DESIGNS: 3,
     // Auth Configuration
     AUTH: {
