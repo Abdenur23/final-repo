@@ -1,303 +1,118 @@
-/* Main application styles - Optimized for space and mobile */
-/* Updated main.css with theme consistency */
-
-/* Main application styles - Optimized for space and mobile */
-body { 
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+/* Base theme */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f8f9fa;
-    min-height: 100vh;
-}
-
-.container { 
-    max-width: 100%;
-    margin: 0;
-    background: white;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    min-height: 100vh;
-}
-
-/* Make all main UI containers consistent */
-.device-selection, 
-.promo-section, 
-#uploadSection,
-#auth-action,
-.auth-required,
-.upload-success {
     background: #f8f9fa;
-    backdrop-filter: none;
+    color: #212529;
+}
+
+.container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+/* Typography */
+h1, h2, h3 {
+    color: #212529;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+/* Buttons */
+button, .btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+button:hover, .btn:hover {
+    background: #0056b3;
+}
+
+/* Card-style sections */
+.device-selection,
+.promo-section,
+#uploadSection,
+.auth-required,
+.start-over-section {
+    background: #f8f9fa;
     border: 1px solid #e9ecef;
     border-radius: 12px;
     padding: 20px;
-    margin: 15px 0;
+    margin-bottom: 20px;
 }
 
-/* Header and main content area */
-h1, h2, h3 { 
-    color: #333; 
-    margin: 0 0 15px 0;
+/* Inputs and dropdowns */
+input[type="text"],
+input[type="file"],
+select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+/* Promo code */
+.promo-input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.promo-input-group button {
+    flex-shrink: 0;
+}
+
+/* Cart button */
+.cart-btn {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 50%;
+    padding: 10px;
+    position: relative;
+    font-size: 22px;
+    transition: box-shadow 0.2s ease;
+}
+.cart-btn:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Gift option */
+.gift-option {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 16px;
+    transition: all 0.2s;
+}
+.gift-option:hover {
+    border-color: #007bff;
+}
+.gift-option.selected {
+    border-color: #007bff;
+    background: #f8fbff;
+}
+
+/* Totals and price highlighting */
+.price,
+#cart-total,
+#cart-subtotal {
+    color: #2c5530;
+    font-weight: bold;
+}
+.gift-price {
+    color: #d4af37;
     font-weight: 600;
-}
-
-/* Auth section styles - More compact */
-#auth-action {
-    margin-bottom: 15px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border-left: 4px solid #007bff;
-}
-
-/* ... rest of your existing main.css remains the same ... */
-
-#auth-action button {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: background-color 0.2s;
-}
-
-/* Token display - More compact */
-#token-display { 
-    margin-bottom: 15px;
-}
-
-#token-display pre { 
-    background: #eee; 
-    padding: 8px; 
-    border-radius: 4px; 
-    overflow-x: auto; 
-    font-size: 12px;
-    margin: 0;
-}
-
-#token-display textarea { 
-    width: 100%; 
-    height: 80px; 
-    padding: 8px; 
-    box-sizing: border-box; 
-    border: 1px solid #ccc; 
-    border-radius: 4px; 
-    resize: none; 
-    font-family: monospace; 
-    font-size: 12px;
-}
-
-/* Main app content layout */
-#app-content {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-/* Device selection - More compact */
-.device-selection { 
-    margin: 0;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-}
-
-.brand-selection { 
-    margin-bottom: 12px; 
-    display: flex;
-    gap: 15px;
-}
-
-.brand-option { 
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.acknowledge-section { 
-    margin: 12px 0 0 0; 
-    padding: 10px; 
-    background-color: #fff9e6; 
-    border: 1px solid #ffd166;
-    border-radius: 5px;
-    display: none;
-}
-
-.acknowledge-section p { 
-    margin: 0 0 8px 0; 
-    font-size: 13px; 
-}
-
-.acknowledge-section label { 
-    display: flex; 
-    align-items: flex-start; 
-    font-size: 13px;
-}
-
-.acknowledge-section input { 
-    margin-right: 6px; 
-    margin-top: 2px; 
-}
-
-/* Promo code section - Compact */
-.promo-section { 
-    margin: 0;
-    padding: 12px;
-    background: #f8f9fa; 
-    border-radius: 8px; 
-    border: 1px solid #e9ecef;
-}
-
-.promo-input-group { 
-    display: flex; 
-    gap: 8px; 
-    margin-bottom: 8px; 
-}
-
-.promo-input-group input { 
-    flex: 1; 
-    padding: 6px 10px; 
-    border: 1px solid #ced4da; 
-    border-radius: 4px; 
-    font-size: 14px;
-}
-
-.promo-input-group button { 
-    padding: 6px 12px; 
-    background: #17a2b8; 
-    color: white; 
-    border: none; 
-    border-radius: 4px; 
-    cursor: pointer; 
-    font-size: 14px;
-}
-
-.promo-message { 
-    font-size: 13px; 
-    margin-top: 4px; 
-}
-
-.active-promo-badge {
-    background: #28a745;
-    color: white;
-    padding: 3px 6px;
-    border-radius: 10px;
-    font-size: 11px;
-    margin-left: 8px;
-}
-
-/* Upload section */
-#uploadSection { 
-    margin: 0;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-}
-
-#uploadSection input { 
-    margin-bottom: 8px; 
-}
-
-#uploadSection button { 
-    padding: 8px 16px; 
-    font-size: 14px; 
-    background-color: #28a745; 
-    color: white; 
-    border: none; 
-    border-radius: 5px; 
-    cursor: pointer; 
-}
-
-#uploadResult { 
-    margin-top: 8px; 
-    font-weight: bold; 
-    font-size: 14px;
-}
-
-/* Start over button */
-.start-over-section { 
-    text-align: center; 
-    margin: 0;
-    padding: 12px;
-    display: none;
-}
-
-.start-over-btn { 
-    padding: 10px 20px; 
-    background: #6c757d; 
-    color: white; 
-    border: none; 
-    border-radius: 6px; 
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.start-over-btn:hover { 
-    background: #5a6268; 
-}
-
-/* Auth required message */
-.auth-required { 
-    padding: 20px; 
-    background: #fff3cd; 
-    border: 1px solid #ffeaa7; 
-    border-radius: 5px; 
-    text-align: center; 
-    margin: 15px 0; 
-}
-
-/* Upload success message */
-.upload-success { 
-    padding: 12px; 
-    background: #d4edda; 
-    border: 1px solid #c3e6cb; 
-    border-radius: 5px; 
-    color: #155724;
-    margin: 12px 0;
-    text-align: center;
-    font-size: 14px;
-}
-
-/* Main content area for products and updates */
-.main-content-area {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 15px;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-    .container {
-        padding: 10px;
-    }
-    
-    #app-content {
-        gap: 12px;
-    }
-    
-    .device-selection,
-    .promo-section,
-    #uploadSection {
-        padding: 10px;
-    }
-    
-    .brand-selection {
-        flex-direction: column;
-        gap: 8px;
-    }
-}
-
-@media (min-width: 1024px) {
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    
-    #app-content {
-        gap: 20px;
-    }
 }
