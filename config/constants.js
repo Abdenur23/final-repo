@@ -5,10 +5,12 @@ const CONFIG = {
     
     // API Endpoints
     API_BASE_URL: 'https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod',
+    API_ENDPOINT: 'https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload',
+    
 
     // Stripe Configuration
     STRIPE_PUBLISHABLE_KEY: 'pk_test_51SMYv7DBeWU7VJzLNGNEY9wllekcfhQZaMndBcGbvbK5zA7gROVkeWX5lAd8By9QCXVqAinfe5TkHlURcml7Eky700lHbTzbU1', // Replace with your actual key
-    API_ENDPOINT: 'https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload',
+    CHECKOUT_API_ENDPOINT: 'https://qohagpc75m.execute-api.us-east-1.amazonaws.com/prod/prod',
     
     // Product
     PRODUCT_PRICE: 1.00,//make it $34
