@@ -8,94 +8,58 @@
     <script src="js/auth.js"></script>
 </head>
 <body>
-    <div id="auth-action"></div>
-    <div id="auth-required-message" style="display: none;">
-        <p>Please sign in to proceed with checkout.</p>
+    <!-- checkout.html -->
+    <div id="app-content" style="display: none;">
+        <h1>Checkout</h1>
+        <p>Product: $1.00</p>
+        
+        <div class="gift-option">
+            <label>
+                <input type="checkbox" id="is-gift"> 
+                🎁 Wrap it and send it to an address - it's a gift! (+$12)
+            </label>
+        </div>
+        
+        <button id="proceed-to-payment">Proceed to Payment</button>
     </div>
     
-    <div id="app-content" style="display: none;">
-        <h1>Product Checkout</h1>
-        <p>Price: $1.00</p>
-        <button id="checkout-button">Checkout</button>
-    </div>
-
     <script>
-        const stripe = Stripe('pk_test_51SMYv7DBeWU7VJzLNGNEY9wllekcfhQZaMndBcGbvbK5zA7gROVkeWX5lAd8By9QCXVqAinfe5TkHlURcml7Eky700lHbTzbU1');
+    const stripe = Stripe('pk_test_...');
+    
+    document.getElementById('proceed-to-payment').addEventListener('click', async () => {
+        const isGift = document.getElementById('is-gift').checked;
+        const totalAmount = isGift ? 112 : 100; // $1 + $12 gift fee
         
-        // Initialize auth and then setup checkout button
-        initializeAuth().then(() => {
-            const checkoutButton = document.getElementById('checkout-button');
-            if (checkoutButton) {
-                checkoutButton.addEventListener('click', async () => {
-                    await handleCheckout();
-                });
-            }
-        });
-
-        async function handleCheckout() {
-            try {
-                // Get the session token
-                const session = getSession();
-                if (!session || !session.id_token) {
-                    alert('Please sign in first');
-                    return;
-                }
-
-                // Get user info including email
-                const userInfo = getUserInfo();
-                const userEmail = userInfo ? userInfo.email : null;
-
-                console.log('Creating checkout session for user:', userEmail);
-                
-                const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.id_token}`
-                    },
-                    body: JSON.stringify({
-                        action: 'createCheckoutSession',
-                        price: 100,
-                        user_email: userEmail
-                    })
-                });
-
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const checkoutSession = await response.json();
-                console.log('Checkout session created:', checkoutSession);
-                
-                // Redirect to Stripe Checkout
-                const result = await stripe.redirectToCheckout({
-                    sessionId: checkoutSession.id
-                });
-
-                if (result.error) {
-                    handleStripeError(result.error);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred during checkout: ' + error.message);
-            }
-        }
-
-        function handleStripeError(error) {
-            const message = error.message.toLowerCase();
+        try {
+            const session = getSession();
+            const userInfo = getUserInfo();
             
-            if (message.includes('address') || message.includes('zip') || message.includes('postal')) {
-                alert('Address verification failed. Please ensure your billing address matches exactly with what your bank has on file.');
-            } else if (message.includes('cvc') || message.includes('security') || message.includes('code')) {
-                alert('CVC verification failed. Please check the 3-digit security code on the back of your card.');
-            } else if (message.includes('declined')) {
-                alert('Your card was declined. This could be due to address mismatch, insufficient funds, or bank restrictions. Please try again or use a different payment method.');
-            } else {
-                alert('Payment error: ' + error.message);
-            }
+            const response = await fetch('https://your-api.execute-api.us-east-1.amazonaws.com/prod/upload', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.id_token}`
+                },
+                body: JSON.stringify({
+                    action: 'createCheckoutSession',
+                    user_email: userInfo ? userInfo.email : null,
+                    is_gift: isGift,
+                    amount: totalAmount
+                })
+            });
+    
+            const checkoutSession = await response.json();
+            
+            const result = await stripe.redirectToCheckout({
+                sessionId: checkoutSession.id
+            });
+    
+            if (result.error) throw new Error(result.error.message);
+            
+        } catch (error) {
+            alert('Error: ' + error.message);
         }
+    });
     </script>
 </body>
 </html>
