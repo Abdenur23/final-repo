@@ -187,7 +187,43 @@ class StripePayment {
         const giftFee = this.isGift ? 12.00 : 0;
         return subtotal + giftFee;
     }
-
+    // Add this to stripe-payment.js - Better gift checkbox handling
+    initializeGiftCheckbox() {
+        // Wait for modal to be available and set up event listener
+        const checkModal = () => {
+            const giftCheckbox = document.getElementById('gift-checkbox');
+            if (giftCheckbox) {
+                // Set initial state
+                giftCheckbox.checked = this.isGift;
+                
+                // Remove any existing event listeners and add new one
+                giftCheckbox.replaceWith(giftCheckbox.cloneNode(true));
+                const newCheckbox = document.getElementById('gift-checkbox');
+                
+                newCheckbox.addEventListener('change', (e) => {
+                    console.log('Gift checkbox changed to:', e.target.checked);
+                    this.isGift = e.target.checked;
+                    this.saveCartToStorage();
+                    this.updateCartTotal();
+                    this.renderCartItems();
+                });
+                
+                console.log('Gift checkbox initialized with state:', this.isGift);
+            } else {
+                // Try again in a bit if not ready
+                setTimeout(checkModal, 100);
+            }
+        };
+        
+        checkModal();
+    }
+    
+    // Update the openCartModal method to initialize the checkbox
+    openCartModal() {
+        this.renderCartItems();
+        document.getElementById('cart-modal').style.display = 'block';
+        this.initializeGiftCheckbox(); // Initialize when modal opens
+    }
     updateCartTotal() {
         const totalElement = document.getElementById('cart-total');
         const giftFeeElement = document.getElementById('gift-fee');
