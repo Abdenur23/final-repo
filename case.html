@@ -1,198 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TheWeer - Custom Phone Cases</title>
-    
-    <!-- Keep original CSS files -->
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/realtime-updates.css">
-    
-    <!-- Add minimal new styling for cart only -->
-    <style>
-        .cart-btn {
-            position: relative;
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px;
-        }
-        .cart-count {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #dc3545;
-            color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .gift-option:hover {
-            border-color: #007bff;
-            background: #f0f8ff;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Phone Cases</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/realtime-updates.css">
 </head>
 <body>
-    <!-- Simple Header with Cart -->
-    <div style="background: #f8f9fa; padding: 10px 15px; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center;">
-        <h1 style="margin: 0; color: #007bff;">🎨 TheWeer</h1>
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div id="auth-action"></div>
-            <button class="cart-btn" id="cart-button">
-                🛒
-                <span class="cart-count" id="cart-count" style="display: none;">0</span>
-            </button>
-        </div>
+  <div class="container">
+    <div style="text-align: center; margin: 20px 0;">
+      <img src="logo.png" alt="Logo" style="height: 60px;">
     </div>
 
-    <!-- ORIGINAL WORKING STRUCTURE - DO NOT MODIFY -->
-    <div class="container">
-        <div id="auth-action"></div>
-        <div id="auth-required-message" style="display: none;">
-            <p>Please sign in to proceed with checkout.</p>
-        </div>
-        
-        <div id="app-content" style="display: none;">
-            <!-- DEVICE SELECTION - ORIGINAL STRUCTURE -->
-            <div class="device-selection">
-                <h2>Device Selection</h2>
-                <div class="brand-selection">
-                    <div class="brand-option">
-                        <input type="radio" id="apple" name="brand" value="apple" checked>
-                        <label for="apple">Apple</label>
-                    </div>
-                    <div class="brand-option">
-                        <input type="radio" id="samsung" name="brand" value="samsung">
-                        <label for="samsung">Samsung</label>
-                    </div>
-                    <div class="brand-option">
-                        <input type="radio" id="google" name="brand" value="google">
-                        <label for="google">Google</label>
-                    </div>
-                </div>
-                <select id="deviceSelect">
-                    <option value="">Select a device model...</option>
-                </select>
-                <div class="acknowledge-section">
-                    <p>⚠️ Please acknowledge that your images will be processed by AI to create custom designs.</p>
-                    <label>
-                        <input type="checkbox" id="acknowledgeCheckbox">
-                        I understand and agree to the AI processing of my images
-                    </label>
-                </div>
-            </div>
+    <div id="nav-container"></div>
 
-            <!-- PROMO SECTION - ORIGINAL STRUCTURE -->
-            <div class="promo-section">
-                <h2>Promo Code</h2>
-                <div class="promo-input-group">
-                    <input type="text" id="promoCodeInput" placeholder="Enter promo code">
-                    <button id="applyPromoBtn">Apply</button>
-                </div>
-                <div class="promo-message" id="promoMessage"></div>
-            </div>
+    <!-- REST OF YOUR EXISTING case.html CODE REMAINS EXACTLY THE SAME -->
+    <h1>Custom Phone Cases</h1>
 
-            <!-- UPLOAD SECTION - ORIGINAL STRUCTURE -->
-            <div id="uploadSection">
-                <h2>Upload Images</h2>
-                <input type="file" id="imageUpload" accept="image/*" multiple>
-                <button id="uploadBtn">Upload Images</button>
-                <div id="uploadResult"></div>
-            </div>
+    <div id="auth-action"></div>
 
-            <!-- REAL-TIME UPDATES - ORIGINAL STRUCTURE -->
-            <div id="realtimeUpdates">
-                <!-- Progress and products will appear here -->
-            </div>
-
-            <div class="start-over-section">
-                <button class="start-over-btn">Start Over with New Images</button>
-            </div>
-        </div>
+    <div id="token-display">
+      <h2>Not signed in</h2>
     </div>
 
-    <!-- CART MODAL - NEW FUNCTIONALITY -->
-    <div id="cart-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0;">🛒 Shopping Cart</h2>
-                <button onclick="window.stripePayment.closeCartModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">×</button>
-            </div>
-            
-            <div id="cart-items-container" style="margin-bottom: 20px; max-height: 300px; overflow-y: auto;">
-                <!-- Cart items will be rendered here -->
-            </div>
-            
-            <!-- GIFT OPTION -->
-            <div class="gift-option" style="background: #f8fbff; padding: 16px; border: 2px solid #e6f2ff; border-radius: 8px; margin: 16px 0; cursor: pointer;" onclick="window.stripePayment.toggleGiftOption()">
-                <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
-                    <input type="checkbox" style="width: 18px; height: 18px; margin-right: 12px; cursor: pointer;">
-                    <div>
-                        <div style="font-weight: 600; color: #0056b3; margin-bottom: 4px;">🎁 Send as a gift</div>
-                        <div style="color: #666; font-size: 13px; line-height: 1.4;">
-                            We'll wrap it beautifully and ship directly to your recipient
-                        </div>
-                        <div style="color: #d4af37; font-weight: 600; font-size: 13px; margin-top: 6px;">+ $12.00 gift service</div>
-                    </div>
-                </label>
-            </div>
-            
-            <div style="border-top: 1px solid #eee; padding-top: 16px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
-                    <span>Subtotal:</span>
-                    <span>$<span id="cart-subtotal">0.00</span></span>
-                </div>
-                <div id="gift-fee-line" style="display: none; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
-                    <span>Gift service:</span>
-                    <span style="color: #d4af37;">$<span id="gift-fee">0.00</span></span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin-bottom: 20px; padding-top: 8px; border-top: 1px solid #eee;">
-                    <span>Total:</span>
-                    <span style="color: #2c5530;">$<span id="cart-total">0.00</span></span>
-                </div>
-                
-                <button onclick="window.stripePayment.proceedToCheckout()" 
-                        style="background: #007bff; color: white; border: none; padding: 16px; border-radius: 8px; width: 100%; cursor: pointer; font-size: 16px; font-weight: 600; transition: background 0.2s;">
-                    Proceed to Checkout
-                </button>
-                
-                <p style="text-align: center; color: #666; margin-top: 16px; font-size: 13px;">
-                    You'll provide shipping details after payment
-                </p>
-            </div>
+    <div id="app-content" style="display: none;">
+      <div class="device-selection">
+        <h2>Select Your Phone Model to Start</h2>
+
+        <div class="brand-selection">
+          <label class="brand-option">
+            <input type="radio" name="brand" value="apple" checked> Apple
+          </label>
+          <label class="brand-option">
+            <input type="radio" name="brand" value="samsung"> Samsung
+          </label>
         </div>
+
+        <label for="deviceSelect">Model:</label>
+        <select id="deviceSelect">
+          <option value="">-- Choose Model --</option>
+        </select>
+
+        <div class="acknowledge-section" id="acknowledgeSection">
+          <p style="margin: 0 0 10px 0; font-size: 14px;">
+            <strong>Important:</strong> For demonstration, we'll show your design on
+            <span id="demoDevice">iPhone 16 Pro Max</span>. Your actual order will be custom-made
+            specifically for your selected device: <strong id="selectedDevice"></strong>.
+          </p>
+          <label>
+            <input type="checkbox" id="acknowledgeCheckbox">
+            I understand my case and wallpaper will be custom-made for:
+            <strong id="deviceName"></strong>
+          </label>
+        </div>
+      </div>
+
+      <!-- Promo Code Section - ALWAYS VISIBLE when authenticated -->
+      <div class="promo-section" id="promoSection">
+        <h3>
+          💳 Have a Promo Code?
+          <span id="activePromoBadge" class="active-promo-badge" style="display: none;">
+            Active: <span id="activePromoPercent">0</span>% OFF
+          </span>
+        </h3>
+        <div class="promo-input-group">
+          <input type="text" id="promoCodeInput" placeholder="Enter promo code">
+          <button onclick="window.app.applyPromoCode()">Apply</button>
+        </div>
+        <div id="promoMessage" class="promo-message"></div>
+      </div>
+
+      <div id="uploadSection" style="display:none;">
+        <h2>Upload 3 Images</h2>
+        <input type="file" id="fileInput" multiple accept="image/*">
+        <br>
+        <button onclick="window.app.uploadFiles()">Upload Images</button>
+        <div id="uploadResult"></div>
+      </div>
+
+      <!-- Start Over Section -->
+      <div class="start-over-section" id="startOverSection">
+        <button class="start-over-btn" onclick="window.app.startOver()">
+          Start Over with New Images
+        </button>
+      </div>
     </div>
 
-     <script src="config/constants.js"></script>
-    <script src="https://js.stripe.com/v3/"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/stripe-checkout.js"></script>
-    <script src="js/app.js"></script>
+    <div id="auth-required-message" class="auth-required" style="display: none;">
+      <h3>Authentication Required</h3>
+      <p>Please sign in to access the phone case customization features.</p>
+      <button onclick="signin()" style="padding: 10px 20px; background: #f90; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+        Sign In / Sign Up
+      </button>
+    </div>
+  </div>
+
+  <script src="config/constants.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/device-manager.js"></script>
   <script src="js/promo-manager.js"></script>
   <script src="js/upload-manager.js"></script>
 
   <!-- Update your HTML to include the new modular files -->
   <script src="https://js.stripe.com/v3/"></script>
-  <!-- <script src="js/stripe-payment.js"></script> -->
+  <script src="js/stripe-payment.js"></script>
   <script src="js/websocket-manager.js"></script>
   <script src="js/progress-tracker.js"></script>
   <script src="js/ui-components-manager.js"></script>
   <script src="js/image-navigation-handler.js"></script>
   <script src="js/realtime-updates.js"></script>
-    
-    <script>
-        // Initialize cart button
-        document.getElementById('cart-button').addEventListener('click', () => {
-            window.stripePayment.openCartModal();
-        });
-    </script>
+  <script src="js/app.js"></script>
 </body>
 </html>
