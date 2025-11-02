@@ -1,26 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Custom Phone Cases</title>
-  <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/realtime-updates.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TheWeer - Custom Phone Cases</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/realtime-updates.css">
 </head>
 <body>
-  <div class="container">
-    <div style="text-align: center; margin: 20px 0;">
-      <img src="logo.png" alt="Logo" style="height: 60px;">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">🎨 TheWeer</a>
+            <div class="nav-items">
+                <div id="auth-action"></div>
+                <button class="cart-btn" id="cart-button">
+                    🛒
+                    <span class="cart-count" id="cart-count" style="display: none;">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div id="app-content" style="display: none;">
+            <!-- Your existing app content will go here -->
+            <div class="main-grid">
+                <!-- Left Column -->
+                <div>
+                    <div class="glass-card" style="padding: 24px; margin-bottom: 24px;">
+                        <h2>📱 Device Selection</h2>
+                        <div id="device-selection-content">
+                            <!-- Device selection content -->
+                        </div>
+                    </div>
+
+                    <div class="glass-card" style="padding: 24px; margin-bottom: 24px;">
+                        <h2>🎯 Promo Code</h2>
+                        <div id="promo-section-content">
+                            <!-- Promo code content -->
+                        </div>
+                    </div>
+
+                    <div class="glass-card" style="padding: 24px;">
+                        <h2>🖼️ Upload Images</h2>
+                        <div id="upload-section-content">
+                            <!-- Upload content -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div>
+                    <div class="glass-card" style="padding: 24px;">
+                        <h2>✨ Your Designs</h2>
+                        <div id="realtimeUpdates">
+                            <!-- Real-time updates and products will appear here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="auth-required-message" style="display: none;">
+            <div class="glass-card" style="padding: 40px; text-align: center;">
+                <h2>Welcome to TheWeer</h2>
+                <p>Please sign in to create custom phone cases</p>
+                <button class="btn btn-primary" onclick="signin()">Sign In / Sign Up</button>
+            </div>
+        </div>
     </div>
 
-    <div id="nav-container"></div>
-    <!-- Cart Button in Navigation -->
-<button id="cart-button" style="position: relative; background: none; border: none; cursor: pointer; font-size: 20px;">
-    🛒
-    <span id="cart-count" style="display: none; position: absolute; top: -8px; right: -8px; background: #dc3545; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center;"></span>
-</button>
-
-<!-- Updated Cart Modal -->
+    <!-- Include Cart Modal Here -->
+    <!-- Include the updated cart modal HTML from step 2 -->
+    <!-- Updated Cart Modal -->
 <div id="cart-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; backdrop-filter: blur(5px);">
     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e9ecef; padding-bottom: 16px;">
@@ -92,102 +149,12 @@ document.getElementById('cart-button').addEventListener('click', () => {
     window.stripePayment.openCartModal();
 });
 </script>
-    <!-- REST OF YOUR EXISTING case.html CODE REMAINS EXACTLY THE SAME -->
-    <h1>Custom Phone Cases</h1>
 
-    <div id="auth-action"></div>
-
-    <div id="token-display">
-      <h2>Not signed in</h2>
-    </div>
-
-    <div id="app-content" style="display: none;">
-      <div class="device-selection">
-        <h2>Select Your Phone Model to Start</h2>
-
-        <div class="brand-selection">
-          <label class="brand-option">
-            <input type="radio" name="brand" value="apple" checked> Apple
-          </label>
-          <label class="brand-option">
-            <input type="radio" name="brand" value="samsung"> Samsung
-          </label>
-        </div>
-
-        <label for="deviceSelect">Model:</label>
-        <select id="deviceSelect">
-          <option value="">-- Choose Model --</option>
-        </select>
-
-        <div class="acknowledge-section" id="acknowledgeSection">
-          <p style="margin: 0 0 10px 0; font-size: 14px;">
-            <strong>Important:</strong> For demonstration, we'll show your design on
-            <span id="demoDevice">iPhone 16 Pro Max</span>. Your actual order will be custom-made
-            specifically for your selected device: <strong id="selectedDevice"></strong>.
-          </p>
-          <label>
-            <input type="checkbox" id="acknowledgeCheckbox">
-            I understand my case and wallpaper will be custom-made for:
-            <strong id="deviceName"></strong>
-          </label>
-        </div>
-      </div>
-
-      <!-- Promo Code Section - ALWAYS VISIBLE when authenticated -->
-      <div class="promo-section" id="promoSection">
-        <h3>
-          💳 Have a Promo Code?
-          <span id="activePromoBadge" class="active-promo-badge" style="display: none;">
-            Active: <span id="activePromoPercent">0</span>% OFF
-          </span>
-        </h3>
-        <div class="promo-input-group">
-          <input type="text" id="promoCodeInput" placeholder="Enter promo code">
-          <button onclick="window.app.applyPromoCode()">Apply</button>
-        </div>
-        <div id="promoMessage" class="promo-message"></div>
-      </div>
-
-      <div id="uploadSection" style="display:none;">
-        <h2>Upload 3 Images</h2>
-        <input type="file" id="fileInput" multiple accept="image/*">
-        <br>
-        <button onclick="window.app.uploadFiles()">Upload Images</button>
-        <div id="uploadResult"></div>
-      </div>
-
-      <!-- Start Over Section -->
-      <div class="start-over-section" id="startOverSection">
-        <button class="start-over-btn" onclick="window.app.startOver()">
-          Start Over with New Images
-        </button>
-      </div>
-    </div>
-
-    <div id="auth-required-message" class="auth-required" style="display: none;">
-      <h3>Authentication Required</h3>
-      <p>Please sign in to access the phone case customization features.</p>
-      <button onclick="signin()" style="padding: 10px 20px; background: #f90; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">
-        Sign In / Sign Up
-      </button>
-    </div>
-  </div>
-
-  <script src="config/constants.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/device-manager.js"></script>
-  <script src="js/promo-manager.js"></script>
-  <script src="js/upload-manager.js"></script>
-
-  <!-- Update your HTML to include the new modular files -->
-  <script src="https://js.stripe.com/v3/"></script>
-  <!-- <script src="js/stripe-payment.js"></script> -->
-  <script src="js/stripe-checkout.js"></script>
-  <script src="js/websocket-manager.js"></script>
-  <script src="js/progress-tracker.js"></script>
-  <script src="js/ui-components-manager.js"></script>
-  <script src="js/image-navigation-handler.js"></script>
-  <script src="js/realtime-updates.js"></script>
-  <script src="js/app.js"></script>
+    <!-- JavaScript -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/stripe-checkout.js"></script>
+    <script src="js/app.js"></script>
+    <!-- Other JS files -->
 </body>
 </html>
