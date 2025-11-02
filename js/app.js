@@ -13,6 +13,8 @@ class Application {
         this.uploadManager = new UploadManager(this.deviceManager, this.promoManager);
         this.realtimeUpdates = new RealTimeUpdates(this.promoManager, this.uploadManager);
 
+         // Apply new theme classes to existing elements
+        this.applyNewTheme();
         // Set up global references
         window.app = this;
 
@@ -30,7 +32,11 @@ class Application {
             this.realtimeUpdates.initialize();
         }
     }
-
+    applyNewTheme() {
+        // This will automatically apply to elements with existing classes
+        // The new CSS will override the old styles
+        console.log('New theme applied!');
+    }
     showSessionInfo() {
         const userInfo = getUserInfo();
         const tokenDiv = document.getElementById('token-display');
