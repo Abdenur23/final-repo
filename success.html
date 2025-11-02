@@ -175,10 +175,220 @@
             </div>
         </div>
     </div>
+<script>
+    let checkAttempts = 0;
+    const maxCheckAttempts = 30; // Try for 30 seconds
 
-    <script>
-        // Success page logic from previous implementation
-        // ... (include the displayOrderDetails, setupGiftForm, confirmShipping functions)
-    </script>
+    async function initializeSuccessPage() {
+        await initializeAuth();
+        
+        // Get session ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+        
+        if (!sessionId) {
+            showError('No session ID found in URL');
+            return;
+        }
+        
+        console.log('Session ID:', sessionId);
+        
+        // Start checking for payment completion
+        checkPaymentStatus(sessionId);
+    }
+    
+    async function checkPaymentStatus(sessionId) {
+        try {
+            const session = getSession();
+            if (!session || !session.id_token) {
+                showError('Please sign in to view order details');
+                return;
+            }
+            
+            console.log('Checking payment status, attempt:', checkAttempts + 1);
+            
+            const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.id_token}`
+                },
+                body: JSON.stringify({
+                    action: 'getSessionDetails',
+                    session_id: sessionId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const sessionData = await response.json();
+            console.log('Session data:', sessionData);
+            
+            // Check if payment is complete
+            if (sessionData.payment_status === 'paid' && sessionData.status === 'complete') {
+                // Payment is successful, show appropriate form
+                displayOrderDetails(sessionData);
+            } else if (checkAttempts < maxCheckAttempts) {
+                // Payment not complete yet, check again in 1 second
+                checkAttempts++;
+                setTimeout(() => checkPaymentStatus(sessionId), 1000);
+            } else {
+                // Max attempts reached
+                showError('Payment is taking longer than expected. Please refresh the page or contact support.');
+            }
+            
+        } catch (error) {
+            console.error('Error checking payment status:', error);
+            
+            if (checkAttempts < maxCheckAttempts) {
+                // Retry on error
+                checkAttempts++;
+                setTimeout(() => checkPaymentStatus(sessionId), 1000);
+            } else {
+                showError('Failed to verify payment: ' + error.message);
+            }
+        }
+    }
+    
+    function displayOrderDetails(sessionData) {
+        document.getElementById('loading-message').style.display = 'none';
+        
+        const isGift = sessionData.is_gift;
+        const hasShipping = sessionData.shipping_address;
+        
+        console.log('Displaying order details - isGift:', isGift, 'hasShipping:', hasShipping);
+        
+        if (isGift && !hasShipping) {
+            // Show gift shipping form
+            document.getElementById('gift-shipping-form').style.display = 'block';
+            setupGiftForm(sessionData.id);
+        } else if (hasShipping) {
+            // Show regular confirmation with address from Stripe
+            document.getElementById('regular-confirmation').style.display = 'block';
+            document.getElementById('shipping-address-display').innerHTML = 
+                formatAddress(sessionData.shipping_address);
+        } else {
+            // Fallback - just show thank you
+            document.getElementById('thank-you').style.display = 'block';
+            // Mark order as completed since no special handling needed
+            markOrderCompleted(sessionData.id);
+        }
+    }
+    
+    function setupGiftForm(sessionId) {
+        document.getElementById('gift-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            const shippingDetails = {
+                name: formData.get('recipient_name'),
+                line1: formData.get('shipping_line1'),
+                line2: formData.get('shipping_line2'),
+                city: formData.get('shipping_city'),
+                state: formData.get('shipping_state'),
+                postal_code: formData.get('shipping_postal_code')
+            };
+            
+            try {
+                const session = getSession();
+                const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.id_token}`
+                    },
+                    body: JSON.stringify({
+                        action: 'saveShippingDetails',
+                        session_id: sessionId,
+                        shipping_details: shippingDetails,
+                        gift_message: formData.get('gift_message')
+                    })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('gift-shipping-form').style.display = 'none';
+                    document.getElementById('thank-you').style.display = 'block';
+                } else {
+                    throw new Error('Failed to save shipping details');
+                }
+            } catch (error) {
+                alert('Error saving shipping details: ' + error.message);
+            }
+        });
+    }
+    
+    async function confirmShipping() {
+        const sessionId = new URLSearchParams(window.location.search).get('session_id');
+        
+        try {
+            await markOrderCompleted(sessionId);
+            document.getElementById('regular-confirmation').style.display = 'none';
+            document.getElementById('thank-you').style.display = 'block';
+        } catch (error) {
+            alert('Error confirming order: ' + error.message);
+        }
+    }
+    
+    async function markOrderCompleted(sessionId) {
+        const session = getSession();
+        const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.id_token}`
+            },
+            body: JSON.stringify({
+                action: 'saveShippingDetails',
+                session_id: sessionId,
+                shipping_details: {}, // Empty for regular orders
+                gift_message: ''
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to mark order as completed');
+        }
+        
+        return await response.json();
+    }
+    
+    function formatAddress(address) {
+        if (!address) return '<p>No address provided</p>';
+        
+        return `
+            <p><strong>${address.name || 'No name'}</strong></p>
+            <p>${address.line1}</p>
+            ${address.line2 ? `<p>${address.line2}</p>` : ''}
+            <p>${address.city}, ${address.state} ${address.postal_code}</p>
+            <p>${address.country}</p>
+        `;
+    }
+    
+    function showError(message) {
+        document.getElementById('loading-message').style.display = 'none';
+        
+        // Create error display if it doesn't exist
+        if (!document.getElementById('error-message')) {
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'error-message';
+            errorDiv.style.cssText = 'color: #dc3545; text-align: center; padding: 20px;';
+            errorDiv.innerHTML = `
+                <h3>Something went wrong</h3>
+                <p>${message}</p>
+                <button onclick="location.reload()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Try Again
+                </button>
+            `;
+            document.querySelector('.container').appendChild(errorDiv);
+        }
+        
+        console.error('Page error:', message);
+    }
+    
+    // Initialize the page when loaded
+    document.addEventListener('DOMContentLoaded', initializeSuccessPage);
+</script>
 </body>
 </html>
