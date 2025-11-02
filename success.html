@@ -386,7 +386,34 @@
         
         console.error('Page error:', message);
     }
-    
+    function displayOrderDetails(sessionData) {
+        document.getElementById('loading-message').style.display = 'none';
+        
+        const isGift = sessionData.metadata && sessionData.metadata.is_gift === 'true';
+        const hasShipping = sessionData.shipping_address;
+        
+        console.log('Displaying order details - isGift:', isGift, 'hasShipping:', hasShipping);
+        
+        if (isGift) {
+            // Show gift shipping form
+            document.getElementById('gift-shipping-form').style.display = 'block';
+            setupGiftForm(sessionData.id);
+            
+            // Pre-fill any existing gift message from metadata
+            if (sessionData.metadata.gift_message) {
+                document.querySelector('textarea[name="gift_message"]').value = sessionData.metadata.gift_message;
+            }
+        } else if (hasShipping) {
+            // Show regular confirmation with address from Stripe
+            document.getElementById('regular-confirmation').style.display = 'block';
+            document.getElementById('shipping-address-display').innerHTML = 
+                formatAddress(sessionData.shipping_address);
+        } else {
+            // Fallback - just show thank you
+            document.getElementById('thank-you').style.display = 'block';
+            markOrderCompleted(sessionData.id);
+        }
+    }
     // Initialize the page when loaded
     document.addEventListener('DOMContentLoaded', initializeSuccessPage);
 </script>
