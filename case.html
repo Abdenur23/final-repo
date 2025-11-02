@@ -143,19 +143,26 @@
         <!-- Cart items will be rendered here -->
       </div>
       
-      <!-- Gift Option -->
-      <div class="gift-option" style="background: #f8fbff; padding: 16px; border: 2px solid #e6f2ff; border-radius: 8px; margin: 16px 0; cursor: pointer;" onclick="window.stripePayment.toggleGiftOption()">
-        <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
-          <input type="checkbox" style="width: 18px; height: 18px; margin-right: 12px; cursor: pointer;">
-          <div>
-            <div style="font-weight: 600; color: #0056b3; margin-bottom: 4px;">🎁 Send as a gift</div>
-            <div style="color: #666; font-size: 13px; line-height: 1.4;">
-              We'll wrap it beautifully and ship directly to your recipient
-            </div>
-            <div style="color: #d4af37; font-weight: 600; font-size: 13px; margin-top: 6px;">+ $12.00 gift service</div>
-          </div>
-        </label>
+      <!-- Gift Option - FIXED -->
+      <div class="gift-option" style="background: #f8fbff; padding: 16px; border: 2px solid #e6f2ff; border-radius: 8px; margin: 16px 0; cursor: pointer;">
+          <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+              <input type="checkbox" id="gift-checkbox" style="width: 18px; height: 18px; margin-right: 12px; cursor: pointer;">
+              <div>
+                  <div style="font-weight: 600; color: #0056b3; margin-bottom: 4px;">🎁 Send as a gift</div>
+                  <div style="color: #666; font-size: 13px; line-height: 1.4;">
+                      We'll wrap it beautifully and ship directly to your recipient
+                  </div>
+                  <div style="color: #d4af37; font-weight: 600; font-size: 13px; margin-top: 6px;">+ $12.00 gift service</div>
+              </div>
+          </label>
       </div>
+      
+      <script>
+      // Add gift checkbox event listener
+      document.getElementById('gift-checkbox').addEventListener('change', function() {
+          window.stripePayment.toggleGiftOption();
+      });
+      </script>
       
       <div style="border-top: 1px solid #eee; padding-top: 16px;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
