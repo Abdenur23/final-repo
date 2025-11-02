@@ -43,15 +43,12 @@
             color: #856404;
             border: 1px solid #ffeaa7;
         }
-        .error-details {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 15px 0;
-            font-family: monospace;
-            font-size: 12px;
-            white-space: pre-wrap;
+        .info-notice {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
         }
     </style>
 </head>
@@ -66,14 +63,57 @@
         </div>
         
         <div id="order-details" style="display: none;">
-            <!-- Your existing order details HTML -->
+            <div class="receipt-notice">
+                <h3>📧 Receipt Sent</h3>
+                <p>Your receipt has been sent to <strong id="customer-email"></strong>. Please check your inbox (and spam folder).</p>
+                <p><small>Need a copy? Email us at <a href="mailto:support@theweer.com">support@theweer.com</a></small></p>
+            </div>
+            
+            <h3>Order Information</h3>
+            <p><strong>Order ID:</strong> <span id="order-id"></span></p>
+            <p><strong>Amount:</strong> $<span id="order-amount"></span> <span id="order-currency"></span></p>
+            <p><strong>Status:</strong> <span id="payment-status" style="color: green; font-weight: bold;"></span></p>
+            <p><strong>Customer:</strong> <span id="customer-name"></span></p>
+            
+            <div id="avs-results">
+                <div class="info-notice">
+                    <strong>Address Verification:</strong> Your billing address has been verified successfully.
+                </div>
+            </div>
+            
+            <div id="billing-address-section" class="address-section">
+                <h4>📋 Billing Address</h4>
+                <div id="billing-address"></div>
+            </div>
+            
+            <div id="shipping-address-section" class="address-section" style="display: none;">
+                <h4>🚚 Shipping Address</h4>
+                <div id="shipping-address"></div>
+            </div>
+
+            <div id="no-shipping-notice" class="info-notice" style="display: none;">
+                <strong>Note:</strong> No separate shipping address provided. Your order will be shipped to your billing address.
+            </div>
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <p><strong>Next Steps:</strong></p>
+                <ul>
+                    <li>You will receive a shipping confirmation email within 24 hours</li>
+                    <li>Expected delivery: 3-5 business days</li>
+                    <li>Tracking information will be sent to your email</li>
+                </ul>
+            </div>
+            
+            <div style="margin-top: 30px; text-align: center;">
+                <a href="index.html" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">Return to Home</a>
+            </div>
         </div>
         
-        <div id="error-message" style="display: none;">
+        <div id="error-message" style="display: none; color: red;">
             <h3 style="color: #dc3545;">Unable to Retrieve Order Details</h3>
             <p>There was an error retrieving your order details. This is usually temporary.</p>
             
-            <div class="error-details">
+            <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin: 15px 0;">
                 <strong>Debug Information:</strong>
                 <div id="error-details"></div>
             </div>
@@ -166,7 +206,65 @@
             document.getElementById('loading-message').style.display = 'none';
             document.getElementById('order-details').style.display = 'block';
             
-            // Your existing displayOrderDetails function...
+            // Basic order info
+            document.getElementById('order-id').textContent = sessionData.id;
+            document.getElementById('order-amount').textContent = (sessionData.amount_total / 100).toFixed(2);
+            document.getElementById('order-currency').textContent = sessionData.currency.toUpperCase();
+            document.getElementById('payment-status').textContent = sessionData.payment_status;
+            document.getElementById('customer-email').textContent = sessionData.customer_email || 'Not provided';
+            document.getElementById('customer-name').textContent = sessionData.customer_name || 'Not provided';
+            
+            // Display billing address
+            if (sessionData.billing_address) {
+                document.getElementById('billing-address').innerHTML = formatAddress(sessionData.billing_address);
+            } else {
+                document.getElementById('billing-address-section').style.display = 'none';
+            }
+            
+            // Display shipping address if available
+            if (sessionData.shipping_address) {
+                document.getElementById('shipping-address').innerHTML = formatAddress(sessionData.shipping_address);
+                document.getElementById('shipping-address-section').style.display = 'block';
+                document.getElementById('no-shipping-notice').style.display = 'none';
+            } else {
+                document.getElementById('shipping-address-section').style.display = 'none';
+                document.getElementById('no-shipping-notice').style.display = 'block';
+            }
+            
+            // Display AVS results if available
+            if (sessionData.avs_checks) {
+                displayAVSResults(sessionData.avs_checks);
+            }
+        }
+        
+        function displayAVSResults(avsChecks) {
+            if (!avsChecks) return;
+            
+            const avsContainer = document.getElementById('avs-results');
+            const zipCheck = avsChecks.address_postal_code_check;
+            const addressCheck = avsChecks.address_line1_check;
+            const cvcCheck = avsChecks.cvc_check;
+            
+            let avsHTML = '<h4>Address Verification</h4>';
+            
+            if (zipCheck === 'pass' && addressCheck === 'pass') {
+                avsHTML += '<div class="avs-status avs-pass">✅ Address verified successfully</div>';
+            } else if (zipCheck === 'pass' || cvcCheck === 'pass') {
+                avsHTML += '<div class="avs-status avs-warning">⚠️ Partial verification - order processing</div>';
+            } else {
+                avsHTML += '<div class="avs-status avs-warning">⚠️ Address verification pending</div>';
+            }
+            
+            avsContainer.innerHTML = avsHTML;
+        }
+        
+        function formatAddress(address) {
+            return `
+                <p><strong>${address.line1}</strong></p>
+                ${address.line2 ? `<p>${address.line2}</p>` : ''}
+                <p>${address.city}, ${address.state} ${address.postal_code}</p>
+                <p>${address.country}</p>
+            `;
         }
         
         function showError(message) {
