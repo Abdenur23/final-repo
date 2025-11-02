@@ -1,0 +1,49 @@
+<!-- address-collection.html -->
+<div id="app-content" style="display: none;">
+    <h2>Shipping Information</h2>
+    
+    <!-- Gift Option -->
+    <div class="gift-option">
+        <label>
+            <input type="checkbox" id="is-gift"> This is a gift
+        </label>
+    </div>
+
+    <!-- Shipping Address Form -->
+    <form id="shipping-form">
+        <div id="gift-message" style="display: none;">
+            <label>Gift Message (Optional):</label>
+            <textarea id="gift-message-text"></textarea>
+        </div>
+        
+        <h3>Shipping Address</h3>
+        <div id="shipping-address-fields">
+            <input type="text" name="shipping_name" placeholder="Recipient Name" required>
+            <input type="text" name="shipping_line1" placeholder="Street Address" required>
+            <input type="text" name="shipping_line2" placeholder="Apt/Suite">
+            <input type="text" name="shipping_city" placeholder="City" required>
+            <input type="text" name="shipping_state" placeholder="State" required>
+            <input type="text" name="shipping_postal_code" placeholder="ZIP Code" required>
+        </div>
+
+        <!-- Billing Address Option -->
+        <div class="billing-option">
+            <label>
+                <input type="checkbox" id="same-as-shipping" checked> 
+                Billing address same as shipping
+            </label>
+        </div>
+
+        <div id="billing-address-fields" style="display: none;">
+            <h3>Billing Address</h3>
+            <input type="text" name="billing_name" placeholder="Name on Card" required>
+            <input type="text" name="billing_line1" placeholder="Street Address" required>
+            <input type="text" name="billing_line2" placeholder="Apt/Suite">
+            <input type="text" name="billing_city" placeholder="City" required>
+            <input type="text" name="billing_state" placeholder="State" required>
+            <input type="text" name="billing_postal_code" placeholder="ZIP Code" required>
+        </div>
+
+        <button type="submit">Proceed to Payment</button>
+    </form>
+</div>
