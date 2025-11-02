@@ -276,5 +276,35 @@
         // Initialize the page
         initializeSuccessPage();
     </script>
+    <!-- Keep the existing success.html but add this to displayOrderDetails function: -->
+<script>
+function displayOrderDetails(sessionData) {
+    // ... existing code ...
+    
+    // Gift order handling
+    const isGift = sessionData.metadata && sessionData.metadata.is_gift === 'true';
+    
+    if (isGift) {
+        document.getElementById('gift-success').style.display = 'block';
+        document.getElementById('regular-success').style.display = 'none';
+        
+        // Show original shipping name if available
+        const originalName = sessionData.metadata.original_shipping_name;
+        if (originalName) {
+            document.getElementById('gift-recipient').textContent = originalName;
+        }
+        
+        if (sessionData.metadata.gift_message) {
+            document.getElementById('gift-message-display').textContent = 
+                `Gift Message: "${sessionData.metadata.gift_message}"`;
+        }
+    } else {
+        document.getElementById('gift-success').style.display = 'none';
+        document.getElementById('regular-success').style.display = 'block';
+    }
+    
+    // ... rest of existing display code
+}
+</script>
 </body>
 </html>
