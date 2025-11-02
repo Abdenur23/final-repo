@@ -143,8 +143,8 @@
         <!-- Cart items will be rendered here -->
       </div>
       
-      <!-- Gift Option - FIXED -->
-      <div class="gift-option" style="background: #f8fbff; padding: 16px; border: 2px solid #e6f2ff; border-radius: 8px; margin: 16px 0; cursor: pointer;">
+      <!-- Gift Option - PROPERLY INITIALIZED -->
+      <div class="gift-option" style="background: #f8fbff; padding: 16px; border: 2px solid #e6f2ff; border-radius: 8px; margin: 16px 0;">
           <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
               <input type="checkbox" id="gift-checkbox" style="width: 18px; height: 18px; margin-right: 12px; cursor: pointer;">
               <div>
@@ -156,7 +156,6 @@
               </div>
           </label>
       </div>
-      
       <script>
       // Add gift checkbox event listener
       document.getElementById('gift-checkbox').addEventListener('change', function() {
