@@ -3,63 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stripe Checkout</title>
+    <title>Checkout - TheWeer</title>
     <script src="https://js.stripe.com/v3/"></script>
     <script src="js/auth.js"></script>
+    <style>
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .product-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .gift-option {
+            background: white;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .gift-option:hover {
+            border-color: #007bff;
+        }
+        .gift-option.selected {
+            border-color: #007bff;
+            background: #f8fbff;
+        }
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+        }
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c5530;
+        }
+        .gift-price {
+            color: #d4af37;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        .gift-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body>
-    <!-- checkout.html -->
-    <div id="app-content" style="display: none;">
-        <h1>Checkout</h1>
-        <p>Product: $1.00</p>
-        
-        <div class="gift-option">
-            <label>
-                <input type="checkbox" id="is-gift"> 
-                🎁 Wrap it and send it to an address - it's a gift! (+$12)
-            </label>
+    <div class="container">
+        <div id="auth-action"></div>
+        <div id="auth-required-message" style="display: none;">
+            <p>Please sign in to proceed with checkout.</p>
         </div>
         
-        <button id="proceed-to-payment">Proceed to Payment</button>
+        <div id="app-content" style="display: none;">
+            <h1>Checkout</h1>
+            
+            <div class="product-card">
+                <h3>Your Product</h3>
+                <p>High-quality product with fast shipping</p>
+                <div class="price">$1.00</div>
+            </div>
+
+            <div class="gift-option" id="giftOption">
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="checkbox" id="is-gift" class="checkbox">
+                    <span class="gift-icon">🎁</span>
+                    <div>
+                        <div style="font-weight: bold;">Send as a gift</div>
+                        <div style="color: #666; font-size: 14px; margin-top: 4px;">
+                            We'll wrap it beautifully and ship directly to your recipient
+                        </div>
+                        <div class="gift-price" style="margin-top: 8px;">+ $12.00 gift service</div>
+                    </div>
+                </label>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin: 20px 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Product:</span>
+                    <span>$1.00</span>
+                </div>
+                <div style="display: flex; justify-content: between; margin-bottom: 8px;" id="gift-fee-line">
+                    <span>Gift service:</span>
+                    <span>$0.00</span>
+                </div>
+                <hr>
+                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px;">
+                    <span>Total:</span>
+                    <span id="total-amount">$1.00</span>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="startCheckout()">
+                Proceed to Payment
+            </button>
+            
+            <p style="text-align: center; color: #666; margin-top: 20px; font-size: 14px;">
+                You'll provide shipping details after payment
+            </p>
+        </div>
     </div>
-    
+
     <script>
-    const stripe = Stripe('pk_test_...');
-    
-    document.getElementById('proceed-to-payment').addEventListener('click', async () => {
-        const isGift = document.getElementById('is-gift').checked;
-        const totalAmount = isGift ? 112 : 100; // $1 + $12 gift fee
+        const stripe = Stripe('pk_test_51SMYv7DBeWU7VJzLNGNEY9wllekcfhQZaMndBcGbvbK5zA7gROVkeWX5lAd8By9QCXVqAinfe5TkHlURcml7Eky700lHbTzbU1');
         
-        try {
-            const session = getSession();
-            const userInfo = getUserInfo();
+        // Initialize auth
+        initializeAuth().then(() => {
+            checkAuthAndUpdateUI();
+        });
+
+        // Gift option toggle
+        document.getElementById('is-gift').addEventListener('change', function() {
+            const giftOption = document.getElementById('giftOption');
+            const giftFeeLine = document.getElementById('gift-fee-line');
+            const totalAmount = document.getElementById('total-amount');
             
-            const response = await fetch('https://your-api.execute-api.us-east-1.amazonaws.com/prod/upload', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.id_token}`
-                },
-                body: JSON.stringify({
-                    action: 'createCheckoutSession',
-                    user_email: userInfo ? userInfo.email : null,
-                    is_gift: isGift,
-                    amount: totalAmount
-                })
-            });
-    
-            const checkoutSession = await response.json();
-            
-            const result = await stripe.redirectToCheckout({
-                sessionId: checkoutSession.id
-            });
-    
-            if (result.error) throw new Error(result.error.message);
-            
-        } catch (error) {
-            alert('Error: ' + error.message);
+            if (this.checked) {
+                giftOption.classList.add('selected');
+                giftFeeLine.innerHTML = '<span>Gift service:</span><span class="gift-price">$12.00</span>';
+                totalAmount.textContent = '$13.00';
+            } else {
+                giftOption.classList.remove('selected');
+                giftFeeLine.innerHTML = '<span>Gift service:</span><span>$0.00</span>';
+                totalAmount.textContent = '$1.00';
+            }
+        });
+
+        async function startCheckout() {
+            const isGift = document.getElementById('is-gift').checked;
+            const amount = isGift ? 1300 : 100; // $13.00 or $1.00 in cents
+
+            try {
+                const session = getSession();
+                if (!session || !session.id_token) {
+                    alert('Please sign in first');
+                    return;
+                }
+
+                const userInfo = getUserInfo();
+                
+                const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.id_token}`
+                    },
+                    body: JSON.stringify({
+                        action: 'createCheckoutSession',
+                        user_email: userInfo ? userInfo.email : null,
+                        is_gift: isGift,
+                        amount: amount
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create checkout session');
+                }
+
+                const checkoutSession = await response.json();
+                
+                const result = await stripe.redirectToCheckout({
+                    sessionId: checkoutSession.id
+                });
+
+                if (result.error) {
+                    alert(result.error.message);
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred: ' + error.message);
+            }
         }
-    });
     </script>
 </body>
 </html>
