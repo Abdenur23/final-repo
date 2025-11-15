@@ -11,43 +11,14 @@
             margin: 40px auto;
             padding: 20px;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        .success-header {
             text-align: center;
-            color: #2c5530;
-            margin-bottom: 30px;
         }
         .success-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
+            font-size: 64px;
+            margin-bottom: 20px;
         }
-        .form-section {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            border: 1px solid #e9ecef;
-            margin: 20px 0;
-        }
-        .input-group {
-            margin-bottom: 16px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        textarea {
-            height: 80px;
-            resize: vertical;
+        .thank-you {
+            padding: 40px 20px;
         }
         .btn-primary {
             background: #007bff;
@@ -57,25 +28,19 @@
             border-radius: 8px;
             font-size: 16px;
             cursor: pointer;
-            width: 100%;
             margin-top: 20px;
+            text-decoration: none;
+            display: inline-block;
         }
-        .address-display {
-            background: #f8f9fa;
+        .loading {
+            color: #666;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
             padding: 16px;
             border-radius: 8px;
-            margin: 16px 0;
-        }
-        .thank-you {
-            text-align: center;
-            padding: 40px 20px;
-        }
-        .gift-note {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 16px 0;
+            margin: 20px 0;
         }
     </style>
 </head>
@@ -83,129 +48,54 @@
     <div class="container">
         <div id="auth-action"></div>
         
-        <div id="loading-message">
-            <div class="success-header">
-                <div class="success-icon">⏳</div>
-                <h1>Processing Your Order</h1>
-                <p>Please wait while we confirm your payment...</p>
-            </div>
+        <div id="loading">
+            <div class="success-icon">⏳</div>
+            <h1>Processing Your Order</h1>
+            <p class="loading">Please wait while we confirm your payment...</p>
         </div>
         
-        <div id="gift-shipping-form" style="display: none;">
-            <div class="success-header">
-                <div class="success-icon">🎁</div>
-                <h1>Gift Shipping Details</h1>
-                <p>Where should we send your gift?</p>
-            </div>
-            
-            <div class="gift-note">
-                <strong>Gift Service Included:</strong> Beautiful wrapping and direct shipping to your recipient
-            </div>
-            
-            <form id="gift-form">
-                <div class="form-section">
-                    <h3>Recipient Information</h3>
-                    <div class="input-group">
-                        <label>Recipient's Full Name</label>
-                        <input type="text" name="recipient_name" placeholder="Enter recipient's name" required>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label>Street Address</label>
-                        <input type="text" name="shipping_line1" placeholder="123 Main St" required>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label>Apartment, Suite, etc. (Optional)</label>
-                        <input type="text" name="shipping_line2" placeholder="Apt 4B">
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div class="input-group">
-                            <label>City</label>
-                            <input type="text" name="shipping_city" placeholder="City" required>
-                        </div>
-                        <div class="input-group">
-                            <label>State</label>
-                            <input type="text" name="shipping_state" placeholder="State" required>
-                        </div>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label>ZIP Code</label>
-                        <input type="text" name="shipping_postal_code" placeholder="12345" required>
-                    </div>
-                </div>
-                
-                <div class="form-section">
-                    <h3>Gift Message (Optional)</h3>
-                    <div class="input-group">
-                        <textarea name="gift_message" placeholder="Add a personal message for the recipient..."></textarea>
-                    </div>
-                </div>
-                
-                <button type="submit" class="btn-primary">Save Shipping Details</button>
-            </form>
-        </div>
-        
-        <div id="regular-confirmation" style="display: none;">
-            <div class="success-header">
+        <div id="success" style="display: none;">
+            <div class="thank-you">
                 <div class="success-icon">✅</div>
                 <h1>Order Confirmed!</h1>
-                <p>Your order will be shipped to:</p>
+                <p>Thank you for your purchase. Your order has been successfully processed.</p>
+                <p>You'll receive a confirmation email shortly with tracking information.</p>
+                <a href="index.html" class="btn-primary">Return to Home</a>
             </div>
-            
-            <div class="form-section">
-                <div id="shipping-address-display" class="address-display"></div>
-                <p style="color: #666; font-size: 14px; text-align: center;">
-                    If this address needs correction, please contact support
-                </p>
-            </div>
-            
-            <button onclick="confirmShipping()" class="btn-primary">Confirm & Complete Order</button>
         </div>
         
-        <div id="thank-you" style="display: none;">
-            <div class="thank-you">
-                <div class="success-icon">🎉</div>
-                <h1>Thank You!</h1>
-                <p>Your order is being processed and will ship soon.</p>
-                <p>You'll receive a confirmation email shortly.</p>
-                <a href="index.html" style="display: inline-block; margin-top: 20px; color: #007bff;">Return to Home</a>
-            </div>
+        <div id="error" style="display: none;" class="error">
+            <h3>Something went wrong</h3>
+            <p id="error-message"></p>
+            <button onclick="location.reload()" class="btn-primary">Try Again</button>
         </div>
     </div>
+
 <script>
     let checkAttempts = 0;
-    const maxCheckAttempts = 30; // Try for 30 seconds
+    const maxCheckAttempts = 30;
 
     async function initializeSuccessPage() {
         await initializeAuth();
         
-        // Get session ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session_id');
         
         if (!sessionId) {
-            showError('No session ID found in URL');
+            showError('No session ID found');
             return;
         }
         
-        console.log('Session ID:', sessionId);
-        
-        // Start checking for payment completion
         checkPaymentStatus(sessionId);
     }
     
     async function checkPaymentStatus(sessionId) {
         try {
             const session = getSession();
-            if (!session || !session.id_token) {
+            if (!session?.id_token) {
                 showError('Please sign in to view order details');
                 return;
             }
-            
-            console.log('Checking payment status, attempt:', checkAttempts + 1);
             
             const response = await fetch('https://qohagpc75m.execute-api.us-east-1.amazonaws.com/prod/prod', {
                 method: 'POST',
@@ -219,31 +109,23 @@
                 })
             });
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             
             const sessionData = await response.json();
-            console.log('Session data:', sessionData);
             
-            // Check if payment is complete
             if (sessionData.payment_status === 'paid' && sessionData.status === 'complete') {
-                // Payment is successful, show appropriate form
-                displayOrderDetails(sessionData);
+                // Payment successful - show success immediately
+                showSuccess();
             } else if (checkAttempts < maxCheckAttempts) {
-                // Payment not complete yet, check again in 1 second
                 checkAttempts++;
                 setTimeout(() => checkPaymentStatus(sessionId), 1000);
             } else {
-                // Max attempts reached
-                showError('Payment is taking longer than expected. Please refresh the page or contact support.');
+                showError('Payment is taking longer than expected. Please check your email for confirmation.');
             }
             
         } catch (error) {
-            console.error('Error checking payment status:', error);
-            
+            console.error('Error:', error);
             if (checkAttempts < maxCheckAttempts) {
-                // Retry on error
                 checkAttempts++;
                 setTimeout(() => checkPaymentStatus(sessionId), 1000);
             } else {
@@ -252,169 +134,17 @@
         }
     }
     
-    function displayOrderDetails(sessionData) {
-        document.getElementById('loading-message').style.display = 'none';
-        
-        const isGift = sessionData.is_gift;
-        const hasShipping = sessionData.shipping_address;
-        
-        console.log('Displaying order details - isGift:', isGift, 'hasShipping:', hasShipping);
-        
-        if (isGift && !hasShipping) {
-            // Show gift shipping form
-            document.getElementById('gift-shipping-form').style.display = 'block';
-            setupGiftForm(sessionData.id);
-        } else if (hasShipping) {
-            // Show regular confirmation with address from Stripe
-            document.getElementById('regular-confirmation').style.display = 'block';
-            document.getElementById('shipping-address-display').innerHTML = 
-                formatAddress(sessionData.shipping_address);
-        } else {
-            // Fallback - just show thank you
-            document.getElementById('thank-you').style.display = 'block';
-            // Mark order as completed since no special handling needed
-            markOrderCompleted(sessionData.id);
-        }
-    }
-    
-    function setupGiftForm(sessionId) {
-        document.getElementById('gift-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            
-            const shippingDetails = {
-                name: formData.get('recipient_name'),
-                line1: formData.get('shipping_line1'),
-                line2: formData.get('shipping_line2'),
-                city: formData.get('shipping_city'),
-                state: formData.get('shipping_state'),
-                postal_code: formData.get('shipping_postal_code')
-            };
-            
-            try {
-                const session = getSession();
-                const response = await fetch('https://qohagpc75m.execute-api.us-east-1.amazonaws.com/prod/prod', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.id_token}`
-                    },
-                    body: JSON.stringify({
-                        action: 'saveShippingDetails',
-                        session_id: sessionId,
-                        shipping_details: shippingDetails,
-                        gift_message: formData.get('gift_message')
-                    })
-                });
-                
-                if (response.ok) {
-                    document.getElementById('gift-shipping-form').style.display = 'none';
-                    document.getElementById('thank-you').style.display = 'block';
-                } else {
-                    throw new Error('Failed to save shipping details');
-                }
-            } catch (error) {
-                alert('Error saving shipping details: ' + error.message);
-            }
-        });
-    }
-    
-    async function confirmShipping() {
-        const sessionId = new URLSearchParams(window.location.search).get('session_id');
-        
-        try {
-            await markOrderCompleted(sessionId);
-            document.getElementById('regular-confirmation').style.display = 'none';
-            document.getElementById('thank-you').style.display = 'block';
-        } catch (error) {
-            alert('Error confirming order: ' + error.message);
-        }
-    }
-    
-    async function markOrderCompleted(sessionId) {
-        const session = getSession();
-        const response = await fetch('https://qohagpc75m.execute-api.us-east-1.amazonaws.com/prod/prod', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.id_token}`
-            },
-            body: JSON.stringify({
-                action: 'saveShippingDetails',
-                session_id: sessionId,
-                shipping_details: {}, // Empty for regular orders
-                gift_message: ''
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to mark order as completed');
-        }
-        
-        return await response.json();
-    }
-    
-    function formatAddress(address) {
-        if (!address) return '<p>No address provided</p>';
-        
-        return `
-            <p><strong>${address.name || 'No name'}</strong></p>
-            <p>${address.line1}</p>
-            ${address.line2 ? `<p>${address.line2}</p>` : ''}
-            <p>${address.city}, ${address.state} ${address.postal_code}</p>
-            <p>${address.country}</p>
-        `;
+    function showSuccess() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('success').style.display = 'block';
     }
     
     function showError(message) {
-        document.getElementById('loading-message').style.display = 'none';
-        
-        // Create error display if it doesn't exist
-        if (!document.getElementById('error-message')) {
-            const errorDiv = document.createElement('div');
-            errorDiv.id = 'error-message';
-            errorDiv.style.cssText = 'color: #dc3545; text-align: center; padding: 20px;';
-            errorDiv.innerHTML = `
-                <h3>Something went wrong</h3>
-                <p>${message}</p>
-                <button onclick="location.reload()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                    Try Again
-                </button>
-            `;
-            document.querySelector('.container').appendChild(errorDiv);
-        }
-        
-        console.error('Page error:', message);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'block';
+        document.getElementById('error-message').textContent = message;
     }
-    function displayOrderDetails(sessionData) {
-        document.getElementById('loading-message').style.display = 'none';
-        
-        const isGift = sessionData.metadata && sessionData.metadata.is_gift === 'true';
-        const hasShipping = sessionData.shipping_address;
-        
-        console.log('Displaying order details - isGift:', isGift, 'hasShipping:', hasShipping);
-        
-        if (isGift) {
-            // Show gift shipping form
-            document.getElementById('gift-shipping-form').style.display = 'block';
-            setupGiftForm(sessionData.id);
-            
-            // Pre-fill any existing gift message from metadata
-            if (sessionData.metadata.gift_message) {
-                document.querySelector('textarea[name="gift_message"]').value = sessionData.metadata.gift_message;
-            }
-        } else if (hasShipping) {
-            // Show regular confirmation with address from Stripe
-            document.getElementById('regular-confirmation').style.display = 'block';
-            document.getElementById('shipping-address-display').innerHTML = 
-                formatAddress(sessionData.shipping_address);
-        } else {
-            // Fallback - just show thank you
-            document.getElementById('thank-you').style.display = 'block';
-            markOrderCompleted(sessionData.id);
-        }
-    }
-    // Initialize the page when loaded
+
     document.addEventListener('DOMContentLoaded', initializeSuccessPage);
 </script>
 </body>
