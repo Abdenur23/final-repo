@@ -248,10 +248,24 @@ class CheckoutManager {
 
             const checkoutSession = await response.json();
             
-            // Redirect to Stripe to complete payment
-            window.stripePayment.stripe.redirectToCheckout({
+            // === START: CRITICAL FIX FOR "window.stripePayment is undefined" ===
+            
+            // 1. Check if the global StripePayment object is initialized
+            if (!window.stripePayment || !window.stripePayment.stripe) {
+                throw new Error("Stripe payment object is unavailable for redirection. Check script loading order.");
+            }
+
+            // 2. Redirect to Stripe to complete payment
+            const result = await window.stripePayment.stripe.redirectToCheckout({
                 sessionId: checkoutSession.id
             });
+
+            // 3. Handle Stripe's own error object if redirection fails for other reasons
+            if (result && result.error) {
+                throw new Error(result.error.message);
+            }
+
+            // === END: CRITICAL FIX ===
             
         } catch (error) {
             console.error('Final Checkout error:', error);
