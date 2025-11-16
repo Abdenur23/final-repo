@@ -1,312 +1,144 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout - Shipping Details</title>
-    <link rel="stylesheet" href="css/main.css"> 
-    <style>
-        .checkout-container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            background: white;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .address-section {
-            padding: 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            background: #f9f9f9;
-        }
-        .gift-highlight {
-            border-color: #d4af37 !important;
-            background: #fffbe6 !important;
-        }
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 5px;
-        }
-        .section-header h2 {
-            margin: 0;
-            color: #007bff;
-        }
-        .checkout-summary {
-            border-top: 2px solid #007bff;
-            padding-top: 15px;
-            margin-top: 20px;
-        }
-        .summary-line {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 16px;
-        }
-        .summary-total {
-            font-weight: bold;
-            font-size: 20px;
-            padding-top: 10px;
-            border-top: 1px solid #ddd;
-        }
-        #checkout-button {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 15px 20px;
-            border-radius: 6px;
-            width: 100%;
-            cursor: pointer;
-            font-size: 18px;
-            margin-top: 20px;
-            transition: background 0.3s;
-        }
-        #checkout-button:hover:not(:disabled) {
-            background: #1e7e34;
-        }
-        #checkout-button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .address-verification-message {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            display: none;
-        }
-        .address-verification-message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .address-verification-message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .match-address-container {
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #f0f8ff;
-            border: 1px solid #e6f2ff;
-            border-radius: 4px;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Checkout — TheWeer</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    body { font-family: system-ui, Arial; padding: 20px; max-width: 900px; margin: 0 auto; }
+    .panel { border: 1px solid #eee; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; }
+    label { display:block; font-size:13px; margin-bottom:6px; color:#333; }
+    input, select { padding:10px; border:1px solid #ddd; border-radius:6px; width:100%; box-sizing:border-box; }
+    .col-2 { flex:1 1 48%; min-width:200px; }
+    .summary { font-weight:600; font-size:18px; }
+    .gift-highlight { border: 2px dashed #ffc107; background: #fffaf0; padding: 12px; border-radius: 8px;}
+    .hidden { display:none; }
+    .btn { background:#007bff; color:white; padding:12px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:600; }
+    .muted { color:#666; font-size:13px; }
+  </style>
 </head>
 <body>
-    <div class="checkout-container">
-        <h1 style="text-align: center; color: #333;">Complete Your Order</h1>
-        <p style="text-align: center; color: #666;">Almost there! Tell us where to send your custom case.</p>
+  <h1>Checkout</h1>
 
-        <div id="loading-message" class="loading">
-            <p>Loading payment system...</p>
+  <div id="cart-status" class="panel">
+    <div id="cart-empty" class="muted">Loading cart…</div>
+    <div id="cart-list" class="hidden"></div>
+    <div id="cart-totals" class="hidden">
+      <div style="display:flex;justify-content:space-between"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+      <div style="display:flex;justify-content:space-between; margin-top:8px;"><span>Total (includes any applicable taxes & shipping)</span><span id="grand-total" class="summary">$0.00</span></div>
+      <div class="muted" style="font-size:12px; margin-top:8px;">We never see your card details — you’ll pay securely on Stripe.</div>
+    </div>
+  </div>
+
+  <form id="checkout-form" class="panel" onsubmit="return false;">
+    <h3>Shipping Address</h3>
+    <div id="shipping-panel">
+      <div class="row">
+        <div class="col-2">
+          <label>Full name</label>
+          <input id="ship-name" required />
         </div>
-
-        <div id="checkout-content" style="display: none;">
-            <div id="shipping-address-section" class="address-section">
-                <div class="section-header">
-                    <h2 id="shipping-address-title">📦 Shipping Address</h2>
-                    <button id="verify-address-button" class="btn" style="background: #007bff; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer;">Verify Address</button>
-                </div>
-                
-                <form id="shipping-form">
-                    <div class="form-group">
-                        <label for="shipping_name">Full Name</label>
-                        <input type="text" id="shipping_name" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="shipping_line1">Address Line 1</label>
-                        <input type="text" id="shipping_line1" name="line1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="shipping_line2">Address Line 2 (Optional)</label>
-                        <input type="text" id="shipping_line2" name="line2">
-                    </div>
-                    <div class="form-group">
-                        <label for="shipping_city">City</label>
-                        <input type="text" id="shipping_city" name="city" required>
-                    </div>
-                    <div class="form-group" style="display: flex; gap: 15px;">
-                        <div style="flex: 2;">
-                            <label for="shipping_state">State (e.g., CA)</label>
-                            <input type="text" id="shipping_state" name="state" maxlength="2" required style="text-transform: uppercase;">
-                        </div>
-                        <div style="flex: 3;">
-                            <label for="shipping_zip">ZIP Code</label>
-                            <input type="text" id="shipping_zip" name="zip" required>
-                        </div>
-                    </div>
-                </form>
-
-                <div id="address-verification-feedback" class="address-verification-message"></div>
-            </div>
-
-            <div class="match-address-container">
-                <label>
-                    <input type="checkbox" id="match-addresses-checkbox" checked>
-                    Billing address is the same as shipping address
-                </label>
-            </div>
-
-            <div id="billing-address-section" class="address-section" style="display: none;">
-                <div class="section-header">
-                    <h2>💳 Billing Address</h2>
-                </div>
-                <form id="billing-form">
-                    <div class="form-group">
-                        <label for="billing_name">Full Name</label>
-                        <input type="text" id="billing_name" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="billing_line1">Address Line 1</label>
-                        <input type="text" id="billing_line1" name="line1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="billing_line2">Address Line 2 (Optional)</label>
-                        <input type="text" id="billing_line2" name="line2">
-                    </div>
-                    <div class="form-group">
-                        <label for="billing_city">City</label>
-                        <input type="text" id="billing_city" name="city" required>
-                    </div>
-                    <div class="form-group" style="display: flex; gap: 15px;">
-                        <div style="flex: 2;">
-                            <label for="billing_state">State (e.g., CA)</label>
-                            <input type="text" id="billing_state" name="state" maxlength="2" required style="text-transform: uppercase;">
-                        </div>
-                        <div style="flex: 3;">
-                            <label for="billing_zip">ZIP Code</label>
-                            <input type="text" id="billing_zip" name="zip" required>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <div class="checkout-summary">
-                <h3>Order Summary</h3>
-                <div class="summary-line">
-                    <span>Items Subtotal:</span>
-                    <span>$<span id="summary-subtotal">0.00</span></span>
-                </div>
-                <div id="summary-gift-line" class="summary-line" style="display: none;">
-                    <span>Gift Service Fee:</span>
-                    <span>$<span id="summary-gift-fee">12.00</span></span>
-                </div>
-                <div id="summary-tax-line" class="summary-line" style="display: none;">
-                    <span>Sales Tax (<span id="tax-rate-display"></span>):</span>
-                    <span>$<span id="summary-tax">0.00</span></span>
-                </div>
-                <div class="summary-total summary-line">
-                    <span>Order Total:</span>
-                    <span>$<span id="summary-total">0.00</span></span>
-                </div>
-            </div>
-
-            <button id="checkout-button">
-                Proceed to Stripe Payment
-            </button>
-            <p style="text-align: center; margin-top: 10px; font-size: 14px; color: #666;">
-                🔒 All card information is handled securely by Stripe.
-            </p>
+        <div class="col-2">
+          <label>Phone</label>
+          <input id="ship-phone" required />
         </div>
+      </div>
+
+      <label>Address line 1</label>
+      <input id="ship-line1" required />
+
+      <label>Address line 2 (optional)</label>
+      <input id="ship-line2" />
+
+      <div class="row">
+        <div class="col-2">
+          <label>City</label>
+          <input id="ship-city" required />
+        </div>
+        <div class="col-2">
+          <label>State</label>
+          <select id="ship-state" required>
+            <option value="">Choose state</option>
+            <!-- Short list; add all states as needed -->
+            <option value="CA">California</option>
+            <option value="NY">New York</option>
+            <option value="TX">Texas</option>
+            <option value="FL">Florida</option>
+            <option value="WA">Washington</option>
+            <!-- ... -->
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-2">
+          <label>ZIP</label>
+          <input id="ship-zip" required />
+        </div>
+        <div class="col-2">
+          <label>Country</label>
+          <select id="ship-country" required>
+            <option value="US">United States</option>
+            <!-- expand if you ship elsewhere -->
+          </select>
+        </div>
+      </div>
     </div>
 
-    <!-- Load scripts in correct order -->
-    <script src="config/constants.js"></script>
-    <script src="js/auth.js"></script>
-    
-    <!-- Load Stripe FIRST -->
-    <script src="https://js.stripe.com/v3/"></script>
-    
-    <!-- Then load stripe-payment.js -->
-    <script src="js/stripe-payment.js"></script>
-    
-    <!-- Then load checkout-manager.js -->
-    <script src="js/checkout-manager.js"></script>
+    <div style="margin-top:12px;">
+      <label style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="billing-same" checked />
+        Billing address same as shipping
+      </label>
+    </div>
 
-    <script>
-    // Simple and reliable initialization
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded, starting initialization...');
-        
-        let initAttempts = 0;
-        const maxInitAttempts = 30; // 3 seconds max
-        
-        function initializeCheckout() {
-            initAttempts++;
-            
-            console.log(`Initialization attempt ${initAttempts}:`, {
-                Stripe: typeof Stripe,
-                stripePayment: window.stripePayment,
-                stripeInstance: window.stripePayment && window.stripePayment.stripe
-            });
-            
-            // Check if all required components are available
-            if (typeof Stripe === 'function' && 
-                window.stripePayment && 
-                window.stripePayment.stripe) {
-                
-                console.log('All dependencies loaded successfully!');
-                
-                // Hide loading message, show checkout content
-                document.getElementById('loading-message').style.display = 'none';
-                document.getElementById('checkout-content').style.display = 'block';
-                
-                // Initialize checkout manager
-                try {
-                    window.checkoutManager = new CheckoutManager();
-                    console.log('CheckoutManager initialized successfully!');
-                } catch (error) {
-                    console.error('Error initializing CheckoutManager:', error);
-                    showError('Failed to initialize checkout. Please refresh the page.');
-                }
-                
-            } else if (initAttempts < maxInitAttempts) {
-                // Try again in 100ms
-                setTimeout(initializeCheckout, 100);
-            } else {
-                // Final failure
-                console.error('Failed to initialize after', maxInitAttempts, 'attempts');
-                showError('Payment system failed to load. Please refresh the page and try again.');
-            }
-        }
-        
-        function showError(message) {
-            document.getElementById('loading-message').innerHTML = 
-                '<p style="color: #dc3545; font-weight: bold;">❌ ' + message + '</p>' +
-                '<button onclick="window.location.reload()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px;">Refresh Page</button>';
-        }
-        
-        // Start initialization
-        setTimeout(initializeCheckout, 100);
-    });
-    </script>
+    <div id="billing-panel" class="panel hidden" style="margin-top:12px;">
+      <h4>Billing Address</h4>
+      <label>Full name</label>
+      <input id="bill-name" />
+      <label>Address line 1</label>
+      <input id="bill-line1" />
+      <div class="row">
+        <div class="col-2">
+          <label>City</label>
+          <input id="bill-city" />
+        </div>
+        <div class="col-2">
+          <label>State</label>
+          <select id="bill-state">
+            <option value="">Choose</option>
+            <option value="CA">CA</option>
+            <option value="NY">NY</option>
+            <option value="TX">TX</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <div class="col-2"><label>ZIP</label><input id="bill-zip" /></div>
+        <div class="col-2"><label>Country</label><select id="bill-country"><option value="US">US</option></select></div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;" class="panel">
+      <label style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="is-gift" />
+        Send as a gift (add gift wrap & recipient message on next screen)
+      </label>
+
+      <div id="gift-note" class="muted" style="margin-top:8px;">If checked, the shipping address will be used as the gift recipient.</div>
+    </div>
+
+    <div style="display:flex; gap:12px; margin-top:12px;">
+      <button id="verify-btn" class="btn">Verify & Continue to Payment</button>
+      <button id="cancel-btn" type="button" class="btn" style="background:#6c757d;">Cancel</button>
+    </div>
+
+    <div id="verify-message" style="margin-top:12px;"></div>
+  </form>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="js/checkout.js"></script>
 </body>
 </html>
