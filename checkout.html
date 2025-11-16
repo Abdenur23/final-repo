@@ -113,6 +113,11 @@
             border: 1px solid #e6f2ff;
             border-radius: 4px;
         }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -120,173 +125,188 @@
         <h1 style="text-align: center; color: #333;">Complete Your Order</h1>
         <p style="text-align: center; color: #666;">Almost there! Tell us where to send your custom case.</p>
 
-        <div id="shipping-address-section" class="address-section">
-            <div class="section-header">
-                <h2 id="shipping-address-title">📦 Shipping Address</h2>
-                <button id="verify-address-button" class="btn" style="background: #007bff; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer;">Verify Address</button>
-            </div>
-            
-            <form id="shipping-form">
-                <div class="form-group">
-                    <label for="shipping_name">Full Name</label>
-                    <input type="text" id="shipping_name" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label for="shipping_line1">Address Line 1</label>
-                    <input type="text" id="shipping_line1" name="line1" required>
-                </div>
-                <div class="form-group">
-                    <label for="shipping_line2">Address Line 2 (Optional)</label>
-                    <input type="text" id="shipping_line2" name="line2">
-                </div>
-                <div class="form-group">
-                    <label for="shipping_city">City</label>
-                    <input type="text" id="shipping_city" name="city" required>
-                </div>
-                <div class="form-group" style="display: flex; gap: 15px;">
-                    <div style="flex: 2;">
-                        <label for="shipping_state">State (e.g., CA)</label>
-                        <input type="text" id="shipping_state" name="state" maxlength="2" required style="text-transform: uppercase;">
-                    </div>
-                    <div style="flex: 3;">
-                        <label for="shipping_zip">ZIP Code</label>
-                        <input type="text" id="shipping_zip" name="zip" required>
-                    </div>
-                </div>
-            </form>
-
-            <div id="address-verification-feedback" class="address-verification-message"></div>
-
+        <div id="loading-message" class="loading">
+            <p>Loading payment system...</p>
         </div>
 
-        <div class="match-address-container">
-            <label>
-                <input type="checkbox" id="match-addresses-checkbox" checked>
-                Billing address is the same as shipping address
-            </label>
-        </div>
-
-        <div id="billing-address-section" class="address-section" style="display: none;">
-            <div class="section-header">
-                <h2>💳 Billing Address</h2>
-            </div>
-            <form id="billing-form">
-                <div class="form-group">
-                    <label for="billing_name">Full Name</label>
-                    <input type="text" id="billing_name" name="name" required>
+        <div id="checkout-content" style="display: none;">
+            <div id="shipping-address-section" class="address-section">
+                <div class="section-header">
+                    <h2 id="shipping-address-title">📦 Shipping Address</h2>
+                    <button id="verify-address-button" class="btn" style="background: #007bff; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer;">Verify Address</button>
                 </div>
-                <div class="form-group">
-                    <label for="billing_line1">Address Line 1</label>
-                    <input type="text" id="billing_line1" name="line1" required>
-                </div>
-                <div class="form-group">
-                    <label for="billing_line2">Address Line 2 (Optional)</label>
-                    <input type="text" id="billing_line2" name="line2">
-                </div>
-                <div class="form-group">
-                    <label for="billing_city">City</label>
-                    <input type="text" id="billing_city" name="city" required>
-                </div>
-                <div class="form-group" style="display: flex; gap: 15px;">
-                    <div style="flex: 2;">
-                        <label for="billing_state">State (e.g., CA)</label>
-                        <input type="text" id="billing_state" name="state" maxlength="2" required style="text-transform: uppercase;">
+                
+                <form id="shipping-form">
+                    <div class="form-group">
+                        <label for="shipping_name">Full Name</label>
+                        <input type="text" id="shipping_name" name="name" required>
                     </div>
-                    <div style="flex: 3;">
-                        <label for="billing_zip">ZIP Code</label>
-                        <input type="text" id="billing_zip" name="zip" required>
+                    <div class="form-group">
+                        <label for="shipping_line1">Address Line 1</label>
+                        <input type="text" id="shipping_line1" name="line1" required>
                     </div>
+                    <div class="form-group">
+                        <label for="shipping_line2">Address Line 2 (Optional)</label>
+                        <input type="text" id="shipping_line2" name="line2">
+                    </div>
+                    <div class="form-group">
+                        <label for="shipping_city">City</label>
+                        <input type="text" id="shipping_city" name="city" required>
+                    </div>
+                    <div class="form-group" style="display: flex; gap: 15px;">
+                        <div style="flex: 2;">
+                            <label for="shipping_state">State (e.g., CA)</label>
+                            <input type="text" id="shipping_state" name="state" maxlength="2" required style="text-transform: uppercase;">
+                        </div>
+                        <div style="flex: 3;">
+                            <label for="shipping_zip">ZIP Code</label>
+                            <input type="text" id="shipping_zip" name="zip" required>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="address-verification-feedback" class="address-verification-message"></div>
+            </div>
+
+            <div class="match-address-container">
+                <label>
+                    <input type="checkbox" id="match-addresses-checkbox" checked>
+                    Billing address is the same as shipping address
+                </label>
+            </div>
+
+            <div id="billing-address-section" class="address-section" style="display: none;">
+                <div class="section-header">
+                    <h2>💳 Billing Address</h2>
                 </div>
-            </form>
+                <form id="billing-form">
+                    <div class="form-group">
+                        <label for="billing_name">Full Name</label>
+                        <input type="text" id="billing_name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="billing_line1">Address Line 1</label>
+                        <input type="text" id="billing_line1" name="line1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="billing_line2">Address Line 2 (Optional)</label>
+                        <input type="text" id="billing_line2" name="line2">
+                    </div>
+                    <div class="form-group">
+                        <label for="billing_city">City</label>
+                        <input type="text" id="billing_city" name="city" required>
+                    </div>
+                    <div class="form-group" style="display: flex; gap: 15px;">
+                        <div style="flex: 2;">
+                            <label for="billing_state">State (e.g., CA)</label>
+                            <input type="text" id="billing_state" name="state" maxlength="2" required style="text-transform: uppercase;">
+                        </div>
+                        <div style="flex: 3;">
+                            <label for="billing_zip">ZIP Code</label>
+                            <input type="text" id="billing_zip" name="zip" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="checkout-summary">
+                <h3>Order Summary</h3>
+                <div class="summary-line">
+                    <span>Items Subtotal:</span>
+                    <span>$<span id="summary-subtotal">0.00</span></span>
+                </div>
+                <div id="summary-gift-line" class="summary-line" style="display: none;">
+                    <span>Gift Service Fee:</span>
+                    <span>$<span id="summary-gift-fee">12.00</span></span>
+                </div>
+                <div id="summary-tax-line" class="summary-line" style="display: none;">
+                    <span>Sales Tax (<span id="tax-rate-display"></span>):</span>
+                    <span>$<span id="summary-tax">0.00</span></span>
+                </div>
+                <div class="summary-total summary-line">
+                    <span>Order Total:</span>
+                    <span>$<span id="summary-total">0.00</span></span>
+                </div>
+            </div>
+
+            <button id="checkout-button">
+                Proceed to Stripe Payment
+            </button>
+            <p style="text-align: center; margin-top: 10px; font-size: 14px; color: #666;">
+                🔒 All card information is handled securely by Stripe.
+            </p>
         </div>
-
-        <div class="checkout-summary">
-            <h3>Order Summary</h3>
-            <div class="summary-line">
-                <span>Items Subtotal:</span>
-                <span>$<span id="summary-subtotal">0.00</span></span>
-            </div>
-            <div id="summary-gift-line" class="summary-line" style="display: none;">
-                <span>Gift Service Fee:</span>
-                <span>$<span id="summary-gift-fee">12.00</span></span>
-            </div>
-            <div id="summary-tax-line" class="summary-line" style="display: none;">
-                <span>Sales Tax (<span id="tax-rate-display"></span>):</span>
-                <span>$<span id="summary-tax">0.00</span></span>
-            </div>
-            <div class="summary-total summary-line">
-                <span>Order Total:</span>
-                <span>$<span id="summary-total">0.00</span></span>
-            </div>
-        </div>
-
-        <button id="checkout-button">
-            Proceed to Stripe Payment
-        </button>
-        <p style="text-align: center; margin-top: 10px; font-size: 14px; color: #666;">
-            🔒 All card information is handled securely by Stripe.
-        </p>
-
     </div>
 
-    <!-- In checkout.html - Update the script section -->
+    <!-- Load scripts in correct order -->
     <script src="config/constants.js"></script>
     <script src="js/auth.js"></script>
     
     <!-- Load Stripe FIRST -->
     <script src="https://js.stripe.com/v3/"></script>
     
-    <!-- Then load stripe-payment.js which creates window.stripePayment -->
+    <!-- Then load stripe-payment.js -->
     <script src="js/stripe-payment.js"></script>
     
-    <!-- Then load checkout-manager.js which depends on window.stripePayment -->
+    <!-- Then load checkout-manager.js -->
     <script src="js/checkout-manager.js"></script>
-    
-    <script src="js/websocket-manager.js"></script>
-    <script src="js/ui-components-manager.js"></script>
-    <script src="js/app.js"></script>
+
     <script>
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM loaded, starting initialization...");
-    
-    let attempts = 0;
-    const maxAttempts = 50; // Reduced from 100 for faster failure
-
-    const attemptInitialization = () => {
-        console.log(`Initialization attempt ${attempts + 1}, checking dependencies...`);
+    // Simple and reliable initialization
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, starting initialization...');
         
-        // Check if Stripe is loaded and our payment object exists
-        if (typeof Stripe === 'function' && window.stripePayment && window.stripePayment.stripe) {
-            console.log("All dependencies loaded, initializing CheckoutManager...");
+        let initAttempts = 0;
+        const maxInitAttempts = 30; // 3 seconds max
+        
+        function initializeCheckout() {
+            initAttempts++;
             
-            // Initialize Checkout Manager
-            window.checkoutManager = new CheckoutManager();
-            console.log("CheckoutManager initialized successfully!");
+            console.log(`Initialization attempt ${initAttempts}:`, {
+                Stripe: typeof Stripe,
+                stripePayment: window.stripePayment,
+                stripeInstance: window.stripePayment && window.stripePayment.stripe
+            });
             
-        } else if (attempts < maxAttempts) {
-            // Not ready yet, try again
-            attempts++;
-            console.log(`Dependencies not ready, waiting... (attempt ${attempts})`);
-            setTimeout(attemptInitialization, 100);
-        } else {
-            // Final failure - provide helpful error message
-            console.error("Failed to initialize after", maxAttempts, "attempts");
-            console.error("Stripe available:", typeof Stripe);
-            console.error("stripePayment available:", !!window.stripePayment);
-            console.error("stripePayment.stripe available:", !!(window.stripePayment && window.stripePayment.stripe));
-            
-            const errorMessage = "Payment system failed to load. This is usually due to:\n\n" +
-                               "1. Slow internet connection\n" +
-                               "2. Browser blocking Stripe\n" +
-                               "3. Script loading issues\n\n" +
-                               "Please refresh the page and try again.";
-            alert(errorMessage);
+            // Check if all required components are available
+            if (typeof Stripe === 'function' && 
+                window.stripePayment && 
+                window.stripePayment.stripe) {
+                
+                console.log('All dependencies loaded successfully!');
+                
+                // Hide loading message, show checkout content
+                document.getElementById('loading-message').style.display = 'none';
+                document.getElementById('checkout-content').style.display = 'block';
+                
+                // Initialize checkout manager
+                try {
+                    window.checkoutManager = new CheckoutManager();
+                    console.log('CheckoutManager initialized successfully!');
+                } catch (error) {
+                    console.error('Error initializing CheckoutManager:', error);
+                    showError('Failed to initialize checkout. Please refresh the page.');
+                }
+                
+            } else if (initAttempts < maxInitAttempts) {
+                // Try again in 100ms
+                setTimeout(initializeCheckout, 100);
+            } else {
+                // Final failure
+                console.error('Failed to initialize after', maxInitAttempts, 'attempts');
+                showError('Payment system failed to load. Please refresh the page and try again.');
+            }
         }
-    };
-
-    // Start the initialization process
-    attemptInitialization();
-});
-</script>
+        
+        function showError(message) {
+            document.getElementById('loading-message').innerHTML = 
+                '<p style="color: #dc3545; font-weight: bold;">❌ ' + message + '</p>' +
+                '<button onclick="window.location.reload()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px;">Refresh Page</button>';
+        }
+        
+        // Start initialization
+        setTimeout(initializeCheckout, 100);
+    });
+    </script>
 </body>
 </html>
