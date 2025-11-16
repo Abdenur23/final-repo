@@ -524,16 +524,15 @@ async function handlePayment() {
         return;
     }
 
-    // Prepare order data - use authenticated user's email and token
-    const orderData = {
-        user_email: userInfo.email, // From auth.js getUserInfo()
+    // Prepare order data - simplified to match what your Lambda expects
+    const requestBody = {
+        action: 'createCheckoutSession',
+        user_email: userInfo.email,
         amount: amountInCents,
         cart_items: [{
             name: 'Product 1',
             price: PRODUCT_PRICE,
-            quantity: 1,
-            isGift: document.getElementById('gift-checkbox').checked,
-            giftFee: document.getElementById('gift-checkbox').checked ? GIFT_FEE : 0
+            quantity: 1
         }],
         item_count: 1
     };
@@ -549,20 +548,32 @@ async function handlePayment() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': session.id_token // Use the ID token from auth.js
+                'Authorization': session.id_token
             },
-            body: JSON.stringify({
-                action: 'createCheckoutSession',
-                ...orderData
-            })
+            body: JSON.stringify(requestBody)
         });
 
+        // Handle response
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to create payment session');
+            let errorMessage = 'Failed to create payment session';
+            
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (e) {
+                // If we can't parse JSON, use status text
+                errorMessage = response.statusText || errorMessage;
+            }
+            
+            throw new Error(errorMessage);
         }
 
         const data = await response.json();
+
+        // Check if we got a valid session ID
+        if (!data.id) {
+            throw new Error('Invalid response from server: No session ID received');
+        }
 
         // Redirect to Stripe Checkout
         const result = await stripe.redirectToCheckout({
