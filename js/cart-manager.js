@@ -299,16 +299,9 @@ class CartManager {
 
         container.innerHTML = this.cart.map(item => `
             <div class="cart-item" style="display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #eee; gap: 12px;">
-                <img src="${item.imageUrl}" alt="${item.paletteName}" 
-                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; flex-shrink: 0;">
-                <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px; line-height: 1.3;">${item.paletteName}</div>
-                    <div style="color: #666; font-size: 13px;">
-                        $${item.discountedPrice.toFixed(2)}
-                        ${item.discount > 0 ? `<span style="color: #28a745; font-size: 12px;">(${item.discount}% off)</span>` : ''}
-                    </div>
-                </div>
-                <button onclick="window.cartManager.removeFromCart(${JSON.stringify(item.designId)})" 
+                                <div style="flex: 1; min-width: 0;">
+                                    </div>
+                <button onclick="window.cartManager.removeFromCart(${JSON.stringify(item.designId)})"
                         style="background: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; flex-shrink: 0;">
                     Remove
                 </button>
