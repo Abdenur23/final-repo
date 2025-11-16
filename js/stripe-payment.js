@@ -247,141 +247,75 @@ class StripePayment {
 
     // js/stripe-payment.js - UPDATED proceedToCheckout method
     async proceedToCheckout() {
-    if (this.cart.length === 0) {
-        this.showError('Your cart is empty');
-        return;
-    }
-
-    // Validate shipping
-    const required = ['ship-name', 'ship-line1', 'ship-city', 'ship-state', 'ship-zip'];
-    for (const id of required) {
-        if (!document.getElementById(id).value.trim()) {
-            this.showError('Please fill in all shipping fields');
+        if (this.cart.length === 0) {
+            this.showError('Your cart is empty');
             return;
         }
-    }
-
-    if (!document.getElementById('same-billing').checked) {
-        const billRequired = ['bill-name', 'bill-line1', 'bill-city', 'bill-state', 'bill-zip'];
-        for (const id of billRequired) {
-            if (!document.getElementById(id).value.trim()) {
-                this.showError('Please fill in all billing fields');
+    
+        try {
+            const session = getSession();
+            if (!session || !session.id_token) {
+                alert('Please sign in to proceed with checkout');
                 return;
             }
+    
+            const userInfo = getUserInfo();
+            const totalAmount = Math.round(this.getCartTotal() * 100);
+    
+            // DEBUG: Log everything being sent
+            console.log('=== CHECKOUT DEBUG ===');
+            console.log('Gift option:', this.isGift);
+            console.log('Total amount:', totalAmount);
+            console.log('Cart items:', this.cart.length);
+            console.log('User email:', userInfo?.email);
+            console.log('=====================');
+    
+            // Prepare the request body - match what Lambda expects
+            const requestBody = {
+                action: 'createCheckoutSession',
+                user_email: userInfo ? userInfo.email : null,
+                amount: totalAmount,
+                cart_items: this.cart,
+                item_count: this.cart.length,
+                is_gift: this.isGift  // Make sure this is included
+            };
+    
+            console.log('Sending to API:', requestBody);
+    
+            const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.id_token}`
+                },
+                body: JSON.stringify(requestBody)
+            });
+    
+            console.log('Response status:', response.status);
+    
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Checkout API error response:', errorText);
+                throw new Error('Failed to create checkout session: ' + errorText);
+            }
+    
+            const checkoutSession = await response.json();
+            console.log('Checkout session created successfully:', checkoutSession);
+            
+            const result = await this.stripe.redirectToCheckout({
+                sessionId: checkoutSession.id
+            });
+    
+            if (result.error) {
+                throw new Error(result.error.message);
+            }
+    
+        } catch (error) {
+            console.error('Checkout error:', error);
+            this.showError('Error starting checkout: ' + error.message);
         }
     }
 
-    try {
-        const session = getSession();
-        if (!session || !session.id_token) {
-            alert('Please sign in');
-            return;
-        }
-
-        const userInfo = getUserInfo();
-        const totals = this.getCartTotal();
-        const addresses = this.collectAddressData();
-
-        const requestBody = {
-            action: 'createCheckoutSession',
-            user_email: userInfo?.email || null,
-            amount: Math.round(totals.total * 100),
-            cart_items: this.cart,
-            item_count: this.cart.length,
-            is_gift: this.isGift,
-            tax_amount: Math.round(totals.tax * 100),
-            shipping_address: addresses.shipping_address,
-            billing_address: addresses.billing_address
-        };
-
-        const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.id_token}`
-            },
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-            const err = await response.text();
-            throw new Error(err);
-        }
-
-        const { id } = await response.json();
-        const result = await this.stripe.redirectToCheckout({ sessionId: id });
-        if (result.error) throw result.error;
-
-    } catch (error) {
-        console.error('Checkout error:', error);
-        this.showError('Payment failed: ' + error.message);
-    }
-}
-  // Add to class
-updateAddressForms() {
-    const sameBilling = document.getElementById('same-billing').checked;
-    document.getElementById('billing-form').style.display = sameBilling ? 'none' : 'block';
-    this.updateCartTotal(); // Recalculate tax
-}
-
-calculateTax(subtotal) {
-    const state = document.getElementById('same-billing').checked
-        ? document.getElementById('ship-state').value
-        : document.getElementById('bill-state').value;
-    return state === 'CA' ? Math.round(subtotal * 0.0825 * 100) / 100 : 0; // 8.25%
-}
-
-getCartTotal() {
-    const subtotal = this.cart.reduce((sum, item) => sum + item.discountedPrice, 0);
-    const giftFee = this.isGift ? 12 : 0;
-    const tax = this.calculateTax(subtotal + giftFee);
-    return {
-        subtotal: subtotal,
-        giftFee: giftFee,
-        tax: tax,
-        total: subtotal + giftFee + tax
-    };
-}
-
-updateCartTotal() {
-    const totals = this.getCartTotal();
-    document.getElementById('cart-subtotal').textContent = totals.subtotal.toFixed(2);
-    document.getElementById('gift-fee-line').style.display = this.isGift ? 'flex' : 'none';
-    const taxLine = document.getElementById('tax-line');
-    const taxAmount = document.getElementById('tax-amount');
-    if (totals.tax > 0) {
-        taxLine.style.display = 'flex';
-        taxAmount.textContent = totals.tax.toFixed(2);
-    } else {
-        taxLine.style.display = 'none';
-    }
-    document.getElementById('cart-total').textContent = totals.total.toFixed(2);
-}
-
-collectAddressData() {
-    const ship = {
-        name: document.getElementById('ship-name').value.trim(),
-        line1: document.getElementById('ship-line1').value.trim(),
-        line2: document.getElementById('ship-line2').value.trim(),
-        city: document.getElementById('ship-city').value.trim(),
-        state: document.getElementById('ship-state').value,
-        postal_code: document.getElementById('ship-zip').value.trim(),
-        country: document.getElementById('ship-country').value
-    };
-
-    const sameBilling = document.getElementById('same-billing').checked;
-    const bill = sameBilling ? ship : {
-        name: document.getElementById('bill-name').value.trim(),
-        line1: document.getElementById('bill-line1').value.trim(),
-        line2: document.getElementById('bill-line2').value.trim(),
-        city: document.getElementById('bill-city').value.trim(),
-        state: document.getElementById('bill-state').value,
-        postal_code: document.getElementById('bill-zip').value.trim(),
-        country: 'US'
-    };
-
-    return { shipping_address: ship, billing_address: bill };
-}
     showError(message) {
         const notification = document.createElement('div');
         notification.style.cssText = `
@@ -418,18 +352,6 @@ collectAddressData() {
     openCartModal() {
         this.renderCartItems();
         document.getElementById('cart-modal').style.display = 'block';
-        this.initializeGiftCheckbox();
-    
-        // Reset forms
-        document.getElementById('same-billing').checked = true;
-        document.getElementById('billing-form').style.display = 'none';
-    
-        // Setup event listeners
-        document.getElementById('same-billing').addEventListener('change', () => this.updateAddressForms());
-        document.getElementById('ship-state').addEventListener('change', () => this.updateCartTotal());
-        document.getElementById('bill-state').addEventListener('change', () => this.updateCartTotal());
-    
-        this.updateCartTotal();
     }
 
     closeCartModal() {
