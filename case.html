@@ -133,102 +133,62 @@
   </div>
 
   <!-- Cart Modal -->
-  <!-- Cart & Checkout Modal -->
-<div id="cart-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto;">
-  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <h2 style="margin: 0;">Checkout</h2>
-      <button onclick="window.stripePayment.closeCartModal()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: #666;">×</button>
-    </div>
-
-    <!-- Cart Items -->
-    <div id="cart-items-container" style="margin-bottom: 20px; max-height: 200px; overflow-y: auto;"></div>
-
-    <!-- Gift Option -->
-    <div class="gift-option" style="background: #f8fbff; padding: 16px; border: 2px solid #e6f2ff; border-radius: 8px; margin: 16px 0;">
-      <label style="display: flex; align-items: center; cursor: pointer;">
-        <input type="checkbox" id="gift-checkbox" style="width: 18px; height: 18px; margin-right: 12px;">
-        <div>
-          <div style="font-weight: 600; color: #0056b3;">Send as a gift</div>
-          <div style="color: #666; font-size: 13px;">We'll wrap it beautifully and ship directly to your recipient</div>
-          <div style="color: #d4af37; font-weight: 600; font-size: 13px; margin-top: 4px;">+ $12.00 gift service</div>
+  <div id="cart-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0;">🛒 Shopping Cart</h2>
+        <button onclick="window.stripePayment.closeCartModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">×</button>
+      </div>
+      
+      <div id="cart-items-container" style="margin-bottom: 20px; max-height: 300px; overflow-y: auto;">
+        <!-- Cart items will be rendered here -->
+      </div>
+      
+      <!-- Gift Option - PROPERLY INITIALIZED -->
+      <div class="gift-option" style="background: #f8fbff; padding: 16px; border: 2px solid #e6f2ff; border-radius: 8px; margin: 16px 0;">
+          <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+              <input type="checkbox" id="gift-checkbox" style="width: 18px; height: 18px; margin-right: 12px; cursor: pointer;">
+              <div>
+                  <div style="font-weight: 600; color: #0056b3; margin-bottom: 4px;">🎁 Send as a gift</div>
+                  <div style="color: #666; font-size: 13px; line-height: 1.4;">
+                      We'll wrap it beautifully and ship directly to your recipient
+                  </div>
+                  <div style="color: #d4af37; font-weight: 600; font-size: 13px; margin-top: 6px;">+ $12.00 gift service</div>
+              </div>
+          </label>
+      </div>
+      <script>
+      // Add gift checkbox event listener
+      document.getElementById('gift-checkbox').addEventListener('change', function() {
+          window.stripePayment.toggleGiftOption();
+      });
+      </script>
+      
+      <div style="border-top: 1px solid #eee; padding-top: 16px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
+          <span>Subtotal:</span>
+          <span>$<span id="cart-subtotal">0.00</span></span>
         </div>
-      </label>
-    </div>
-
-    <!-- Address Forms -->
-    <div style="margin: 20px 0; padding: 16px; background: #f9f9f9; border-radius: 8px;">
-      <h3 style="margin: 0 0 16px 0; font-size: 16px;">Shipping Address</h3>
-      <div class="address-form">
-        <input type="text" id="ship-name" placeholder="Full Name" required style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px;">
-        <input type="text" id="ship-line1" placeholder="Street Address" required style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px;">
-        <input type="text" id="ship-line2" placeholder="Apt, Suite, etc. (optional)" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px;">
-        <div style="display: flex; gap: 10px;">
-          <input type="text" id="ship-city" placeholder="City" required style="flex: 2; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-          <select id="ship-state" required style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-            <option value="">State</option>
-            <!-- US States -->
-            <option value="CA">CA</option>
-            <option value="NY">NY</option>
-            <!-- Add more as needed -->
-          </select>
-          <input type="text" id="ship-zip" placeholder="ZIP" required style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+        <div id="gift-fee-line" style="display: none; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
+          <span>Gift service:</span>
+          <span style="color: #d4af37;">$<span id="gift-fee">0.00</span></span>
         </div>
-        <select id="ship-country" required style="width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ddd; border-radius: 6px;">
-          <option value="US">United States</option>
-        </select>
-      </div>
-
-      <!-- Billing Address Toggle -->
-      <label style="display: flex; align-items: center; margin-top: 16px; cursor: pointer;">
-        <input type="checkbox" id="same-billing" checked style="margin-right: 8px;">
-        <span style="font-size: 14px;">Billing address same as shipping</span>
-      </label>
-
-      <!-- Billing Address Form (Hidden by default) -->
-      <div id="billing-form" style="display: none; margin-top: 16px; padding: 16px; background: white; border: 1px dashed #ddd; border-radius: 6px;">
-        <h4 style="margin: 0 0 12px 0; font-size: 14px;">Billing Address</h4>
-        <input type="text" id="bill-name" placeholder="Full Name" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px;">
-        <input type="text" id="bill-line1" placeholder="Street Address" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px;">
-        <input type="text" id="bill-line2" placeholder="Apt, Suite, etc. (optional)" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px;">
-        <div style="display: flex; gap: 10px;">
-          <input type="text" id="bill-city" placeholder="City" style="flex: 2; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-          <select id="bill-state" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-            <option value="">State</option>
-            <option value="CA">CA</option>
-            <option value="NY">NY</option>
-          </select>
-          <input type="text" id="bill-zip" placeholder="ZIP" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin-bottom: 20px; padding-top: 8px; border-top: 1px solid #eee;">
+          <span>Total:</span>
+          <span style="color: #2c5530;">$<span id="cart-total">0.00</span></span>
         </div>
+        
+        <button onclick="window.stripePayment.proceedToCheckout()" 
+                style="background: #007bff; color: white; border: none; padding: 16px; border-radius: 8px; width: 100%; cursor: pointer; font-size: 16px; font-weight: 600; transition: background 0.2s;">
+          Proceed to Checkout
+        </button>
+        
+        <p style="text-align: center; color: #666; margin-top: 16px; font-size: 13px;">
+          You'll provide shipping details after payment
+        </p>
       </div>
-    </div>
-
-    <!-- Summary -->
-    <div style="border-top: 1px solid #eee; padding-top: 16px;">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
-        <span>Subtotal:</span>
-        <span>$<span id="cart-subtotal">0.00</span></span>
-      </div>
-      <div id="gift-fee-line" style="display: none; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
-        <span>Gift service:</span>
-        <span style="color: #d4af37;">$<span id="gift-fee">12.00</span></span>
-      </div>
-      <div id="tax-line" style="display: none; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
-        <span>Estimated Taxes:</span>
-        <span>$<span id="tax-amount">0.00</span></span>
-      </div>
-      <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin: 20px 0 16px; padding-top: 8px; border-top: 1px solid #eee;">
-        <span>Total:</span>
-        <span style="color: #2c5530;">$<span id="cart-total">0.00</span></span>
-      </div>
-
-      <button id="proceed-checkout-btn" onclick="window.stripePayment.proceedToCheckout()"
-              style="background: #007bff; color: white; border: none; padding: 16px; border-radius: 8px; width: 100%; cursor: pointer; font-size: 16px; font-weight: 600;">
-        Proceed to Payment
-      </button>
     </div>
   </div>
-</div>
 
   <script src="config/constants.js"></script>
   <script src="js/auth.js"></script>
