@@ -257,19 +257,21 @@
             </div>
         </div>
 
-        <button class="pay-button" onclick="alert('Payment integration (Stripe) will go here!')">
-            Pay Now (Total: $<span id="final-total-btn">9.70</span>)
-        </button>
-    </div>
-
+        <button class="pay-button" id="pay-now-button">
+    Pay Now (Total: $<span id="final-total-btn">9.70</span>)
+</button>
+<script src="config/constants.js"></script>
 <script>
     // Constants
     const PRODUCT_PRICE = 1.00;
     const GIFT_FEE = 12.00;
     const SHIPPING_COST = 8.70;
     const CA_TAX_RATE = 0.0725; // California State Sales Tax
+    
+    // API Endpoint for the Lambda
+    const API_URL = 'https://qohagpc75m.execute-api.us-east-1.amazonaws.com/prod/prod'; // Assuming your API endpoint uses the same base URL as in config/constants.js
 
-    // DOM elements
+    // DOM elements (make sure you include 'payNowButton')
     const giftCheckbox = document.getElementById('gift-checkbox');
     const shippingSection = document.getElementById('shipping-address-section');
     const shippingHighlightNote = document.getElementById('shipping-highlight-note');
@@ -282,13 +284,163 @@
     const finalTotalBtnSpan = document.getElementById('final-total-btn');
     const salesTaxSpan = document.getElementById('sales-tax');
     const summaryGiftFeeSpan = document.getElementById('summary-gift-fee');
+    const payNowButton = document.getElementById('pay-now-button');
 
     // Mappings for copying fields
     const addressFields = ['name', 'address1', 'city', 'state', 'zip'];
 
-    /**
-     * Copies shipping address values to billing address fields.
-     */
+    // --- Helper Functions ---
+
+    function getBillingState() {
+        if (billingSameCheckbox.checked) {
+            // Billing is same as shipping, use shipping state
+            const shippingStateField = document.getElementById('s-state');
+            return shippingStateField ? shippingStateField.value : '';
+        } else {
+            // Billing is different, use explicit billing state
+            return billingStateSelect.value;
+        }
+    }
+
+    function getOrderData() {
+        const isGift = giftCheckbox.checked;
+        const billingState = getBillingState();
+        const isBillingCA = (billingState === 'CA');
+
+        // Base price for item and shipping
+        let totalCents = Math.round((PRODUCT_PRICE + SHIPPING_COST) * 100);
+        
+        // Items array for Stripe Line Items
+        const items = [{
+            name: "Product 1",
+            amount: Math.round(PRODUCT_PRICE * 100),
+            quantity: 1,
+            taxable: true // Mark as taxable for tax calculation
+        }, {
+            name: "Shipping (Standard)",
+            amount: Math.round(SHIPPING_COST * 100),
+            quantity: 1,
+            taxable: true // Shipping is taxable
+        }];
+
+        if (isGift) {
+            totalCents += Math.round(GIFT_FEE * 100);
+            items.push({
+                name: "Gift Service (Wrapping Included)",
+                amount: Math.round(GIFT_FEE * 100),
+                quantity: 1,
+                taxable: true // Gift service is taxable
+            });
+        }
+        
+        // Calculate tax amount in cents
+        let taxCents = 0;
+        if (isBillingCA) {
+            // Calculate taxable base from the items array
+            const taxableBaseCents = items.reduce((sum, item) => 
+                item.taxable ? sum + item.amount * item.quantity : sum, 0
+            );
+            taxCents = Math.round(taxableBaseCents * CA_TAX_RATE);
+            totalCents += taxCents;
+        }
+
+        return {
+            amount: totalCents, // Total amount in CENTS
+            items: items, // Detailed line items for the server to process
+            billing_state: billingState,
+            tax_cents: taxCents
+        };
+    }
+
+    // --- Core Logic Functions ---
+
+    function calculateOrderTotal() {
+        const order = getOrderData();
+        const total = order.amount / 100;
+        const taxAmount = order.tax_cents / 100;
+
+        // Update DOM
+        orderTotalSpan.textContent = total.toFixed(2);
+        finalTotalBtnSpan.textContent = total.toFixed(2);
+        salesTaxSpan.textContent = taxAmount.toFixed(2);
+
+        if (order.tax_cents > 0) {
+            taxLine.classList.remove('hidden');
+        } else {
+            taxLine.classList.add('hidden');
+        }
+
+        if (giftCheckbox.checked) {
+            summaryGiftFeeSpan.textContent = GIFT_FEE.toFixed(2);
+            giftFeeLine.classList.remove('hidden');
+        } else {
+            giftFeeLine.classList.add('hidden');
+        }
+    }
+
+
+    async function handlePayNow() {
+        payNowButton.disabled = true;
+        payNowButton.textContent = 'Processing...';
+
+        try {
+            const orderData = getOrderData();
+            
+            // --- Collect Address Data ---
+            const shippingData = {};
+            addressFields.forEach(field => {
+                shippingData[field] = document.getElementById('s-' + field).value;
+            });
+            
+            // NOTE: In a real app, you'd collect the user's email.
+            // For this example, we'll use a placeholder or prompt the user.
+            const userEmail = prompt("Please enter your email for the order confirmation:");
+            if (!userEmail) {
+                 alert("Email is required to proceed.");
+                 payNowButton.disabled = false;
+                 payNowButton.textContent = `Pay Now (Total: $${orderTotalSpan.textContent})`;
+                 return;
+            }
+
+            // --- API Call to Lambda ---
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'createCheckoutSession',
+                    user_email: userEmail,
+                    amount: orderData.amount,
+                    billing_state: orderData.billing_state, // Pass the billing state for tax verification
+                    items_data: orderData.items,          // Pass detailed line items
+                    shipping_address: shippingData         // Pass shipping address
+                })
+            });
+
+            const data = await response.json();
+            if (response.status !== 200 || data.error) {
+                throw new Error(data.error || 'Failed to create Stripe Checkout session.');
+            }
+
+            // --- Redirect to Stripe Checkout ---
+            const stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
+            stripe.redirectToCheckout({
+                sessionId: data.id
+            }).then(function (result) {
+                if (result.error) {
+                    alert(result.error.message);
+                }
+            });
+
+        } catch (error) {
+            console.error('Checkout error:', error);
+            alert(`Payment error: ${error.message}`);
+        } finally {
+            payNowButton.disabled = false;
+            payNowButton.textContent = `Pay Now (Total: $${orderTotalSpan.textContent})`;
+        }
+    }
+
+
     function copyShippingToBilling() {
         addressFields.forEach(field => {
             const shippingField = document.getElementById('s-' + field);
@@ -298,63 +450,9 @@
                 billingField.value = shippingField.value;
             }
         });
-        
-        // Recalculate total after copying (important for tax if CA is copied)
         calculateOrderTotal();
     }
 
-    /**
-     * Calculates the total cost based on the gift option and billing state.
-     */
-    function calculateOrderTotal() {
-        let total = PRODUCT_PRICE + SHIPPING_COST;
-        let taxAmount = 0.00;
-        let isGift = giftCheckbox.checked;
-        
-        // Determine the state to use for tax calculation
-        let taxState = '';
-        if (billingSameCheckbox.checked) {
-            // Billing is same as shipping, use shipping state
-            const shippingStateField = document.getElementById('s-state');
-            taxState = shippingStateField ? shippingStateField.value : '';
-        } else {
-            // Billing is different, use explicit billing state
-            taxState = billingStateSelect.value;
-        }
-
-        let isBillingCA = (taxState === 'CA');
-
-        // 1. Add Gift Fee
-        if (isGift) {
-            total += GIFT_FEE;
-            giftFeeLine.classList.remove('hidden');
-            summaryGiftFeeSpan.textContent = GIFT_FEE.toFixed(2);
-        } else {
-            giftFeeLine.classList.add('hidden');
-        }
-
-        // 2. Calculate Tax
-        if (isBillingCA) {
-            // Taxable items are: Product Price, Gift Fee, and Shipping Cost
-            const taxableBase = PRODUCT_PRICE + (isGift ? GIFT_FEE : 0) + SHIPPING_COST;
-            taxAmount = taxableBase * CA_TAX_RATE;
-            total += taxAmount;
-
-            salesTaxSpan.textContent = taxAmount.toFixed(2);
-            taxLine.classList.remove('hidden');
-        } else {
-            taxLine.classList.add('hidden');
-            taxAmount = 0.00;
-        }
-
-        // Update DOM
-        orderTotalSpan.textContent = total.toFixed(2);
-        finalTotalBtnSpan.textContent = total.toFixed(2);
-    }
-
-    /**
-     * Handles gift checkbox logic (highlighting shipping and recalculating).
-     */
     function handleGiftToggle() {
         if (giftCheckbox.checked) {
             shippingSection.classList.add('highlight');
@@ -366,33 +464,25 @@
         calculateOrderTotal();
     }
 
-    /**
-     * Handles billing address same as shipping toggle.
-     */
     function handleBillingSameToggle() {
         if (billingSameCheckbox.checked) {
             billingAddressForm.classList.add('hidden');
-            copyShippingToBilling(); // **KEY CHANGE: Copy the address here**
+            copyShippingToBilling();
         } else {
             billingAddressForm.classList.remove('hidden');
-            // When switching to 'different address', re-calculate based on whatever 
-            // is currently in the *visible* billing state selector
             calculateOrderTotal(); 
         }
     }
     
     // --- Event Listeners ---
-
-    // 1. Gift option change
     giftCheckbox.addEventListener('change', handleGiftToggle);
-    
-    // 2. Billing same as shipping toggle
     billingSameCheckbox.addEventListener('change', handleBillingSameToggle);
-    
-    // 3. Billing state change (only matters if billingSameCheckbox is unchecked)
     billingStateSelect.addEventListener('change', calculateOrderTotal);
+    
+    // Attach the main payment handler
+    payNowButton.addEventListener('click', handlePayNow);
 
-    // 4. Real-time updates for billing if 'same as shipping' is checked
+    // Real-time updates for billing if 'same as shipping' is checked
     addressFields.forEach(field => {
         const shippingField = document.getElementById('s-' + field);
         if (shippingField) {
@@ -400,17 +490,18 @@
                 if (billingSameCheckbox.checked) {
                     copyShippingToBilling();
                 }
+                // Only state change affects tax, but keep a listener on all shipping inputs for copying
+                if (field === 'state') {
+                    calculateOrderTotal();
+                }
             });
         }
     });
 
     // Initial setup
     document.addEventListener('DOMContentLoaded', () => {
-        // Set initial item price and shipping cost
         document.getElementById('item-price').textContent = PRODUCT_PRICE.toFixed(2);
         document.getElementById('shipping-cost').textContent = SHIPPING_COST.toFixed(2);
-        
-        // Initial setup for billing address and calculation
         handleBillingSameToggle();
     });
 </script>
