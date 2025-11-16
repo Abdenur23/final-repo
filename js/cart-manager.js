@@ -308,7 +308,7 @@ class CartManager {
                         ${item.discount > 0 ? `<span style="color: #28a745; font-size: 12px;">(${item.discount}% off)</span>` : ''}
                     </div>
                 </div>
-                <button onclick="window.cartManager.removeFromCart('${item.designId}')" 
+                <button onclick="window.cartManager.removeFromCart(\`${item.designId}\`)" 
                         style="background: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; flex-shrink: 0;">
                     Remove
                 </button>
