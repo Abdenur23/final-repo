@@ -1,580 +1,279 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkout</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    body {
-      background-color: #f8f9fa;
-      color: #333;
-      line-height: 1.6;
-      padding: 20px;
-    }
-    
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      padding: 30px;
-    }
-    
-    h1, h2, h3 {
-      color: #2c3e50;
-      margin-bottom: 20px;
-    }
-    
-    h1 {
-      text-align: center;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 15px;
-      margin-bottom: 30px;
-    }
-    
-    .section {
-      margin-bottom: 30px;
-      padding: 20px;
-      border: 1px solid #eaeaea;
-      border-radius: 8px;
-      background: #fff;
-    }
-    
-    .highlight {
-      background-color: #fff9e6;
-      border-left: 4px solid #ffc107;
-    }
-    
-    .form-group {
-      margin-bottom: 20px;
-    }
-    
-    .form-row {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 15px;
-    }
-    
-    .form-row .form-group {
-      flex: 1;
-      margin-bottom: 0;
-    }
-    
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: #555;
-    }
-    
-    input[type="text"],
-    input[type="email"],
-    select {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 16px;
-      transition: border-color 0.3s, box-shadow 0.3s;
-    }
-    
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    select:focus {
-      outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-    }
-    
-    input[type="checkbox"] {
-      margin-right: 10px;
-      transform: scale(1.2);
-    }
-    
-    .checkbox-group {
-      display: flex;
-      align-items: center;
-      margin-bottom: 15px;
-      padding: 10px;
-      background: #f8f9fa;
-      border-radius: 6px;
-    }
-    
-    .summary-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #eee;
-    }
-    
-    .summary-total {
-      font-weight: bold;
-      font-size: 1.2em;
-      border-bottom: none;
-      padding-top: 12px;
-      border-top: 2px solid #eee;
-    }
-    
-    .price {
-      font-weight: 600;
-    }
-    
-    .hidden {
-      display: none;
-    }
-    
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 15px 20px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 600;
-      width: 100%;
-      transition: background-color 0.3s;
-    }
-    
-    button:hover {
-      background-color: #0056b3;
-    }
-    
-    .gift-service {
-      background-color: #f0f8ff;
-      border: 1px solid #cce7ff;
-      border-radius: 8px;
-      padding: 15px;
-      margin: 15px 0;
-    }
-    
-    .tax-note {
-      font-size: 0.9em;
-      color: #6c757d;
-      margin-top: 5px;
-    }
-    
-    .saved-address {
-      background: #f8f9fa;
-      border: 1px solid #e9ecef;
-      border-radius: 6px;
-      padding: 15px;
-      margin-bottom: 15px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    
-    .saved-address:hover {
-      border-color: #007bff;
-      background: #e7f3ff;
-    }
-    
-    .saved-address.selected {
-      border-color: #007bff;
-      background: #e7f3ff;
-      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-    }
-    
-    .address-name {
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-    
-    .address-details {
-      color: #666;
-      font-size: 0.9em;
-    }
-    
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    
-    .add-new-btn {
-      background: none;
-      border: 1px solid #007bff;
-      color: #007bff;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      width: auto;
-    }
-    
-    .add-new-btn:hover {
-      background: #007bff;
-      color: white;
-    }
-    
-    @media (max-width: 600px) {
-      .container {
-        padding: 15px;
-      }
-      
-      .section {
-        padding: 15px;
-      }
-      
-      .form-row {
-        flex-direction: column;
-        gap: 0;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .checkout-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        
+        .checkbox-group input {
+            margin-right: 10px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .total {
+            font-weight: bold;
+            font-size: 1.2em;
+            border-bottom: none;
+            padding-top: 10px;
+        }
+        
+        .gift-highlight {
+            background: #fff9e6;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Checkout</h1>
-    
-    <!-- Shipping Address Section -->
-    <div class="section" id="shipping-section">
-      <div class="section-header">
-        <h2>Shipping Address</h2>
-        <button class="add-new-btn" onclick="addNewAddress()">+ Add New Address</button>
-      </div>
-      
-      <p id="gift-notice" class="hidden" style="color: #d35400; font-weight: 600; margin-bottom: 15px;">
-        🎁 This will be shipped directly to your gift recipient
-      </p>
-      
-      <!-- Saved Addresses -->
-      <div id="saved-addresses">
-        <div class="saved-address selected" onclick="selectAddress(this, 'shipping')">
-          <div class="address-name">John Doe (Home)</div>
-          <div class="address-details">123 Main Street, Apt 4B, Los Angeles, CA 90001, United States</div>
-        </div>
-        <div class="saved-address" onclick="selectAddress(this, 'shipping')">
-          <div class="address-name">John Doe (Work)</div>
-          <div class="address-details">456 Business Ave, Suite 300, San Francisco, CA 94102, United States</div>
-        </div>
-      </div>
-      
-      <!-- Address Form -->
-      <div id="shipping-address-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="shipping-first-name">First Name</label>
-            <input type="text" id="shipping-first-name" value="John">
-          </div>
-          <div class="form-group">
-            <label for="shipping-last-name">Last Name</label>
-            <input type="text" id="shipping-last-name" value="Doe">
-          </div>
+    <div class="checkout-container">
+        <h1>Checkout</h1>
+        
+        <!-- Order Summary -->
+        <div class="section">
+            <h2>Order Summary</h2>
+            <div class="summary-item">
+                <span>Product 1</span>
+                <span>$1.00</span>
+            </div>
+            <div class="summary-item">
+                <span>Shipping</span>
+                <span>$8.70</span>
+            </div>
+            <div class="summary-item" id="tax-line">
+                <span>Estimated taxes</span>
+                <span id="tax-amount">$0.00</span>
+            </div>
+            <div class="summary-item total">
+                <span>Total</span>
+                <span id="total-amount">$9.70</span>
+            </div>
         </div>
         
-        <div class="form-group">
-          <label for="shipping-address">Address</label>
-          <input type="text" id="shipping-address" value="123 Main Street">
+        <!-- Gift Option -->
+        <div class="section">
+            <div class="checkbox-group">
+                <input type="checkbox" id="gift-service">
+                <label for="gift-service">Add Gift Service (+$12.00)</label>
+            </div>
         </div>
         
-        <div class="form-group">
-          <label for="shipping-address2">Address 2 (Optional)</label>
-          <input type="text" id="shipping-address2" value="Apt 4B">
+        <!-- Shipping Address -->
+        <div class="section" id="shipping-section">
+            <h2>Shipping Address</h2>
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text">
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text">
+            </div>
+            <div class="form-group">
+                <label>City</label>
+                <input type="text">
+            </div>
+            <div class="form-group">
+                <label>State</label>
+                <select>
+                    <option value="">Select State</option>
+                    <option value="CA">California</option>
+                    <option value="NY">New York</option>
+                    <option value="TX">Texas</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>ZIP Code</label>
+                <input type="text">
+            </div>
         </div>
         
-        <div class="form-row">
-          <div class="form-group">
-            <label for="shipping-city">City</label>
-            <input type="text" id="shipping-city" value="Los Angeles">
-          </div>
-          <div class="form-group">
-            <label for="shipping-state">State</label>
-            <select id="shipping-state">
-              <option value="">Select State</option>
-              <option value="CA" selected>California</option>
-              <option value="NY">New York</option>
-              <option value="TX">Texas</option>
-              <option value="FL">Florida</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="shipping-zip">ZIP Code</label>
-            <input type="text" id="shipping-zip" value="90001">
-          </div>
+        <!-- Billing Address -->
+        <div class="section">
+            <h2>Billing Address</h2>
+            <div class="checkbox-group">
+                <input type="checkbox" id="same-address" checked>
+                <label for="same-address">Same as shipping address</label>
+            </div>
+            
+            <div id="billing-address-form" class="hidden">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text">
+                </div>
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text">
+                </div>
+                <div class="form-group">
+                    <label>State</label>
+                    <select id="billing-state">
+                        <option value="">Select State</option>
+                        <option value="CA">California</option>
+                        <option value="NY">New York</option>
+                        <option value="TX">Texas</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ZIP Code</label>
+                    <input type="text">
+                </div>
+            </div>
         </div>
         
-        <div class="form-group">
-          <label for="shipping-country">Country</label>
-          <select id="shipping-country">
-            <option value="US" selected>United States</option>
-            <option value="CA">Canada</option>
-            <option value="UK">United Kingdom</option>
-          </select>
-        </div>
-      </div>
+        <button id="pay-now">Pay Now</button>
     </div>
-    
-    <!-- Billing Address Section -->
-    <div class="section">
-      <h2>Billing Address</h2>
-      
-      <div class="checkbox-group">
-        <input type="checkbox" id="same-as-shipping" checked>
-        <label for="same-as-shipping">Use same address for billing</label>
-      </div>
-      
-      <div id="billing-addresses" class="hidden">
-        <div class="saved-address selected" onclick="selectAddress(this, 'billing')">
-          <div class="address-name">John Doe (Home)</div>
-          <div class="address-details">123 Main Street, Apt 4B, Los Angeles, CA 90001, United States</div>
-        </div>
-        <div class="saved-address" onclick="selectAddress(this, 'billing')">
-          <div class="address-name">John Doe (Work)</div>
-          <div class="address-details">456 Business Ave, Suite 300, San Francisco, CA 94102, United States</div>
-        </div>
-      </div>
-      
-      <div id="billing-address-form" class="hidden">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="billing-first-name">First Name</label>
-            <input type="text" id="billing-first-name">
-          </div>
-          <div class="form-group">
-            <label for="billing-last-name">Last Name</label>
-            <input type="text" id="billing-last-name">
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="billing-address">Address</label>
-          <input type="text" id="billing-address">
-        </div>
-        
-        <div class="form-group">
-          <label for="billing-address2">Address 2 (Optional)</label>
-          <input type="text" id="billing-address2">
-        </div>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label for="billing-city">City</label>
-            <input type="text" id="billing-city">
-          </div>
-          <div class="form-group">
-            <label for="billing-state">State</label>
-            <select id="billing-state">
-              <option value="">Select State</option>
-              <option value="CA">California</option>
-              <option value="NY">New York</option>
-              <option value="TX">Texas</option>
-              <option value="FL">Florida</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="billing-zip">ZIP Code</label>
-            <input type="text" id="billing-zip">
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="billing-country">Country</label>
-          <select id="billing-country">
-            <option value="US">United States</option>
-            <option value="CA">Canada</option>
-            <option value="UK">United Kingdom</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Order Summary Section -->
-    <div class="section">
-      <h2>Order Summary</h2>
-      
-      <div class="summary-item">
-        <span>Product 1</span>
-        <span class="price">$1.00</span>
-      </div>
-      
-      <div class="gift-service">
-        <div class="checkbox-group">
-          <input type="checkbox" id="gift-service">
-          <label for="gift-service">Add Gift Service (+$12.00)</label>
-        </div>
-        <p class="tax-note">Includes beautiful wrapping and gift message</p>
-      </div>
-      
-      <div class="summary-item">
-        <span>Shipping</span>
-        <span class="price">$8.70</span>
-      </div>
-      
-      <div id="tax-line" class="summary-item hidden">
-        <span>Estimated taxes</span>
-        <span class="price" id="tax-amount">$0.00</span>
-      </div>
-      
-      <div class="summary-item summary-total">
-        <span>Total</span>
-        <span class="price" id="total-amount">$9.70</span>
-      </div>
-    </div>
-    
-    <!-- Payment Section -->
-    <div class="section">
-      <h2>Payment</h2>
-      <p>Payment integration with Stripe will be added later.</p>
-      <button id="pay-now">Pay Now</button>
-    </div>
-  </div>
 
-  <script>
-    // Product and pricing constants
-    const PRODUCT_PRICE = 1.00;
-    const GIFT_SERVICE_PRICE = 12.00;
-    const SHIPPING_COST = 8.70;
-    const CA_TAX_RATE = 0.0825; // 8.25% California sales tax
-    
-    // DOM elements
-    const giftCheckbox = document.getElementById('gift-service');
-    const sameAsShippingCheckbox = document.getElementById('same-as-shipping');
-    const billingAddressForm = document.getElementById('billing-address-form');
-    const billingAddresses = document.getElementById('billing-addresses');
-    const shippingSection = document.getElementById('shipping-section');
-    const giftNotice = document.getElementById('gift-notice');
-    const taxLine = document.getElementById('tax-line');
-    const taxAmount = document.getElementById('tax-amount');
-    const totalAmount = document.getElementById('total-amount');
-    const payNowButton = document.getElementById('pay-now');
-    const billingState = document.getElementById('billing-state');
-    const shippingState = document.getElementById('shipping-state');
-    
-    // Initialize the page
-    document.addEventListener('DOMContentLoaded', function() {
-      updateTotal();
-      
-      // Event listeners
-      giftCheckbox.addEventListener('change', function() {
+    <script>
+        const PRODUCT_PRICE = 1.00;
+        const GIFT_SERVICE_PRICE = 12.00;
+        const SHIPPING_COST = 8.70;
+        const CA_TAX_RATE = 0.0825;
+        
+        const giftCheckbox = document.getElementById('gift-service');
+        const sameAddressCheckbox = document.getElementById('same-address');
+        const billingForm = document.getElementById('billing-address-form');
+        const shippingSection = document.getElementById('shipping-section');
+        const taxLine = document.getElementById('tax-line');
+        const taxAmount = document.getElementById('tax-amount');
+        const totalAmount = document.getElementById('total-amount');
+        const billingState = document.getElementById('billing-state');
+        
+        // Initialize
         updateTotal();
-        toggleGiftHighlight();
-      });
-      
-      sameAsShippingCheckbox.addEventListener('change', function() {
-        toggleBillingAddress();
-        updateTotal();
-      });
-      
-      billingState.addEventListener('change', updateTotal);
-      shippingState.addEventListener('change', updateTotal);
-      
-      payNowButton.addEventListener('click', function() {
-        alert('Payment functionality will be integrated with Stripe in the future.');
-      });
-      
-      // Initialize with saved address data
-      populateFormFromSavedAddress();
-    });
-    
-    // Select address from saved addresses
-    function selectAddress(element, type) {
-      const addresses = document.querySelectorAll(`#${type}-addresses .saved-address`);
-      addresses.forEach(addr => addr.classList.remove('selected'));
-      element.classList.add('selected');
-      
-      if (type === 'shipping') {
-        populateFormFromSavedAddress();
-        if (sameAsShippingCheckbox.checked) {
-          updateTotal();
+        
+        // Event listeners
+        giftCheckbox.addEventListener('change', function() {
+            updateTotal();
+            if (this.checked) {
+                shippingSection.classList.add('gift-highlight');
+            } else {
+                shippingSection.classList.remove('gift-highlight');
+            }
+        });
+        
+        sameAddressCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                billingForm.classList.add('hidden');
+            } else {
+                billingForm.classList.remove('hidden');
+            }
+            updateTotal();
+        });
+        
+        billingState.addEventListener('change', updateTotal);
+        
+        document.getElementById('pay-now').addEventListener('click', function() {
+            // Placeholder for Stripe integration
+            alert('Payment processing would happen here');
+        });
+        
+        function updateTotal() {
+            const isGift = giftCheckbox.checked;
+            let subtotal = PRODUCT_PRICE + SHIPPING_COST;
+            
+            if (isGift) {
+                subtotal += GIFT_SERVICE_PRICE;
+            }
+            
+            // Check if billing is in California
+            let tax = 0;
+            if (!sameAddressCheckbox.checked && billingState.value === 'CA') {
+                tax = subtotal * CA_TAX_RATE;
+                taxLine.classList.remove('hidden');
+                taxAmount.textContent = '$' + tax.toFixed(2);
+            } else {
+                taxLine.classList.add('hidden');
+            }
+            
+            const total = subtotal + tax;
+            totalAmount.textContent = '$' + total.toFixed(2);
         }
-      } else {
-        populateBillingFormFromSavedAddress();
-        updateTotal();
-      }
-    }
-    
-    // Populate form from selected saved address
-    function populateFormFromSavedAddress() {
-      const selectedAddress = document.querySelector('#saved-addresses .saved-address.selected .address-details').textContent;
-      // In a real app, you would parse the address and populate fields
-      // For demo, we're using pre-filled values
-    }
-    
-    // Populate billing form from selected saved address
-    function populateBillingFormFromSavedAddress() {
-      const selectedAddress = document.querySelector('#billing-addresses .saved-address.selected .address-details').textContent;
-      // In a real app, you would parse the address and populate fields
-    }
-    
-    // Add new address
-    function addNewAddress() {
-      alert('In a real application, this would open a form to add a new address.');
-    }
-    
-    // Calculate and update the total price
-    function updateTotal() {
-      const isGift = giftCheckbox.checked;
-      const subtotal = PRODUCT_PRICE + (isGift ? GIFT_SERVICE_PRICE : 0) + SHIPPING_COST;
-      
-      // Determine which state to use for tax calculation
-      let taxState;
-      if (sameAsShippingCheckbox.checked) {
-        taxState = shippingState.value;
-      } else {
-        taxState = billingState.value;
-      }
-      
-      // Check if billing address is in California for tax calculation
-      let tax = 0;
-      if (taxState === 'CA') {
-        tax = subtotal * CA_TAX_RATE;
-        taxLine.classList.remove('hidden');
-        taxAmount.textContent = `$${tax.toFixed(2)}`;
-      } else {
-        taxLine.classList.add('hidden');
-      }
-      
-      const total = subtotal + tax;
-      totalAmount.textContent = `$${total.toFixed(2)}`;
-    }
-    
-    // Toggle billing address form visibility
-    function toggleBillingAddress() {
-      if (sameAsShippingCheckbox.checked) {
-        billingAddressForm.classList.add('hidden');
-        billingAddresses.classList.add('hidden');
-        // Copy shipping address to billing address
-        copyShippingToBilling();
-      } else {
-        billingAddressForm.classList.remove('hidden');
-        billingAddresses.classList.remove('hidden');
-      }
-      updateTotal();
-    }
-    
-    // Copy shipping address to billing address
-    function copyShippingToBilling() {
-      document.getElementById('billing-first-name').value = document.getElementById('shipping-first-name').value;
-      document.getElementById('billing-last-name').value = document.getElementById('shipping-last-name').value;
-      document.getElementById('billing-address').value = document.getElementById('shipping-address').value;
-      document.getElementById('billing-address2').value = document.getElementById('shipping-address2').value;
-      document.getElementById('billing-city').value = document.getElementById('shipping-city').value;
-      document.getElementById('billing-state').value = document.getElementById('shipping-state').value;
-      document.getElementById('billing-zip').value = document.getElementById('shipping-zip').value;
-      document.getElementById('billing-country').value = document.getElementById('shipping-country').value;
-    }
-    
-    // Highlight shipping section when gift is selected
-    function toggleGiftHighlight() {
-      if (giftCheckbox.checked) {
-        shippingSection.classList.add('highlight');
-        giftNotice.classList.remove('hidden');
-      } else {
-        shippingSection.classList.remove('highlight');
-        giftNotice.classList.add('hidden');
-      }
-    }
-  </script>
+    </script>
 </body>
 </html>
