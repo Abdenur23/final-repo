@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkout - Product 1</title>
+  <title>Checkout</title>
   <style>
     * {
       box-sizing: border-box;
@@ -132,59 +132,26 @@
       margin: 15px 0;
     }
     
-    .address-verification {
-      background-color: #f8f9fa;
-      border: 1px dashed #6c757d;
-      border-radius: 4px;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 0.9em;
-      color: #6c757d;
-    }
-    
     .tax-note {
       font-size: 0.9em;
       color: #6c757d;
       margin-top: 5px;
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .section {
+        padding: 15px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Checkout</h1>
-    
-    <!-- Order Summary Section -->
-    <div class="section">
-      <h2>Order Summary</h2>
-      
-      <div class="summary-item">
-        <span>Product 1</span>
-        <span class="price">$1.00</span>
-      </div>
-      
-      <div class="gift-service">
-        <div class="checkbox-group">
-          <input type="checkbox" id="gift-service">
-          <label for="gift-service">Add Gift Service (+$12.00)</label>
-        </div>
-        <p class="tax-note">Includes beautiful wrapping and gift message</p>
-      </div>
-      
-      <div class="summary-item">
-        <span>Shipping</span>
-        <span class="price">$8.70</span>
-      </div>
-      
-      <div id="tax-line" class="summary-item hidden">
-        <span>Sales Tax (CA)</span>
-        <span class="price" id="tax-amount">$0.00</span>
-      </div>
-      
-      <div class="summary-item summary-total">
-        <span>Total</span>
-        <span class="price" id="total-amount">$9.70</span>
-      </div>
-    </div>
     
     <!-- Shipping Address Section -->
     <div class="section" id="shipping-section">
@@ -201,10 +168,6 @@
       <div class="form-group">
         <label for="shipping-address">Address</label>
         <input type="text" id="shipping-address" placeholder="Enter street address">
-        <div class="address-verification">
-          <input type="checkbox" id="verify-address">
-          <label for="verify-address">Verify address with USPS (demo)</label>
-        </div>
       </div>
       
       <div class="form-group">
@@ -235,7 +198,7 @@
       <h2>Billing Address</h2>
       
       <div class="checkbox-group">
-        <input type="checkbox" id="same-as-shipping">
+        <input type="checkbox" id="same-as-shipping" checked>
         <label for="same-as-shipping">Same as shipping address</label>
       </div>
       
@@ -271,6 +234,39 @@
           <label for="billing-zip">ZIP Code</label>
           <input type="text" id="billing-zip" placeholder="Enter ZIP code">
         </div>
+      </div>
+    </div>
+    
+    <!-- Order Summary Section -->
+    <div class="section">
+      <h2>Order Summary</h2>
+      
+      <div class="summary-item">
+        <span>Product 1</span>
+        <span class="price">$1.00</span>
+      </div>
+      
+      <div class="gift-service">
+        <div class="checkbox-group">
+          <input type="checkbox" id="gift-service">
+          <label for="gift-service">Add Gift Service (+$12.00)</label>
+        </div>
+        <p class="tax-note">Includes beautiful wrapping and gift message</p>
+      </div>
+      
+      <div class="summary-item">
+        <span>Shipping</span>
+        <span class="price">$8.70</span>
+      </div>
+      
+      <div id="tax-line" class="summary-item hidden">
+        <span>Estimated taxes</span>
+        <span class="price" id="tax-amount">$0.00</span>
+      </div>
+      
+      <div class="summary-item summary-total">
+        <span>Total</span>
+        <span class="price" id="total-amount">$9.70</span>
       </div>
     </div>
     
@@ -371,13 +367,6 @@
         shippingSection.classList.remove('highlight');
         giftNotice.classList.add('hidden');
       }
-    }
-    
-    // Dummy address verification function
-    function verifyAddress() {
-      // This is a placeholder for future USPS integration
-      alert('Address verification would be performed here with a real service.');
-      return true;
     }
   </script>
 </body>
