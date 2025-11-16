@@ -239,16 +239,30 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Check that the critical dependency exists before trying to use it
-            if (window.stripePayment && window.stripePayment.stripe) {
-                window.checkoutManager = new CheckoutManager();
-            } else {
-                console.error("CRITICAL ERROR: StripePayment failed to initialize before CheckoutManager attempted to run.");
-                alert("Payment system failed to load. Please try refreshing the page.");
-            }
+            
+            // Check every 50ms for 2 seconds to see if window.stripePayment is ready.
+            let attempts = 0;
+            const maxAttempts = 40; // 40 attempts * 50ms = 2000ms (2 seconds)
+
+            const initializeCheckout = () => {
+                // We check for the *existence* of the object and its *property*
+                if (window.stripePayment && window.stripePayment.stripe) {
+                    // Success: Initialize the manager
+                    window.checkoutManager = new CheckoutManager();
+                    console.log("CheckoutManager initialized successfully.");
+                } else if (attempts < maxAttempts) {
+                    // Not ready, try again
+                    attempts++;
+                    setTimeout(initializeCheckout, 50);
+                } else {
+                    // Failure: Display the user error message
+                    console.error("CRITICAL ERROR: window.stripePayment never became available within timeout.");
+                    alert("Payment system failed to load. Please try refreshing the page.");
+                }
+            };
+
+            initializeCheckout();
         });
     </script>
-</body>
-</html>
 </body>
 </html>
