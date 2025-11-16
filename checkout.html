@@ -3,277 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout</title>
+    <title>Simple Checkout - Product 1</title>
     <style>
-        * {
+        body {
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
         }
-        
-        body {
-            background: #f5f5f5;
-            padding: 20px;
-        }
-        
-        .checkout-container {
+        .container {
+            width: 90%;
             max-width: 800px;
-            margin: 0 auto;
-            background: white;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
-        .section {
+        h1 {
+            text-align: center;
             margin-bottom: 30px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        
-        h2 {
-            margin-bottom: 15px;
             color: #333;
         }
-        
-        .form-group {
-            margin-bottom: 15px;
+        .checkout-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
         }
-        
+        .checkout-section h2 {
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-top: 0;
+            color: #007bff;
+            font-size: 1.5em;
+        }
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            color: #555;
         }
-        
-        input[type="text"],
-        select {
+        input[type="text"], input[type="email"], select {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
             border-radius: 4px;
+            box-sizing: border-box;
         }
-        
-        .checkbox-group {
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .gift-option {
+            background: #f8fbff;
+            padding: 16px;
+            border: 2px solid #e6f2ff;
+            border-radius: 8px;
+            margin: 16px 0;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .gift-option.highlight-shipping {
+            border-color: #28a745 !important;
+            background: #e6ffec !important;
+        }
+        .gift-details {
             display: flex;
             align-items: center;
-            margin: 15px 0;
+            cursor: pointer;
+            margin: 0;
         }
-        
-        .checkbox-group input {
-            margin-right: 10px;
+        .gift-details div {
+            margin-left: 12px;
         }
-        
-        .summary-item {
+        .gift-details .title {
+            font-weight: 600;
+            color: #0056b3;
+            margin-bottom: 4px;
+        }
+        .gift-details .price {
+            color: #d4af37;
+            font-weight: 600;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+        .order-summary {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+        }
+        .order-summary h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .summary-line {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
+            margin-bottom: 8px;
+            font-size: 1em;
         }
-        
-        .total {
+        .summary-total {
+            border-top: 2px solid #000;
+            padding-top: 10px;
+            margin-top: 15px;
             font-weight: bold;
             font-size: 1.2em;
-            border-bottom: none;
-            padding-top: 10px;
         }
-        
-        .gift-highlight {
-            background: #fff9e6;
-            border-left: 4px solid #ffc107;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        button {
+        .pay-button {
             background: #007bff;
             color: white;
             border: none;
-            padding: 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
+            padding: 16px;
+            border-radius: 8px;
             width: 100%;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: background 0.2s;
+            margin-top: 20px;
         }
-        
-        button:hover {
+        .pay-button:hover {
             background: #0056b3;
+        }
+        .shipping-address.highlight {
+            border: 2px solid #28a745;
+            background-color: #e6ffec;
+        }
+        .hidden {
+            display: none;
+        }
+        .alert {
+            padding: 10px;
+            background-color: #ffffe0;
+            border: 1px solid #ffe0a0;
+            color: #856404;
+            margin-bottom: 15px;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
-    <div class="checkout-container">
-        <h1>Checkout</h1>
-        
-        <!-- Order Summary -->
-        <div class="section">
-            <h2>Order Summary</h2>
-            <div class="summary-item">
-                <span>Product 1</span>
-                <span>$1.00</span>
-            </div>
-            <div class="summary-item">
-                <span>Shipping</span>
-                <span>$8.70</span>
-            </div>
-            <div class="summary-item" id="tax-line">
-                <span>Estimated taxes</span>
-                <span id="tax-amount">$0.00</span>
-            </div>
-            <div class="summary-item total">
-                <span>Total</span>
-                <span id="total-amount">$9.70</span>
-            </div>
+    <div class="container">
+        <h1>🛒 Simple Checkout Page</h1>
+
+        <div class="gift-option" id="gift-service-section">
+            <label class="gift-details">
+                <input type="checkbox" id="gift-checkbox" style="width: 18px; height: 18px; margin-right: 12px; cursor: pointer;">
+                <div>
+                    <div class="title">🎁 Send as a gift (Includes wrapping)</div>
+                    <div class="description" style="color: #666; font-size: 13px; line-height: 1.4;">
+                        We'll wrap it beautifully and ship directly to your recipient.
+                    </div>
+                    <div class="price">+ $<span id="gift-fee">12.00</span> gift service</div>
+                </div>
+            </label>
         </div>
-        
-        <!-- Gift Option -->
-        <div class="section">
-            <div class="checkbox-group">
-                <input type="checkbox" id="gift-service">
-                <label for="gift-service">Add Gift Service (+$12.00)</label>
-            </div>
-        </div>
-        
-        <!-- Shipping Address -->
-        <div class="section" id="shipping-section">
+
+        <div class="checkout-section shipping-address" id="shipping-address-section">
             <h2>Shipping Address</h2>
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text">
-            </div>
-            <div class="form-group">
-                <label>Address</label>
-                <input type="text">
-            </div>
-            <div class="form-group">
-                <label>City</label>
-                <input type="text">
-            </div>
-            <div class="form-group">
-                <label>State</label>
-                <select>
-                    <option value="">Select State</option>
-                    <option value="CA">California</option>
-                    <option value="NY">New York</option>
-                    <option value="TX">Texas</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>ZIP Code</label>
-                <input type="text">
-            </div>
+            <p id="shipping-highlight-note" class="alert hidden">
+                **Note:** This address is for the **gift recipient**.
+            </p>
+            <form>
+                <div class="form-group">
+                    <label for="s-name">Full Name</label>
+                    <input type="text" id="s-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="s-address1">Address Line 1</label>
+                    <input type="text" id="s-address1" required>
+                </div>
+                <div class="form-group">
+                    <label for="s-city">City</label>
+                    <input type="text" id="s-city" required>
+                </div>
+                <div class="form-group">
+                    <label for="s-state">State</label>
+                    <input type="text" id="s-state" required>
+                </div>
+                <div class="form-group">
+                    <label for="s-zip">Zip/Postal Code</label>
+                    <input type="text" id="s-zip" required>
+                </div>
+            </form>
         </div>
-        
-        <!-- Billing Address -->
-        <div class="section">
+
+        <div class="checkout-section">
             <h2>Billing Address</h2>
-            <div class="checkbox-group">
-                <input type="checkbox" id="same-address" checked>
-                <label for="same-address">Same as shipping address</label>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="billing-same" checked>
+                    Billing address is the same as shipping address
+                </label>
             </div>
             
             <div id="billing-address-form" class="hidden">
+                <p style="margin-top: 0; color: #888;">Enter your billing details below. This is used for tax calculation.</p>
                 <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text">
+                    <label for="b-name">Full Name</label>
+                    <input type="text" id="b-name">
                 </div>
                 <div class="form-group">
-                    <label>Address</label>
-                    <input type="text">
+                    <label for="b-address1">Address Line 1</label>
+                    <input type="text" id="b-address1">
                 </div>
                 <div class="form-group">
-                    <label>City</label>
-                    <input type="text">
+                    <label for="b-city">City</label>
+                    <input type="text" id="b-city">
                 </div>
                 <div class="form-group">
-                    <label>State</label>
-                    <select id="billing-state">
-                        <option value="">Select State</option>
+                    <label for="b-state">State</label>
+                    <select id="b-state" onchange="calculateOrderTotal()">
+                        <option value="">-- Select State --</option>
                         <option value="CA">California</option>
                         <option value="NY">New York</option>
                         <option value="TX">Texas</option>
-                    </select>
+                        </select>
                 </div>
                 <div class="form-group">
-                    <label>ZIP Code</label>
-                    <input type="text">
+                    <label for="b-zip">Zip/Postal Code</label>
+                    <input type="text" id="b-zip">
                 </div>
             </div>
         </div>
         
-        <button id="pay-now">Pay Now</button>
+        <div class="checkout-section order-summary">
+            <h3>Order Summary</h3>
+            <div class="summary-line">
+                <span>Product 1 (x1)</span>
+                <span>$<span id="item-price">1.00</span></span>
+            </div>
+            <div id="gift-fee-line" class="summary-line hidden">
+                <span>🎁 Gift Service</span>
+                <span style="color: #d4af37;">$<span id="summary-gift-fee">12.00</span></span>
+            </div>
+            <div class="summary-line">
+                <span>Shipping Cost</span>
+                <span>$<span id="shipping-cost">8.70</span></span>
+            </div>
+            <div id="tax-line" class="summary-line hidden">
+                <span>Sales Tax (CA 7.25%)</span>
+                <span style="color: #dc3545;">$<span id="sales-tax">0.00</span></span>
+            </div>
+            <div class="summary-line summary-total">
+                <span>Order Total</span>
+                <span>$<span id="order-total">9.70</span></span>
+            </div>
+        </div>
+
+        <button class="pay-button" onclick="alert('Payment integration (Stripe) will go here!')">
+            Pay Now (Total: $<span id="final-total-btn">9.70</span>)
+        </button>
     </div>
 
     <script>
+        // Constants
         const PRODUCT_PRICE = 1.00;
-        const GIFT_SERVICE_PRICE = 12.00;
+        const GIFT_FEE = 12.00;
         const SHIPPING_COST = 8.70;
-        const CA_TAX_RATE = 0.0825;
-        
-        const giftCheckbox = document.getElementById('gift-service');
-        const sameAddressCheckbox = document.getElementById('same-address');
-        const billingForm = document.getElementById('billing-address-form');
-        const shippingSection = document.getElementById('shipping-section');
+        const CA_TAX_RATE = 0.0725; // California State Sales Tax
+
+        // DOM elements
+        const giftCheckbox = document.getElementById('gift-checkbox');
+        const shippingSection = document.getElementById('shipping-address-section');
+        const shippingHighlightNote = document.getElementById('shipping-highlight-note');
+        const billingSameCheckbox = document.getElementById('billing-same');
+        const billingAddressForm = document.getElementById('billing-address-form');
+        const billingStateSelect = document.getElementById('b-state');
+        const giftFeeLine = document.getElementById('gift-fee-line');
         const taxLine = document.getElementById('tax-line');
-        const taxAmount = document.getElementById('tax-amount');
-        const totalAmount = document.getElementById('total-amount');
-        const billingState = document.getElementById('billing-state');
-        
-        // Initialize
-        updateTotal();
-        
-        // Event listeners
-        giftCheckbox.addEventListener('change', function() {
-            updateTotal();
-            if (this.checked) {
-                shippingSection.classList.add('gift-highlight');
-            } else {
-                shippingSection.classList.remove('gift-highlight');
-            }
-        });
-        
-        sameAddressCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                billingForm.classList.add('hidden');
-            } else {
-                billingForm.classList.remove('hidden');
-            }
-            updateTotal();
-        });
-        
-        billingState.addEventListener('change', updateTotal);
-        
-        document.getElementById('pay-now').addEventListener('click', function() {
-            // Placeholder for Stripe integration
-            alert('Payment processing would happen here');
-        });
-        
-        function updateTotal() {
-            const isGift = giftCheckbox.checked;
-            let subtotal = PRODUCT_PRICE + SHIPPING_COST;
-            
+        const orderTotalSpan = document.getElementById('order-total');
+        const finalTotalBtnSpan = document.getElementById('final-total-btn');
+        const salesTaxSpan = document.getElementById('sales-tax');
+        const summaryGiftFeeSpan = document.getElementById('summary-gift-fee');
+
+        /**
+         * Calculates the total cost based on the gift option and billing state.
+         */
+        function calculateOrderTotal() {
+            let subtotal = PRODUCT_PRICE;
+            let total = PRODUCT_PRICE + SHIPPING_COST;
+            let taxAmount = 0.00;
+            let isGift = giftCheckbox.checked;
+            let isBillingCA = (billingStateSelect.value === 'CA');
+
+            // 1. Add Gift Fee
             if (isGift) {
-                subtotal += GIFT_SERVICE_PRICE;
+                subtotal += GIFT_FEE;
+                total += GIFT_FEE;
+                giftFeeLine.classList.remove('hidden');
+                summaryGiftFeeSpan.textContent = GIFT_FEE.toFixed(2);
+            } else {
+                giftFeeLine.classList.add('hidden');
             }
-            
-            // Check if billing is in California
-            let tax = 0;
-            if (!sameAddressCheckbox.checked && billingState.value === 'CA') {
-                tax = subtotal * CA_TAX_RATE;
+
+            // 2. Calculate Tax
+            if (isBillingCA) {
+                // Taxable items are: Product Price, Gift Fee, and Shipping Cost
+                const taxableBase = PRODUCT_PRICE + (isGift ? GIFT_FEE : 0) + SHIPPING_COST;
+                taxAmount = taxableBase * CA_TAX_RATE;
+                total += taxAmount;
+
+                salesTaxSpan.textContent = taxAmount.toFixed(2);
                 taxLine.classList.remove('hidden');
-                taxAmount.textContent = '$' + tax.toFixed(2);
             } else {
                 taxLine.classList.add('hidden');
+                taxAmount = 0.00;
             }
-            
-            const total = subtotal + tax;
-            totalAmount.textContent = '$' + total.toFixed(2);
+
+            // Update DOM
+            orderTotalSpan.textContent = total.toFixed(2);
+            finalTotalBtnSpan.textContent = total.toFixed(2);
         }
+
+        /**
+         * Handles gift checkbox logic (highlighting shipping and recalculating).
+         */
+        function handleGiftToggle() {
+            if (giftCheckbox.checked) {
+                shippingSection.classList.add('highlight');
+                shippingHighlightNote.classList.remove('hidden');
+            } else {
+                shippingSection.classList.remove('highlight');
+                shippingHighlightNote.classList.add('hidden');
+            }
+            calculateOrderTotal();
+        }
+
+        /**
+         * Handles billing address same as shipping toggle.
+         */
+        function handleBillingSameToggle() {
+            if (billingSameCheckbox.checked) {
+                billingAddressForm.classList.add('hidden');
+                // When billing is same as shipping, we can't determine the state 
+                // for tax purposes (we only required shipping fields). 
+                // We'll reset billing state to ensure tax is not applied 
+                // unless the specific billing state is chosen.
+                // NOTE: For a production app, you'd likely copy the shipping state here.
+                // For this simple example, we'll clear it to prevent accidental CA tax.
+                billingStateSelect.value = ''; 
+                calculateOrderTotal();
+            } else {
+                billingAddressForm.classList.remove('hidden');
+            }
+        }
+        
+        // Event Listeners
+        giftCheckbox.addEventListener('change', handleGiftToggle);
+        billingSameCheckbox.addEventListener('change', handleBillingSameToggle);
+        
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial item price and shipping cost
+            document.getElementById('item-price').textContent = PRODUCT_PRICE.toFixed(2);
+            document.getElementById('shipping-cost').textContent = SHIPPING_COST.toFixed(2);
+            
+            // Set up billing address form to be hidden on load
+            handleBillingSameToggle();
+            
+            // Calculate initial total
+            calculateOrderTotal();
+        });
     </script>
 </body>
 </html>
