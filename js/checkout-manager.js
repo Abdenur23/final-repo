@@ -1,775 +1,171 @@
-// class CheckoutManager {
-//     constructor() {
-//         this.cart = this.loadCartData();
-//         this.isGift = this.loadGiftOption();
-//         this.salesTaxRate = 0.0825;
-//         this.shippingAddress = {};
-//         this.billingAddress = {};
-//         this.isVerified = false;
+// js/checkout.js
+(async () => {
+  // Utility
+  function $(id){ return document.getElementById(id); }
 
-//         if (this.cart.length === 0) {
-//             alert("Your cart is empty. Redirecting to home.");
-//             window.location.href = 'case.html';
-//             return;
-//         }
+  // Read cart & gift from localStorage (your existing code stores shoppingCart & isGiftOption)
+  const rawCart = localStorage.getItem('shoppingCart') || '[]';
+  const cart = JSON.parse(rawCart);
+  const isGiftLocal = JSON.parse(localStorage.getItem('isGiftOption') || 'false');
 
-//         // Ensure Stripe is available
-//         this.ensureStripeAvailable().then(() => {
-//             this.setupEventListeners();
-//             this.renderSummary();
-//             this.handleGiftOptionUI();
-//         }).catch(error => {
-//             console.error("Failed to initialize checkout:", error);
-//             alert("Payment system unavailable. Please refresh the page.");
-//         });
-//     }
+  const cartList = $('cart-list');
+  const cartEmpty = $('cart-empty');
+  const cartTotals = $('cart-totals');
+  const subtotalEl = $('subtotal');
+  const grandTotalEl = $('grand-total');
 
-//     // Ensure Stripe is available before proceeding
-//     ensureStripeAvailable() {
-//         return new Promise((resolve, reject) => {
-//             let attempts = 0;
-//             const maxAttempts = 50; // 2.5 seconds
-            
-//             const checkStripe = () => {
-//                 attempts++;
-                
-//                 // Check if Stripe is available through our global object
-//                 if (window.stripePayment && window.stripePayment.stripe) {
-//                     resolve();
-//                 } 
-//                 // Alternative: check if we can initialize it
-//                 else if (window.stripePayment && typeof window.stripePayment.initialize === 'function') {
-//                     window.stripePayment.initialize();
-//                     if (window.stripePayment.stripe) {
-//                         resolve();
-//                     } else if (attempts < maxAttempts) {
-//                         setTimeout(checkStripe, 50);
-//                     } else {
-//                         reject(new Error("Stripe not available after timeout"));
-//                     }
-//                 }
-//                 // Last resort: try to create Stripe directly
-//                 else if (typeof Stripe === 'function' && CONFIG.STRIPE_PUBLISHABLE_KEY) {
-//                     window.stripePayment = {
-//                         stripe: Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY)
-//                     };
-//                     resolve();
-//                 }
-//                 else if (attempts < maxAttempts) {
-//                     setTimeout(checkStripe, 50);
-//                 } else {
-//                     reject(new Error("Stripe not available after timeout"));
-//                 }
-//             };
-            
-//             checkStripe();
-//         });
-//     }
-//     // --- Data Loading ---
-//     loadCartData() {
-//         try {
-//             const savedCart = localStorage.getItem('shoppingCart');
-//             return savedCart ? JSON.parse(savedCart) : [];
-//         } catch (e) {
-//             console.error("Failed to load cart data:", e);
-//             return [];
-//         }
-//     }
+  function formatUSD(c) {
+    return `$${(c).toFixed(2)}`;
+  }
 
-//     loadGiftOption() {
-//         const savedGiftOption = localStorage.getItem('isGiftOption');
-//         return savedGiftOption ? JSON.parse(savedGiftOption) : false;
-//     }
+  // Render cart
+  if (!cart || cart.length === 0) {
+    cartEmpty.textContent = 'Your cart is empty. Please add an item first.';
+  } else {
+    cartEmpty.classList.add('hidden');
+    cartList.classList.remove('hidden');
 
-//     // --- UI Setup & Event Listeners ---
-//     setupEventListeners() {
-//         // Address verification (Simulated USPS/Professional)
-//         document.getElementById('verify-address-button').addEventListener('click', (e) => {
-//             e.preventDefault();
-//             this.captureShippingAddress();
-//             this.simulateAddressVerification(this.shippingAddress);
-//         });
+    cartList.innerHTML = cart.map(i => `
+      <div style="display:flex; gap:12px; align-items:center; margin-bottom:8px;">
+        <img src="${i.imageUrl || 'logo.png'}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:6px;">
+        <div style="flex:1;">
+          <div style="font-weight:600;">${i.paletteName}</div>
+          <div class="muted" style="font-size:13px;">${i.discount > 0 ? i.discount + '% off' : ''}</div>
+        </div>
+        <div style="min-width:90px; text-align:right;">${formatUSD(i.discountedPrice)}</div>
+      </div>
+    `).join('');
+    cartTotals.classList.remove('hidden');
+  }
 
-//         // Billing/Shipping coordination
-//         document.getElementById('match-addresses-checkbox').addEventListener('change', (e) => {
-//             this.toggleBillingAddressSection(e.target.checked);
-//             // Re-render summary on change, in case it affects tax state (if logic were more complex)
-//             this.renderSummary(); 
-//         });
+  const subtotal = cart.reduce((s, it) => s + (it.discountedPrice || 0), 0);
+  subtotalEl.textContent = subtotal.toFixed(2);
+  // We will update grand total after server returns session/amount (server calculates tax if any).
+  grandTotalEl.textContent = subtotal.toFixed(2);
 
-//         // Checkout button
-//         document.getElementById('checkout-button').addEventListener('click', (e) => {
-//             e.preventDefault();
-//             this.handleCheckoutClick();
-//         });
+  // Prefill gift checkbox from localStorage
+  $('is-gift').checked = isGiftLocal;
 
-//         // Update button status on any input change (for address verification)
-//         const shippingInputs = document.querySelectorAll('#shipping-form input');
-//         shippingInputs.forEach(input => input.addEventListener('input', () => this.resetVerification()));
-        
-//         // Initial setup for the checkbox to copy to billing
-//         this.toggleBillingAddressSection(true);
-//     }
+  // Billing same toggle
+  $('billing-same').addEventListener('change', (e) => {
+    if (e.target.checked) {
+      $('billing-panel').classList.add('hidden');
+    } else {
+      $('billing-panel').classList.remove('hidden');
+    }
+  });
 
-//     handleGiftOptionUI() {
-//         const titleElement = document.getElementById('shipping-address-title');
-//         const sectionElement = document.getElementById('shipping-address-section');
-        
-//         if (this.isGift) {
-//             // 2. Highlight gift recipient address
-//             titleElement.textContent = '🎁 Gift Recipient Address (Shipping)';
-//             sectionElement.classList.add('gift-highlight');
-//         } else {
-//             titleElement.textContent = '📦 Shipping Address';
-//             sectionElement.classList.remove('gift-highlight');
-//         }
-//     }
-    
-//     toggleBillingAddressSection(matchChecked) {
-//         const billingSection = document.getElementById('billing-address-section');
-//         if (matchChecked) {
-//             billingSection.style.display = 'none';
-//         } else {
-//             billingSection.style.display = 'block';
-//         }
-//     }
+  // Cancel
+  $('cancel-btn').addEventListener('click', () => {
+    window.location.href = '/'; // or go back to product
+  });
 
-//     // --- Address Handling ---
+  // Main flow: verify & create checkout session
+  $('verify-btn').addEventListener('click', async () => {
+    $('verify-btn').disabled = true;
+    $('verify-message').textContent = 'Verifying address…';
 
-//     captureShippingAddress() {
-//         const form = document.getElementById('shipping-form');
-//         this.shippingAddress = {
-//             name: form.elements['name'].value,
-//             line1: form.elements['line1'].value,
-//             line2: form.elements['line2'].value,
-//             city: form.elements['city'].value,
-//             state: form.elements['state'].value.toUpperCase(),
-//             zip: form.elements['zip'].value
-//         };
-//     }
+    // Build shipping object
+    const shipping = {
+      name: $('ship-name').value.trim(),
+      phone: $('ship-phone').value.trim(),
+      line1: $('ship-line1').value.trim(),
+      line2: $('ship-line2').value.trim(),
+      city: $('ship-city').value.trim(),
+      state: $('ship-state').value,
+      postal_code: $('ship-zip').value.trim(),
+      country: $('ship-country').value
+    };
 
-//     captureBillingAddress() {
-//         const matchChecked = document.getElementById('match-addresses-checkbox').checked;
-        
-//         if (matchChecked) {
-//             // 3. Professional coordination: Use shipping as billing
-//             this.billingAddress = {...this.shippingAddress}; 
-//         } else {
-//             // Use separate billing form data
-//             const form = document.getElementById('billing-form');
-//             this.billingAddress = {
-//                 name: form.elements['name'].value,
-//                 line1: form.elements['line1'].value,
-//                 line2: form.elements['line2'].value,
-//                 city: form.elements['city'].value,
-//                 state: form.elements['state'].value.toUpperCase(),
-//                 zip: form.elements['zip'].value
-//             };
-//         }
-//     }
-
-//     resetVerification() {
-//         this.isVerified = false;
-//         document.getElementById('address-verification-feedback').style.display = 'none';
-//         document.getElementById('checkout-button').disabled = true;
-//     }
-
-//     // 1. Simulated Address Verification
-//     simulateAddressVerification(address) {
-//         const feedback = document.getElementById('address-verification-feedback');
-//         feedback.classList.remove('success', 'error');
-        
-//         // Simple logic: assume verification success if main fields are not empty
-//         const isValid = address.line1 && address.city && address.state && address.zip;
-
-//         if (isValid) {
-//             // In a real app, this would be a USPS API call. 
-//             // It would also normalize the address, which you could update in the form fields.
-//             this.isVerified = true;
-//             feedback.textContent = `Address Verified: ${address.line1}, ${address.city}, ${address.state} ${address.zip}`;
-//             feedback.classList.add('success');
-//             feedback.style.display = 'block';
-//             document.getElementById('checkout-button').disabled = false;
-//             this.renderSummary(); // Re-render to calculate tax after verification
-//         } else {
-//             this.isVerified = false;
-//             feedback.textContent = 'Error: Please fill out all required shipping address fields (Line 1, City, State, ZIP) and try again.';
-//             feedback.classList.add('error');
-//             feedback.style.display = 'block';
-//             document.getElementById('checkout-button').disabled = true;
-//         }
-//     }
-
-//     // --- Calculation & Summary ---
-//     getCalculatedTotals() {
-//         const subtotal = this.cart.reduce((total, item) => total + item.discountedPrice, 0);
-//         const giftFee = this.isGift ? 12.00 : 0.00;
-        
-//         let salesTax = 0.00;
-//         // 4. Calculate state sales tax ONLY if shipping address is in California (CA)
-//         if (this.isVerified && this.shippingAddress.state === 'CA') {
-//             salesTax = (subtotal + giftFee) * this.salesTaxRate;
-//         }
-
-//         const orderTotal = subtotal + giftFee + salesTax;
-
-//         return { subtotal, giftFee, salesTax, orderTotal };
-//     }
-
-//     renderSummary() {
-//         const { subtotal, giftFee, salesTax, orderTotal } = this.getCalculatedTotals();
-
-//         document.getElementById('summary-subtotal').textContent = subtotal.toFixed(2);
-        
-//         const giftLine = document.getElementById('summary-gift-line');
-//         giftLine.style.display = giftFee > 0 ? 'flex' : 'none';
-//         document.getElementById('summary-gift-fee').textContent = giftFee.toFixed(2);
-        
-//         const taxLine = document.getElementById('summary-tax-line');
-//         // 4. Sales Tax logic: ONLY display if salesTax > 0 (i.e., in CA)
-//         if (salesTax > 0.001) { // Check against a small number for floating point safety
-//             taxLine.style.display = 'flex';
-//             document.getElementById('summary-tax').textContent = salesTax.toFixed(2);
-//             document.getElementById('tax-rate-display').textContent = `${(this.salesTaxRate * 100).toFixed(2)}%`;
-//         } else {
-//             taxLine.style.display = 'none';
-//         }
-
-//         document.getElementById('summary-total').textContent = orderTotal.toFixed(2);
-//     }
-
-//     // --- Final Checkout ---
-
-//     // js/checkout-manager.js - UPDATED
-// class CheckoutManager {
-//     constructor() {
-//         this.cart = this.loadCartData();
-//         this.isGift = this.loadGiftOption();
-//         this.salesTaxRate = 0.0825;
-//         this.shippingAddress = {};
-//         this.billingAddress = {};
-//         this.isVerified = false;
-
-//         if (this.cart.length === 0) {
-//             alert("Your cart is empty. Redirecting to home.");
-//             window.location.href = 'case.html';
-//             return;
-//         }
-
-//         // Ensure Stripe is available
-//         this.ensureStripeAvailable().then(() => {
-//             this.setupEventListeners();
-//             this.renderSummary();
-//             this.handleGiftOptionUI();
-//         }).catch(error => {
-//             console.error("Failed to initialize checkout:", error);
-//             alert("Payment system unavailable. Please refresh the page.");
-//         });
-//     }
-
-//     // Ensure Stripe is available before proceeding
-//     ensureStripeAvailable() {
-//         return new Promise((resolve, reject) => {
-//             let attempts = 0;
-//             const maxAttempts = 50; // 2.5 seconds
-            
-//             const checkStripe = () => {
-//                 attempts++;
-                
-//                 // Check if Stripe is available through our global object
-//                 if (window.stripePayment && window.stripePayment.stripe) {
-//                     resolve();
-//                 } 
-//                 // Alternative: check if we can initialize it
-//                 else if (window.stripePayment && typeof window.stripePayment.initialize === 'function') {
-//                     window.stripePayment.initialize();
-//                     if (window.stripePayment.stripe) {
-//                         resolve();
-//                     } else if (attempts < maxAttempts) {
-//                         setTimeout(checkStripe, 50);
-//                     } else {
-//                         reject(new Error("Stripe not available after timeout"));
-//                     }
-//                 }
-//                 // Last resort: try to create Stripe directly
-//                 else if (typeof Stripe === 'function' && CONFIG.STRIPE_PUBLISHABLE_KEY) {
-//                     window.stripePayment = {
-//                         stripe: Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY)
-//                     };
-//                     resolve();
-//                 }
-//                 else if (attempts < maxAttempts) {
-//                     setTimeout(checkStripe, 50);
-//                 } else {
-//                     reject(new Error("Stripe not available after timeout"));
-//                 }
-//             };
-            
-//             checkStripe();
-//         });
-//     }
-
-//     // ... rest of your existing CheckoutManager methods remain the same ...
-    
-//     async handleCheckoutClick() {
-//         if (!this.isVerified) {
-//             alert("Please verify the shipping address before proceeding.");
-//             return;
-//         }
-
-//         // Double-check Stripe availability
-//         if (!window.stripePayment || !window.stripePayment.stripe) {
-//             alert("Payment system not ready. Please try again.");
-//             return;
-//         }
-
-//         this.captureBillingAddress();
-
-//         try {
-//             const session = window.getSession ? window.getSession() : null;
-//             const userInfo = window.getUserInfo ? window.getUserInfo() : null;
-            
-//             if (!session || !session.id_token) {
-//                 alert('Authentication session not found. Please sign in again.');
-//                 return;
-//             }
-
-//             const totals = this.getCalculatedTotals();
-//             const totalAmountCents = Math.round(totals.orderTotal * 100);
-            
-//             const requestBody = {
-//                 action: 'createCheckoutSession',
-//                 user_email: userInfo ? userInfo.email : null,
-//                 amount: totalAmountCents,
-//                 cart_items: this.cart,
-//                 item_count: this.cart.length,
-//                 is_gift: this.isGift,
-//                 shipping_address: this.shippingAddress,
-//                 billing_address: this.billingAddress,
-//                 sales_tax: Math.round(totals.salesTax * 100),
-//             };
-
-//             document.getElementById('checkout-button').textContent = 'Processing...';
-//             document.getElementById('checkout-button').disabled = true;
-
-//             const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
-//                 method: 'POST',
-//                 headers: {
-//                     'Content-Type': 'application/json',
-//                     'Authorization': `Bearer ${session.id_token}`
-//                 },
-//                 body: JSON.stringify(requestBody)
-//             });
-
-//             if (!response.ok) {
-//                 const errorText = await response.text();
-//                 throw new Error('Failed to create checkout session: ' + errorText);
-//             }
-
-//             const checkoutSession = await response.json();
-            
-//             // Use the verified stripe instance
-//             const result = await window.stripePayment.stripe.redirectToCheckout({
-//                 sessionId: checkoutSession.id
-//             });
-
-//             if (result.error) {
-//                 throw new Error(result.error.message);
-//             }
-            
-//         } catch (error) {
-//             console.error('Final Checkout error:', error);
-//             alert('Error starting payment: ' + error.message);
-//             document.getElementById('checkout-button').textContent = 'Proceed to Stripe Payment';
-//             document.getElementById('checkout-button').disabled = false;
-//         }
-//     }
-// }
-
-class CheckoutManager {
-    constructor() {
-        this.cart = this.loadCartData();
-        this.isGift = this.loadGiftOption();
-        this.salesTaxRate = 0.0825;
-        this.shippingAddress = {};
-        this.billingAddress = {};
-        this.isVerified = false;
-
-        if (this.cart.length === 0) {
-            alert("Your cart is empty. Redirecting to home.");
-            window.location.href = 'case.html';
-            return;
-        }
-
-        // Ensure Stripe is available
-        this.ensureStripeAvailable().then(() => {
-            this.setupEventListeners();
-            this.renderSummary();
-            this.handleGiftOptionUI();
-        }).catch(error => {
-            console.error("Failed to initialize checkout:", error);
-            alert("Payment system unavailable. Please refresh the page.");
-        });
+    if (!shipping.name || !shipping.line1 || !shipping.city || !shipping.state || !shipping.postal_code) {
+      $('verify-message').textContent = 'Please complete all required shipping fields.';
+      $('verify-btn').disabled = false;
+      return;
     }
 
-    // Ensure Stripe is available before proceeding
-    ensureStripeAvailable() {
-        return new Promise((resolve, reject) => {
-            let attempts = 0;
-            const maxAttempts = 50; // 2.5 seconds
-            
-            const checkStripe = () => {
-                attempts++;
-                
-                // Check if Stripe is available through our global object
-                if (window.stripePayment && window.stripePayment.stripe) {
-                    resolve();
-                } 
-                // Alternative: check if we can initialize it
-                else if (window.stripePayment && typeof window.stripePayment.initialize === 'function') {
-                    window.stripePayment.initialize();
-                    if (window.stripePayment.stripe) {
-                        resolve();
-                    } else if (attempts < maxAttempts) {
-                        setTimeout(checkStripe, 50);
-                    } else {
-                        reject(new Error("Stripe not available after timeout"));
-                    }
-                }
-                // Last resort: try to create Stripe directly
-                else if (typeof Stripe === 'function' && CONFIG.STRIPE_PUBLISHABLE_KEY) {
-                    window.stripePayment = {
-                        stripe: Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY)
-                    };
-                    resolve();
-                }
-                else if (attempts < maxAttempts) {
-                    setTimeout(checkStripe, 50);
-                } else {
-                    reject(new Error("Stripe not available after timeout"));
-                }
-            };
-            
-            checkStripe();
-        });
-    }
-    // --- Data Loading ---
-    loadCartData() {
-        try {
-            const savedCart = localStorage.getItem('shoppingCart');
-            return savedCart ? JSON.parse(savedCart) : [];
-        } catch (e) {
-            console.error("Failed to load cart data:", e);
-            return [];
-        }
+    // Billing (if not same)
+    let billing = null;
+    if (!$('billing-same').checked) {
+      billing = {
+        name: $('bill-name').value.trim(),
+        line1: $('bill-line1').value.trim(),
+        city: $('bill-city').value.trim(),
+        state: $('bill-state').value,
+        postal_code: $('bill-zip').value.trim(),
+        country: $('bill-country').value
+      };
+      if (!billing.name || !billing.line1) {
+        $('verify-message').textContent = 'Please complete billing address fields or check "Billing same as shipping".';
+        $('verify-btn').disabled = false;
+        return;
+      }
+    } else {
+      billing = { ...shipping };
     }
 
-    loadGiftOption() {
-        const savedGiftOption = localStorage.getItem('isGiftOption');
-        return savedGiftOption ? JSON.parse(savedGiftOption) : false;
+    const isGift = !!$('is-gift').checked;
+
+    // 1) Verify address server-side (server should talk to USPS/Smarty/Lob)
+    try {
+      const vResp = await fetch('/api/verify-address', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ shipping })
+      });
+      if (!vResp.ok) {
+        const text = await vResp.text();
+        $('verify-message').textContent = 'Address verification failed: ' + text;
+        $('verify-btn').disabled = false;
+        return;
+      }
+      const verified = await vResp.json();
+      // server returns { ok: true, normalizedShipping } or similar
+      // show a concise message to user
+      $('verify-message').textContent = 'Address verified. Preparing secure payment…';
+    } catch (err) {
+      console.error(err);
+      $('verify-message').textContent = 'Address verification failed. Try again later.';
+      $('verify-btn').disabled = false;
+      return;
     }
 
-    // --- UI Setup & Event Listeners ---
-    setupEventListeners() {
-        // Address verification (Simulated USPS/Professional)
-        document.getElementById('verify-address-button').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.captureShippingAddress();
-            this.simulateAddressVerification(this.shippingAddress);
-        });
+    // 2) Request server to create a Checkout Session
+    try {
+      const createResp = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          cart,
+          shipping,
+          billing,
+          is_gift: isGift,
+          // optional: pass a coupon/promo code if you track it
+        })
+      });
+      if (!createResp.ok) {
+        const text = await createResp.text();
+        $('verify-message').textContent = 'Checkout creation failed: ' + text;
+        $('verify-btn').disabled = false;
+        return;
+      }
+      const payload = await createResp.json();
+      // payload: { sessionId, amountDisplay } - amountDisplay is total in dollars the server calculated
+      // Update total shown on the page with the final server-calculated total (server includes CA tax when applicable).
+      if (payload.amountDisplay) {
+        grandTotalEl.textContent = payload.amountDisplay;
+      }
 
-        // Billing/Shipping coordination
-        document.getElementById('match-addresses-checkbox').addEventListener('change', (e) => {
-            this.toggleBillingAddressSection(e.target.checked);
-            // Re-render summary on change, in case it affects tax state (if logic were more complex)
-            this.renderSummary(); 
-        });
-
-        // Checkout button
-        document.getElementById('checkout-button').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.handleCheckoutClick();
-        });
-
-        // Update button status on any input change (for address verification)
-        const shippingInputs = document.querySelectorAll('#shipping-form input');
-        shippingInputs.forEach(input => input.addEventListener('input', () => this.resetVerification()));
-        
-        // Initial setup for the checkbox to copy to billing
-        this.toggleBillingAddressSection(true);
+      // Redirect to Stripe Checkout using returned sessionId
+      const stripe = Stripe(payload.publishableKey || payload.stripePublishableKey || '');
+      const result = await stripe.redirectToCheckout({ sessionId: payload.sessionId });
+      if (result.error) {
+        $('verify-message').textContent = 'Stripe error: ' + result.error.message;
+        $('verify-btn').disabled = false;
+      }
+    } catch (err) {
+      console.error(err);
+      $('verify-message').textContent = 'Payment initialization failed.';
+      $('verify-btn').disabled = false;
     }
-
-    handleGiftOptionUI() {
-        const titleElement = document.getElementById('shipping-address-title');
-        const sectionElement = document.getElementById('shipping-address-section');
-        
-        if (this.isGift) {
-            // 2. Highlight gift recipient address
-            titleElement.textContent = '🎁 Gift Recipient Address (Shipping)';
-            sectionElement.classList.add('gift-highlight');
-        } else {
-            titleElement.textContent = '📦 Shipping Address';
-            sectionElement.classList.remove('gift-highlight');
-        }
-    }
-    
-    toggleBillingAddressSection(matchChecked) {
-        const billingSection = document.getElementById('billing-address-section');
-        if (matchChecked) {
-            billingSection.style.display = 'none';
-        } else {
-            billingSection.style.display = 'block';
-        }
-    }
-
-    // --- Address Handling ---
-
-    captureShippingAddress() {
-        const form = document.getElementById('shipping-form');
-        this.shippingAddress = {
-            name: form.elements['name'].value,
-            line1: form.elements['line1'].value,
-            line2: form.elements['line2'].value,
-            city: form.elements['city'].value,
-            state: form.elements['state'].value.toUpperCase(),
-            zip: form.elements['zip'].value
-        };
-    }
-
-    captureBillingAddress() {
-        const matchChecked = document.getElementById('match-addresses-checkbox').checked;
-        
-        if (matchChecked) {
-            // 3. Professional coordination: Use shipping as billing
-            this.billingAddress = {...this.shippingAddress}; 
-        } else {
-            // Use separate billing form data
-            const form = document.getElementById('billing-form');
-            this.billingAddress = {
-                name: form.elements['name'].value,
-                line1: form.elements['line1'].value,
-                line2: form.elements['line2'].value,
-                city: form.elements['city'].value,
-                state: form.elements['state'].value.toUpperCase(),
-                zip: form.elements['zip'].value
-            };
-        }
-    }
-
-    resetVerification() {
-        this.isVerified = false;
-        document.getElementById('address-verification-feedback').style.display = 'none';
-        document.getElementById('checkout-button').disabled = true;
-    }
-
-    // 1. Simulated Address Verification
-    simulateAddressVerification(address) {
-        const feedback = document.getElementById('address-verification-feedback');
-        feedback.classList.remove('success', 'error');
-        
-        // Simple logic: assume verification success if main fields are not empty
-        const isValid = address.line1 && address.city && address.state && address.zip;
-
-        if (isValid) {
-            // In a real app, this would be a USPS API call. 
-            // It would also normalize the address, which you could update in the form fields.
-            this.isVerified = true;
-            feedback.textContent = `Address Verified: ${address.line1}, ${address.city}, ${address.state} ${address.zip}`;
-            feedback.classList.add('success');
-            feedback.style.display = 'block';
-            document.getElementById('checkout-button').disabled = false;
-            this.renderSummary(); // Re-render to calculate tax after verification
-        } else {
-            this.isVerified = false;
-            feedback.textContent = 'Error: Please fill out all required shipping address fields (Line 1, City, State, ZIP) and try again.';
-            feedback.classList.add('error');
-            feedback.style.display = 'block';
-            document.getElementById('checkout-button').disabled = true;
-        }
-    }
-
-    // --- Calculation & Summary ---
-    getCalculatedTotals() {
-        const subtotal = this.cart.reduce((total, item) => total + item.discountedPrice, 0);
-        const giftFee = this.isGift ? 12.00 : 0.00;
-        
-        let salesTax = 0.00;
-        // 4. Calculate state sales tax ONLY if shipping address is in California (CA)
-        if (this.isVerified && this.shippingAddress.state === 'CA') {
-            salesTax = (subtotal + giftFee) * this.salesTaxRate;
-        }
-
-        const orderTotal = subtotal + giftFee + salesTax;
-
-        return { subtotal, giftFee, salesTax, orderTotal };
-    }
-
-    renderSummary() {
-        const { subtotal, giftFee, salesTax, orderTotal } = this.getCalculatedTotals();
-
-        document.getElementById('summary-subtotal').textContent = subtotal.toFixed(2);
-        
-        const giftLine = document.getElementById('summary-gift-line');
-        giftLine.style.display = giftFee > 0 ? 'flex' : 'none';
-        document.getElementById('summary-gift-fee').textContent = giftFee.toFixed(2);
-        
-        const taxLine = document.getElementById('summary-tax-line');
-        // 4. Sales Tax logic: ONLY display if salesTax > 0 (i.e., in CA)
-        if (salesTax > 0.001) { // Check against a small number for floating point safety
-            taxLine.style.display = 'flex';
-            document.getElementById('summary-tax').textContent = salesTax.toFixed(2);
-            document.getElementById('tax-rate-display').textContent = `${(this.salesTaxRate * 100).toFixed(2)}%`;
-        } else {
-            taxLine.style.display = 'none';
-        }
-
-        document.getElementById('summary-total').textContent = orderTotal.toFixed(2);
-    }
-
-    // --- Final Checkout ---
-
-    // js/checkout-manager.js - UPDATED
-class CheckoutManager {
-    constructor() {
-        this.cart = this.loadCartData();
-        this.isGift = this.loadGiftOption();
-        this.salesTaxRate = 0.0825;
-        this.shippingAddress = {};
-        this.billingAddress = {};
-        this.isVerified = false;
-
-        if (this.cart.length === 0) {
-            alert("Your cart is empty. Redirecting to home.");
-            window.location.href = 'case.html';
-            return;
-        }
-
-        // Ensure Stripe is available
-        this.ensureStripeAvailable().then(() => {
-            this.setupEventListeners();
-            this.renderSummary();
-            this.handleGiftOptionUI();
-        }).catch(error => {
-            console.error("Failed to initialize checkout:", error);
-            alert("Payment system unavailable. Please refresh the page.");
-        });
-    }
-
-    // Ensure Stripe is available before proceeding
-    ensureStripeAvailable() {
-        return new Promise((resolve, reject) => {
-            let attempts = 0;
-            const maxAttempts = 50; // 2.5 seconds
-            
-            const checkStripe = () => {
-                attempts++;
-                
-                // Check if Stripe is available through our global object
-                if (window.stripePayment && window.stripePayment.stripe) {
-                    resolve();
-                } 
-                // Alternative: check if we can initialize it
-                else if (window.stripePayment && typeof window.stripePayment.initialize === 'function') {
-                    window.stripePayment.initialize();
-                    if (window.stripePayment.stripe) {
-                        resolve();
-                    } else if (attempts < maxAttempts) {
-                        setTimeout(checkStripe, 50);
-                    } else {
-                        reject(new Error("Stripe not available after timeout"));
-                    }
-                }
-                // Last resort: try to create Stripe directly
-                else if (typeof Stripe === 'function' && CONFIG.STRIPE_PUBLISHABLE_KEY) {
-                    window.stripePayment = {
-                        stripe: Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY)
-                    };
-                    resolve();
-                }
-                else if (attempts < maxAttempts) {
-                    setTimeout(checkStripe, 50);
-                } else {
-                    reject(new Error("Stripe not available after timeout"));
-                }
-            };
-            
-            checkStripe();
-        });
-    }
-
-    // ... rest of your existing CheckoutManager methods remain the same ...
-    
-    async handleCheckoutClick() {
-        if (!this.isVerified) {
-            alert("Please verify the shipping address before proceeding.");
-            return;
-        }
-
-        // Double-check Stripe availability
-        if (!window.stripePayment || !window.stripePayment.stripe) {
-            alert("Payment system not ready. Please try again.");
-            return;
-        }
-
-        this.captureBillingAddress();
-
-        try {
-            const session = window.getSession ? window.getSession() : null;
-            const userInfo = window.getUserInfo ? window.getUserInfo() : null;
-            
-            if (!session || !session.id_token) {
-                alert('Authentication session not found. Please sign in again.');
-                return;
-            }
-
-            const totals = this.getCalculatedTotals();
-            const totalAmountCents = Math.round(totals.orderTotal * 100);
-            
-            const requestBody = {
-                action: 'createCheckoutSession',
-                user_email: userInfo ? userInfo.email : null,
-                amount: totalAmountCents,
-                cart_items: this.cart,
-                item_count: this.cart.length,
-                is_gift: this.isGift,
-                shipping_address: this.shippingAddress,
-                billing_address: this.billingAddress,
-                sales_tax: Math.round(totals.salesTax * 100),
-            };
-
-            document.getElementById('checkout-button').textContent = 'Processing...';
-            document.getElementById('checkout-button').disabled = true;
-
-            const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.id_token}`
-                },
-                body: JSON.stringify(requestBody)
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error('Failed to create checkout session: ' + errorText);
-            }
-
-            const checkoutSession = await response.json();
-            
-            // Use the verified stripe instance
-            const result = await window.stripePayment.stripe.redirectToCheckout({
-                sessionId: checkoutSession.id
-            });
-
-            if (result.error) {
-                throw new Error(result.error.message);
-            }
-            
-        } catch (error) {
-            console.error('Final Checkout error:', error);
-            alert('Error starting payment: ' + error.message);
-            document.getElementById('checkout-button').textContent = 'Proceed to Stripe Payment';
-            document.getElementById('checkout-button').disabled = false;
-        }
-    }
-}
+  });
+})();
