@@ -524,24 +524,26 @@ async function handlePayment() {
         return;
     }
 
-    // Prepare order data - simplified to match what your Lambda expects
-    const requestBody = {
-        action: 'createCheckoutSession',
-        user_email: userInfo.email,
-        amount: amountInCents,
-        cart_items: [{
-            name: 'Product 1',
-            price: PRODUCT_PRICE,
-            quantity: 1
-        }],
-        item_count: 1
-    };
-
     try {
         // Disable pay button
         const payButton = document.getElementById('pay-button');
         payButton.disabled = true;
         payButton.textContent = 'Processing...';
+
+        // Create the exact request body that matches your Lambda's expectations
+        const requestBody = {
+            action: 'createCheckoutSession',
+            user_email: userInfo.email,
+            amount: amountInCents,
+            cart_items: [{
+                name: 'Product 1',
+                price: PRODUCT_PRICE,
+                quantity: 1
+            }],
+            item_count: 1
+        };
+
+        console.log('Sending request to Lambda:', requestBody);
 
         // Create checkout session with auth header
         const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
@@ -553,27 +555,31 @@ async function handlePayment() {
             body: JSON.stringify(requestBody)
         });
 
-        // Handle response
-        if (!response.ok) {
-            let errorMessage = 'Failed to create payment session';
-            
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.error || errorMessage;
-            } catch (e) {
-                // If we can't parse JSON, use status text
-                errorMessage = response.statusText || errorMessage;
-            }
-            
-            throw new Error(errorMessage);
+        console.log('Response status:', response.status);
+
+        // Get the response text first to see what's coming back
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            console.error('Failed to parse JSON response:', responseText);
+            throw new Error('Invalid response from server');
         }
 
-        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || `Server error: ${response.status}`);
+        }
 
         // Check if we got a valid session ID
         if (!data.id) {
-            throw new Error('Invalid response from server: No session ID received');
+            console.error('Invalid response data:', data);
+            throw new Error('No session ID received from server');
         }
+
+        console.log('Stripe session created:', data.id);
 
         // Redirect to Stripe Checkout
         const result = await stripe.redirectToCheckout({
@@ -594,7 +600,6 @@ async function handlePayment() {
         payButton.textContent = `Pay Now (Total: $${totalAmount.toFixed(2)})`;
     }
 }
-
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
     // Set initial item price and shipping cost
