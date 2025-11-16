@@ -1,166 +1,316 @@
-/**
- * // js/stripe-payment.js
- * * Client-side Stripe integration script for TheWeer.com.
- * This script interacts with the serverless Lambda function to handle
- * Stripe Checkout session creation and retrieval of session/order details.
- */
+// js/stripe-payment.js
+// js/stripe-payment.js
+class StripePayment {
+    constructor() {
+        this.stripe = null;
+        this.cart = [];
+        this.isGift = false;
+        this.taxRate = 0.0825; // 8.25% CA sales tax
+        this.shipping = {};
+        this.billing = {};
+        this.isBillingSame = true;
+        this.initializeStripe();
+        this.loadCartFromStorage();
+        this.setupModalCloseHandlers();
+        this.setupEventListeners();
+    }
 
-// Initialize Stripe with your publishable key
-// Replace 'pk_test_YOUR_PUBLISHABLE_KEY' with your actual Stripe Publishable Key.
-const stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
+    initializeStripe() {
+        this.stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
+    }
 
-// Replace with your Lambda API Gateway endpoint URL
-const LAMBDA_API_ENDPOINT = CONFIG.CHECKOUT_API_ENDPOINT; 
+    loadCartFromStorage() {
+        const savedCart = localStorage.getItem('shoppingCart');
+        const savedGift = localStorage.getItem('isGiftOption');
+        if (savedCart) this.cart = JSON.parse(savedCart);
+        if (savedGift !== null) this.isGift = JSON.parse(savedGift);
+        this.updateCartUI();
+    }
 
-/**
- * Calls the Lambda API with a specific action and payload.
- * @param {string} action - The action for the Lambda function (e.g., 'createCheckoutSession').
- * @param {object} payload - The data to send in the request body.
- * @returns {Promise<object>} The JSON response from the Lambda.
- */
-async function callLambdaApi(action, payload) {
-    try {
-        const response = await fetch(LAMBDA_API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: action,
-                ...payload
-            })
-        });
+    saveCartToStorage() {
+        localStorage.setItem('shoppingCart', JSON.stringify(this.cart));
+        localStorage.setItem('isGiftOption', JSON.stringify(this.isGift));
+    }
 
-        const data = await response.json();
-
-        if (response.ok) {
-            if (data.error) {
-                throw new Error(data.error);
+    setupModalCloseHandlers() {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('cart-modal').style.display === 'block') {
+                this.closeCartModal();
             }
-            return data;
-        } else {
-            // Handle non-200 responses, which still might contain a body
-            const errorMessage = data.error || `HTTP error! Status: ${response.status}`;
-            throw new Error(errorMessage);
-        }
-    } catch (error) {
-        console.error(`Lambda API call failed for action '${action}':`, error);
-        throw error;
-    }
-}
-
-/**
- * Initiates the Stripe Checkout process.
- * Calls the Lambda to create a session and redirects the user.
- * @param {string} userEmail - The customer's email.
- * @param {number} amount - The total amount in cents.
- * @param {Array<object>} cartItems - The list of items in the cart.
- * @param {number} itemCount - The total number of unique/distinct items.
- */
-async function initiateStripeCheckout(userEmail, amount, cartItems, itemCount) {
-    if (!stripe) {
-        console.error("Stripe is not initialized. Check your publishable key.");
-        alert("Payment system error. Please try again later.");
-        return;
-    }
-
-    try {
-        // 1. Call the Lambda to create the Stripe Checkout Session
-        const sessionResponse = await callLambdaApi('createCheckoutSession', {
-            user_email: userEmail,
-            amount: amount,
-            cart_items: cartItems,
-            item_count: itemCount
         });
 
-        const sessionId = sessionResponse.id;
+        document.getElementById('cart-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'cart-modal') this.closeCartModal();
+        });
+    }
 
-        // 2. Redirect to Stripe Checkout
-        const result = await stripe.redirectToCheckout({
-            sessionId: sessionId
+    setupEventListeners() {
+        // Gift checkbox
+        document.getElementById('gift-checkbox')?.addEventListener('change', (e) => {
+            this.isGift = e.target.checked;
+            this.saveCartToStorage();
+            this.updateCartTotal();
         });
 
-        if (result.error) {
-            console.error("Stripe redirect failed:", result.error.message);
-            alert(`Payment failed: ${result.error.message}`);
+        // Billing same as shipping
+        document.getElementById('same-billing')?.addEventListener('change', (e) => {
+            this.isBillingSame = e.target.checked;
+            document.getElementById('billing-fields').style.display = this.isBillingSame ? 'none' : 'block';
+            this.updateTax();
+        });
+
+        // Real-time tax update on billing state change
+        document.getElementById('billing-state')?.addEventListener('change', () => this.updateTax());
+        document.getElementById('shipping-state')?.addEventListener('change', () => {
+            if (this.isBillingSame) this.updateTax();
+        });
+    }
+
+    addToCart(designId, realtimeUpdates) {
+        if (this.isInCart(designId)) {
+            this.showError('This design is already in your cart');
+            return;
         }
 
-    } catch (error) {
-        console.error("Error during checkout initiation:", error);
-        alert(`Could not start payment process: ${error.message || 'Internal error.'}`);
-    }
-}
+        const design = realtimeUpdates.progressTracker.getCompletedDesign(designId);
+        if (!design) return;
 
-/**
- * Retrieves Stripe session and order details after a successful checkout.
- * Should be called on the success page (e.g., 'success.html').
- * @param {string} sessionId - The Stripe Checkout Session ID from the URL query parameter.
- * @returns {Promise<object | null>} The session and order data or null on failure.
- */
-async function getSessionAndOrderDetails(sessionId) {
-    if (!sessionId) {
-        console.error("Missing Stripe Session ID.");
-        return null;
-    }
+        const discount = realtimeUpdates.promoManager.getActiveDiscount();
+        const price = CONFIG.PRODUCT_PRICE * (1 - discount / 100);
 
-    try {
-        // 1. Call the Lambda to retrieve session and order details
-        const details = await callLambdaApi('getSessionDetails', {
-            session_id: sessionId
+        this.cart.push({
+            designId, designData: design, originalPrice: CONFIG.PRODUCT_PRICE,
+            discountedPrice: price, discount, paletteName: design.paletteName || 'Custom',
+            imageUrl: design.imageUrls?.[0], addedAt: new Date().toISOString()
         });
 
-        // 2. Optionally, mark the order as 'COMPLETED' after showing details/confirmation
-        if (details && details.order_status !== 'COMPLETED') {
-            await callLambdaApi('completeOrder', {
-                session_id: sessionId
+        this.saveCartToStorage();
+        this.updateCartUI();
+        this.updateProductCardButtons();
+        this.showAddToCartConfirmation(this.cart[this.cart.length - 1]);
+    }
+
+    isInCart(designId) { return this.cart.some(i => i.designId === designId); }
+
+    showAddToCartConfirmation(item) {
+        const notif = document.createElement('div');
+        notif.style.cssText = `position:fixed;top:20px;right:20px;background:#28a745;color:white;padding:12px 20px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:10000;max-width:300px;cursor:pointer;`;
+        notif.innerHTML = `<div style="font-weight:bold;">✅ Added to Cart</div><div style="font-size:14px;">${item.paletteName}</div><div style="font-size:12px;">$${item.discountedPrice.toFixed(2)}</div>`;
+        notif.onclick = () => { this.openCartModal(); notif.remove(); };
+        document.body.appendChild(notif);
+        setTimeout(() => notif.remove(), 3000);
+    }
+
+    updateCartUI() {
+        const count = document.getElementById('cart-count');
+        if (count) count.style.display = this.cart.length > 0 ? 'flex' : 'none', count.textContent = this.cart.length;
+    }
+
+    updateProductCardButtons() {
+        document.querySelectorAll('.product-card').forEach(card => {
+            const id = card.id.replace('design-', '');
+            const btn = card.querySelector('.add-to-cart-btn');
+            if (!btn) return;
+            const inCart = this.isInCart(id);
+            btn.textContent = inCart ? '✓ Added' : 'Add to Cart';
+            btn.style.background = inCart ? '#6c757d' : '#28a745';
+            btn.disabled = inCart;
+        });
+    }
+
+    removeFromCart(designId) {
+        this.cart = this.cart.filter(i => i.designId !== designId);
+        this.saveCartToStorage();
+        this.updateCartUI();
+        this.updateProductCardButtons();
+        this.renderCartItems();
+    }
+
+    getSubtotal() {
+        return this.cart.reduce((sum, item) => sum + item.discountedPrice, 0);
+    }
+
+    getTax() {
+        const state = this.isBillingSame
+            ? document.getElementById('shipping-state').value
+            : document.getElementById('billing-state').value;
+        return state === 'CA' ? this.getSubtotal() * this.taxRate : 0;
+    }
+
+    getCartTotal() {
+        return this.getSubtotal() + (this.isGift ? 12 : 0) + this.getTax();
+    }
+
+    updateTax() {
+        const tax = this.getTax();
+        const taxLine = document.getElementById('tax-line');
+        const taxAmount = document.getElementById('tax-amount');
+        if (taxLine && taxAmount) {
+            const show = tax > 0;
+            taxLine.style.display = show ? 'flex' : 'none';
+            taxAmount.textContent = tax.toFixed(2);
+        }
+        this.updateCartTotal();
+    }
+
+    updateCartTotal() {
+        const subtotal = this.getSubtotal();
+        const tax = this.getTax();
+        const total = this.getCartTotal();
+
+        document.getElementById('cart-subtotal').textContent = subtotal.toFixed(2);
+        document.getElementById('gift-fee-line').style.display = this.isGift ? 'flex' : 'none';
+        document.getElementById('tax-line').style.display = tax > 0 ? 'flex' : 'none';
+        document.getElementById('tax-amount').textContent = tax.toFixed(2);
+        document.getElementById('cart-total').textContent = total.toFixed(2);
+        document.getElementById('final-total').textContent = total.toFixed(2);
+    }
+
+    showCheckoutForm() {
+        document.getElementById('modal-title').textContent = 'Checkout';
+        document.getElementById('cart-items-container').style.display = 'none';
+        document.getElementById('checkout-form').style.display = 'block';
+        document.getElementById('cart-actions').style.display = 'none';
+        document.getElementById('checkout-actions').style.display = 'block';
+        this.updateTax();
+    }
+
+    goBackToCart() {
+        document.getElementById('modal-title').textContent = '🛒 Shopping Cart';
+        document.getElementById('cart-items-container').style.display = 'block';
+        document.getElementById('checkout-form').style.display = 'none';
+        document.getElementById('cart-actions').style.display = 'block';
+        document.getElementById('checkout-actions').style.display = 'none';
+        this.renderCartItems();
+    }
+
+    validateForm() {
+        const req = (id) => document.getElementById(id).value.trim();
+        const shipping = ['name', 'address1', 'city', 'state', 'zip'].every(f => req(`shipping-${f}`));
+        if (!this.isBillingSame) {
+            const billing = ['name', 'address1', 'city', 'state', 'zip'].every(f => req(`billing-${f}`));
+            return shipping && billing;
+        }
+        return shipping;
+    }
+
+    collectAddresses() {
+        const get = (prefix) => ({
+            name: document.getElementById(`${prefix}-name`).value,
+            line1: document.getElementById(`${prefix}-address1`).value,
+            line2: document.getElementById(`${prefix}-address2`).value || '',
+            city: document.getElementById(`${prefix}-city`).value,
+            state: document.getElementById(`${prefix}-state`).value,
+            postal_code: document.getElementById(`${prefix}-zip`).value,
+            country: 'US'
+        });
+
+        this.shipping = get('shipping');
+        this.billing = this.isBillingSame ? this.shipping : get('billing');
+    }
+
+    async finalizeCheckout() {
+        if (!this.validateForm()) {
+            this.showError('Please fill in all required fields');
+            return;
+        }
+
+        this.collectAddresses();
+        const totalCents = Math.round(this.getCartTotal() * 100);
+
+        try {
+            const session = getSession();
+            if (!session?.id_token) throw new Error('Please sign in');
+
+            const userInfo = getUserInfo();
+            const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.id_token}`
+                },
+                body: JSON.stringify({
+                    action: 'createCheckoutSession',
+                    user_email: userInfo?.email,
+                    amount: totalCents,
+                    cart_items: this.cart,
+                    item_count: this.cart.length,
+                    is_gift: this.isGift,
+                    shipping_address: this.shipping,
+                    billing_address: this.billing,
+                    tax_amount: Math.round(this.getTax() * 100)
+                })
             });
-            // Update the status locally for display, though a refresh would re-fetch.
-            details.order_status = 'COMPLETED'; 
+
+            if (!response.ok) throw new Error(await response.text());
+            const { id } = await response.json();
+
+            const result = await this.stripe.redirectToCheckout({ sessionId: id });
+            if (result.error) throw result.error;
+
+        } catch (err) {
+            console.error(err);
+            this.showError('Checkout failed: ' + err.message);
+        }
+    }
+
+    openCartModal() {
+        this.renderCartItems();
+        document.getElementById('cart-modal').style.display = 'block';
+        document.getElementById('same-billing').checked = true;
+        document.getElementById('billing-fields').style.display = 'none';
+        this.isBillingSame = true;
+        this.updateTax();
+    }
+
+    closeCartModal() {
+        document.getElementById('cart-modal').style.display = 'none';
+        this.goBackToCart(); // Reset to cart view
+    }
+
+    renderCartItems() {
+        const container = document.getElementById('cart-items-container');
+        if (!container) return;
+
+        if (this.cart.length === 0) {
+            container.innerHTML = '<p style="text-align:center;color:#666;padding:40px;">Your cart is empty</p>';
+            this.updateCartTotal();
+            return;
         }
 
-        return details;
+        container.innerHTML = this.cart.map(item => `
+            <div style="display:flex;align-items:center;padding:16px;border-bottom:1px solid #eee;gap:12px;">
+                <img src="${item.imageUrl}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+                <div style="flex:1;">
+                    <div style="font-weight:bold;font-size:14px;">${item.paletteName}</div>
+                    <div style="color:#666;font-size:13px;">$${item.discountedPrice.toFixed(2)}</div>
+                </div>
+                <button onclick="window.stripePayment.removeFromCart('${item.designId}')"
+                        style="background:#dc3545;color:white;border:none;padding:6px 10px;border-radius:4px;font-size:11px;">
+                    Remove
+                </button>
+            </div>
+        `).join('');
 
-    } catch (error) {
-        console.error("Error fetching session and order details:", error);
-        // You might want to display a generic error or retry button here
-        return null;
+        this.updateCartTotal();
+        document.getElementById('gift-checkbox').checked = this.isGift;
+    }
+
+    showError(msg) {
+        const el = document.createElement('div');
+        el.style.cssText = `position:fixed;top:20px;right:20px;background:#dc3545;color:white;padding:12px 20px;border-radius:8px;z-index:10000;max-width:300px;`;
+        el.innerHTML = `<div style="font-weight:bold;">❌ Error</div><div style="font-size:14px;">${msg}</div>`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 4000);
     }
 }
 
-// Export functions if using a module system, otherwise they are global.
-// For a simple script, leaving them global is common.
-// If your environment supports ES Modules:
-// export { initiateStripeCheckout, getSessionAndOrderDetails, stripe };
+window.stripePayment = new StripePayment();
 
-// Example Usage (for demonstration purposes, assumes an HTML structure):
-// ----------------------------------------------------------------------
-
-// Example: Handling checkout on a cart page
-// document.getElementById('checkout-button').addEventListener('click', () => {
-//     const userEmail = 'test@example.com'; // Get from user session/input
-//     const cart = [{ id: 'case-1', paletteName: 'Ocean Blue' }, { id: 'case-2', paletteName: 'Midnight Black' }]; // Get from cart state
-//     const totalAmountCents = 2499; // Total amount in cents
-
-//     initiateStripeCheckout(userEmail, totalAmountCents, cart, cart.length);
-// });
-
-// Example: Handling retrieval on a success page (success.html?session_id=cs_...)
-// window.onload = () => {
-//     const urlParams = new URLSearchParams(window.location.search);
-//     const sessionId = urlParams.get('session_id');
-
-//     if (sessionId) {
-//         getSessionAndOrderDetails(sessionId)
-//             .then(details => {
-//                 if (details) {
-//                     console.log("Payment successful! Order Details:", details);
-//                     // Update the DOM with the details (e.g., show confirmation)
-//                     // document.getElementById('order-status').textContent = details.order_status;
-//                     // document.getElementById('customer-email').textContent = details.customer_email;
-//                 } else {
-//                     // Handle case where details couldn't be fetched
-//                     // document.getElementById('order-status').textContent = 'Error: Could not retrieve order details.';
-//                 }
-//             });
-//     }
-// };
+// Add animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+`;
+document.head.appendChild(style);
