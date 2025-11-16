@@ -1,4 +1,4 @@
-// js/stripe-payment.js - UPDATED WITH ALL FIXES
+// js/stripe-payment.js
 class StripePayment {
     constructor() {
         this.stripe = null;
@@ -10,16 +10,7 @@ class StripePayment {
     }
 
     initializeStripe() {
-        try {
-            if (!CONFIG.STRIPE_PUBLISHABLE_KEY) {
-                throw new Error('Stripe publishable key not found in CONFIG');
-            }
-            this.stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
-            console.log("Stripe initialized successfully");
-        } catch (error) {
-            console.error("Failed to initialize Stripe:", error);
-            // You might want to set a flag or provide fallback behavior
-        }
+        this.stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
     }
 
     loadCartFromStorage() {
@@ -42,17 +33,20 @@ class StripePayment {
     setupModalCloseHandlers() {
         // ESC key to close modal
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && document.getElementById('cart-modal').style.display === 'block') {
+            if (e.key === 'Escape' && document.getElementById('cart-modal')?.style.display === 'block') {
                 this.closeCartModal();
             }
         });
 
         // Click outside to close modal
-        document.getElementById('cart-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'cart-modal') {
-                this.closeCartModal();
-            }
-        });
+        const modal = document.getElementById('cart-modal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target.id === 'cart-modal') {
+                    this.closeCartModal();
+                }
+            });
+        }
     }
 
     addToCart(designId, realtimeUpdates) {
@@ -86,7 +80,7 @@ class StripePayment {
         this.cart.push(cartItem);
         this.saveCartToStorage();
         this.updateCartUI();
-        this.updateProductCardButtons(); // Update all product card buttons
+        this.updateProductCardButtons();
         this.showAddToCartConfirmation(cartItem);
     }
 
@@ -112,13 +106,12 @@ class StripePayment {
         `;
         
         notification.innerHTML = `
-            <div style="font-weight: bold; margin-bottom: 4px;">✅ Added to Cart</div>
+            <div style="font-weight: bold; margin-bottom: 4px;">Added to Cart</div>
             <div style="font-size: 14px;">${item.paletteName}</div>
             <div style="font-size: 12px; opacity: 0.9;">$${item.discountedPrice.toFixed(2)}</div>
             <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">Click to view cart</div>
         `;
 
-        // Make notification clickable to open cart
         notification.addEventListener('click', () => {
             this.openCartModal();
             if (notification.parentNode) {
@@ -149,14 +142,13 @@ class StripePayment {
     }
 
     updateProductCardButtons() {
-        // Update all product card buttons to show correct state
         const productCards = document.querySelectorAll('.product-card');
         productCards.forEach(card => {
             const designId = card.id.replace('design-', '');
             const addToCartBtn = card.querySelector('.add-to-cart-btn');
             if (addToCartBtn) {
                 if (this.isInCart(designId)) {
-                    addToCartBtn.textContent = '✓ Added to Cart';
+                    addToCartBtn.textContent = 'Added to Cart';
                     addToCartBtn.style.background = '#6c757d';
                     addToCartBtn.style.cursor = 'not-allowed';
                     addToCartBtn.disabled = true;
@@ -174,7 +166,7 @@ class StripePayment {
         this.cart = this.cart.filter(item => item.designId !== designId);
         this.saveCartToStorage();
         this.updateCartUI();
-        this.updateProductCardButtons(); // Update buttons when item is removed
+        this.updateProductCardButtons();
         this.renderCartItems();
     }
 
@@ -184,7 +176,6 @@ class StripePayment {
         this.updateCartTotal();
         this.renderCartItems();
         
-        // Update checkbox state
         const giftCheckbox = document.querySelector('#cart-modal input[type="checkbox"]');
         if (giftCheckbox) {
             giftCheckbox.checked = this.isGift;
@@ -196,43 +187,7 @@ class StripePayment {
         const giftFee = this.isGift ? 12.00 : 0;
         return subtotal + giftFee;
     }
-    // Add this to stripe-payment.js - Better gift checkbox handling
-    initializeGiftCheckbox() {
-        // Wait for modal to be available and set up event listener
-        const checkModal = () => {
-            const giftCheckbox = document.getElementById('gift-checkbox');
-            if (giftCheckbox) {
-                // Set initial state
-                giftCheckbox.checked = this.isGift;
-                
-                // Remove any existing event listeners and add new one
-                giftCheckbox.replaceWith(giftCheckbox.cloneNode(true));
-                const newCheckbox = document.getElementById('gift-checkbox');
-                
-                newCheckbox.addEventListener('change', (e) => {
-                    console.log('Gift checkbox changed to:', e.target.checked);
-                    this.isGift = e.target.checked;
-                    this.saveCartToStorage();
-                    this.updateCartTotal();
-                    this.renderCartItems();
-                });
-                
-                console.log('Gift checkbox initialized with state:', this.isGift);
-            } else {
-                // Try again in a bit if not ready
-                setTimeout(checkModal, 100);
-            }
-        };
-        
-        checkModal();
-    }
-    
-    // Update the openCartModal method to initialize the checkbox
-    openCartModal() {
-        this.renderCartItems();
-        document.getElementById('cart-modal').style.display = 'block';
-        this.initializeGiftCheckbox(); // Initialize when modal opens
-    }
+
     updateCartTotal() {
         const totalElement = document.getElementById('cart-total');
         const giftFeeElement = document.getElementById('gift-fee');
@@ -254,13 +209,15 @@ class StripePayment {
         }
     }
 
-    async proceedToCheckout() {
-        if (this.cart.length === 0) {
-            this.showError('Your cart is empty');
-            return;
-        }
-        
-        // New logic: Redirect to the dedicated checkout page for address details
+    // REMOVED: initializeGiftCheckbox() — now handled in checkout.html
+    // REMOVED: old proceedToCheckout() — now redirects to checkout.html
+
+    /**
+     * NEW: Simple redirect to dedicated checkout page
+     */
+    proceedToCheckout() {
+        // Save current gift state for checkout page
+        this.saveCartToStorage();
         window.location.href = 'checkout.html';
     }
 
@@ -281,7 +238,7 @@ class StripePayment {
         `;
         
         notification.innerHTML = `
-            <div style="font-weight: bold; margin-bottom: 4px;">❌ Error</div>
+            <div style="font-weight: bold; margin-bottom: 4px;">Error</div>
             <div style="font-size: 14px;">${message}</div>
         `;
 
@@ -299,11 +256,18 @@ class StripePayment {
 
     openCartModal() {
         this.renderCartItems();
-        document.getElementById('cart-modal').style.display = 'block';
+        const modal = document.getElementById('cart-modal');
+        if (modal) {
+            modal.style.display = 'block';
+        }
+        // Gift checkbox state will be updated in renderCartItems()
     }
 
     closeCartModal() {
-        document.getElementById('cart-modal').style.display = 'none';
+        const modal = document.getElementById('cart-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
     }
 
     renderCartItems() {
@@ -347,16 +311,19 @@ class StripePayment {
 // Initialize globally
 window.stripePayment = new StripePayment();
 
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-`;
-document.head.appendChild(style);
+// Add CSS animations (only if not already added)
+if (!document.getElementById('cart-notifications-style')) {
+    const style = document.createElement('style');
+    style.id = 'cart-notifications-style';
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+}
