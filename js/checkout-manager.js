@@ -2,22 +2,69 @@ class CheckoutManager {
     constructor() {
         this.cart = this.loadCartData();
         this.isGift = this.loadGiftOption();
-        this.salesTaxRate = 0.0825; // Example CA State Tax Rate for demonstration
+        this.salesTaxRate = 0.0825;
         this.shippingAddress = {};
         this.billingAddress = {};
         this.isVerified = false;
 
         if (this.cart.length === 0) {
             alert("Your cart is empty. Redirecting to home.");
-            window.location.href = 'case.html'; // Go back if cart is empty
+            window.location.href = 'case.html';
             return;
         }
 
-        this.setupEventListeners();
-        this.renderSummary();
-        this.handleGiftOptionUI();
+        // Ensure Stripe is available
+        this.ensureStripeAvailable().then(() => {
+            this.setupEventListeners();
+            this.renderSummary();
+            this.handleGiftOptionUI();
+        }).catch(error => {
+            console.error("Failed to initialize checkout:", error);
+            alert("Payment system unavailable. Please refresh the page.");
+        });
     }
 
+    // Ensure Stripe is available before proceeding
+    ensureStripeAvailable() {
+        return new Promise((resolve, reject) => {
+            let attempts = 0;
+            const maxAttempts = 50; // 2.5 seconds
+            
+            const checkStripe = () => {
+                attempts++;
+                
+                // Check if Stripe is available through our global object
+                if (window.stripePayment && window.stripePayment.stripe) {
+                    resolve();
+                } 
+                // Alternative: check if we can initialize it
+                else if (window.stripePayment && typeof window.stripePayment.initialize === 'function') {
+                    window.stripePayment.initialize();
+                    if (window.stripePayment.stripe) {
+                        resolve();
+                    } else if (attempts < maxAttempts) {
+                        setTimeout(checkStripe, 50);
+                    } else {
+                        reject(new Error("Stripe not available after timeout"));
+                    }
+                }
+                // Last resort: try to create Stripe directly
+                else if (typeof Stripe === 'function' && CONFIG.STRIPE_PUBLISHABLE_KEY) {
+                    window.stripePayment = {
+                        stripe: Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY)
+                    };
+                    resolve();
+                }
+                else if (attempts < maxAttempts) {
+                    setTimeout(checkStripe, 50);
+                } else {
+                    reject(new Error("Stripe not available after timeout"));
+                }
+            };
+            
+            checkStripe();
+        });
+    }
     // --- Data Loading ---
     loadCartData() {
         try {
@@ -193,16 +240,92 @@ class CheckoutManager {
 
     // --- Final Checkout ---
 
+    // js/checkout-manager.js - UPDATED
+class CheckoutManager {
+    constructor() {
+        this.cart = this.loadCartData();
+        this.isGift = this.loadGiftOption();
+        this.salesTaxRate = 0.0825;
+        this.shippingAddress = {};
+        this.billingAddress = {};
+        this.isVerified = false;
+
+        if (this.cart.length === 0) {
+            alert("Your cart is empty. Redirecting to home.");
+            window.location.href = 'case.html';
+            return;
+        }
+
+        // Ensure Stripe is available
+        this.ensureStripeAvailable().then(() => {
+            this.setupEventListeners();
+            this.renderSummary();
+            this.handleGiftOptionUI();
+        }).catch(error => {
+            console.error("Failed to initialize checkout:", error);
+            alert("Payment system unavailable. Please refresh the page.");
+        });
+    }
+
+    // Ensure Stripe is available before proceeding
+    ensureStripeAvailable() {
+        return new Promise((resolve, reject) => {
+            let attempts = 0;
+            const maxAttempts = 50; // 2.5 seconds
+            
+            const checkStripe = () => {
+                attempts++;
+                
+                // Check if Stripe is available through our global object
+                if (window.stripePayment && window.stripePayment.stripe) {
+                    resolve();
+                } 
+                // Alternative: check if we can initialize it
+                else if (window.stripePayment && typeof window.stripePayment.initialize === 'function') {
+                    window.stripePayment.initialize();
+                    if (window.stripePayment.stripe) {
+                        resolve();
+                    } else if (attempts < maxAttempts) {
+                        setTimeout(checkStripe, 50);
+                    } else {
+                        reject(new Error("Stripe not available after timeout"));
+                    }
+                }
+                // Last resort: try to create Stripe directly
+                else if (typeof Stripe === 'function' && CONFIG.STRIPE_PUBLISHABLE_KEY) {
+                    window.stripePayment = {
+                        stripe: Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY)
+                    };
+                    resolve();
+                }
+                else if (attempts < maxAttempts) {
+                    setTimeout(checkStripe, 50);
+                } else {
+                    reject(new Error("Stripe not available after timeout"));
+                }
+            };
+            
+            checkStripe();
+        });
+    }
+
+    // ... rest of your existing CheckoutManager methods remain the same ...
+    
     async handleCheckoutClick() {
         if (!this.isVerified) {
             alert("Please verify the shipping address before proceeding.");
             return;
         }
 
-        this.captureBillingAddress(); // Make sure billing is captured before sending
+        // Double-check Stripe availability
+        if (!window.stripePayment || !window.stripePayment.stripe) {
+            alert("Payment system not ready. Please try again.");
+            return;
+        }
+
+        this.captureBillingAddress();
 
         try {
-            // Get necessary data from the environment (assuming these global functions exist)
             const session = window.getSession ? window.getSession() : null;
             const userInfo = window.getUserInfo ? window.getUserInfo() : null;
             
@@ -214,19 +337,16 @@ class CheckoutManager {
             const totals = this.getCalculatedTotals();
             const totalAmountCents = Math.round(totals.orderTotal * 100);
             
-            // Prepare the full request body for the API
             const requestBody = {
                 action: 'createCheckoutSession',
                 user_email: userInfo ? userInfo.email : null,
-                amount: totalAmountCents, // Total amount including tax and gift
+                amount: totalAmountCents,
                 cart_items: this.cart,
                 item_count: this.cart.length,
                 is_gift: this.isGift,
-                
-                // NEW: Address and Tax Data
                 shipping_address: this.shippingAddress,
                 billing_address: this.billingAddress,
-                sales_tax: Math.round(totals.salesTax * 100), // Send tax collected
+                sales_tax: Math.round(totals.salesTax * 100),
             };
 
             document.getElementById('checkout-button').textContent = 'Processing...';
@@ -248,24 +368,14 @@ class CheckoutManager {
 
             const checkoutSession = await response.json();
             
-            // === START: CRITICAL FIX FOR "window.stripePayment is undefined" ===
-            
-            // 1. Check if the global StripePayment object is initialized
-            if (!window.stripePayment || !window.stripePayment.stripe) {
-                throw new Error("Stripe payment object is unavailable for redirection. Check script loading order.");
-            }
-
-            // 2. Redirect to Stripe to complete payment
+            // Use the verified stripe instance
             const result = await window.stripePayment.stripe.redirectToCheckout({
                 sessionId: checkoutSession.id
             });
 
-            // 3. Handle Stripe's own error object if redirection fails for other reasons
-            if (result && result.error) {
+            if (result.error) {
                 throw new Error(result.error.message);
             }
-
-            // === END: CRITICAL FIX ===
             
         } catch (error) {
             console.error('Final Checkout error:', error);
