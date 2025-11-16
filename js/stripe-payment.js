@@ -214,15 +214,19 @@ class StripePayment {
             this.showError('Please fill in all required fields');
             return;
         }
-
+    
         this.collectAddresses();
+    
+        // --- FIX: Define totalCents and taxCents ---
         const totalCents = Math.round(this.getCartTotal() * 100);
-
+        const taxCents = Math.round(this.getTax() * 100);  // ← THIS WAS MISSING
+    
         try {
             const session = getSession();
             if (!session?.id_token) throw new Error('Please sign in');
-
+    
             const userInfo = getUserInfo();
+    
             const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
                 method: 'POST',
                 headers: {
@@ -232,24 +236,27 @@ class StripePayment {
                 body: JSON.stringify({
                     action: 'createCheckoutSession',
                     user_email: userInfo?.email,
-                    amount: totalCents,           // ← total (product + gift + tax)
+                    amount: totalCents,           // total = product + gift + tax
                     cart_items: this.cart,
                     item_count: this.cart.length,
                     is_gift: this.isGift,
-                    tax_amount: taxCents,         // ← tax only
+                    tax_amount: taxCents,         // ← now defined
                     shipping_address: this.shipping,
                     billing_address: this.billing
                 })
             });
-
-            if (!response.ok) throw new Error(await response.text());
+    
+            if (!response.ok) {
+                const err = await response.text();
+                throw new Error(err || 'Checkout failed');
+            }
+    
             const { id } = await response.json();
-
             const result = await this.stripe.redirectToCheckout({ sessionId: id });
             if (result.error) throw result.error;
-
+    
         } catch (err) {
-            console.error(err);
+            console.error('Checkout error:', err);
             this.showError('Checkout failed: ' + err.message);
         }
     }
