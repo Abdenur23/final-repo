@@ -42,6 +42,13 @@
             border-radius: 8px;
             margin: 20px 0;
         }
+        .order-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -59,6 +66,11 @@
                 <div class="success-icon">✅</div>
                 <h1>Order Confirmed!</h1>
                 <p>Thank you for your purchase. Your order has been successfully processed.</p>
+                
+                <div id="order-details" class="order-details">
+                    <!-- Order details will be populated here -->
+                </div>
+                
                 <p>You'll receive a confirmation email shortly with tracking information.</p>
                 <a href="index.html" class="btn-primary">Return to Home</a>
             </div>
@@ -73,7 +85,7 @@
 
 <script>
     let checkAttempts = 0;
-    const maxCheckAttempts = 30;
+    const maxCheckAttempts = 10; // Reduced since webhooks will handle most cases
 
     async function initializeSuccessPage() {
         await initializeAuth();
@@ -86,10 +98,10 @@
             return;
         }
         
-        checkPaymentStatus(sessionId);
+        checkOrderStatus(sessionId);
     }
     
-    async function checkPaymentStatus(sessionId) {
+    async function checkOrderStatus(sessionId) {
         try {
             const session = getSession();
             if (!session?.id_token) {
@@ -111,32 +123,56 @@
             
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             
-            const sessionData = await response.json();
+            const orderData = await response.json();
             
-            if (sessionData.payment_status === 'paid' && sessionData.status === 'complete') {
-                // Payment successful - show success immediately
-                showSuccess();
+            // Show success if order is PAID or COMPLETED
+            if (orderData.order_status === 'PAID' || orderData.order_status === 'COMPLETED') {
+                showSuccess(orderData);
             } else if (checkAttempts < maxCheckAttempts) {
+                // Still pending, check again in 2 seconds
                 checkAttempts++;
-                setTimeout(() => checkPaymentStatus(sessionId), 1000);
+                setTimeout(() => checkOrderStatus(sessionId), 2000);
             } else {
-                showError('Payment is taking longer than expected. Please check your email for confirmation.');
+                // Max attempts reached - show pending message
+                showPending(orderData);
             }
             
         } catch (error) {
             console.error('Error:', error);
             if (checkAttempts < maxCheckAttempts) {
                 checkAttempts++;
-                setTimeout(() => checkPaymentStatus(sessionId), 1000);
+                setTimeout(() => checkOrderStatus(sessionId), 2000);
             } else {
-                showError('Failed to verify payment: ' + error.message);
+                showError('Failed to verify order: ' + error.message);
             }
         }
     }
     
-    function showSuccess() {
+    function showSuccess(orderData) {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('success').style.display = 'block';
+        
+        // Populate order details
+        const orderDetails = document.getElementById('order-details');
+        orderDetails.innerHTML = `
+            <h3>Order Details</h3>
+            <p><strong>Order ID:</strong> ${orderData.id.substring(0, 8)}...</p>
+            <p><strong>Items:</strong> ${orderData.item_count} custom phone case${orderData.item_count > 1 ? 's' : ''}</p>
+            <p><strong>Total:</strong> $${(orderData.amount_total / 100).toFixed(2)}</p>
+            ${orderData.shipping_address ? `
+                <p><strong>Shipping to:</strong> ${orderData.shipping_address.name}, ${orderData.shipping_address.city}, ${orderData.shipping_address.state}</p>
+            ` : ''}
+        `;
+    }
+    
+    function showPending(orderData) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('success').style.display = 'block';
+        document.getElementById('order-details').innerHTML = `
+            <h3>Order Processing</h3>
+            <p>Your payment is being processed. This usually takes just a few moments.</p>
+            <p>You'll receive an email confirmation once it's complete.</p>
+        `;
     }
     
     function showError(message) {
