@@ -1,4 +1,4 @@
-// js/checkout.js
+// js/checkout-manager.js
 (async () => {
   // Utility
   function $(id){ return document.getElementById(id); }
