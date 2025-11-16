@@ -10,7 +10,16 @@ class StripePayment {
     }
 
     initializeStripe() {
-        this.stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
+        try {
+            if (!CONFIG.STRIPE_PUBLISHABLE_KEY) {
+                throw new Error('Stripe publishable key not found in CONFIG');
+            }
+            this.stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
+            console.log("Stripe initialized successfully");
+        } catch (error) {
+            console.error("Failed to initialize Stripe:", error);
+            // You might want to set a flag or provide fallback behavior
+        }
     }
 
     loadCartFromStorage() {
