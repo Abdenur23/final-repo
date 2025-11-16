@@ -240,37 +240,41 @@
       <script src="js/image-navigation-handler.js"></script>
       <script src="js/realtime-updates.js"></script>
     
-        <script src="https://js.stripe.com/v3/"></script>
+      <script src="https://js.stripe.com/v3/"></script>
       <script src="js/stripe-payment.js"></script>
       
-        <script src="js/app.js"></script>
+      <script src="js/app.js"></script>
     
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+      <script src="https://js.stripe.com/v3/"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        let attempts = 0;
+        const maxAttempts = 100; // 5 seconds total
+
+        const attemptInitialization = () => {
             
-            // Check every 50ms for 2 seconds to see if window.stripePayment is ready.
-            let attempts = 0;
-            const maxAttempts = 40; // 40 attempts * 50ms = 2000ms (2 seconds)
+            // Check if the Stripe function exists AND the global object is set up
+            if (typeof Stripe === 'function' && window.stripePayment && window.stripePayment.stripe) {
+                
+                // Success: Initialize the Checkout Manager
+                window.checkoutManager = new CheckoutManager();
+                console.log("CheckoutManager initialized successfully.");
+                
+            } else if (attempts < maxAttempts) {
+                // Not ready, try again
+                attempts++;
+                setTimeout(attemptInitialization, 50);
+            } else {
+                // Failure: Timeout triggered the error
+                console.error("CRITICAL ERROR: window.stripePayment never became available within timeout.");
+                alert("Payment system failed to load. Please try refreshing the page.");
+            }
+        };
 
-            const initializeCheckout = () => {
-                // We check for the *existence* of the object and its *property*
-                if (window.stripePayment && window.stripePayment.stripe) {
-                    // Success: Initialize the manager
-                    window.checkoutManager = new CheckoutManager();
-                    console.log("CheckoutManager initialized successfully.");
-                } else if (attempts < maxAttempts) {
-                    // Not ready, try again
-                    attempts++;
-                    setTimeout(initializeCheckout, 50);
-                } else {
-                    // Failure: Display the user error message
-                    console.error("CRITICAL ERROR: window.stripePayment never became available within timeout.");
-                    alert("Payment system failed to load. Please try refreshing the page.");
-                }
-            };
-
-            initializeCheckout();
-        });
-    </script>
+        attemptInitialization();
+    });
+</script>
 </body>
 </html>
