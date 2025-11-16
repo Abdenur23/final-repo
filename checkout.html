@@ -54,40 +54,65 @@
     }
     
     .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 15px;
       margin-bottom: 15px;
+    }
+    
+    .form-row .form-group {
+      flex: 1;
+      margin-bottom: 0;
     }
     
     label {
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
       font-weight: 600;
+      color: #555;
     }
     
     input[type="text"],
     input[type="email"],
     select {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       border: 1px solid #ddd;
-      border-radius: 4px;
+      border-radius: 6px;
       font-size: 16px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
     }
     
     input[type="checkbox"] {
       margin-right: 10px;
+      transform: scale(1.2);
     }
     
     .checkbox-group {
       display: flex;
       align-items: center;
       margin-bottom: 15px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 6px;
     }
     
     .summary-item {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 10px;
-      padding-bottom: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
       border-bottom: 1px solid #eee;
     }
     
@@ -95,7 +120,7 @@
       font-weight: bold;
       font-size: 1.2em;
       border-bottom: none;
-      padding-top: 10px;
+      padding-top: 12px;
       border-top: 2px solid #eee;
     }
     
@@ -111,8 +136,8 @@
       background-color: #007bff;
       color: white;
       border: none;
-      padding: 12px 20px;
-      border-radius: 4px;
+      padding: 15px 20px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 16px;
       font-weight: 600;
@@ -138,6 +163,60 @@
       margin-top: 5px;
     }
     
+    .saved-address {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .saved-address:hover {
+      border-color: #007bff;
+      background: #e7f3ff;
+    }
+    
+    .saved-address.selected {
+      border-color: #007bff;
+      background: #e7f3ff;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+    
+    .address-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .address-details {
+      color: #666;
+      font-size: 0.9em;
+    }
+    
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .add-new-btn {
+      background: none;
+      border: 1px solid #007bff;
+      color: #007bff;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      width: auto;
+    }
+    
+    .add-new-btn:hover {
+      background: #007bff;
+      color: white;
+    }
+    
     @media (max-width: 600px) {
       .container {
         padding: 15px;
@@ -145,6 +224,11 @@
       
       .section {
         padding: 15px;
+      }
+      
+      .form-row {
+        flex-direction: column;
+        gap: 0;
       }
     }
   </style>
@@ -155,41 +239,79 @@
     
     <!-- Shipping Address Section -->
     <div class="section" id="shipping-section">
-      <h2>Shipping Address</h2>
+      <div class="section-header">
+        <h2>Shipping Address</h2>
+        <button class="add-new-btn" onclick="addNewAddress()">+ Add New Address</button>
+      </div>
+      
       <p id="gift-notice" class="hidden" style="color: #d35400; font-weight: 600; margin-bottom: 15px;">
         🎁 This will be shipped directly to your gift recipient
       </p>
       
-      <div class="form-group">
-        <label for="shipping-name">Full Name</label>
-        <input type="text" id="shipping-name" placeholder="Enter full name">
+      <!-- Saved Addresses -->
+      <div id="saved-addresses">
+        <div class="saved-address selected" onclick="selectAddress(this, 'shipping')">
+          <div class="address-name">John Doe (Home)</div>
+          <div class="address-details">123 Main Street, Apt 4B, Los Angeles, CA 90001, United States</div>
+        </div>
+        <div class="saved-address" onclick="selectAddress(this, 'shipping')">
+          <div class="address-name">John Doe (Work)</div>
+          <div class="address-details">456 Business Ave, Suite 300, San Francisco, CA 94102, United States</div>
+        </div>
       </div>
       
-      <div class="form-group">
-        <label for="shipping-address">Address</label>
-        <input type="text" id="shipping-address" placeholder="Enter street address">
-      </div>
-      
-      <div class="form-group">
-        <label for="shipping-city">City</label>
-        <input type="text" id="shipping-city" placeholder="Enter city">
-      </div>
-      
-      <div class="form-group">
-        <label for="shipping-state">State</label>
-        <select id="shipping-state">
-          <option value="">Select State</option>
-          <option value="CA">California</option>
-          <option value="NY">New York</option>
-          <option value="TX">Texas</option>
-          <option value="FL">Florida</option>
-          <!-- Add more states as needed -->
-        </select>
-      </div>
-      
-      <div class="form-group">
-        <label for="shipping-zip">ZIP Code</label>
-        <input type="text" id="shipping-zip" placeholder="Enter ZIP code">
+      <!-- Address Form -->
+      <div id="shipping-address-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="shipping-first-name">First Name</label>
+            <input type="text" id="shipping-first-name" value="John">
+          </div>
+          <div class="form-group">
+            <label for="shipping-last-name">Last Name</label>
+            <input type="text" id="shipping-last-name" value="Doe">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="shipping-address">Address</label>
+          <input type="text" id="shipping-address" value="123 Main Street">
+        </div>
+        
+        <div class="form-group">
+          <label for="shipping-address2">Address 2 (Optional)</label>
+          <input type="text" id="shipping-address2" value="Apt 4B">
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="shipping-city">City</label>
+            <input type="text" id="shipping-city" value="Los Angeles">
+          </div>
+          <div class="form-group">
+            <label for="shipping-state">State</label>
+            <select id="shipping-state">
+              <option value="">Select State</option>
+              <option value="CA" selected>California</option>
+              <option value="NY">New York</option>
+              <option value="TX">Texas</option>
+              <option value="FL">Florida</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="shipping-zip">ZIP Code</label>
+            <input type="text" id="shipping-zip" value="90001">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="shipping-country">Country</label>
+          <select id="shipping-country">
+            <option value="US" selected>United States</option>
+            <option value="CA">Canada</option>
+            <option value="UK">United Kingdom</option>
+          </select>
+        </div>
       </div>
     </div>
     
@@ -199,40 +321,70 @@
       
       <div class="checkbox-group">
         <input type="checkbox" id="same-as-shipping" checked>
-        <label for="same-as-shipping">Same as shipping address</label>
+        <label for="same-as-shipping">Use same address for billing</label>
+      </div>
+      
+      <div id="billing-addresses" class="hidden">
+        <div class="saved-address selected" onclick="selectAddress(this, 'billing')">
+          <div class="address-name">John Doe (Home)</div>
+          <div class="address-details">123 Main Street, Apt 4B, Los Angeles, CA 90001, United States</div>
+        </div>
+        <div class="saved-address" onclick="selectAddress(this, 'billing')">
+          <div class="address-name">John Doe (Work)</div>
+          <div class="address-details">456 Business Ave, Suite 300, San Francisco, CA 94102, United States</div>
+        </div>
       </div>
       
       <div id="billing-address-form" class="hidden">
-        <div class="form-group">
-          <label for="billing-name">Full Name</label>
-          <input type="text" id="billing-name" placeholder="Enter full name">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="billing-first-name">First Name</label>
+            <input type="text" id="billing-first-name">
+          </div>
+          <div class="form-group">
+            <label for="billing-last-name">Last Name</label>
+            <input type="text" id="billing-last-name">
+          </div>
         </div>
         
         <div class="form-group">
           <label for="billing-address">Address</label>
-          <input type="text" id="billing-address" placeholder="Enter street address">
+          <input type="text" id="billing-address">
         </div>
         
         <div class="form-group">
-          <label for="billing-city">City</label>
-          <input type="text" id="billing-city" placeholder="Enter city">
+          <label for="billing-address2">Address 2 (Optional)</label>
+          <input type="text" id="billing-address2">
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="billing-city">City</label>
+            <input type="text" id="billing-city">
+          </div>
+          <div class="form-group">
+            <label for="billing-state">State</label>
+            <select id="billing-state">
+              <option value="">Select State</option>
+              <option value="CA">California</option>
+              <option value="NY">New York</option>
+              <option value="TX">Texas</option>
+              <option value="FL">Florida</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="billing-zip">ZIP Code</label>
+            <input type="text" id="billing-zip">
+          </div>
         </div>
         
         <div class="form-group">
-          <label for="billing-state">State</label>
-          <select id="billing-state">
-            <option value="">Select State</option>
-            <option value="CA">California</option>
-            <option value="NY">New York</option>
-            <option value="TX">Texas</option>
-            <option value="FL">Florida</option>
-            <!-- Add more states as needed -->
+          <label for="billing-country">Country</label>
+          <select id="billing-country">
+            <option value="US">United States</option>
+            <option value="CA">Canada</option>
+            <option value="UK">United Kingdom</option>
           </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="billing-zip">ZIP Code</label>
-          <input type="text" id="billing-zip" placeholder="Enter ZIP code">
         </div>
       </div>
     </div>
@@ -289,6 +441,7 @@
     const giftCheckbox = document.getElementById('gift-service');
     const sameAsShippingCheckbox = document.getElementById('same-as-shipping');
     const billingAddressForm = document.getElementById('billing-address-form');
+    const billingAddresses = document.getElementById('billing-addresses');
     const shippingSection = document.getElementById('shipping-section');
     const giftNotice = document.getElementById('gift-notice');
     const taxLine = document.getElementById('tax-line');
@@ -296,6 +449,7 @@
     const totalAmount = document.getElementById('total-amount');
     const payNowButton = document.getElementById('pay-now');
     const billingState = document.getElementById('billing-state');
+    const shippingState = document.getElementById('shipping-state');
     
     // Initialize the page
     document.addEventListener('DOMContentLoaded', function() {
@@ -313,20 +467,67 @@
       });
       
       billingState.addEventListener('change', updateTotal);
+      shippingState.addEventListener('change', updateTotal);
       
       payNowButton.addEventListener('click', function() {
         alert('Payment functionality will be integrated with Stripe in the future.');
       });
+      
+      // Initialize with saved address data
+      populateFormFromSavedAddress();
     });
+    
+    // Select address from saved addresses
+    function selectAddress(element, type) {
+      const addresses = document.querySelectorAll(`#${type}-addresses .saved-address`);
+      addresses.forEach(addr => addr.classList.remove('selected'));
+      element.classList.add('selected');
+      
+      if (type === 'shipping') {
+        populateFormFromSavedAddress();
+        if (sameAsShippingCheckbox.checked) {
+          updateTotal();
+        }
+      } else {
+        populateBillingFormFromSavedAddress();
+        updateTotal();
+      }
+    }
+    
+    // Populate form from selected saved address
+    function populateFormFromSavedAddress() {
+      const selectedAddress = document.querySelector('#saved-addresses .saved-address.selected .address-details').textContent;
+      // In a real app, you would parse the address and populate fields
+      // For demo, we're using pre-filled values
+    }
+    
+    // Populate billing form from selected saved address
+    function populateBillingFormFromSavedAddress() {
+      const selectedAddress = document.querySelector('#billing-addresses .saved-address.selected .address-details').textContent;
+      // In a real app, you would parse the address and populate fields
+    }
+    
+    // Add new address
+    function addNewAddress() {
+      alert('In a real application, this would open a form to add a new address.');
+    }
     
     // Calculate and update the total price
     function updateTotal() {
       const isGift = giftCheckbox.checked;
       const subtotal = PRODUCT_PRICE + (isGift ? GIFT_SERVICE_PRICE : 0) + SHIPPING_COST;
       
+      // Determine which state to use for tax calculation
+      let taxState;
+      if (sameAsShippingCheckbox.checked) {
+        taxState = shippingState.value;
+      } else {
+        taxState = billingState.value;
+      }
+      
       // Check if billing address is in California for tax calculation
       let tax = 0;
-      if (billingState.value === 'CA') {
+      if (taxState === 'CA') {
         tax = subtotal * CA_TAX_RATE;
         taxLine.classList.remove('hidden');
         taxAmount.textContent = `$${tax.toFixed(2)}`;
@@ -342,20 +543,26 @@
     function toggleBillingAddress() {
       if (sameAsShippingCheckbox.checked) {
         billingAddressForm.classList.add('hidden');
+        billingAddresses.classList.add('hidden');
         // Copy shipping address to billing address
         copyShippingToBilling();
       } else {
         billingAddressForm.classList.remove('hidden');
+        billingAddresses.classList.remove('hidden');
       }
+      updateTotal();
     }
     
     // Copy shipping address to billing address
     function copyShippingToBilling() {
-      document.getElementById('billing-name').value = document.getElementById('shipping-name').value;
+      document.getElementById('billing-first-name').value = document.getElementById('shipping-first-name').value;
+      document.getElementById('billing-last-name').value = document.getElementById('shipping-last-name').value;
       document.getElementById('billing-address').value = document.getElementById('shipping-address').value;
+      document.getElementById('billing-address2').value = document.getElementById('shipping-address2').value;
       document.getElementById('billing-city').value = document.getElementById('shipping-city').value;
       document.getElementById('billing-state').value = document.getElementById('shipping-state').value;
       document.getElementById('billing-zip').value = document.getElementById('shipping-zip').value;
+      document.getElementById('billing-country').value = document.getElementById('shipping-country').value;
     }
     
     // Highlight shipping section when gift is selected
