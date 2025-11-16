@@ -245,5 +245,48 @@
     <script src="js/websocket-manager.js"></script>
     <script src="js/ui-components-manager.js"></script>
     <script src="js/app.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM loaded, starting initialization...");
+    
+    let attempts = 0;
+    const maxAttempts = 50; // Reduced from 100 for faster failure
+
+    const attemptInitialization = () => {
+        console.log(`Initialization attempt ${attempts + 1}, checking dependencies...`);
+        
+        // Check if Stripe is loaded and our payment object exists
+        if (typeof Stripe === 'function' && window.stripePayment && window.stripePayment.stripe) {
+            console.log("All dependencies loaded, initializing CheckoutManager...");
+            
+            // Initialize Checkout Manager
+            window.checkoutManager = new CheckoutManager();
+            console.log("CheckoutManager initialized successfully!");
+            
+        } else if (attempts < maxAttempts) {
+            // Not ready yet, try again
+            attempts++;
+            console.log(`Dependencies not ready, waiting... (attempt ${attempts})`);
+            setTimeout(attemptInitialization, 100);
+        } else {
+            // Final failure - provide helpful error message
+            console.error("Failed to initialize after", maxAttempts, "attempts");
+            console.error("Stripe available:", typeof Stripe);
+            console.error("stripePayment available:", !!window.stripePayment);
+            console.error("stripePayment.stripe available:", !!(window.stripePayment && window.stripePayment.stripe));
+            
+            const errorMessage = "Payment system failed to load. This is usually due to:\n\n" +
+                               "1. Slow internet connection\n" +
+                               "2. Browser blocking Stripe\n" +
+                               "3. Script loading issues\n\n" +
+                               "Please refresh the page and try again.";
+            alert(errorMessage);
+        }
+    };
+
+    // Start the initialization process
+    attemptInitialization();
+});
+</script>
 </body>
 </html>
