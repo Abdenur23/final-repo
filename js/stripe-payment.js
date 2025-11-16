@@ -250,9 +250,9 @@ class StripePayment {
             this.showError('Your cart is empty');
             return;
         }
-    
-        // Open the checkout modal instead of directly going to Stripe
-        window.checkoutManager.openCheckoutModal();
+        
+        // New logic: Redirect to the dedicated checkout page for address details
+        window.location.href = 'checkout.html';
     }
 
     showError(message) {
