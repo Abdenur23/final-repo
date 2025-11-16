@@ -232,13 +232,13 @@ class StripePayment {
                 body: JSON.stringify({
                     action: 'createCheckoutSession',
                     user_email: userInfo?.email,
-                    amount: totalCents,
+                    amount: totalCents,           // ← total (product + gift + tax)
                     cart_items: this.cart,
                     item_count: this.cart.length,
                     is_gift: this.isGift,
+                    tax_amount: taxCents,         // ← tax only
                     shipping_address: this.shipping,
-                    billing_address: this.billing,
-                    tax_amount: Math.round(this.getTax() * 100)
+                    billing_address: this.billing
                 })
             });
 
