@@ -4,6 +4,7 @@ class Application {
         this.promoManager = null;
         this.uploadManager = null;
         this.realtimeUpdates = null;
+        this.cartManager = null;
     }
 
     async initialize() {
@@ -12,7 +13,7 @@ class Application {
         this.deviceManager = new DeviceManager();
         this.uploadManager = new UploadManager(this.deviceManager, this.promoManager);
         this.realtimeUpdates = new RealTimeUpdates(this.promoManager, this.uploadManager);
-
+        this.cartManager = new CartManager()
          // Apply new theme classes to existing elements
         this.applyNewTheme();
         // Set up global references
