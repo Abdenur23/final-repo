@@ -432,7 +432,7 @@
     });
 
 
-// Stripe integration with authentication
+// Stripe integration with proper authentication
 let stripe;
 
 function showError(message) {
@@ -456,19 +456,48 @@ async function initializeStripe() {
     }
 }
 
+// Authentication state management using auth.js functions
+function checkAuthState() {
+    const payButton = document.getElementById('pay-button');
+    const errorDiv = document.getElementById('error-message');
+    
+    if (window.isAuthenticated && window.isAuthenticated()) {
+        // User is authenticated
+        const userInfo = window.getUserInfo();
+        payButton.disabled = false;
+        payButton.style.opacity = '1';
+        if (errorDiv) errorDiv.classList.add('hidden');
+        console.log('User authenticated:', userInfo ? userInfo.email : 'Unknown');
+    } else {
+        // User is not authenticated
+        payButton.disabled = true;
+        payButton.style.opacity = '0.7';
+        if (errorDiv) {
+            errorDiv.textContent = 'Please sign in to complete your purchase';
+            errorDiv.classList.remove('hidden');
+        }
+        console.log('User not authenticated');
+    }
+}
+
 async function handlePayment() {
     hideError();
     
-    // Check authentication
-    if (!window.userToken) {
-        showError('Please sign in to complete your purchase. You will be redirected to sign in.');
+    // Double-check authentication using auth.js functions
+    if (!window.isAuthenticated || !window.isAuthenticated()) {
+        showError('Please sign in to complete your purchase');
         setTimeout(() => {
             if (typeof signin === 'function') {
                 signin();
-            } else {
-                window.location.href = 'index.html'; // Redirect to main page to sign in
             }
-        }, 2000);
+        }, 1500);
+        return;
+    }
+
+    // Get user info for email
+    const userInfo = window.getUserInfo();
+    if (!userInfo || !userInfo.email) {
+        showError('Unable to retrieve user information. Please sign in again.');
         return;
     }
 
@@ -488,9 +517,16 @@ async function handlePayment() {
     const totalAmount = parseFloat(document.getElementById('order-total').textContent);
     const amountInCents = Math.round(totalAmount * 100);
 
-    // Prepare order data
+    // Get session for token
+    const session = window.getSession();
+    if (!session || !session.id_token) {
+        showError('Authentication token not found. Please sign in again.');
+        return;
+    }
+
+    // Prepare order data - use authenticated user's email and token
     const orderData = {
-        user_email: window.userEmail || '', // Use authenticated user's email
+        user_email: userInfo.email, // From auth.js getUserInfo()
         amount: amountInCents,
         cart_items: [{
             name: 'Product 1',
@@ -499,25 +535,7 @@ async function handlePayment() {
             isGift: document.getElementById('gift-checkbox').checked,
             giftFee: document.getElementById('gift-checkbox').checked ? GIFT_FEE : 0
         }],
-        item_count: 1,
-        shipping_details: {
-            name: shippingName,
-            address: {
-                line1: shippingAddress1,
-                city: shippingCity,
-                state: shippingState,
-                postal_code: shippingZip
-            }
-        },
-        billing_details: document.getElementById('billing-same').checked ? null : {
-            name: document.getElementById('b-name').value,
-            address: {
-                line1: document.getElementById('b-address1').value,
-                city: document.getElementById('b-city').value,
-                state: document.getElementById('b-state').value,
-                postal_code: document.getElementById('b-zip').value
-            }
-        }
+        item_count: 1
     };
 
     try {
@@ -526,47 +544,22 @@ async function handlePayment() {
         payButton.disabled = true;
         payButton.textContent = 'Processing...';
 
-        // Prepare headers with authentication
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-
-        // Add authorization header if token exists
-        if (window.userToken) {
-            headers['Authorization'] = window.userToken;
-        }
-
-        // Create checkout session with auth headers
+        // Create checkout session with auth header
         const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
             method: 'POST',
-            headers: headers,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': session.id_token // Use the ID token from auth.js
+            },
             body: JSON.stringify({
                 action: 'createCheckoutSession',
                 ...orderData
             })
         });
 
-        // Handle response errors
         if (!response.ok) {
-            let errorMessage = 'Failed to create payment session';
-            
-            if (response.status === 401) {
-                errorMessage = 'Authentication failed. Please sign in again.';
-                // Clear invalid token
-                if (typeof signout === 'function') signout();
-            } else if (response.status === 403) {
-                errorMessage = 'Access denied. Please check your permissions.';
-            }
-            
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.error || errorMessage;
-            } catch (e) {
-                // If we can't parse JSON, use status text
-                errorMessage = response.statusText || errorMessage;
-            }
-            
-            throw new Error(errorMessage);
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to create payment session');
         }
 
         const data = await response.json();
@@ -591,44 +584,33 @@ async function handlePayment() {
     }
 }
 
-// Update UI based on authentication status
-function updateAuthUI() {
-    const payButton = document.getElementById('pay-button');
-    
-    if (window.userToken) {
-        // User is authenticated - enable payment
-        payButton.disabled = false;
-        payButton.style.opacity = '1';
-        hideError();
-    } else {
-        // User is not authenticated - show message
-        payButton.disabled = true;
-        payButton.style.opacity = '0.7';
-        showError('Please sign in to complete your purchase');
-    }
-}
-
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
+    // Set initial item price and shipping cost
+    document.getElementById('item-price').textContent = PRODUCT_PRICE.toFixed(2);
+    document.getElementById('shipping-cost').textContent = SHIPPING_COST.toFixed(2);
+    
+    // Initial setup for billing address and calculation
+    handleBillingSameToggle();
+    
+    // Initialize Stripe
     initializeStripe();
     
     // Update pay button event listener
     document.getElementById('pay-button').addEventListener('click', handlePayment);
     
-    // Set up auth state monitoring
-    if (window.authStateChanged) {
-        // If your auth system has a state change listener
-        window.authStateChanged(updateAuthUI);
-    } else {
-        // Fallback: check auth status periodically
-        updateAuthUI();
-        
-        // Check auth status every 2 seconds (fallback)
-        setInterval(updateAuthUI, 2000);
-    }
+    // Check auth state immediately
+    checkAuthState();
     
-    // Also check when page becomes visible
-    document.addEventListener('visibilitychange', updateAuthUI);
+    // Set up continuous auth state monitoring
+    setInterval(checkAuthState, 1000);
+    
+    // Also check auth when page becomes visible
+    document.addEventListener('visibilitychange', checkAuthState);
+    
+    // Log auth status for debugging
+    console.log('Auth status on load:', window.isAuthenticated ? window.isAuthenticated() : 'isAuthenticated function not found');
+    console.log('User info:', window.getUserInfo ? window.getUserInfo() : 'getUserInfo function not found');
 });
 </script>
 </body>
