@@ -1,330 +1,166 @@
-// js/stripe-payment.js
-class StripePayment {
-    constructor() {
-        this.stripe = null;
-        this.cart = [];
-        this.isGift = false;
-        this.initializeStripe();
-        this.loadCartFromStorage();
-        this.setupModalCloseHandlers();
-    }
+/**
+ * // js/stripe-payment.js
+ * * Client-side Stripe integration script for TheWeer.com.
+ * This script interacts with the serverless Lambda function to handle
+ * Stripe Checkout session creation and retrieval of session/order details.
+ */
 
-    initializeStripe() {
-        this.stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
-    }
+// Initialize Stripe with your publishable key
+// Replace 'pk_test_YOUR_PUBLISHABLE_KEY' with your actual Stripe Publishable Key.
+const stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
 
-    loadCartFromStorage() {
-        const savedCart = localStorage.getItem('shoppingCart');
-        const savedGiftOption = localStorage.getItem('isGiftOption');
-        if (savedCart) {
-            this.cart = JSON.parse(savedCart);
-        }
-        if (savedGiftOption) {
-            this.isGift = JSON.parse(savedGiftOption);
-        }
-        this.updateCartUI();
-    }
+// Replace with your Lambda API Gateway endpoint URL
+const LAMBDA_API_ENDPOINT = CONFIG.CHECKOUT_API_ENDPOINT; 
 
-    saveCartToStorage() {
-        localStorage.setItem('shoppingCart', JSON.stringify(this.cart));
-        localStorage.setItem('isGiftOption', JSON.stringify(this.isGift));
-    }
-
-    setupModalCloseHandlers() {
-        // ESC key to close modal
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && document.getElementById('cart-modal')?.style.display === 'block') {
-                this.closeCartModal();
-            }
+/**
+ * Calls the Lambda API with a specific action and payload.
+ * @param {string} action - The action for the Lambda function (e.g., 'createCheckoutSession').
+ * @param {object} payload - The data to send in the request body.
+ * @returns {Promise<object>} The JSON response from the Lambda.
+ */
+async function callLambdaApi(action, payload) {
+    try {
+        const response = await fetch(LAMBDA_API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: action,
+                ...payload
+            })
         });
 
-        // Click outside to close modal
-        const modal = document.getElementById('cart-modal');
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target.id === 'cart-modal') {
-                    this.closeCartModal();
-                }
+        const data = await response.json();
+
+        if (response.ok) {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            return data;
+        } else {
+            // Handle non-200 responses, which still might contain a body
+            const errorMessage = data.error || `HTTP error! Status: ${response.status}`;
+            throw new Error(errorMessage);
+        }
+    } catch (error) {
+        console.error(`Lambda API call failed for action '${action}':`, error);
+        throw error;
+    }
+}
+
+/**
+ * Initiates the Stripe Checkout process.
+ * Calls the Lambda to create a session and redirects the user.
+ * @param {string} userEmail - The customer's email.
+ * @param {number} amount - The total amount in cents.
+ * @param {Array<object>} cartItems - The list of items in the cart.
+ * @param {number} itemCount - The total number of unique/distinct items.
+ */
+async function initiateStripeCheckout(userEmail, amount, cartItems, itemCount) {
+    if (!stripe) {
+        console.error("Stripe is not initialized. Check your publishable key.");
+        alert("Payment system error. Please try again later.");
+        return;
+    }
+
+    try {
+        // 1. Call the Lambda to create the Stripe Checkout Session
+        const sessionResponse = await callLambdaApi('createCheckoutSession', {
+            user_email: userEmail,
+            amount: amount,
+            cart_items: cartItems,
+            item_count: itemCount
+        });
+
+        const sessionId = sessionResponse.id;
+
+        // 2. Redirect to Stripe Checkout
+        const result = await stripe.redirectToCheckout({
+            sessionId: sessionId
+        });
+
+        if (result.error) {
+            console.error("Stripe redirect failed:", result.error.message);
+            alert(`Payment failed: ${result.error.message}`);
+        }
+
+    } catch (error) {
+        console.error("Error during checkout initiation:", error);
+        alert(`Could not start payment process: ${error.message || 'Internal error.'}`);
+    }
+}
+
+/**
+ * Retrieves Stripe session and order details after a successful checkout.
+ * Should be called on the success page (e.g., 'success.html').
+ * @param {string} sessionId - The Stripe Checkout Session ID from the URL query parameter.
+ * @returns {Promise<object | null>} The session and order data or null on failure.
+ */
+async function getSessionAndOrderDetails(sessionId) {
+    if (!sessionId) {
+        console.error("Missing Stripe Session ID.");
+        return null;
+    }
+
+    try {
+        // 1. Call the Lambda to retrieve session and order details
+        const details = await callLambdaApi('getSessionDetails', {
+            session_id: sessionId
+        });
+
+        // 2. Optionally, mark the order as 'COMPLETED' after showing details/confirmation
+        if (details && details.order_status !== 'COMPLETED') {
+            await callLambdaApi('completeOrder', {
+                session_id: sessionId
             });
-        }
-    }
-
-    addToCart(designId, realtimeUpdates) {
-        // Check if already in cart
-        if (this.isInCart(designId)) {
-            this.showError('This design is already in your cart');
-            return;
+            // Update the status locally for display, though a refresh would re-fetch.
+            details.order_status = 'COMPLETED'; 
         }
 
-        const design = realtimeUpdates.progressTracker.getCompletedDesign(designId);
-        if (!design) {
-            console.error('Design not found:', designId);
-            return;
-        }
+        return details;
 
-        const currentDiscount = realtimeUpdates.promoManager.getActiveDiscount();
-        const originalPrice = CONFIG.PRODUCT_PRICE;
-        const discountedPrice = originalPrice * (1 - currentDiscount / 100);
-        
-        const cartItem = {
-            designId: designId,
-            designData: design,
-            originalPrice: originalPrice,
-            discountedPrice: discountedPrice,
-            discount: currentDiscount,
-            paletteName: design.paletteName || 'Custom Design',
-            imageUrl: design.imageUrls ? design.imageUrls[0] : null,
-            addedAt: new Date().toISOString()
-        };
-
-        this.cart.push(cartItem);
-        this.saveCartToStorage();
-        this.updateCartUI();
-        this.updateProductCardButtons();
-        this.showAddToCartConfirmation(cartItem);
-    }
-
-    isInCart(designId) {
-        return this.cart.some(item => item.designId === designId);
-    }
-
-    showAddToCartConfirmation(item) {
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #28a745;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
-            max-width: 300px;
-            cursor: pointer;
-        `;
-        
-        notification.innerHTML = `
-            <div style="font-weight: bold; margin-bottom: 4px;">Added to Cart</div>
-            <div style="font-size: 14px;">${item.paletteName}</div>
-            <div style="font-size: 12px; opacity: 0.9;">$${item.discountedPrice.toFixed(2)}</div>
-            <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">Click to view cart</div>
-        `;
-
-        notification.addEventListener('click', () => {
-            this.openCartModal();
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        });
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
-            }
-        }, 3000);
-    }
-
-    updateCartUI() {
-        const cartCount = document.getElementById('cart-count');
-        if (cartCount) {
-            cartCount.textContent = this.cart.length;
-            cartCount.style.display = this.cart.length > 0 ? 'flex' : 'none';
-        }
-    }
-
-    updateProductCardButtons() {
-        const productCards = document.querySelectorAll('.product-card');
-        productCards.forEach(card => {
-            const designId = card.id.replace('design-', '');
-            const addToCartBtn = card.querySelector('.add-to-cart-btn');
-            if (addToCartBtn) {
-                if (this.isInCart(designId)) {
-                    addToCartBtn.textContent = 'Added to Cart';
-                    addToCartBtn.style.background = '#6c757d';
-                    addToCartBtn.style.cursor = 'not-allowed';
-                    addToCartBtn.disabled = true;
-                } else {
-                    addToCartBtn.textContent = 'Add to Cart';
-                    addToCartBtn.style.background = '#28a745';
-                    addToCartBtn.style.cursor = 'pointer';
-                    addToCartBtn.disabled = false;
-                }
-            }
-        });
-    }
-
-    removeFromCart(designId) {
-        this.cart = this.cart.filter(item => item.designId !== designId);
-        this.saveCartToStorage();
-        this.updateCartUI();
-        this.updateProductCardButtons();
-        this.renderCartItems();
-    }
-
-    toggleGiftOption() {
-        this.isGift = !this.isGift;
-        this.saveCartToStorage();
-        this.updateCartTotal();
-        this.renderCartItems();
-        
-        const giftCheckbox = document.querySelector('#cart-modal input[type="checkbox"]');
-        if (giftCheckbox) {
-            giftCheckbox.checked = this.isGift;
-        }
-    }
-
-    getCartTotal() {
-        const subtotal = this.cart.reduce((total, item) => total + item.discountedPrice, 0);
-        const giftFee = this.isGift ? 12.00 : 0;
-        return subtotal + giftFee;
-    }
-
-    updateCartTotal() {
-        const totalElement = document.getElementById('cart-total');
-        const giftFeeElement = document.getElementById('gift-fee');
-        const subtotalElement = document.getElementById('cart-subtotal');
-        const giftFeeLine = document.getElementById('gift-fee-line');
-        
-        if (totalElement) {
-            totalElement.textContent = this.getCartTotal().toFixed(2);
-        }
-        if (giftFeeElement) {
-            giftFeeElement.textContent = '12.00';
-        }
-        if (subtotalElement) {
-            const subtotal = this.cart.reduce((total, item) => total + item.discountedPrice, 0);
-            subtotalElement.textContent = subtotal.toFixed(2);
-        }
-        if (giftFeeLine) {
-            giftFeeLine.style.display = this.isGift ? 'flex' : 'none';
-        }
-    }
-
-    // REMOVED: initializeGiftCheckbox() — now handled in checkout.html
-    // REMOVED: old proceedToCheckout() — now redirects to checkout.html
-
-    /**
-     * NEW: Simple redirect to dedicated checkout page
-     */
-    proceedToCheckout() {
-      // simple redirect – all heavy lifting moved to checkout.html
-      const url = 'checkout.html?cart=' + encodeURIComponent(JSON.stringify(this.cart))
-                + '&gift=' + this.isGift;
-      window.location.href = url;
-    }
-
-    showError(message) {
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #dc3545;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
-            max-width: 300px;
-        `;
-        
-        notification.innerHTML = `
-            <div style="font-weight: bold; margin-bottom: 4px;">Error</div>
-            <div style="font-size: 14px;">${message}</div>
-        `;
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 4000);
-    }
-
-    openCartModal() {
-        this.renderCartItems();
-        const modal = document.getElementById('cart-modal');
-        if (modal) {
-            modal.style.display = 'block';
-        }
-        // Gift checkbox state will be updated in renderCartItems()
-    }
-
-    closeCartModal() {
-        const modal = document.getElementById('cart-modal');
-        if (modal) {
-            modal.style.display = 'none';
-        }
-    }
-
-    renderCartItems() {
-        const container = document.getElementById('cart-items-container');
-        if (!container) return;
-
-        if (this.cart.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">Your cart is empty</p>';
-            this.updateCartTotal();
-            return;
-        }
-
-        container.innerHTML = this.cart.map(item => `
-            <div class="cart-item" style="display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #eee; gap: 12px;">
-                <img src="${item.imageUrl}" alt="${item.paletteName}" 
-                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; flex-shrink: 0;">
-                <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px; line-height: 1.3;">${item.paletteName}</div>
-                    <div style="color: #666; font-size: 13px;">
-                        $${item.discountedPrice.toFixed(2)}
-                        ${item.discount > 0 ? `<span style="color: #28a745; font-size: 12px;">(${item.discount}% off)</span>` : ''}
-                    </div>
-                </div>
-                <button onclick="window.stripePayment.removeFromCart('${item.designId}')" 
-                        style="background: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; flex-shrink: 0;">
-                    Remove
-                </button>
-            </div>
-        `).join('');
-
-        this.updateCartTotal();
-        
-        // Update gift checkbox state
-        const giftCheckbox = document.querySelector('#cart-modal input[type="checkbox"]');
-        if (giftCheckbox) {
-            giftCheckbox.checked = this.isGift;
-        }
+    } catch (error) {
+        console.error("Error fetching session and order details:", error);
+        // You might want to display a generic error or retry button here
+        return null;
     }
 }
 
-// Initialize globally
-window.stripePayment = new StripePayment();
+// Export functions if using a module system, otherwise they are global.
+// For a simple script, leaving them global is common.
+// If your environment supports ES Modules:
+// export { initiateStripeCheckout, getSessionAndOrderDetails, stripe };
 
-// Add CSS animations (only if not already added)
-if (!document.getElementById('cart-notifications-style')) {
-    const style = document.createElement('style');
-    style.id = 'cart-notifications-style';
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
-}
+// Example Usage (for demonstration purposes, assumes an HTML structure):
+// ----------------------------------------------------------------------
+
+// Example: Handling checkout on a cart page
+// document.getElementById('checkout-button').addEventListener('click', () => {
+//     const userEmail = 'test@example.com'; // Get from user session/input
+//     const cart = [{ id: 'case-1', paletteName: 'Ocean Blue' }, { id: 'case-2', paletteName: 'Midnight Black' }]; // Get from cart state
+//     const totalAmountCents = 2499; // Total amount in cents
+
+//     initiateStripeCheckout(userEmail, totalAmountCents, cart, cart.length);
+// });
+
+// Example: Handling retrieval on a success page (success.html?session_id=cs_...)
+// window.onload = () => {
+//     const urlParams = new URLSearchParams(window.location.search);
+//     const sessionId = urlParams.get('session_id');
+
+//     if (sessionId) {
+//         getSessionAndOrderDetails(sessionId)
+//             .then(details => {
+//                 if (details) {
+//                     console.log("Payment successful! Order Details:", details);
+//                     // Update the DOM with the details (e.g., show confirmation)
+//                     // document.getElementById('order-status').textContent = details.order_status;
+//                     // document.getElementById('customer-email').textContent = details.customer_email;
+//                 } else {
+//                     // Handle case where details couldn't be fetched
+//                     // document.getElementById('order-status').textContent = 'Error: Could not retrieve order details.';
+//                 }
+//             });
+//     }
+// };
