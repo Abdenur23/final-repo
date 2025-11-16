@@ -371,7 +371,7 @@ class RealTimeUpdates {
     
     // In the addToCart method, replace with:
     addToCart(designId) {
-        window.app.cartManager.addToCart(designId, this);
+        window.stripePayment.addToCart(designId, this);
     }
 
     // UPDATED METHOD
