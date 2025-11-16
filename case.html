@@ -337,5 +337,12 @@
       window.stripePayment.openCartModal();
     });
   </script>
+  <script>
+    window.stripePayment.openCheckoutPage = function(){
+      const url = 'checkout.html?cart=' + encodeURIComponent(JSON.stringify(window.stripePayment.cart))
+                + '&gift=' + window.stripePayment.isGift;
+      window.location.href = url;
+    };
+  </script>
 </body>
 </html>
