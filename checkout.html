@@ -63,10 +63,6 @@
             margin: 16px 0;
             transition: border-color 0.2s, background 0.2s;
         }
-        .gift-option.highlight-shipping {
-            border-color: #28a745 !important;
-            background: #e6ffec !important;
-        }
         .gift-details {
             display: flex;
             align-items: center;
@@ -167,7 +163,7 @@
             <p id="shipping-highlight-note" class="alert hidden">
                 **Note:** This address is for the **gift recipient**.
             </p>
-            <form>
+            <form id="shipping-form">
                 <div class="form-group">
                     <label for="s-name">Full Name</label>
                     <input type="text" id="s-name" required>
@@ -182,7 +178,12 @@
                 </div>
                 <div class="form-group">
                     <label for="s-state">State</label>
-                    <input type="text" id="s-state" required>
+                    <select id="s-state">
+                        <option value="">-- Select State --</option>
+                        <option value="CA">California</option>
+                        <option value="NY">New York</option>
+                        <option value="TX">Texas</option>
+                        </select>
                 </div>
                 <div class="form-group">
                     <label for="s-zip">Zip/Postal Code</label>
@@ -202,31 +203,33 @@
             
             <div id="billing-address-form" class="hidden">
                 <p style="margin-top: 0; color: #888;">Enter your billing details below. This is used for tax calculation.</p>
-                <div class="form-group">
-                    <label for="b-name">Full Name</label>
-                    <input type="text" id="b-name">
-                </div>
-                <div class="form-group">
-                    <label for="b-address1">Address Line 1</label>
-                    <input type="text" id="b-address1">
-                </div>
-                <div class="form-group">
-                    <label for="b-city">City</label>
-                    <input type="text" id="b-city">
-                </div>
-                <div class="form-group">
-                    <label for="b-state">State</label>
-                    <select id="b-state" onchange="calculateOrderTotal()">
-                        <option value="">-- Select State --</option>
-                        <option value="CA">California</option>
-                        <option value="NY">New York</option>
-                        <option value="TX">Texas</option>
-                        </select>
-                </div>
-                <div class="form-group">
-                    <label for="b-zip">Zip/Postal Code</label>
-                    <input type="text" id="b-zip">
-                </div>
+                <form id="billing-form">
+                    <div class="form-group">
+                        <label for="b-name">Full Name</label>
+                        <input type="text" id="b-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="b-address1">Address Line 1</label>
+                        <input type="text" id="b-address1">
+                    </div>
+                    <div class="form-group">
+                        <label for="b-city">City</label>
+                        <input type="text" id="b-city">
+                    </div>
+                    <div class="form-group">
+                        <label for="b-state">State</label>
+                        <select id="b-state" onchange="calculateOrderTotal()">
+                            <option value="">-- Select State --</option>
+                            <option value="CA">California</option>
+                            <option value="NY">New York</option>
+                            <option value="TX">Texas</option>
+                            </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="b-zip">Zip/Postal Code</label>
+                        <input type="text" id="b-zip">
+                    </div>
+                </form>
             </div>
         </div>
         
@@ -259,115 +262,157 @@
         </button>
     </div>
 
-    <script>
-        // Constants
-        const PRODUCT_PRICE = 1.00;
-        const GIFT_FEE = 12.00;
-        const SHIPPING_COST = 8.70;
-        const CA_TAX_RATE = 0.0725; // California State Sales Tax
+<script>
+    // Constants
+    const PRODUCT_PRICE = 1.00;
+    const GIFT_FEE = 12.00;
+    const SHIPPING_COST = 8.70;
+    const CA_TAX_RATE = 0.0725; // California State Sales Tax
 
-        // DOM elements
-        const giftCheckbox = document.getElementById('gift-checkbox');
-        const shippingSection = document.getElementById('shipping-address-section');
-        const shippingHighlightNote = document.getElementById('shipping-highlight-note');
-        const billingSameCheckbox = document.getElementById('billing-same');
-        const billingAddressForm = document.getElementById('billing-address-form');
-        const billingStateSelect = document.getElementById('b-state');
-        const giftFeeLine = document.getElementById('gift-fee-line');
-        const taxLine = document.getElementById('tax-line');
-        const orderTotalSpan = document.getElementById('order-total');
-        const finalTotalBtnSpan = document.getElementById('final-total-btn');
-        const salesTaxSpan = document.getElementById('sales-tax');
-        const summaryGiftFeeSpan = document.getElementById('summary-gift-fee');
+    // DOM elements
+    const giftCheckbox = document.getElementById('gift-checkbox');
+    const shippingSection = document.getElementById('shipping-address-section');
+    const shippingHighlightNote = document.getElementById('shipping-highlight-note');
+    const billingSameCheckbox = document.getElementById('billing-same');
+    const billingAddressForm = document.getElementById('billing-address-form');
+    const billingStateSelect = document.getElementById('b-state');
+    const giftFeeLine = document.getElementById('gift-fee-line');
+    const taxLine = document.getElementById('tax-line');
+    const orderTotalSpan = document.getElementById('order-total');
+    const finalTotalBtnSpan = document.getElementById('final-total-btn');
+    const salesTaxSpan = document.getElementById('sales-tax');
+    const summaryGiftFeeSpan = document.getElementById('summary-gift-fee');
 
-        /**
-         * Calculates the total cost based on the gift option and billing state.
-         */
-        function calculateOrderTotal() {
-            let subtotal = PRODUCT_PRICE;
-            let total = PRODUCT_PRICE + SHIPPING_COST;
-            let taxAmount = 0.00;
-            let isGift = giftCheckbox.checked;
-            let isBillingCA = (billingStateSelect.value === 'CA');
+    // Mappings for copying fields
+    const addressFields = ['name', 'address1', 'city', 'state', 'zip'];
 
-            // 1. Add Gift Fee
-            if (isGift) {
-                subtotal += GIFT_FEE;
-                total += GIFT_FEE;
-                giftFeeLine.classList.remove('hidden');
-                summaryGiftFeeSpan.textContent = GIFT_FEE.toFixed(2);
-            } else {
-                giftFeeLine.classList.add('hidden');
-            }
-
-            // 2. Calculate Tax
-            if (isBillingCA) {
-                // Taxable items are: Product Price, Gift Fee, and Shipping Cost
-                const taxableBase = PRODUCT_PRICE + (isGift ? GIFT_FEE : 0) + SHIPPING_COST;
-                taxAmount = taxableBase * CA_TAX_RATE;
-                total += taxAmount;
-
-                salesTaxSpan.textContent = taxAmount.toFixed(2);
-                taxLine.classList.remove('hidden');
-            } else {
-                taxLine.classList.add('hidden');
-                taxAmount = 0.00;
-            }
-
-            // Update DOM
-            orderTotalSpan.textContent = total.toFixed(2);
-            finalTotalBtnSpan.textContent = total.toFixed(2);
-        }
-
-        /**
-         * Handles gift checkbox logic (highlighting shipping and recalculating).
-         */
-        function handleGiftToggle() {
-            if (giftCheckbox.checked) {
-                shippingSection.classList.add('highlight');
-                shippingHighlightNote.classList.remove('hidden');
-            } else {
-                shippingSection.classList.remove('highlight');
-                shippingHighlightNote.classList.add('hidden');
-            }
-            calculateOrderTotal();
-        }
-
-        /**
-         * Handles billing address same as shipping toggle.
-         */
-        function handleBillingSameToggle() {
-            if (billingSameCheckbox.checked) {
-                billingAddressForm.classList.add('hidden');
-                // When billing is same as shipping, we can't determine the state 
-                // for tax purposes (we only required shipping fields). 
-                // We'll reset billing state to ensure tax is not applied 
-                // unless the specific billing state is chosen.
-                // NOTE: For a production app, you'd likely copy the shipping state here.
-                // For this simple example, we'll clear it to prevent accidental CA tax.
-                billingStateSelect.value = ''; 
-                calculateOrderTotal();
-            } else {
-                billingAddressForm.classList.remove('hidden');
-            }
-        }
-        
-        // Event Listeners
-        giftCheckbox.addEventListener('change', handleGiftToggle);
-        billingSameCheckbox.addEventListener('change', handleBillingSameToggle);
-        
-        // Initial setup
-        document.addEventListener('DOMContentLoaded', () => {
-            // Set initial item price and shipping cost
-            document.getElementById('item-price').textContent = PRODUCT_PRICE.toFixed(2);
-            document.getElementById('shipping-cost').textContent = SHIPPING_COST.toFixed(2);
+    /**
+     * Copies shipping address values to billing address fields.
+     */
+    function copyShippingToBilling() {
+        addressFields.forEach(field => {
+            const shippingField = document.getElementById('s-' + field);
+            const billingField = document.getElementById('b-' + field);
             
-            // Set up billing address form to be hidden on load
-            handleBillingSameToggle();
-            
-            // Calculate initial total
-            calculateOrderTotal();
+            if (shippingField && billingField) {
+                billingField.value = shippingField.value;
+            }
         });
-    </script>
+        
+        // Recalculate total after copying (important for tax if CA is copied)
+        calculateOrderTotal();
+    }
+
+    /**
+     * Calculates the total cost based on the gift option and billing state.
+     */
+    function calculateOrderTotal() {
+        let total = PRODUCT_PRICE + SHIPPING_COST;
+        let taxAmount = 0.00;
+        let isGift = giftCheckbox.checked;
+        
+        // Determine the state to use for tax calculation
+        let taxState = '';
+        if (billingSameCheckbox.checked) {
+            // Billing is same as shipping, use shipping state
+            const shippingStateField = document.getElementById('s-state');
+            taxState = shippingStateField ? shippingStateField.value : '';
+        } else {
+            // Billing is different, use explicit billing state
+            taxState = billingStateSelect.value;
+        }
+
+        let isBillingCA = (taxState === 'CA');
+
+        // 1. Add Gift Fee
+        if (isGift) {
+            total += GIFT_FEE;
+            giftFeeLine.classList.remove('hidden');
+            summaryGiftFeeSpan.textContent = GIFT_FEE.toFixed(2);
+        } else {
+            giftFeeLine.classList.add('hidden');
+        }
+
+        // 2. Calculate Tax
+        if (isBillingCA) {
+            // Taxable items are: Product Price, Gift Fee, and Shipping Cost
+            const taxableBase = PRODUCT_PRICE + (isGift ? GIFT_FEE : 0) + SHIPPING_COST;
+            taxAmount = taxableBase * CA_TAX_RATE;
+            total += taxAmount;
+
+            salesTaxSpan.textContent = taxAmount.toFixed(2);
+            taxLine.classList.remove('hidden');
+        } else {
+            taxLine.classList.add('hidden');
+            taxAmount = 0.00;
+        }
+
+        // Update DOM
+        orderTotalSpan.textContent = total.toFixed(2);
+        finalTotalBtnSpan.textContent = total.toFixed(2);
+    }
+
+    /**
+     * Handles gift checkbox logic (highlighting shipping and recalculating).
+     */
+    function handleGiftToggle() {
+        if (giftCheckbox.checked) {
+            shippingSection.classList.add('highlight');
+            shippingHighlightNote.classList.remove('hidden');
+        } else {
+            shippingSection.classList.remove('highlight');
+            shippingHighlightNote.classList.add('hidden');
+        }
+        calculateOrderTotal();
+    }
+
+    /**
+     * Handles billing address same as shipping toggle.
+     */
+    function handleBillingSameToggle() {
+        if (billingSameCheckbox.checked) {
+            billingAddressForm.classList.add('hidden');
+            copyShippingToBilling(); // **KEY CHANGE: Copy the address here**
+        } else {
+            billingAddressForm.classList.remove('hidden');
+            // When switching to 'different address', re-calculate based on whatever 
+            // is currently in the *visible* billing state selector
+            calculateOrderTotal(); 
+        }
+    }
+    
+    // --- Event Listeners ---
+
+    // 1. Gift option change
+    giftCheckbox.addEventListener('change', handleGiftToggle);
+    
+    // 2. Billing same as shipping toggle
+    billingSameCheckbox.addEventListener('change', handleBillingSameToggle);
+    
+    // 3. Billing state change (only matters if billingSameCheckbox is unchecked)
+    billingStateSelect.addEventListener('change', calculateOrderTotal);
+
+    // 4. Real-time updates for billing if 'same as shipping' is checked
+    addressFields.forEach(field => {
+        const shippingField = document.getElementById('s-' + field);
+        if (shippingField) {
+            shippingField.addEventListener('input', () => {
+                if (billingSameCheckbox.checked) {
+                    copyShippingToBilling();
+                }
+            });
+        }
+    });
+
+    // Initial setup
+    document.addEventListener('DOMContentLoaded', () => {
+        // Set initial item price and shipping cost
+        document.getElementById('item-price').textContent = PRODUCT_PRICE.toFixed(2);
+        document.getElementById('shipping-cost').textContent = SHIPPING_COST.toFixed(2);
+        
+        // Initial setup for billing address and calculation
+        handleBillingSameToggle();
+    });
+</script>
 </body>
 </html>
