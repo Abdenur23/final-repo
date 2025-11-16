@@ -1,304 +1,241 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkout - Custom Phone Cases</title>
-  <link rel="stylesheet" href="css/main.css">
-  <style>
-    .checkout-container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .checkout-section {
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .section-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 16px;
-      color: #333;
-    }
-    .form-group {
-      margin-bottom: 16px;
-    }
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 500;
-      color: #555;
-    }
-    input, select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 2px solid #e1e5e9;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-    input:focus, select:focus {
-      border-color: #007bff;
-      outline: none;
-    }
-    .gift-section {
-      border: 2px solid #e6f2ff;
-      background: #f8fbff;
-      padding: 16px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    .gift-section.active {
-      border-color: #007bff;
-      background: #f0f8ff;
-    }
-    .checkbox-group {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-    }
-    .checkbox-group input {
-      width: auto;
-      margin-top: 2px;
-    }
-    .order-summary-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-    .order-total {
-      border-top: 1px solid #eee;
-      padding-top: 12px;
-      margin-top: 12px;
-      font-weight: bold;
-      font-size: 18px;
-    }
-    .btn-primary {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 14px 20px;
-      border-radius: 8px;
-      width: 100%;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-    .btn-primary:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
-    .address-verified {
-      border-color: #28a745 !important;
-      background: #f8fff9;
-    }
-    .verified-badge {
-      color: #28a745;
-      font-size: 12px;
-      margin-left: 8px;
-    }
-    .error-message {
-      color: #dc3545;
-      font-size: 12px;
-      margin-top: 4px;
-      display: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Shipping Details</title>
+    <link rel="stylesheet" href="css/main.css"> 
+    <style>
+        .checkout-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            background: white;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .address-section {
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+        }
+        .gift-highlight {
+            border-color: #d4af37 !important;
+            background: #fffbe6 !important;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        .section-header h2 {
+            margin: 0;
+            color: #007bff;
+        }
+        .checkout-summary {
+            border-top: 2px solid #007bff;
+            padding-top: 15px;
+            margin-top: 20px;
+        }
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .summary-total {
+            font-weight: bold;
+            font-size: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+        }
+        #checkout-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 6px;
+            width: 100%;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        #checkout-button:hover:not(:disabled) {
+            background: #1e7e34;
+        }
+        #checkout-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .address-verification-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: none;
+        }
+        .address-verification-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .address-verification-message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .match-address-container {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f0f8ff;
+            border: 1px solid #e6f2ff;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div style="text-align: center; margin: 20px 0;">
-      <img src="logo.png" alt="Logo" style="height: 60px;">
-    </div>
-
     <div class="checkout-container">
-      <h1 style="text-align: center; margin-bottom: 30px;">Checkout</h1>
-      
-      <!-- Order Summary -->
-      <div class="checkout-section">
-        <h2 class="section-title">Order Summary</h2>
-        <div id="order-items">
-          <!-- Cart items will be loaded here -->
-        </div>
-        <div style="border-top: 1px solid #eee; padding-top: 16px;">
-          <div class="order-summary-item">
-            <span>Subtotal:</span>
-            <span>$<span id="summary-subtotal">0.00</span></span>
-          </div>
-          <div class="order-summary-item" id="tax-line" style="display: none;">
-            <span>Sales Tax:</span>
-            <span>$<span id="tax-amount">0.00</span></span>
-          </div>
-          <div class="order-summary-item order-total">
-            <span>Total:</span>
-            <span>$<span id="summary-total">0.00</span></span>
-          </div>
-        </div>
-      </div>
+        <h1 style="text-align: center; color: #333;">Complete Your Order</h1>
+        <p style="text-align: center; color: #666;">Almost there! Tell us where to send your custom case.</p>
 
-      <!-- Gift Option -->
-      <div class="gift-section" id="gift-section">
-        <div class="checkbox-group">
-          <input type="checkbox" id="is-gift">
-          <label for="is-gift" style="margin: 0;">
-            <strong>🎁 This order is a gift</strong>
-            <div style="font-size: 14px; color: #666; margin-top: 4px;">
-              We'll wrap it beautifully and ship directly to your recipient
+        <div id="shipping-address-section" class="address-section">
+            <div class="section-header">
+                <h2 id="shipping-address-title">📦 Shipping Address</h2>
+                <button id="verify-address-button" class="btn" style="background: #007bff; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer;">Verify Address</button>
             </div>
-          </label>
-        </div>
-        
-        <div id="gift-recipient-fields" style="display: none; margin-top: 16px;">
-          <div class="form-group">
-            <label>Gift Recipient Name</label>
-            <input type="text" id="gift-recipient-name" placeholder="Enter recipient's full name">
-          </div>
-          <div class="form-group">
-            <label>Gift Message (Optional)</label>
-            <textarea id="gift-message" placeholder="Add a personal message" style="width: 100%; height: 80px; padding: 10px; border: 2px solid #e1e5e9; border-radius: 6px;"></textarea>
-          </div>
-        </div>
-      </div>
+            
+            <form id="shipping-form">
+                <div class="form-group">
+                    <label for="shipping_name">Full Name</label>
+                    <input type="text" id="shipping_name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="shipping_line1">Address Line 1</label>
+                    <input type="text" id="shipping_line1" name="line1" required>
+                </div>
+                <div class="form-group">
+                    <label for="shipping_line2">Address Line 2 (Optional)</label>
+                    <input type="text" id="shipping_line2" name="line2">
+                </div>
+                <div class="form-group">
+                    <label for="shipping_city">City</label>
+                    <input type="text" id="shipping_city" name="city" required>
+                </div>
+                <div class="form-group" style="display: flex; gap: 15px;">
+                    <div style="flex: 2;">
+                        <label for="shipping_state">State (e.g., CA)</label>
+                        <input type="text" id="shipping_state" name="state" maxlength="2" required style="text-transform: uppercase;">
+                    </div>
+                    <div style="flex: 3;">
+                        <label for="shipping_zip">ZIP Code</label>
+                        <input type="text" id="shipping_zip" name="zip" required>
+                    </div>
+                </div>
+            </form>
 
-      <!-- Shipping Address -->
-      <div class="checkout-section">
-        <h2 class="section-title" id="shipping-title">Shipping Address</h2>
-        
-        <form id="shipping-form">
-          <div class="form-group">
-            <label>Full Name *</label>
-            <input type="text" id="shipping-name" required>
-            <div class="error-message" id="name-error">Please enter a valid name</div>
-          </div>
-          
-          <div class="form-group">
-            <label>Address Line 1 *</label>
-            <input type="text" id="address-line1" required placeholder="Street address">
-            <div class="error-message" id="address-error">Please enter a valid address</div>
-          </div>
-          
-          <div class="form-group">
-            <label>Address Line 2 (Optional)</label>
-            <input type="text" id="address-line2" placeholder="Apartment, suite, unit, etc.">
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label>City *</label>
-              <input type="text" id="city" required>
-              <div class="error-message" id="city-error">Please enter a valid city</div>
-            </div>
-            <div class="form-group">
-              <label>State *</label>
-              <select id="state" required>
-                <option value="">Select State</option>
-                <!-- States will be populated by JavaScript -->
-              </select>
-              <div class="error-message" id="state-error">Please select a state</div>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>ZIP Code *</label>
-            <input type="text" id="zip-code" required maxlength="10" pattern="^\d{5}(-\d{4})?$">
-            <div class="error-message" id="zip-error">Please enter a valid ZIP code</div>
-          </div>
-        </form>
-      </div>
+            <div id="address-verification-feedback" class="address-verification-message"></div>
 
-      <!-- Billing Address -->
-      <div class="checkout-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h2 class="section-title">Billing Address</h2>
-          <label class="checkbox-group" style="margin: 0;">
-            <input type="checkbox" id="same-as-shipping" checked>
-            <span style="font-size: 14px;">Same as shipping address</span>
-          </label>
         </div>
 
-        <form id="billing-form" style="display: none;">
-          <div class="form-group">
-            <label>Full Name *</label>
-            <input type="text" id="billing-name" required>
-          </div>
-          
-          <div class="form-group">
-            <label>Address Line 1 *</label>
-            <input type="text" id="billing-address-line1" required>
-          </div>
-          
-          <div class="form-group">
-            <label>Address Line 2 (Optional)</label>
-            <input type="text" id="billing-address-line2">
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label>City *</label>
-              <input type="text" id="billing-city" required>
-            </div>
-            <div class="form-group">
-              <label>State *</label>
-              <select id="billing-state" required>
-                <option value="">Select State</option>
-                <!-- States will be populated by JavaScript -->
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>ZIP Code *</label>
-            <input type="text" id="billing-zip-code" required maxlength="10" pattern="^\d{5}(-\d{4})?$">
-          </div>
-        </form>
-      </div>
+        <div class="match-address-container">
+            <label>
+                <input type="checkbox" id="match-addresses-checkbox" checked>
+                Billing address is the same as shipping address
+            </label>
+        </div>
 
-      <!-- Payment Section -->
-      <div class="checkout-section">
-        <button id="stripe-checkout-btn" class="btn-primary" disabled>
-          Proceed to Secure Payment
+        <div id="billing-address-section" class="address-section" style="display: none;">
+            <div class="section-header">
+                <h2>💳 Billing Address</h2>
+            </div>
+            <form id="billing-form">
+                <div class="form-group">
+                    <label for="billing_name">Full Name</label>
+                    <input type="text" id="billing_name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="billing_line1">Address Line 1</label>
+                    <input type="text" id="billing_line1" name="line1" required>
+                </div>
+                <div class="form-group">
+                    <label for="billing_line2">Address Line 2 (Optional)</label>
+                    <input type="text" id="billing_line2" name="line2">
+                </div>
+                <div class="form-group">
+                    <label for="billing_city">City</label>
+                    <input type="text" id="billing_city" name="city" required>
+                </div>
+                <div class="form-group" style="display: flex; gap: 15px;">
+                    <div style="flex: 2;">
+                        <label for="billing_state">State (e.g., CA)</label>
+                        <input type="text" id="billing_state" name="state" maxlength="2" required style="text-transform: uppercase;">
+                    </div>
+                    <div style="flex: 3;">
+                        <label for="billing_zip">ZIP Code</label>
+                        <input type="text" id="billing_zip" name="zip" required>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="checkout-summary">
+            <h3>Order Summary</h3>
+            <div class="summary-line">
+                <span>Items Subtotal:</span>
+                <span>$<span id="summary-subtotal">0.00</span></span>
+            </div>
+            <div id="summary-gift-line" class="summary-line" style="display: none;">
+                <span>Gift Service Fee:</span>
+                <span>$<span id="summary-gift-fee">12.00</span></span>
+            </div>
+            <div id="summary-tax-line" class="summary-line" style="display: none;">
+                <span>Sales Tax (<span id="tax-rate-display"></span>):</span>
+                <span>$<span id="summary-tax">0.00</span></span>
+            </div>
+            <div class="summary-total summary-line">
+                <span>Order Total:</span>
+                <span>$<span id="summary-total">0.00</span></span>
+            </div>
+        </div>
+
+        <button id="checkout-button">
+            Proceed to Stripe Payment
         </button>
-        
-        <div style="text-align: center; margin-top: 16px;">
-          <img src="https://stripe.com/img/v3/home/twitter.png" alt="Stripe" style="height: 24px; opacity: 0.7;">
-          <p style="font-size: 12px; color: #666; margin-top: 8px;">
-            Your payment details are secured by Stripe
-          </p>
-        </div>
-      </div>
+        <p style="text-align: center; margin-top: 10px; font-size: 14px; color: #666;">
+            🔒 All card information is handled securely by Stripe.
+        </p>
+
     </div>
-  </div>
 
-  <script src="config/constants.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/cart-manager.js"></script>
-  <script src="js/checkout-manager.js"></script>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', async function() {
-      const isAuthenticated = await checkAuthStatus();
-      if (!isAuthenticated) {
-        window.location.href = 'case.html';
-        return;
-      }
-      
-      if (window.cartManager.getCartCount() === 0) {
-        window.location.href = 'case.html';
-        return;
-      }
-      
-      window.checkoutManager = new CheckoutManager();
-      await window.checkoutManager.initialize();
-    });
-  </script>
+    <script src="config/constants.js"></script>
+    <script src="js/checkout-manager.js"></script>
+    <script>
+        // Initialize the checkout manager once the DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            window.checkoutManager = new CheckoutManager();
+        });
+    </script>
 </body>
 </html>
