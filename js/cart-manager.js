@@ -2,25 +2,18 @@
 class CartManager {
     constructor() {
         this.cart = [];
-        this.isGift = false;
         this.loadCartFromStorage();
     }
 
     loadCartFromStorage() {
         const savedCart = localStorage.getItem('shoppingCart');
-        const savedGiftOption = localStorage.getItem('isGiftOption');
-        
         if (savedCart) {
             this.cart = JSON.parse(savedCart);
-        }
-        if (savedGiftOption) {
-            this.isGift = JSON.parse(savedGiftOption);
         }
     }
 
     saveCartToStorage() {
         localStorage.setItem('shoppingCart', JSON.stringify(this.cart));
-        localStorage.setItem('isGiftOption', JSON.stringify(this.isGift));
     }
 
     getCartItems() {
@@ -33,19 +26,6 @@ class CartManager {
 
     getSubtotal() {
         return this.cart.reduce((total, item) => total + item.discountedPrice, 0);
-    }
-
-    getGiftFee() {
-        return this.isGift ? 12.00 : 0;
-    }
-
-    getTotal() {
-        return this.getSubtotal() + this.getGiftFee();
-    }
-
-    setGiftOption(isGift) {
-        this.isGift = isGift;
-        this.saveCartToStorage();
     }
 
     isInCart(designId) {
@@ -90,9 +70,7 @@ class CartManager {
 
     clearCart() {
         this.cart = [];
-        this.isGift = false;
         localStorage.removeItem('shoppingCart');
-        localStorage.removeItem('isGiftOption');
     }
 }
 
