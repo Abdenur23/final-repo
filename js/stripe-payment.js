@@ -1,13 +1,33 @@
-// js/stripe-payment.js - REFACTORED TO USE CART MANAGER
+// js/stripe-payment.js - UPDATED WITH ALL FIXES
 class StripePayment {
     constructor() {
         this.stripe = null;
+        this.cart = [];
+        this.isGift = false;
         this.initializeStripe();
+        this.loadCartFromStorage();
         this.setupModalCloseHandlers();
     }
 
     initializeStripe() {
         this.stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
+    }
+
+    loadCartFromStorage() {
+        const savedCart = localStorage.getItem('shoppingCart');
+        const savedGiftOption = localStorage.getItem('isGiftOption');
+        if (savedCart) {
+            this.cart = JSON.parse(savedCart);
+        }
+        if (savedGiftOption) {
+            this.isGift = JSON.parse(savedGiftOption);
+        }
+        this.updateCartUI();
+    }
+
+    saveCartToStorage() {
+        localStorage.setItem('shoppingCart', JSON.stringify(this.cart));
+        localStorage.setItem('isGiftOption', JSON.stringify(this.isGift));
     }
 
     setupModalCloseHandlers() {
@@ -27,19 +47,42 @@ class StripePayment {
     }
 
     addToCart(designId, realtimeUpdates) {
-        // Use the new cart manager
-        const success = window.cartManager.addToCart(designId, realtimeUpdates);
-        if (success) {
-            this.updateCartUI();
-            this.updateProductCardButtons();
-            this.showAddToCartConfirmation(window.cartManager.getCartItems().find(item => item.designId === designId));
-        } else {
+        // Check if already in cart
+        if (this.isInCart(designId)) {
             this.showError('This design is already in your cart');
+            return;
         }
+
+        const design = realtimeUpdates.progressTracker.getCompletedDesign(designId);
+        if (!design) {
+            console.error('Design not found:', designId);
+            return;
+        }
+
+        const currentDiscount = realtimeUpdates.promoManager.getActiveDiscount();
+        const originalPrice = CONFIG.PRODUCT_PRICE;
+        const discountedPrice = originalPrice * (1 - currentDiscount / 100);
+        
+        const cartItem = {
+            designId: designId,
+            designData: design,
+            originalPrice: originalPrice,
+            discountedPrice: discountedPrice,
+            discount: currentDiscount,
+            paletteName: design.paletteName || 'Custom Design',
+            imageUrl: design.imageUrls ? design.imageUrls[0] : null,
+            addedAt: new Date().toISOString()
+        };
+
+        this.cart.push(cartItem);
+        this.saveCartToStorage();
+        this.updateCartUI();
+        this.updateProductCardButtons(); // Update all product card buttons
+        this.showAddToCartConfirmation(cartItem);
     }
 
     isInCart(designId) {
-        return window.cartManager.isInCart(designId);
+        return this.cart.some(item => item.designId === designId);
     }
 
     showAddToCartConfirmation(item) {
@@ -91,8 +134,8 @@ class StripePayment {
     updateCartUI() {
         const cartCount = document.getElementById('cart-count');
         if (cartCount) {
-            cartCount.textContent = window.cartManager.getCartCount();
-            cartCount.style.display = window.cartManager.getCartCount() > 0 ? 'flex' : 'none';
+            cartCount.textContent = this.cart.length;
+            cartCount.style.display = this.cart.length > 0 ? 'flex' : 'none';
         }
     }
 
@@ -119,26 +162,157 @@ class StripePayment {
     }
 
     removeFromCart(designId) {
-        window.cartManager.removeFromCart(designId);
+        this.cart = this.cart.filter(item => item.designId !== designId);
+        this.saveCartToStorage();
         this.updateCartUI();
-        this.updateProductCardButtons();
+        this.updateProductCardButtons(); // Update buttons when item is removed
         this.renderCartItems();
     }
 
-    getCartTotal() {
-        return window.cartManager.getSubtotal();
+    toggleGiftOption() {
+        this.isGift = !this.isGift;
+        this.saveCartToStorage();
+        this.updateCartTotal();
+        this.renderCartItems();
+        
+        // Update checkbox state
+        const giftCheckbox = document.querySelector('#cart-modal input[type="checkbox"]');
+        if (giftCheckbox) {
+            giftCheckbox.checked = this.isGift;
+        }
     }
 
+    getCartTotal() {
+        const subtotal = this.cart.reduce((total, item) => total + item.discountedPrice, 0);
+        const giftFee = this.isGift ? 12.00 : 0;
+        return subtotal + giftFee;
+    }
+    // Add this to stripe-payment.js - Better gift checkbox handling
+    initializeGiftCheckbox() {
+        // Wait for modal to be available and set up event listener
+        const checkModal = () => {
+            const giftCheckbox = document.getElementById('gift-checkbox');
+            if (giftCheckbox) {
+                // Set initial state
+                giftCheckbox.checked = this.isGift;
+                
+                // Remove any existing event listeners and add new one
+                giftCheckbox.replaceWith(giftCheckbox.cloneNode(true));
+                const newCheckbox = document.getElementById('gift-checkbox');
+                
+                newCheckbox.addEventListener('change', (e) => {
+                    console.log('Gift checkbox changed to:', e.target.checked);
+                    this.isGift = e.target.checked;
+                    this.saveCartToStorage();
+                    this.updateCartTotal();
+                    this.renderCartItems();
+                });
+                
+                console.log('Gift checkbox initialized with state:', this.isGift);
+            } else {
+                // Try again in a bit if not ready
+                setTimeout(checkModal, 100);
+            }
+        };
+        
+        checkModal();
+    }
+    
+    // Update the openCartModal method to initialize the checkbox
+    openCartModal() {
+        this.renderCartItems();
+        document.getElementById('cart-modal').style.display = 'block';
+        this.initializeGiftCheckbox(); // Initialize when modal opens
+    }
     updateCartTotal() {
         const totalElement = document.getElementById('cart-total');
+        const giftFeeElement = document.getElementById('gift-fee');
         const subtotalElement = document.getElementById('cart-subtotal');
+        const giftFeeLine = document.getElementById('gift-fee-line');
         
         if (totalElement) {
             totalElement.textContent = this.getCartTotal().toFixed(2);
         }
+        if (giftFeeElement) {
+            giftFeeElement.textContent = '12.00';
+        }
         if (subtotalElement) {
-            const subtotal = window.cartManager.getSubtotal();
+            const subtotal = this.cart.reduce((total, item) => total + item.discountedPrice, 0);
             subtotalElement.textContent = subtotal.toFixed(2);
+        }
+        if (giftFeeLine) {
+            giftFeeLine.style.display = this.isGift ? 'flex' : 'none';
+        }
+    }
+
+    // js/stripe-payment.js - UPDATED proceedToCheckout method
+    async proceedToCheckout() {
+        if (this.cart.length === 0) {
+            this.showError('Your cart is empty');
+            return;
+        }
+    
+        try {
+            const session = getSession();
+            if (!session || !session.id_token) {
+                alert('Please sign in to proceed with checkout');
+                return;
+            }
+    
+            const userInfo = getUserInfo();
+            const totalAmount = Math.round(this.getCartTotal() * 100);
+    
+            // DEBUG: Log everything being sent
+            console.log('=== CHECKOUT DEBUG ===');
+            console.log('Gift option:', this.isGift);
+            console.log('Total amount:', totalAmount);
+            console.log('Cart items:', this.cart.length);
+            console.log('User email:', userInfo?.email);
+            console.log('=====================');
+    
+            // Prepare the request body - match what Lambda expects
+            const requestBody = {
+                action: 'createCheckoutSession',
+                user_email: userInfo ? userInfo.email : null,
+                amount: totalAmount,
+                cart_items: this.cart,
+                item_count: this.cart.length,
+                is_gift: this.isGift  // Make sure this is included
+            };
+    
+            console.log('Sending to API:', requestBody);
+    
+            const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.id_token}`
+                },
+                body: JSON.stringify(requestBody)
+            });
+    
+            console.log('Response status:', response.status);
+    
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Checkout API error response:', errorText);
+                throw new Error('Failed to create checkout session: ' + errorText);
+            }
+    
+            const checkoutSession = await response.json();
+            console.log('Checkout session created successfully:', checkoutSession);
+            
+            const result = await this.stripe.redirectToCheckout({
+                sessionId: checkoutSession.id
+            });
+    
+            if (result.error) {
+                throw new Error(result.error.message);
+            }
+    
+        } catch (error) {
+            console.error('Checkout error:', error);
+            this.showError('Error starting checkout: ' + error.message);
         }
     }
 
@@ -188,15 +362,13 @@ class StripePayment {
         const container = document.getElementById('cart-items-container');
         if (!container) return;
 
-        const cartItems = window.cartManager.getCartItems();
-
-        if (cartItems.length === 0) {
+        if (this.cart.length === 0) {
             container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">Your cart is empty</p>';
             this.updateCartTotal();
             return;
         }
 
-        container.innerHTML = cartItems.map(item => `
+        container.innerHTML = this.cart.map(item => `
             <div class="cart-item" style="display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #eee; gap: 12px;">
                 <img src="${item.imageUrl}" alt="${item.paletteName}" 
                      style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; flex-shrink: 0;">
@@ -215,6 +387,12 @@ class StripePayment {
         `).join('');
 
         this.updateCartTotal();
+        
+        // Update gift checkbox state
+        const giftCheckbox = document.querySelector('#cart-modal input[type="checkbox"]');
+        if (giftCheckbox) {
+            giftCheckbox.checked = this.isGift;
+        }
     }
 }
 
