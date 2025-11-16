@@ -216,9 +216,10 @@ class StripePayment {
      * NEW: Simple redirect to dedicated checkout page
      */
     proceedToCheckout() {
-        // Save current gift state for checkout page
-        this.saveCartToStorage();
-        window.location.href = 'checkout.html';
+      // simple redirect – all heavy lifting moved to checkout.html
+      const url = 'checkout.html?cart=' + encodeURIComponent(JSON.stringify(this.cart))
+                + '&gift=' + this.isGift;
+      window.location.href = url;
     }
 
     showError(message) {
