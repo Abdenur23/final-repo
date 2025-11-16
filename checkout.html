@@ -229,20 +229,18 @@
 
     </div>
 
-    <!-- checkout.html - UPDATED SCRIPT SECTION -->
+    <!-- Updated script section for checkout.html -->
     <script src="config/constants.js"></script>
     <script src="js/auth.js"></script>
-    
-    <!-- Load Stripe FIRST -->
     <script src="https://js.stripe.com/v3/"></script>
     
-    <!-- Simple Stripe initializer for checkout page -->
+    <!-- Simple Stripe initializer -->
     <script>
-    // Simple Stripe initialization for checkout page only
+    // Simple Stripe initialization for checkout page
     window.stripePayment = {
         stripe: null,
         initialize: function() {
-            if (!this.stripe && typeof Stripe === 'function' && CONFIG.STRIPE_PUBLISHABLE_KEY) {
+            if (!this.stripe && typeof Stripe === 'function' && CONFIG && CONFIG.STRIPE_PUBLISHABLE_KEY) {
                 this.stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
                 console.log("Stripe initialized for checkout");
             }
@@ -251,20 +249,34 @@
     };
     </script>
     
-    <!-- Then load checkout manager -->
-    <script src="js/checkout-manager.js"></script>
+    <!-- Load checkout-manager with error handling -->
+    <script src="js/checkout-manager.js" onerror="console.error('Failed to load checkout-manager.js')"></script>
     
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Initialize Stripe first
-        window.stripePayment.initialize();
+        console.log("DOM loaded, initializing checkout...");
         
-        // Then initialize CheckoutManager
-        if (window.CheckoutManager) {
+        // Initialize Stripe first
+        if (window.stripePayment && window.stripePayment.initialize) {
+            window.stripePayment.initialize();
+        }
+        
+        // Check if CheckoutManager class is available
+        if (typeof CheckoutManager === 'function') {
             window.checkoutManager = new CheckoutManager();
             console.log("CheckoutManager initialized successfully");
         } else {
-            console.error("CheckoutManager class not found");
+            console.error("CheckoutManager class not found. Available globals:", Object.keys(window));
+            
+            // Try alternative initialization
+            setTimeout(() => {
+                if (typeof CheckoutManager === 'function') {
+                    window.checkoutManager = new CheckoutManager();
+                    console.log("CheckoutManager initialized after delay");
+                } else {
+                    alert("Checkout system failed to load. Please refresh the page.");
+                }
+            }, 1000);
         }
     });
     </script>
