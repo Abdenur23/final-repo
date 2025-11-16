@@ -229,20 +229,23 @@
 
     </div>
 
+    <script src="https://js.stripe.com/v3/"></script>
     
-    <script src="js/app.js"></script>
-    <script src="js/auth.js"></script>
     <script src="config/constants.js"></script>
     
-    <script src="https://js.stripe.com/v3/"></script>
     <script src="js/stripe-payment.js"></script>
     
     <script src="js/checkout-manager.js"></script>
+    
     <script>
-        // Initialize the checkout manager once the DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
-            // Note: window.stripePayment is now available here for CheckoutManager to use
-            window.checkoutManager = new CheckoutManager();
+            // Check that the critical dependency exists before trying to use it
+            if (window.stripePayment && window.stripePayment.stripe) {
+                window.checkoutManager = new CheckoutManager();
+            } else {
+                console.error("CRITICAL ERROR: StripePayment failed to initialize before CheckoutManager attempted to run.");
+                alert("Payment system failed to load. Please try refreshing the page.");
+            }
         });
     </script>
 </body>
