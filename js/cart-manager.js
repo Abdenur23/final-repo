@@ -6,6 +6,7 @@ class CartManager {
         this.isGift = false;
         this.loadCartFromStorage();
         this.setupModalCloseHandlers();
+        this.setupEventListeners();
     }
 
     loadCartFromStorage() {
@@ -37,6 +38,15 @@ class CartManager {
         document.getElementById('cart-modal').addEventListener('click', (e) => {
             if (e.target.id === 'cart-modal') {
                 this.closeCartModal();
+            }
+        });
+    }
+
+    setupEventListeners() {
+        // Listen for checkout button click
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'checkout-btn' || e.target.closest('#checkout-btn')) {
+                this.initiateCheckout();
             }
         });
     }
@@ -104,6 +114,7 @@ class CartManager {
             <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">Click to view cart</div>
         `;
 
+        // Make notification clickable to open cart
         notification.addEventListener('click', () => {
             this.openCartModal();
             if (notification.parentNode) {
@@ -134,6 +145,7 @@ class CartManager {
     }
 
     updateProductCardButtons() {
+        // Update all product card buttons to show correct state
         const productCards = document.querySelectorAll('.product-card');
         productCards.forEach(card => {
             const designId = card.id.replace('design-', '');
@@ -168,6 +180,7 @@ class CartManager {
         this.updateCartTotal();
         this.renderCartItems();
         
+        // Update checkbox state
         const giftCheckbox = document.querySelector('#cart-modal input[type="checkbox"]');
         if (giftCheckbox) {
             giftCheckbox.checked = this.isGift;
@@ -181,11 +194,14 @@ class CartManager {
     }
 
     initializeGiftCheckbox() {
+        // Wait for modal to be available and set up event listener
         const checkModal = () => {
             const giftCheckbox = document.getElementById('gift-checkbox');
             if (giftCheckbox) {
+                // Set initial state
                 giftCheckbox.checked = this.isGift;
                 
+                // Remove any existing event listeners and add new one
                 giftCheckbox.replaceWith(giftCheckbox.cloneNode(true));
                 const newCheckbox = document.getElementById('gift-checkbox');
                 
@@ -199,6 +215,7 @@ class CartManager {
                 
                 console.log('Gift checkbox initialized with state:', this.isGift);
             } else {
+                // Try again in a bit if not ready
                 setTimeout(checkModal, 100);
             }
         };
@@ -300,6 +317,7 @@ class CartManager {
 
         this.updateCartTotal();
         
+        // Update gift checkbox state
         const giftCheckbox = document.querySelector('#cart-modal input[type="checkbox"]');
         if (giftCheckbox) {
             giftCheckbox.checked = this.isGift;
@@ -311,7 +329,8 @@ class CartManager {
         return {
             cart: this.cart,
             isGift: this.isGift,
-            total: this.getCartTotal()
+            total: this.getCartTotal(),
+            itemCount: this.cart.length
         };
     }
 
@@ -321,6 +340,21 @@ class CartManager {
 
     isEmpty() {
         return this.cart.length === 0;
+    }
+
+    // Initiate checkout process
+    initiateCheckout() {
+        if (this.isEmpty()) {
+            this.showError('Your cart is empty');
+            return;
+        }
+        
+        // Delegate to StripePayment module
+        if (window.stripePayment) {
+            window.stripePayment.processCheckout(this.getCartData());
+        } else {
+            this.showError('Payment system not available');
+        }
     }
 }
 
