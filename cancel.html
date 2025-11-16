@@ -1,14 +1,34 @@
-<!-- cancel.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <title>Payment Cancelled - TheWeer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            text-align: center;
+            padding: 50px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div style="text-align: center; padding: 50px;">
-        <h1>❌ Payment Cancelled</h1>
-        <p>Your order was not completed. You can try again anytime.</p>
-        <a href="/">Return to Home</a>
-    </div>
+    <div class="icon">❌</div>
+    <h1>Payment Cancelled</h1>
+    <p>Your order was not completed. No charges were made.</p>
+    <a href="/" class="btn">Return to Home</a>
 </body>
 </html>
