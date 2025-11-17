@@ -1,4 +1,180 @@
 // js/checkout-manager.js
+// Initialize application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!window.app) {
+                window.app = new Application();
+                await window.app.initialize();
+            }
+            
+            // Initialize checkout with cart data
+            initializeCheckout();
+            
+            // Initialize cart button
+            document.getElementById('cart-button').addEventListener('click', () => {
+                openCartModal();
+            });
+            
+            // Initialize cart gift checkbox
+            document.getElementById('cart-gift-checkbox').addEventListener('change', function() {
+                toggleCartGiftOption();
+            });
+
+            // Initialize checkout gift checkbox
+            document.getElementById('gift-checkbox').addEventListener('change', function() {
+                updateCheckoutTotals();
+            });
+        });
+
+        function initializeCheckout() {
+            // Load cart data from stripe-payment
+            const cart = window.stripePayment.cart;
+            const isGift = window.stripePayment.isGift;
+            
+            // Update UI based on authentication
+            if (isAuthenticated() && cart.length > 0) {
+                document.getElementById('auth-required-message').style.display = 'none';
+                document.getElementById('checkout-content').style.display = 'block';
+                renderCheckoutItems(cart);
+                updateGiftOption(isGift);
+                updateCheckoutTotals();
+            } else if (!isAuthenticated()) {
+                document.getElementById('auth-required-message').style.display = 'block';
+                document.getElementById('checkout-content').style.display = 'none';
+            } else {
+                document.getElementById('auth-required-message').style.display = 'none';
+                document.getElementById('checkout-content').style.display = 'block';
+                document.getElementById('checkout-items-container').innerHTML = 
+                    '<p style="text-align: center; color: #666; padding: 20px;">Your cart is empty</p>';
+            }
+        }
+
+        function renderCheckoutItems(cart) {
+            const container = document.getElementById('checkout-items-container');
+            const orderSummary = document.getElementById('order-items-summary');
+            
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Your cart is empty</p>';
+                orderSummary.innerHTML = '<div class="summary-line"><span>No items</span><span>$0.00</span></div>';
+                return;
+            }
+
+            // Render items in checkout section
+            container.innerHTML = cart.map(item => `
+                <div class="cart-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; gap: 12px;">
+                    <img src="${item.imageUrl}" alt="${item.paletteName}" class="cart-item-image">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px; line-height: 1.3;">${item.paletteName}</div>
+                        <div style="color: #666; font-size: 13px;">
+                            $${item.discountedPrice.toFixed(2)}
+                            ${item.discount > 0 ? `<span style="color: #28a745; font-size: 12px;">(${item.discount}% off)</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Render items in order summary
+            orderSummary.innerHTML = cart.map(item => `
+                <div class="summary-line">
+                    <span>${item.paletteName}</span>
+                    <span>$${item.discountedPrice.toFixed(2)}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateGiftOption(isGift) {
+            const giftCheckbox = document.getElementById('gift-checkbox');
+            const cartGiftCheckbox = document.getElementById('cart-gift-checkbox');
+            
+            if (giftCheckbox) giftCheckbox.checked = isGift;
+            if (cartGiftCheckbox) cartGiftCheckbox.checked = isGift;
+            
+            const giftFeeLine = document.getElementById('gift-fee-line');
+            if (giftFeeLine) {
+                giftFeeLine.style.display = isGift ? 'flex' : 'none';
+            }
+        }
+
+        function updateCheckoutTotals() {
+            const cart = window.stripePayment.cart;
+            const isGift = document.getElementById('gift-checkbox').checked;
+            const subtotal = cart.reduce((total, item) => total + item.discountedPrice, 0);
+            const giftFee = isGift ? 12.00 : 0;
+            const shippingCost = 8.70;
+            const taxRate = 0.0725; // 7.25%
+            const tax = subtotal * taxRate;
+            const total = subtotal + giftFee + shippingCost + tax;
+
+            // Update order summary
+            document.getElementById('order-total').textContent = total.toFixed(2);
+            document.getElementById('final-total-btn').textContent = total.toFixed(2);
+            
+            // Update gift fee display
+            const giftFeeLine = document.getElementById('gift-fee-line');
+            if (giftFeeLine) {
+                giftFeeLine.style.display = isGift ? 'flex' : 'none';
+            }
+
+            // Update tax display
+            const taxLine = document.getElementById('tax-line');
+            if (taxLine) {
+                taxLine.style.display = subtotal > 0 ? 'flex' : 'none';
+                document.getElementById('sales-tax').textContent = tax.toFixed(2);
+            }
+
+            // Update shipping address highlight for gifts
+            const shippingSection = document.getElementById('shipping-address-section');
+            const shippingNote = document.getElementById('shipping-highlight-note');
+            if (isGift) {
+                shippingSection.classList.add('highlight');
+                shippingNote.classList.remove('hidden');
+            } else {
+                shippingSection.classList.remove('highlight');
+                shippingNote.classList.add('hidden');
+            }
+
+            // Save gift option back to stripe-payment
+            window.stripePayment.isGift = isGift;
+            window.stripePayment.saveCartToStorage();
+        }
+
+        // Cart modal functions
+        function openCartModal() {
+            window.stripePayment.openCartModal();
+        }
+
+        function closeCartModal() {
+            window.stripePayment.closeCartModal();
+        }
+
+        function toggleCartGiftOption() {
+            window.stripePayment.toggleGiftOption();
+            // Sync with checkout page gift option
+            const isGift = window.stripePayment.isGift;
+            updateGiftOption(isGift);
+            updateCheckoutTotals();
+        }
+
+        function proceedToCheckout() {
+            window.stripePayment.proceedToCheckout();
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('cart-modal');
+            if (event.target === modal) {
+                closeCartModal();
+            }
+        });
+
+        // Handle billing address same as shipping
+        document.getElementById('billing-same').addEventListener('change', function() {
+            const billingForm = document.getElementById('billing-address-form');
+            if (this.checked) {
+                billingForm.classList.add('hidden');
+            } else {
+                billingForm.classList.remove('hidden');
+            }
+        });
 // Constants - Will be updated dynamically from server cart
     let PRODUCT_PRICE = 0.00;
     let SHIPPING_COST = 8.70;
