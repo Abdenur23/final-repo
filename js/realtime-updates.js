@@ -411,7 +411,8 @@ class RealTimeUpdates {
         const originalPrice = CONFIG.PRODUCT_PRICE;
         const discountedPrice = originalPrice * (1 - currentDiscount / 100);
         const displayPrice = (currentDiscount > 0) ? discountedPrice : originalPrice;
-    
+        // FIX: Get the first image URL properly
+        const thumbnailUrl = design.imageUrls ? Object.values(design.imageUrls)[0] : '';
         // Prepare cart item data
         const cartItem = {
             designId: designId,
@@ -420,7 +421,7 @@ class RealTimeUpdates {
             discountedPrice: discountedPrice,
             finalPrice: displayPrice,
             discountPercentage: currentDiscount,
-            imageUrl: design.imageUrls?.[0] || '', // Use first image as thumbnail
+            imageUrl: thumbnailUrl, // Use first image as thumbnail
             timestamp: new Date().toISOString()
         };
     
