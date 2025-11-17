@@ -162,24 +162,29 @@ class StripePayment {
     }
 
     removeFromCart(designId) {
+        // Find the cart item to get cart_item_id before removing
+        const cartItem = this.cart.find(item => item.designId === designId);
+        
         // Remove from local cart first
         this.cart = this.cart.filter(item => item.designId !== designId);
         this.saveCartToStorage();
         this.updateCartUI();
-        this.updateProductCardButtons();
+        this.updateProductCardButtons(); // Update buttons when item is removed
         this.renderCartItems();
     
         // Call Lambda API to remove from server-side cart
-        this.callRemoveFromCartByDesignId(designId)
+        this.callRemoveFromCartAPI(designId, cartItem)
             .then(result => {
                 console.log('✅ Item removed from server cart successfully:', result);
             })
             .catch(error => {
                 console.error('❌ Failed to remove item from server cart:', error);
+                // Note: We don't show error to user since local removal already succeeded
+                // The cart will be re-synced when user logs in again
             });
     }
     
-    async callRemoveFromCartByDesignId(designId) {
+    async callRemoveFromCartAPI(designId, cartItem) {
         const session = getSession();
         if (!session?.id_token) {
             console.log('User not authenticated, skipping server cart removal');
@@ -190,6 +195,25 @@ class StripePayment {
             throw new Error('Shopping cart API endpoint not configured');
         }
     
+        // First, get the user's cart items to find the cart_item_id
+        const cartItems = await this.getUserCartItems(session.id_token);
+        if (!cartItems || !Array.isArray(cartItems)) {
+            throw new Error('Could not retrieve cart items from server');
+        }
+    
+        // Find the cart item with matching designId
+        const serverCartItem = cartItems.find(item => item.design_id === designId);
+        if (!serverCartItem) {
+            console.log('Item not found in server cart, may have been already removed');
+            return;
+        }
+    
+        const cartItemId = serverCartItem.cart_id;
+        if (!cartItemId) {
+            throw new Error('No cart_item_id found for design: ' + designId);
+        }
+    
+        // Call DELETE endpoint to remove the item
         const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
             method: 'DELETE',
             headers: {
@@ -197,7 +221,7 @@ class StripePayment {
                 'Authorization': 'Bearer ' + session.id_token
             },
             body: JSON.stringify({
-                design_id: designId  // This would require Lambda modification
+                cart_item_id: cartItemId
             })
         });
     
@@ -207,6 +231,31 @@ class StripePayment {
         }
     
         return await response.json();
+    }
+    
+    async getUserCartItems(idToken) {
+        if (!CONFIG.SHOPPING_CART_API_ENDPOINT) {
+            throw new Error('Shopping cart API endpoint not configured');
+        }
+    
+        const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + idToken
+            },
+            body: JSON.stringify({
+                action: 'getCart'
+            })
+        });
+    
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API error: ${response.status} - ${errorText}`);
+        }
+    
+        const result = await response.json();
+        return result.cart_items || [];
     }
 
     toggleGiftOption() {
