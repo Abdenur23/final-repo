@@ -268,26 +268,6 @@
      * Update the order summary UI with cart items
      */
     function updateOrderSummaryUI() {
-        const orderItemsContainer = orderSummaryContainer.querySelector('.order-items') || 
-            document.createElement('div');
-        
-        if (!orderItemsContainer.classList.contains('order-items')) {
-            orderItemsContainer.className = 'order-items';
-            orderSummaryContainer.insertBefore(orderItemsContainer, orderSummaryContainer.firstChild);
-        }
-
-        if (cartItems.length === 0) {
-            orderItemsContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 10px;">No items in cart</p>';
-            return;
-        }
-
-        orderItemsContainer.innerHTML = cartItems.map(item => `
-            <div class="summary-line">
-                <span>${item.palette_name || 'Custom Design'} (${item.item_type || 'phone-case'})</span>
-                <span>$${parseFloat(item.final_price || item.discounted_price || 0).toFixed(2)}</span>
-            </div>
-        `).join('');
-
         // Update item price display
         document.getElementById('item-price').textContent = PRODUCT_PRICE.toFixed(2);
     }
