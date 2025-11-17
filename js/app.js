@@ -35,7 +35,6 @@ class Application {
     applyNewTheme() {
         // This will automatically apply to elements with existing classes
         // The new CSS will override the old styles
-        console.log('New theme applied!');
     }
     showSessionInfo() {
         const userInfo = getUserInfo();
