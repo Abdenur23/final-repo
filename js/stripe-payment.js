@@ -70,7 +70,7 @@ class StripePayment {
             discountedPrice: discountedPrice,
             discount: currentDiscount,
             paletteName: design.paletteName || 'Custom Design',
-            imageUrl: design.imageUrls ? design.imageUrls[0] : null,
+            imageUrl: design.imageUrls ? Object.values(design.imageUrls)[0] : '',
             addedAt: new Date().toISOString()
         };
 
