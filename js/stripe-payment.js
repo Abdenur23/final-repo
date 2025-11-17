@@ -413,7 +413,7 @@ class StripePayment {
         container.innerHTML = this.cart.map(item => `
             <div class="cart-item" style="display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #eee; gap: 12px;">
                 <img src="${item.imageUrl}" alt="${item.paletteName}" 
-                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; flex-shrink: 0;">
+                     style="width: 60px; height: 60px; object-fit: contain; border-radius: 8px; flex-shrink: 0; background: #f5f5f5;"
                 <div style="flex: 1; min-width: 0;">
                     <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px; line-height: 1.3;">${item.paletteName}</div>
                     <div style="color: #666; font-size: 13px;">
