@@ -370,8 +370,57 @@ class RealTimeUpdates {
     // }
     
     // In the addToCart method, replace with:
-    addToCart(designId) {
-        window.stripePayment.addToCart(designId, this);
+    async addToCart(designId) {
+        try {
+            const design = this.progressTracker.getCompletedDesign(designId);
+            if (!design) {
+                console.error('Design not found:', designId);
+                return;
+            }
+    
+            // Calculate pricing
+            const currentDiscount = this.promoManager.getActiveDiscount();
+            const originalPrice = CONFIG.PRODUCT_PRICE;
+            const discountedPrice = originalPrice * (1 - currentDiscount / 100);
+            
+            // Prepare the cart item data
+            const cartItem = {
+                designId: designId,
+                designData: design,
+                priceInfo: {
+                    originalPrice: originalPrice,
+                    discountedPrice: discountedPrice,
+                    discount: currentDiscount,
+                    finalPrice: discountedPrice
+                },
+                quantity: 1
+            };
+    
+            console.log('Adding to cart:', cartItem);
+    
+            // Send request to Lambda API
+            const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(cartItem)
+            });
+    
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+    
+            const result = await response.json();
+            console.log('Add to cart successful:', result);
+    
+            // Show success message
+            alert(`✅ Added ${design.paletteName || 'Custom Design'} to cart! Price: $${discountedPrice.toFixed(2)}`);
+    
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            alert('❌ Failed to add item to cart. Please try again.');
+        }
     }
 
     // UPDATED METHOD
