@@ -126,7 +126,8 @@ class StripePayment {
             discount: currentDiscount,
             paletteName: design.paletteName || 'Custom Design',
             imageUrl: design.imageUrls ? Object.values(design.imageUrls)[2] : '',
-            addedAt: new Date().toISOString()
+            addedAt: new Date().toISOString(),
+            itemType: 'phone-case'
         };
 
         this.cart.push(cartItem);
