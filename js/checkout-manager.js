@@ -176,7 +176,7 @@ class CheckoutManager {
                 <div style="flex: 1; min-width: 0;">
                     <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px; line-height: 1.3;">${item.paletteName}</div>
                     <div style="color: #666; font-size: 12px; margin-bottom: 2px;">
-                        ${this.getProductTypeDisplay(item.itemType)}
+                        ${item.itemType}
                     </div>
                     <div style="color: #666; font-size: 13px;">
                         $${item.discountedPrice.toFixed(2)}
@@ -189,23 +189,13 @@ class CheckoutManager {
         // Render ONLY in order summary section (remove duplicate above)
         orderSummary.innerHTML = this.cartItems.map(item => `
             <div class="summary-line">
-                <span>${item.paletteName} (${this.getProductTypeDisplay(item.itemType)})</span>
+                <span>${item.paletteName} (${item.itemType})</span>
                 <span>$${item.discountedPrice.toFixed(2)}</span>
             </div>
         `).join('');
     }
 
-    getProductTypeDisplay(itemType) {
-        const typeMap = {
-            'phone-case': 'Phone Case',
-            'laptop-skin': 'Laptop Skin', 
-            'tablet-skin': 'Tablet Skin',
-            'phone-skin': 'Phone Skin',
-            'laptop-case': 'Laptop Case',
-            'tablet-case': 'Tablet Case'
-        };
-        return typeMap[itemType] || itemType || 'Phone Case';
-    }
+    
 
     calculateOrderTotal() {
         if (this.cartItems.length === 0) {
