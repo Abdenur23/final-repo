@@ -377,9 +377,11 @@ class RealTimeUpdates {
                 return;
             }
     
-            // Get the session token
+            // Get the session token - use id_token like in your device manager
             const session = this.getSession();
-            if (!session || !session.access_token) {
+            const token = session?.id_token;
+            
+            if (!token) {
                 alert('Please log in to add items to cart');
                 return;
             }
@@ -404,12 +406,12 @@ class RealTimeUpdates {
     
             console.log('Adding to cart:', cartItem);
     
-            // Send request to Lambda API with Authorization header
+            // Send request to Lambda API with id_token
             const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`  // Add this line
+                    'Authorization': 'Bearer ' + token  // Use id_token like device manager
                 },
                 body: JSON.stringify(cartItem)
             });
