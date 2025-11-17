@@ -20,9 +20,21 @@
             });
 
             // Initialize checkout gift checkbox
-            document.getElementById('gift-checkbox').addEventListener('change', function() {
-                updateCheckoutTotals();
-            });
+            // Initialize checkout gift checkbox - REPLACE THIS
+                document.getElementById('gift-checkbox').addEventListener('change', function() {
+                    // Update both systems
+                    window.stripePayment.isGift = this.checked;
+                    window.stripePayment.saveCartToStorage();
+                    
+                    // Update the UI using the main calculation function
+                    handleGiftToggle(); // This will call calculateOrderTotal()
+                    
+                    // Also update cart modal if open
+                    const cartGiftCheckbox = document.getElementById('cart-gift-checkbox');
+                    if (cartGiftCheckbox) {
+                        cartGiftCheckbox.checked = this.checked;
+                    }
+                });
         });
 
         function initializeCheckout() {
@@ -57,8 +69,8 @@
                 orderSummary.innerHTML = '<div class="summary-line"><span>No items</span><span>$0.00</span></div>';
                 return;
             }
-
-            // Render items in checkout section
+        
+            // Render items in checkout section (above Order Summary)
             container.innerHTML = cart.map(item => `
                 <div class="cart-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; gap: 12px;">
                     <img src="${item.imageUrl}" alt="${item.paletteName}" class="cart-item-image">
@@ -71,14 +83,22 @@
                     </div>
                 </div>
             `).join('');
-
-            // Render items in order summary
-            orderSummary.innerHTML = cart.map(item => `
-                <div class="summary-line">
+        
+            // Render items in order summary section - FIXED VERSION
+            orderSummary.innerHTML = '';
+            
+            // Add cart items to order summary
+            cart.forEach(item => {
+                const itemLine = document.createElement('div');
+                itemLine.className = 'summary-line';
+                itemLine.innerHTML = `
                     <span>${item.paletteName}</span>
                     <span>$${item.discountedPrice.toFixed(2)}</span>
-                </div>
-            `).join('');
+                `;
+                orderSummary.appendChild(itemLine);
+            });
+        
+            // Remove the duplicate rendering from updateOrderSummaryUI()
         }
 
         function updateGiftOption(isGift) {
@@ -348,15 +368,21 @@
      * Handles gift checkbox logic
      */
     function handleGiftToggle() {
-        if (giftCheckbox.checked) {
-            shippingSection.classList.add('highlight');
-            shippingHighlightNote.classList.remove('hidden');
-        } else {
-            shippingSection.classList.remove('highlight');
-            shippingHighlightNote.classList.add('hidden');
+            const isGift = giftCheckbox.checked;
+            
+            if (isGift) {
+                shippingSection.classList.add('highlight');
+                shippingHighlightNote.classList.remove('hidden');
+            } else {
+                shippingSection.classList.remove('highlight');
+                shippingHighlightNote.classList.add('hidden');
+            }
+            
+            // Save to localStorage for persistence
+            localStorage.setItem('checkoutGiftOption', JSON.stringify(isGift));
+            
+            calculateOrderTotal();
         }
-        calculateOrderTotal();
-    }
 
     /**
      * Handles billing address same as shipping toggle.
