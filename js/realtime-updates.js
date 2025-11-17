@@ -369,67 +369,76 @@ class RealTimeUpdates {
     //     }
     // }
     
-    async addToCart(designId) {
-        try {
-            const design = this.progressTracker.getCompletedDesign(designId);
-            if (!design) {
-                console.error('Design not found:', designId);
-                return;
-            }
-    
-            // Get the session token - use id_token like in your device manager
-            const session = this.getSession();
-            const token = session?.id_token;
-            
-            if (!token) {
-                alert('Please log in to add items to cart');
-                return;
-            }
-    
-            // Calculate pricing
-            const currentDiscount = this.promoManager.getActiveDiscount();
-            const originalPrice = CONFIG.PRODUCT_PRICE;
-            const discountedPrice = originalPrice * (1 - currentDiscount / 100);
-            
-            // Prepare the cart item data
-            const cartItem = {
-                designId: designId,
-                designData: design,
-                priceInfo: {
-                    originalPrice: originalPrice,
-                    discountedPrice: discountedPrice,
-                    discount: currentDiscount,
-                    finalPrice: discountedPrice
-                },
-                quantity: 1
-            };
-    
-            console.log('Adding to cart:', cartItem);
-    
-            // Send request to Lambda API with id_token
-            const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token  // Use id_token like device manager
-                },
-                body: JSON.stringify(cartItem)
-            });
-    
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-    
-            const result = await response.json();
-            console.log('Add to cart successful:', result);
-    
-            // Show success message
-            alert(`✅ Added ${design.paletteName || 'Custom Design'} to cart! Price: $${discountedPrice.toFixed(2)}`);
-    
-        } catch (error) {
-            console.error('Error adding to cart:', error);
-            alert('❌ Failed to add item to cart. Please try again.');
+    addToCart(designId) {
+        const design = this.progressTracker.getCompletedDesign(designId);
+        if (!design) {
+            console.error('Design not found:', designId);
+            return;
         }
+    
+        const session = this.getSession();
+        if (!session?.id_token) {
+            console.error('User not authenticated');
+            alert('Please sign in to add items to cart');
+            return;
+        }
+    
+        // Get design details
+        const paletteName = design.paletteName || 'Custom Design';
+        const currentDiscount = this.promoManager.getActiveDiscount();
+        const originalPrice = CONFIG.PRODUCT_PRICE;
+        const discountedPrice = originalPrice * (1 - currentDiscount / 100);
+        const displayPrice = (currentDiscount > 0) ? discountedPrice : originalPrice;
+    
+        // Prepare cart item data
+        const cartItem = {
+            designId: designId,
+            paletteName: paletteName,
+            originalPrice: originalPrice,
+            discountedPrice: discountedPrice,
+            finalPrice: displayPrice,
+            discountPercentage: currentDiscount,
+            imageUrl: design.imageUrls?.[0] || '', // Use first image as thumbnail
+            timestamp: new Date().toISOString()
+        };
+    
+        console.log('Adding to cart:', cartItem);
+    
+        // Call the shopping cart API
+        this.callAddToCartAPI(cartItem, session.id_token)
+            .then(result => {
+                console.log('✅ Item added to cart successfully:', result);
+                alert(`Added ${paletteName} to cart! Price: $${displayPrice.toFixed(2)}`);
+            })
+            .catch(error => {
+                console.error('❌ Failed to add item to cart:', error);
+                alert('Failed to add item to cart. Please try again.');
+            });
+    }
+    
+    async callAddToCartAPI(cartItem, idToken) {
+        if (!CONFIG.SHOPPING_CART_API_ENDPOINT) {
+            throw new Error('Shopping cart API endpoint not configured');
+        }
+    
+        const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + idToken
+            },
+            body: JSON.stringify({
+                action: 'addToCart',
+                item: cartItem
+            })
+        });
+    
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API error: ${response.status} - ${errorText}`);
+        }
+    
+        return await response.json();
     }
 
     // UPDATED METHOD
