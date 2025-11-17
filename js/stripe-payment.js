@@ -343,75 +343,21 @@ class StripePayment {
         }
     }
 
-    // js/stripe-payment.js - UPDATED proceedToCheckout method
+    // js/stripe-payment.js - SIMPLE CHANGE
     async proceedToCheckout() {
         if (this.cart.length === 0) {
             this.showError('Your cart is empty');
             return;
         }
     
-        try {
-            const session = getSession();
-            if (!session || !session.id_token) {
-                alert('Please sign in to proceed with checkout');
-                return;
-            }
-    
-            const userInfo = getUserInfo();
-            const totalAmount = Math.round(this.getCartTotal() * 100);
-    
-            // DEBUG: Log everything being sent
-            console.log('=== CHECKOUT DEBUG ===');
-            console.log('Gift option:', this.isGift);
-            console.log('Total amount:', totalAmount);
-            console.log('Cart items:', this.cart.length);
-            console.log('User email:', userInfo?.email);
-            console.log('=====================');
-    
-            // Prepare the request body - match what Lambda expects
-            const requestBody = {
-                action: 'createCheckoutSession',
-                user_email: userInfo ? userInfo.email : null,
-                amount: totalAmount,
-                cart_items: this.cart,
-                item_count: this.cart.length,
-                is_gift: this.isGift  // Make sure this is included
-            };
-    
-            console.log('Sending to API:', requestBody);
-    
-            const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.id_token}`
-                },
-                body: JSON.stringify(requestBody)
-            });
-    
-            console.log('Response status:', response.status);
-    
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Checkout API error response:', errorText);
-                throw new Error('Failed to create checkout session: ' + errorText);
-            }
-    
-            const checkoutSession = await response.json();
-            console.log('Checkout session created successfully:', checkoutSession);
-            
-            const result = await this.stripe.redirectToCheckout({
-                sessionId: checkoutSession.id
-            });
-    
-            if (result.error) {
-                throw new Error(result.error.message);
-            }
-    
-        } catch (error) {
-            console.error('Checkout error:', error);
-            this.showError('Error starting checkout: ' + error.message);
-        }
+        // Store gift option in localStorage for checkout page
+        localStorage.setItem('checkoutGiftOption', JSON.stringify(this.isGift));
+        
+        // Close cart modal
+        this.closeCartModal();
+        
+        // Redirect to checkout page
+        window.location.href = 'checkout.html';
     }
 
     showError(message) {
