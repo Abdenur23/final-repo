@@ -679,6 +679,13 @@
     document.addEventListener('DOMContentLoaded', async () => {
         // Set initial shipping cost
         document.getElementById('shipping-cost').textContent = SHIPPING_COST.toFixed(2);
+
+        // Get gift option from localStorage
+        const savedGiftOption = localStorage.getItem('checkoutGiftOption');
+        if (savedGiftOption) {
+            giftCheckbox.checked = JSON.parse(savedGiftOption);
+            handleGiftToggle(); // Update UI
+        }
         
         // Initialize Stripe
         await initializeStripe();
