@@ -410,11 +410,9 @@ class RealTimeUpdates {
         this.callAddToCartAPI(cartItem, session.id_token)
             .then(result => {
                 console.log('✅ Item added to cart successfully:', result);
-                alert(`Added ${paletteName} to cart! Price: $${displayPrice.toFixed(2)}`);
             })
             .catch(error => {
                 console.error('❌ Failed to add item to cart:', error);
-                alert('Failed to add item to cart. Please try again.');
             });
     }
     
