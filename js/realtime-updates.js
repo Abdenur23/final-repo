@@ -412,7 +412,7 @@ class RealTimeUpdates {
         const discountedPrice = originalPrice * (1 - currentDiscount / 100);
         const displayPrice = (currentDiscount > 0) ? discountedPrice : originalPrice;
         // FIX: Get the first image URL properly
-        const thumbnailUrl = design.imageUrls ? Object.values(design.imageUrls)[0] : '';
+        const thumbnailUrl = design.imageUrls ? Object.values(design.imageUrls)[3] : '';
         // Prepare cart item data
         const cartItem = {
             designId: designId,
