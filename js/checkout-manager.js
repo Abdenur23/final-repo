@@ -71,29 +71,32 @@
     /**
      * Update the order summary UI with cart items
      */
+    // In checkout-manager.js - Update the updateOrderSummaryUI function
     function updateOrderSummaryUI() {
-        const orderItemsContainer = orderSummaryContainer.querySelector('.order-items') || 
-            document.createElement('div');
+        const orderItemsContainer = document.getElementById('order-items-container');
         
-        if (!orderItemsContainer.classList.contains('order-items')) {
-            orderItemsContainer.className = 'order-items';
-            orderSummaryContainer.insertBefore(orderItemsContainer, orderSummaryContainer.firstChild);
+        if (!orderItemsContainer) {
+            console.error('Order items container not found');
+            return;
         }
-
+    
         if (cartItems.length === 0) {
             orderItemsContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 10px;">No items in cart</p>';
             return;
         }
-
+    
         orderItemsContainer.innerHTML = cartItems.map(item => `
             <div class="summary-line">
                 <span>${item.palette_name || 'Custom Design'} (${item.item_type || 'phone-case'})</span>
                 <span>$${parseFloat(item.final_price || item.discounted_price || 0).toFixed(2)}</span>
             </div>
         `).join('');
-
-        // Update item price display
-        document.getElementById('item-price').textContent = PRODUCT_PRICE.toFixed(2);
+    
+        // Update item price display - check if element exists first
+        const itemPriceElement = document.getElementById('item-price');
+        if (itemPriceElement) {
+            itemPriceElement.textContent = PRODUCT_PRICE.toFixed(2);
+        }
     }
 
     /**
@@ -373,15 +376,24 @@
     });
 
     // Initialize when page loads
-    document.addEventListener('DOMContentLoaded', async () => {
-        // Set initial shipping cost
-        document.getElementById('shipping-cost').textContent = SHIPPING_COST.toFixed(2);
-
+    // In checkout-manager.js - Update the initialization
+document.addEventListener('DOMContentLoaded', async () => {
+    // Wait for app to initialize first
+    setTimeout(async () => {
         // Get gift option from localStorage
         const savedGiftOption = localStorage.getItem('checkoutGiftOption');
         if (savedGiftOption) {
-            giftCheckbox.checked = JSON.parse(savedGiftOption);
-            handleGiftToggle(); // Update UI
+            const giftCheckbox = document.getElementById('gift-checkbox');
+            if (giftCheckbox) {
+                giftCheckbox.checked = JSON.parse(savedGiftOption);
+                handleGiftToggle(); // Update UI
+            }
+        }
+        
+        // Set initial shipping cost
+        const shippingCostElement = document.getElementById('shipping-cost');
+        if (shippingCostElement) {
+            shippingCostElement.textContent = SHIPPING_COST.toFixed(2);
         }
         
         // Initialize Stripe
@@ -396,7 +408,10 @@
         handleBillingSameToggle();
         
         // Update pay button event listener
-        document.getElementById('pay-button').addEventListener('click', handlePayment);
+        const payButton = document.getElementById('pay-button');
+        if (payButton) {
+            payButton.addEventListener('click', handlePayment);
+        }
         
         // Check auth state
         checkAuthState();
@@ -404,4 +419,5 @@
         // Set up continuous auth state monitoring
         setInterval(checkAuthState, 1000);
         document.addEventListener('visibilitychange', checkAuthState);
-    });
+    }, 500); // Small delay to ensure DOM is fully ready
+});
