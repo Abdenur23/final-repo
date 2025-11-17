@@ -369,6 +369,7 @@ class RealTimeUpdates {
     //     }
     // }
     
+    // In the addToCart method, replace with:
     addToCart(designId) {
         const design = this.progressTracker.getCompletedDesign(designId);
         if (!design) {
