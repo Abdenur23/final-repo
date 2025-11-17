@@ -44,8 +44,28 @@ class RealTimeUpdates {
         }
     }
 
+    // handleUpdate(data) {
+    //     console.log('Processing update:', data);
+        
+    //     if (data.type === 'design_ready') {
+    //         this.handleDesignReady(data);
+    //         return;
+    //     }
+        
+    //     if (data.type === 'image_update') {
+    //         this.handleImageUpdate(data);
+    //     }
+    // }
     handleUpdate(data) {
         console.log('Processing update:', data);
+        
+        // FIX: Ignore the 'connection_replaced' message from the server, 
+        // as it's a notification of an impending closure already handled 
+        // by the server's cleanup logic. This prevents unnecessary logging/side effects.
+        if (data.type === 'connection_replaced') {
+            console.warn('Received connection_replaced notice. Allowing socket to close gracefully.');
+            return;
+        }
         
         if (data.type === 'design_ready') {
             this.handleDesignReady(data);
