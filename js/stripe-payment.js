@@ -7,10 +7,65 @@ class StripePayment {
         this.initializeStripe();
         this.loadCartFromStorage();
         this.setupModalCloseHandlers();
+        this.loadCart(); // Combined local + server loading
     }
 
     initializeStripe() {
         this.stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
+    }
+
+    async loadCart() {
+        // Load from localStorage first for immediate UI update
+        this.loadCartFromStorage();
+        
+        // Then sync with server if user is authenticated
+        try {
+            await this.syncCartWithServer();
+        } catch (error) {
+            console.log('Server cart sync failed, using local cart:', error);
+        }
+    }
+
+    async syncCartWithServer() {
+        const session = getSession();
+        if (!session?.id_token) return;
+
+        try {
+            const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + session.id_token
+                },
+                body: JSON.stringify({ action: 'getCart' })
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch cart');
+            
+            const data = await response.json();
+            const serverCart = data.cart_items || [];
+
+            if (serverCart.length > 0) {
+                // Transform server cart items to match local format
+                this.cart = serverCart.map(item => ({
+                    designId: item.design_id,
+                    designData: { paletteName: item.palette_name },
+                    originalPrice: item.original_price,
+                    discountedPrice: item.final_price,
+                    discount: item.discount_percentage,
+                    paletteName: item.palette_name,
+                    imageUrl: item.image_url,
+                    addedAt: item.created_at
+                }));
+                
+                this.saveCartToStorage();
+                this.updateCartUI();
+                this.updateProductCardButtons();
+            }
+        } catch (error) {
+            console.error('Server cart sync failed:', error);
+            throw error;
+        }
     }
 
     loadCartFromStorage() {
