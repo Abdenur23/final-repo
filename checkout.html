@@ -280,11 +280,15 @@
     </div>
     
 <script>
-    // Constants
-    const PRODUCT_PRICE = 1.00;
+    // Constants - Will be updated dynamically from server cart
+    let PRODUCT_PRICE = 0.00;
+    let SHIPPING_COST = 8.70;
     const GIFT_FEE = 12.00;
-    const SHIPPING_COST = 8.70;
     const CA_TAX_RATE = 0.0725; // California State Sales Tax
+
+    // Cart state
+    let cartItems = [];
+    let isGift = false;
 
     // DOM elements
     const giftCheckbox = document.getElementById('gift-checkbox');
@@ -299,9 +303,79 @@
     const finalTotalBtnSpan = document.getElementById('final-total-btn');
     const salesTaxSpan = document.getElementById('sales-tax');
     const summaryGiftFeeSpan = document.getElementById('summary-gift-fee');
+    const orderSummaryContainer = document.querySelector('.order-summary');
 
     // Mappings for copying fields
     const addressFields = ['name', 'address1', 'city', 'state', 'zip'];
+
+    /**
+     * Load cart items from server
+     */
+    async function loadCartFromServer() {
+        try {
+            const session = window.getSession();
+            if (!session?.id_token) {
+                throw new Error('Not authenticated');
+            }
+
+            const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + session.id_token
+                },
+                body: JSON.stringify({ action: 'getCart' })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch cart');
+            }
+
+            const data = await response.json();
+            cartItems = data.cart_items || [];
+            
+            // Calculate total product price from cart items
+            PRODUCT_PRICE = cartItems.reduce((total, item) => {
+                return total + parseFloat(item.final_price || item.discounted_price || 0);
+            }, 0);
+
+            console.log('Cart loaded from server:', cartItems);
+            updateOrderSummaryUI();
+            calculateOrderTotal();
+            
+        } catch (error) {
+            console.error('Failed to load cart from server:', error);
+            showError('Failed to load cart items. Please try again.');
+        }
+    }
+
+    /**
+     * Update the order summary UI with cart items
+     */
+    function updateOrderSummaryUI() {
+        const orderItemsContainer = orderSummaryContainer.querySelector('.order-items') || 
+            document.createElement('div');
+        
+        if (!orderItemsContainer.classList.contains('order-items')) {
+            orderItemsContainer.className = 'order-items';
+            orderSummaryContainer.insertBefore(orderItemsContainer, orderSummaryContainer.firstChild);
+        }
+
+        if (cartItems.length === 0) {
+            orderItemsContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 10px;">No items in cart</p>';
+            return;
+        }
+
+        orderItemsContainer.innerHTML = cartItems.map(item => `
+            <div class="summary-line">
+                <span>${item.palette_name || 'Custom Design'} (${item.item_type || 'phone-case'})</span>
+                <span>$${parseFloat(item.final_price || item.discounted_price || 0).toFixed(2)}</span>
+            </div>
+        `).join('');
+
+        // Update item price display
+        document.getElementById('item-price').textContent = PRODUCT_PRICE.toFixed(2);
+    }
 
     /**
      * Copies shipping address values to billing address fields.
@@ -316,7 +390,6 @@
             }
         });
         
-        // Recalculate total after copying (important for tax if CA is copied)
         calculateOrderTotal();
     }
 
@@ -324,6 +397,12 @@
      * Calculates the total cost based on the gift option and billing state.
      */
     function calculateOrderTotal() {
+        if (cartItems.length === 0) {
+            orderTotalSpan.textContent = '0.00';
+            finalTotalBtnSpan.textContent = '0.00';
+            return;
+        }
+
         let total = PRODUCT_PRICE + SHIPPING_COST;
         let taxAmount = 0.00;
         let isGift = giftCheckbox.checked;
@@ -331,11 +410,9 @@
         // Determine the state to use for tax calculation
         let taxState = '';
         if (billingSameCheckbox.checked) {
-            // Billing is same as shipping, use shipping state
             const shippingStateField = document.getElementById('s-state');
             taxState = shippingStateField ? shippingStateField.value : '';
         } else {
-            // Billing is different, use explicit billing state
             taxState = billingStateSelect.value;
         }
 
@@ -352,7 +429,6 @@
 
         // 2. Calculate Tax
         if (isBillingCA) {
-            // Taxable items are: Product Price, Gift Fee, and Shipping Cost
             const taxableBase = PRODUCT_PRICE + (isGift ? GIFT_FEE : 0) + SHIPPING_COST;
             taxAmount = taxableBase * CA_TAX_RATE;
             total += taxAmount;
@@ -367,10 +443,14 @@
         // Update DOM
         orderTotalSpan.textContent = total.toFixed(2);
         finalTotalBtnSpan.textContent = total.toFixed(2);
+        
+        // Update pay button text
+        const payButton = document.getElementById('pay-button');
+        payButton.innerHTML = `Pay Now (Total: $${total.toFixed(2)})`;
     }
 
     /**
-     * Handles gift checkbox logic (highlighting shipping and recalculating).
+     * Handles gift checkbox logic
      */
     function handleGiftToggle() {
         if (giftCheckbox.checked) {
@@ -389,27 +469,179 @@
     function handleBillingSameToggle() {
         if (billingSameCheckbox.checked) {
             billingAddressForm.classList.add('hidden');
-            copyShippingToBilling(); // **KEY CHANGE: Copy the address here**
+            copyShippingToBilling();
         } else {
             billingAddressForm.classList.remove('hidden');
-            // When switching to 'different address', re-calculate based on whatever 
-            // is currently in the *visible* billing state selector
-            calculateOrderTotal(); 
+            calculateOrderTotal();
         }
     }
-    
-    // --- Event Listeners ---
 
-    // 1. Gift option change
+    // Stripe integration
+    let stripe;
+
+    function showError(message) {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('hidden');
+    }
+
+    function hideError() {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.classList.add('hidden');
+    }
+
+    async function initializeStripe() {
+        try {
+            stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
+            hideError();
+        } catch (error) {
+            showError('Failed to initialize payment system');
+            console.error('Stripe initialization error:', error);
+        }
+    }
+
+    function checkAuthState() {
+        const payButton = document.getElementById('pay-button');
+        const errorDiv = document.getElementById('error-message');
+        
+        if (window.isAuthenticated && window.isAuthenticated()) {
+            payButton.disabled = cartItems.length === 0;
+            payButton.style.opacity = cartItems.length === 0 ? '0.7' : '1';
+            if (errorDiv && cartItems.length > 0) errorDiv.classList.add('hidden');
+        } else {
+            payButton.disabled = true;
+            payButton.style.opacity = '0.7';
+            if (errorDiv) {
+                errorDiv.textContent = 'Please sign in to complete your purchase';
+                errorDiv.classList.remove('hidden');
+            }
+        }
+    }
+
+    async function handlePayment() {
+        hideError();
+        
+        if (!window.isAuthenticated || !window.isAuthenticated()) {
+            showError('Please sign in to complete your purchase');
+            setTimeout(() => {
+                if (typeof signin === 'function') signin();
+            }, 1500);
+            return;
+        }
+
+        if (cartItems.length === 0) {
+            showError('Your cart is empty');
+            return;
+        }
+
+        const userInfo = window.getUserInfo();
+        if (!userInfo || !userInfo.email) {
+            showError('Unable to retrieve user information. Please sign in again.');
+            return;
+        }
+
+        // Validate required fields
+        const shippingName = document.getElementById('s-name').value.trim();
+        const shippingAddress1 = document.getElementById('s-address1').value.trim();
+        const shippingCity = document.getElementById('s-city').value.trim();
+        const shippingState = document.getElementById('s-state').value;
+        const shippingZip = document.getElementById('s-zip').value.trim();
+
+        if (!shippingName || !shippingAddress1 || !shippingCity || !shippingState || !shippingZip) {
+            showError('Please fill in all required shipping address fields');
+            return;
+        }
+
+        // Calculate final amount in cents
+        const totalAmount = parseFloat(document.getElementById('order-total').textContent);
+        const amountInCents = Math.round(totalAmount * 100);
+
+        const session = window.getSession();
+        if (!session || !session.id_token) {
+            showError('Authentication token not found. Please sign in again.');
+            return;
+        }
+
+        try {
+            const payButton = document.getElementById('pay-button');
+            payButton.disabled = true;
+            payButton.textContent = 'Processing...';
+
+            // Prepare cart items for checkout
+            const checkoutCartItems = cartItems.map(item => ({
+                design_id: item.design_id,
+                palette_name: item.palette_name,
+                item_type: item.item_type || 'phone-case',
+                final_price: parseFloat(item.final_price || item.discounted_price || 0),
+                original_price: parseFloat(item.original_price || 0),
+                image_url: item.image_url
+            }));
+
+            const requestBody = {
+                action: 'createCheckoutSession',
+                user_email: userInfo.email,
+                amount: amountInCents,
+                cart_items: checkoutCartItems,
+                item_count: cartItems.length,
+                is_gift: giftCheckbox.checked
+            };
+
+            console.log('Sending checkout request:', requestBody);
+
+            const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': session.id_token
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            const responseText = await response.text();
+            console.log('Raw response:', responseText);
+
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                console.error('Failed to parse JSON response:', responseText);
+                throw new Error('Invalid response from server');
+            }
+
+            if (!response.ok) {
+                throw new Error(data.error || `Server error: ${response.status}`);
+            }
+
+            if (!data.id) {
+                console.error('Invalid response data:', data);
+                throw new Error('No session ID received from server');
+            }
+
+            console.log('Stripe session created:', data.id);
+
+            const result = await stripe.redirectToCheckout({
+                sessionId: data.id
+            });
+
+            if (result.error) {
+                throw new Error(result.error.message);
+            }
+
+        } catch (error) {
+            console.error('Payment error:', error);
+            showError(error.message || 'Payment failed. Please try again.');
+            
+            const payButton = document.getElementById('pay-button');
+            payButton.disabled = false;
+            payButton.innerHTML = `Pay Now (Total: $${totalAmount.toFixed(2)})`;
+        }
+    }
+
+    // Event Listeners
     giftCheckbox.addEventListener('change', handleGiftToggle);
-    
-    // 2. Billing same as shipping toggle
     billingSameCheckbox.addEventListener('change', handleBillingSameToggle);
-    
-    // 3. Billing state change (only matters if billingSameCheckbox is unchecked)
     billingStateSelect.addEventListener('change', calculateOrderTotal);
 
-    // 4. Real-time updates for billing if 'same as shipping' is checked
     addressFields.forEach(field => {
         const shippingField = document.getElementById('s-' + field);
         if (shippingField) {
@@ -421,213 +653,32 @@
         }
     });
 
-    // Initial setup
-    document.addEventListener('DOMContentLoaded', () => {
-        // Set initial item price and shipping cost
-        document.getElementById('item-price').textContent = PRODUCT_PRICE.toFixed(2);
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Set initial shipping cost
         document.getElementById('shipping-cost').textContent = SHIPPING_COST.toFixed(2);
         
-        // Initial setup for billing address and calculation
-        handleBillingSameToggle();
-    });
-
-
-// Stripe integration with proper authentication
-let stripe;
-
-function showError(message) {
-    const errorDiv = document.getElementById('error-message');
-    errorDiv.textContent = message;
-    errorDiv.classList.remove('hidden');
-}
-
-function hideError() {
-    const errorDiv = document.getElementById('error-message');
-    errorDiv.classList.add('hidden');
-}
-
-async function initializeStripe() {
-    try {
-        stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
-        hideError();
-    } catch (error) {
-        showError('Failed to initialize payment system');
-        console.error('Stripe initialization error:', error);
-    }
-}
-
-// Authentication state management using auth.js functions
-function checkAuthState() {
-    const payButton = document.getElementById('pay-button');
-    const errorDiv = document.getElementById('error-message');
-    
-    if (window.isAuthenticated && window.isAuthenticated()) {
-        // User is authenticated
-        const userInfo = window.getUserInfo();
-        payButton.disabled = false;
-        payButton.style.opacity = '1';
-        if (errorDiv) errorDiv.classList.add('hidden');
-        console.log('User authenticated:', userInfo ? userInfo.email : 'Unknown');
-    } else {
-        // User is not authenticated
-        payButton.disabled = true;
-        payButton.style.opacity = '0.7';
-        if (errorDiv) {
-            errorDiv.textContent = 'Please sign in to complete your purchase';
-            errorDiv.classList.remove('hidden');
-        }
-        console.log('User not authenticated');
-    }
-}
-
-async function handlePayment() {
-    hideError();
-    
-    // Double-check authentication using auth.js functions
-    if (!window.isAuthenticated || !window.isAuthenticated()) {
-        showError('Please sign in to complete your purchase');
-        setTimeout(() => {
-            if (typeof signin === 'function') {
-                signin();
-            }
-        }, 1500);
-        return;
-    }
-
-    // Get user info for email
-    const userInfo = window.getUserInfo();
-    if (!userInfo || !userInfo.email) {
-        showError('Unable to retrieve user information. Please sign in again.');
-        return;
-    }
-
-    // Validate required fields
-    const shippingName = document.getElementById('s-name').value.trim();
-    const shippingAddress1 = document.getElementById('s-address1').value.trim();
-    const shippingCity = document.getElementById('s-city').value.trim();
-    const shippingState = document.getElementById('s-state').value;
-    const shippingZip = document.getElementById('s-zip').value.trim();
-
-    if (!shippingName || !shippingAddress1 || !shippingCity || !shippingState || !shippingZip) {
-        showError('Please fill in all required shipping address fields');
-        return;
-    }
-
-    // Calculate final amount in cents
-    const totalAmount = parseFloat(document.getElementById('order-total').textContent);
-    const amountInCents = Math.round(totalAmount * 100);
-
-    // Get session for token
-    const session = window.getSession();
-    if (!session || !session.id_token) {
-        showError('Authentication token not found. Please sign in again.');
-        return;
-    }
-
-    try {
-        // Disable pay button
-        const payButton = document.getElementById('pay-button');
-        payButton.disabled = true;
-        payButton.textContent = 'Processing...';
-
-        // Create the exact request body that matches your Lambda's expectations
-        const requestBody = {
-            action: 'createCheckoutSession',
-            user_email: userInfo.email,
-            amount: amountInCents,
-            cart_items: [{
-                name: 'Product 1',
-                price: PRODUCT_PRICE,
-                quantity: 1
-            }],
-            item_count: 1
-        };
-
-        console.log('Sending request to Lambda:', requestBody);
-
-        // Create checkout session with auth header
-        const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': session.id_token
-            },
-            body: JSON.stringify(requestBody)
-        });
-
-        console.log('Response status:', response.status);
-
-        // Get the response text first to see what's coming back
-        const responseText = await response.text();
-        console.log('Raw response:', responseText);
-
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (e) {
-            console.error('Failed to parse JSON response:', responseText);
-            throw new Error('Invalid response from server');
-        }
-
-        if (!response.ok) {
-            throw new Error(data.error || `Server error: ${response.status}`);
-        }
-
-        // Check if we got a valid session ID
-        if (!data.id) {
-            console.error('Invalid response data:', data);
-            throw new Error('No session ID received from server');
-        }
-
-        console.log('Stripe session created:', data.id);
-
-        // Redirect to Stripe Checkout
-        const result = await stripe.redirectToCheckout({
-            sessionId: data.id
-        });
-
-        if (result.error) {
-            throw new Error(result.error.message);
-        }
-
-    } catch (error) {
-        console.error('Payment error:', error);
-        showError(error.message || 'Payment failed. Please try again.');
+        // Initialize Stripe
+        await initializeStripe();
         
-        // Re-enable pay button
-        const payButton = document.getElementById('pay-button');
-        payButton.disabled = false;
-        payButton.textContent = `Pay Now (Total: $${totalAmount.toFixed(2)})`;
-    }
-}
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    // Set initial item price and shipping cost
-    document.getElementById('item-price').textContent = PRODUCT_PRICE.toFixed(2);
-    document.getElementById('shipping-cost').textContent = SHIPPING_COST.toFixed(2);
-    
-    // Initial setup for billing address and calculation
-    handleBillingSameToggle();
-    
-    // Initialize Stripe
-    initializeStripe();
-    
-    // Update pay button event listener
-    document.getElementById('pay-button').addEventListener('click', handlePayment);
-    
-    // Check auth state immediately
-    checkAuthState();
-    
-    // Set up continuous auth state monitoring
-    setInterval(checkAuthState, 1000);
-    
-    // Also check auth when page becomes visible
-    document.addEventListener('visibilitychange', checkAuthState);
-    
-    // Log auth status for debugging
-    console.log('Auth status on load:', window.isAuthenticated ? window.isAuthenticated() : 'isAuthenticated function not found');
-    console.log('User info:', window.getUserInfo ? window.getUserInfo() : 'getUserInfo function not found');
-});
+        // Load cart from server if authenticated
+        if (window.isAuthenticated && window.isAuthenticated()) {
+            await loadCartFromServer();
+        }
+        
+        // Initial setup
+        handleBillingSameToggle();
+        
+        // Update pay button event listener
+        document.getElementById('pay-button').addEventListener('click', handlePayment);
+        
+        // Check auth state
+        checkAuthState();
+        
+        // Set up continuous auth state monitoring
+        setInterval(checkAuthState, 1000);
+        document.addEventListener('visibilitychange', checkAuthState);
+    });
 </script>
 </body>
 </html>
