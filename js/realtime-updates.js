@@ -371,6 +371,7 @@ class RealTimeUpdates {
     
     // In the addToCart method, replace with:
     addToCart(designId) {
+        window.stripePayment.addToCart(designId, this);
         const design = this.progressTracker.getCompletedDesign(designId);
         if (!design) {
             console.error('Design not found:', designId);
