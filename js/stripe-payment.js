@@ -162,11 +162,51 @@ class StripePayment {
     }
 
     removeFromCart(designId) {
+        // Remove from local cart first
         this.cart = this.cart.filter(item => item.designId !== designId);
         this.saveCartToStorage();
         this.updateCartUI();
-        this.updateProductCardButtons(); // Update buttons when item is removed
+        this.updateProductCardButtons();
         this.renderCartItems();
+    
+        // Call Lambda API to remove from server-side cart
+        this.callRemoveFromCartByDesignId(designId)
+            .then(result => {
+                console.log('✅ Item removed from server cart successfully:', result);
+            })
+            .catch(error => {
+                console.error('❌ Failed to remove item from server cart:', error);
+            });
+    }
+    
+    async callRemoveFromCartByDesignId(designId) {
+        const session = getSession();
+        if (!session?.id_token) {
+            console.log('User not authenticated, skipping server cart removal');
+            return;
+        }
+    
+        if (!CONFIG.SHOPPING_CART_API_ENDPOINT) {
+            throw new Error('Shopping cart API endpoint not configured');
+        }
+    
+        const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + session.id_token
+            },
+            body: JSON.stringify({
+                design_id: designId  // This would require Lambda modification
+            })
+        });
+    
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API error: ${response.status} - ${errorText}`);
+        }
+    
+        return await response.json();
     }
 
     toggleGiftOption() {
