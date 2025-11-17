@@ -369,12 +369,18 @@ class RealTimeUpdates {
     //     }
     // }
     
-    // In the addToCart method, replace with:
     async addToCart(designId) {
         try {
             const design = this.progressTracker.getCompletedDesign(designId);
             if (!design) {
                 console.error('Design not found:', designId);
+                return;
+            }
+    
+            // Get the session token
+            const session = this.getSession();
+            if (!session || !session.access_token) {
+                alert('Please log in to add items to cart');
                 return;
             }
     
@@ -398,11 +404,12 @@ class RealTimeUpdates {
     
             console.log('Adding to cart:', cartItem);
     
-            // Send request to Lambda API
+            // Send request to Lambda API with Authorization header
             const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`  // Add this line
                 },
                 body: JSON.stringify(cartItem)
             });
