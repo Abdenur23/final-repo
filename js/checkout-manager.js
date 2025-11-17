@@ -20,21 +20,9 @@
             });
 
             // Initialize checkout gift checkbox
-            // Initialize checkout gift checkbox - REPLACE THIS
-                document.getElementById('gift-checkbox').addEventListener('change', function() {
-                    // Update both systems
-                    window.stripePayment.isGift = this.checked;
-                    window.stripePayment.saveCartToStorage();
-                    
-                    // Update the UI using the main calculation function
-                    handleGiftToggle(); // This will call calculateOrderTotal()
-                    
-                    // Also update cart modal if open
-                    const cartGiftCheckbox = document.getElementById('cart-gift-checkbox');
-                    if (cartGiftCheckbox) {
-                        cartGiftCheckbox.checked = this.checked;
-                    }
-                });
+            document.getElementById('gift-checkbox').addEventListener('change', function() {
+                updateCheckoutTotals();
+            });
         });
 
         function initializeCheckout() {
@@ -69,8 +57,8 @@
                 orderSummary.innerHTML = '<div class="summary-line"><span>No items</span><span>$0.00</span></div>';
                 return;
             }
-        
-            // Render items in checkout section (above Order Summary)
+
+            // Render items in checkout section
             container.innerHTML = cart.map(item => `
                 <div class="cart-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; gap: 12px;">
                     <img src="${item.imageUrl}" alt="${item.paletteName}" class="cart-item-image">
@@ -83,22 +71,14 @@
                     </div>
                 </div>
             `).join('');
-        
-            // Render items in order summary section - FIXED VERSION
-            orderSummary.innerHTML = '';
-            
-            // Add cart items to order summary
-            cart.forEach(item => {
-                const itemLine = document.createElement('div');
-                itemLine.className = 'summary-line';
-                itemLine.innerHTML = `
+
+            // Render items in order summary
+            orderSummary.innerHTML = cart.map(item => `
+                <div class="summary-line">
                     <span>${item.paletteName}</span>
                     <span>$${item.discountedPrice.toFixed(2)}</span>
-                `;
-                orderSummary.appendChild(itemLine);
-            });
-        
-            // Remove the duplicate rendering from updateOrderSummaryUI()
+                </div>
+            `).join('');
         }
 
         function updateGiftOption(isGift) {
@@ -268,6 +248,26 @@
      * Update the order summary UI with cart items
      */
     function updateOrderSummaryUI() {
+        const orderItemsContainer = orderSummaryContainer.querySelector('.order-items') || 
+            document.createElement('div');
+        
+        if (!orderItemsContainer.classList.contains('order-items')) {
+            orderItemsContainer.className = 'order-items';
+            orderSummaryContainer.insertBefore(orderItemsContainer, orderSummaryContainer.firstChild);
+        }
+
+        if (cartItems.length === 0) {
+            orderItemsContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 10px;">No items in cart</p>';
+            return;
+        }
+
+        orderItemsContainer.innerHTML = cartItems.map(item => `
+            <div class="summary-line">
+                <span>${item.palette_name || 'Custom Design'} (${item.item_type || 'phone-case'})</span>
+                <span>$${parseFloat(item.final_price || item.discounted_price || 0).toFixed(2)}</span>
+            </div>
+        `).join('');
+
         // Update item price display
         document.getElementById('item-price').textContent = PRODUCT_PRICE.toFixed(2);
     }
@@ -348,21 +348,15 @@
      * Handles gift checkbox logic
      */
     function handleGiftToggle() {
-            const isGift = giftCheckbox.checked;
-            
-            if (isGift) {
-                shippingSection.classList.add('highlight');
-                shippingHighlightNote.classList.remove('hidden');
-            } else {
-                shippingSection.classList.remove('highlight');
-                shippingHighlightNote.classList.add('hidden');
-            }
-            
-            // Save to localStorage for persistence
-            localStorage.setItem('checkoutGiftOption', JSON.stringify(isGift));
-            
-            calculateOrderTotal();
+        if (giftCheckbox.checked) {
+            shippingSection.classList.add('highlight');
+            shippingHighlightNote.classList.remove('hidden');
+        } else {
+            shippingSection.classList.remove('highlight');
+            shippingHighlightNote.classList.add('hidden');
         }
+        calculateOrderTotal();
+    }
 
     /**
      * Handles billing address same as shipping toggle.
