@@ -55,7 +55,8 @@ class StripePayment {
                     discount: item.discount_percentage,
                     paletteName: item.palette_name,
                     imageUrl: item.image_url,
-                    addedAt: item.created_at
+                    addedAt: item.created_at,
+                    phoneModel: item.phone_model_display
                 }));
                 
                 this.saveCartToStorage();
