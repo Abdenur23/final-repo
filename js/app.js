@@ -29,6 +29,7 @@ class Application {
         this.renderAuthActions();
     
         if (actualAuthStatus) {
+            window.stripePayment.loadCart();
             this.realtimeUpdates.initialize();
         }
     }
