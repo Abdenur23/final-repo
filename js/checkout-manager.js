@@ -9,7 +9,24 @@ class CheckoutManager {
         this.isGift = false;
         this.stripe = null;
         
+        // Fix: Ensure CONFIG is available
+        this.ensureConfig();
+        
         this.initialize();
+    }
+
+    ensureConfig() {
+        // Ensure CONFIG and CHECKOUT_API_ENDPOINT are available
+        if (typeof CONFIG === 'undefined') {
+            console.warn('CONFIG not found, creating empty config');
+            window.CONFIG = {};
+        }
+        
+        // Set the correct Lambda endpoint
+        if (!CONFIG.CHECKOUT_API_ENDPOINT) {
+            CONFIG.CHECKOUT_API_ENDPOINT = 'https://qohagpc75m.execute-api.us-east-1.amazonaws.com/prod';
+            console.log('Set CHECKOUT_API_ENDPOINT to:', CONFIG.CHECKOUT_API_ENDPOINT);
+        }
     }
 
     async initialize() {
@@ -30,42 +47,64 @@ class CheckoutManager {
 
     initializeEventListeners() {
         // Gift checkboxes
-        document.getElementById('gift-checkbox').addEventListener('change', (e) => {
-            this.handleGiftToggle(e.target.checked);
-        });
-
-        document.getElementById('cart-gift-checkbox').addEventListener('change', (e) => {
-            this.handleGiftToggle(e.target.checked);
-        });
+        const giftCheckbox = document.getElementById('gift-checkbox');
+        const cartGiftCheckbox = document.getElementById('cart-gift-checkbox');
+        
+        if (giftCheckbox) {
+            giftCheckbox.addEventListener('change', (e) => {
+                this.handleGiftToggle(e.target.checked);
+            });
+        }
+        
+        if (cartGiftCheckbox) {
+            cartGiftCheckbox.addEventListener('change', (e) => {
+                this.handleGiftToggle(e.target.checked);
+            });
+        }
 
         // Billing address
-        document.getElementById('billing-same').addEventListener('change', (e) => {
-            this.handleBillingSameToggle(e.target.checked);
-        });
+        const billingSame = document.getElementById('billing-same');
+        if (billingSame) {
+            billingSame.addEventListener('change', (e) => {
+                this.handleBillingSameToggle(e.target.checked);
+            });
+        }
 
         // Payment
-        document.getElementById('pay-button').addEventListener('click', () => {
-            this.handlePayment();
-        });
+        const payButton = document.getElementById('pay-button');
+        if (payButton) {
+            payButton.addEventListener('click', () => {
+                this.handlePayment();
+            });
+        }
 
         // Cart button
-        document.getElementById('cart-button').addEventListener('click', () => {
-            this.openCartModal();
-        });
+        const cartButton = document.getElementById('cart-button');
+        if (cartButton) {
+            cartButton.addEventListener('click', () => {
+                this.openCartModal();
+            });
+        }
 
         // Shipping address changes
         ['s-name', 's-address1', 's-city', 's-state', 's-zip'].forEach(field => {
-            document.getElementById(field).addEventListener('input', () => {
-                if (document.getElementById('billing-same').checked) {
-                    this.copyShippingToBilling();
-                }
-            });
+            const fieldElement = document.getElementById(field);
+            if (fieldElement) {
+                fieldElement.addEventListener('input', () => {
+                    if (document.getElementById('billing-same')?.checked) {
+                        this.copyShippingToBilling();
+                    }
+                });
+            }
         });
 
         // Billing state tax calculation
-        document.getElementById('b-state').addEventListener('change', () => {
-            this.calculateOrderTotal();
-        });
+        const bState = document.getElementById('b-state');
+        if (bState) {
+            bState.addEventListener('change', () => {
+                this.calculateOrderTotal();
+            });
+        }
     }
 
     loadInitialState() {
@@ -74,7 +113,10 @@ class CheckoutManager {
         this.isGift = savedGiftOption ? JSON.parse(savedGiftOption) : false;
         
         // Set initial shipping cost
-        document.getElementById('shipping-cost').textContent = this.SHIPPING_COST.toFixed(2);
+        const shippingCostElement = document.getElementById('shipping-cost');
+        if (shippingCostElement) {
+            shippingCostElement.textContent = this.SHIPPING_COST.toFixed(2);
+        }
         
         // Load cart data
         this.loadCartData();
@@ -88,8 +130,11 @@ class CheckoutManager {
         }
         
         // Update checkboxes
-        document.getElementById('gift-checkbox').checked = this.isGift;
-        document.getElementById('cart-gift-checkbox').checked = this.isGift;
+        const giftCheckbox = document.getElementById('gift-checkbox');
+        const cartGiftCheckbox = document.getElementById('cart-gift-checkbox');
+        
+        if (giftCheckbox) giftCheckbox.checked = this.isGift;
+        if (cartGiftCheckbox) cartGiftCheckbox.checked = this.isGift;
         
         this.updateUI();
     }
@@ -98,8 +143,11 @@ class CheckoutManager {
         this.isGift = isGift;
         
         // Update both checkboxes
-        document.getElementById('gift-checkbox').checked = isGift;
-        document.getElementById('cart-gift-checkbox').checked = isGift;
+        const giftCheckbox = document.getElementById('gift-checkbox');
+        const cartGiftCheckbox = document.getElementById('cart-gift-checkbox');
+        
+        if (giftCheckbox) giftCheckbox.checked = isGift;
+        if (cartGiftCheckbox) cartGiftCheckbox.checked = isGift;
         
         // Save to localStorage
         localStorage.setItem('checkoutGiftOption', JSON.stringify(isGift));
@@ -119,24 +167,40 @@ class CheckoutManager {
         const shippingNote = document.getElementById('shipping-highlight-note');
         const giftFeeLine = document.getElementById('gift-fee-line');
         
-        if (this.isGift) {
-            shippingSection.classList.add('highlight');
-            shippingNote.classList.remove('hidden');
-            giftFeeLine.classList.remove('hidden');
-        } else {
-            shippingSection.classList.remove('highlight');
-            shippingNote.classList.add('hidden');
-            giftFeeLine.classList.add('hidden');
+        if (shippingSection) {
+            if (this.isGift) {
+                shippingSection.classList.add('highlight');
+            } else {
+                shippingSection.classList.remove('highlight');
+            }
+        }
+        
+        if (shippingNote) {
+            if (this.isGift) {
+                shippingNote.classList.remove('hidden');
+            } else {
+                shippingNote.classList.add('hidden');
+            }
+        }
+        
+        if (giftFeeLine) {
+            if (this.isGift) {
+                giftFeeLine.classList.remove('hidden');
+            } else {
+                giftFeeLine.classList.add('hidden');
+            }
         }
     }
 
     handleBillingSameToggle(isSame) {
         const billingForm = document.getElementById('billing-address-form');
-        if (isSame) {
-            billingForm.classList.add('hidden');
-            this.copyShippingToBilling();
-        } else {
-            billingForm.classList.remove('hidden');
+        if (billingForm) {
+            if (isSame) {
+                billingForm.classList.add('hidden');
+                this.copyShippingToBilling();
+            } else {
+                billingForm.classList.remove('hidden');
+            }
         }
         this.calculateOrderTotal();
     }
@@ -164,38 +228,44 @@ class CheckoutManager {
         const orderSummary = document.getElementById('order-items-summary');
         
         if (this.cartItems.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Your cart is empty</p>';
-            orderSummary.innerHTML = '<div class="summary-line"><span>No items</span><span>$0.00</span></div>';
+            if (container) {
+                container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Your cart is empty</p>';
+            }
+            if (orderSummary) {
+                orderSummary.innerHTML = '<div class="summary-line"><span>No items</span><span>$0.00</span></div>';
+            }
             return;
         }
 
-        // Render items in checkout section (above Order Summary)
-        container.innerHTML = this.cartItems.map(item => `
-            <div class="cart-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; gap: 12px;">
-                <img src="${item.imageUrl}" alt="${item.paletteName}" class="cart-item-image">
-                <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px; line-height: 1.3;">${item.paletteName}</div>
-                    <div style="color: #666; font-size: 12px; margin-bottom: 2px;">
-                        ${item.itemType}
-                    </div>
-                    <div style="color: #666; font-size: 13px;">
-                        $${item.discountedPrice.toFixed(2)}
-                        ${item.discount > 0 ? `<span style="color: #28a745; font-size: 12px;">(${item.discount}% off)</span>` : ''}
+        // Render items in checkout section
+        if (container) {
+            container.innerHTML = this.cartItems.map(item => `
+                <div class="cart-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; gap: 12px;">
+                    <img src="${item.imageUrl}" alt="${item.paletteName}" style="width: 60px; height: 60px; object-fit: contain; border-radius: 8px; flex-shrink: 0; background: #f5f5f5;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px; line-height: 1.3;">${item.paletteName}</div>
+                        <div style="color: #666; font-size: 12px; margin-bottom: 2px;">
+                            ${item.itemType}
+                        </div>
+                        <div style="color: #666; font-size: 13px;">
+                            $${item.discountedPrice.toFixed(2)}
+                            ${item.discount > 0 ? `<span style="color: #28a745; font-size: 12px;">(${item.discount}% off)</span>` : ''}
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            `).join('');
+        }
 
-        // Render ONLY in order summary section (remove duplicate above)
-        orderSummary.innerHTML = this.cartItems.map(item => `
-            <div class="summary-line">
-                <span>${item.paletteName} (${item.itemType})</span>
-                <span>$${item.discountedPrice.toFixed(2)}</span>
-            </div>
-        `).join('');
+        // Render in order summary section
+        if (orderSummary) {
+            orderSummary.innerHTML = this.cartItems.map(item => `
+                <div class="summary-line">
+                    <span>${item.paletteName} (${item.itemType})</span>
+                    <span>$${item.discountedPrice.toFixed(2)}</span>
+                </div>
+            `).join('');
+        }
     }
-
-    
 
     calculateOrderTotal() {
         if (this.cartItems.length === 0) {
@@ -209,7 +279,8 @@ class CheckoutManager {
         // Add gift fee
         if (this.isGift) {
             total += this.GIFT_FEE;
-            document.getElementById('summary-gift-fee').textContent = this.GIFT_FEE.toFixed(2);
+            const summaryGiftFee = document.getElementById('summary-gift-fee');
+            if (summaryGiftFee) summaryGiftFee.textContent = this.GIFT_FEE.toFixed(2);
         }
 
         // Calculate tax based on billing address
@@ -222,35 +293,50 @@ class CheckoutManager {
             taxAmount = taxableBase * this.CA_TAX_RATE;
             total += taxAmount;
             
-            document.getElementById('sales-tax').textContent = taxAmount.toFixed(2);
-            document.getElementById('tax-line').classList.remove('hidden');
+            const salesTax = document.getElementById('sales-tax');
+            const taxLine = document.getElementById('tax-line');
+            if (salesTax) salesTax.textContent = taxAmount.toFixed(2);
+            if (taxLine) taxLine.classList.remove('hidden');
         } else {
-            document.getElementById('tax-line').classList.add('hidden');
+            const taxLine = document.getElementById('tax-line');
+            if (taxLine) taxLine.classList.add('hidden');
         }
 
         this.updateTotalDisplay(total);
     }
 
     getTaxState() {
-        if (document.getElementById('billing-same').checked) {
-            const shippingState = document.getElementById('s-state').value;
-            return shippingState;
+        const billingSame = document.getElementById('billing-same');
+        if (billingSame && billingSame.checked) {
+            const shippingState = document.getElementById('s-state');
+            return shippingState ? shippingState.value : '';
         } else {
-            const billingState = document.getElementById('b-state').value;
-            return billingState;
+            const billingState = document.getElementById('b-state');
+            return billingState ? billingState.value : '';
         }
     }
 
     updateTotalDisplay(total) {
-        document.getElementById('order-total').textContent = total.toFixed(2);
-        document.getElementById('final-total-btn').textContent = total.toFixed(2);
-        
+        const orderTotal = document.getElementById('order-total');
+        const finalTotalBtn = document.getElementById('final-total-btn');
         const payButton = document.getElementById('pay-button');
-        payButton.innerHTML = `Pay Now (Total: $${total.toFixed(2)})`;
+        
+        if (orderTotal) orderTotal.textContent = total.toFixed(2);
+        if (finalTotalBtn) finalTotalBtn.textContent = total.toFixed(2);
+        
+        if (payButton) {
+            payButton.innerHTML = `Pay Now (Total: $${total.toFixed(2)})`;
+        }
     }
 
     async initializeStripe() {
         try {
+            if (typeof Stripe === 'undefined') {
+                throw new Error('Stripe.js not loaded');
+            }
+            if (!CONFIG.STRIPE_PUBLISHABLE_KEY) {
+                throw new Error('Stripe publishable key not configured');
+            }
             this.stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
             this.hideError();
         } catch (error) {
@@ -269,21 +355,27 @@ class CheckoutManager {
         const hasCartItems = this.cartItems.length > 0;
         
         if (isAuthenticated && hasCartItems) {
-            authRequired.style.display = 'none';
-            checkoutContent.style.display = 'block';
-            payButton.disabled = false;
-            payButton.style.opacity = '1';
+            if (authRequired) authRequired.style.display = 'none';
+            if (checkoutContent) checkoutContent.style.display = 'block';
+            if (payButton) {
+                payButton.disabled = false;
+                payButton.style.opacity = '1';
+            }
             if (errorDiv) errorDiv.classList.add('hidden');
         } else if (!isAuthenticated) {
-            authRequired.style.display = 'block';
-            checkoutContent.style.display = 'none';
-            payButton.disabled = true;
-            payButton.style.opacity = '0.7';
+            if (authRequired) authRequired.style.display = 'block';
+            if (checkoutContent) checkoutContent.style.display = 'none';
+            if (payButton) {
+                payButton.disabled = true;
+                payButton.style.opacity = '0.7';
+            }
         } else {
-            authRequired.style.display = 'none';
-            checkoutContent.style.display = 'block';
-            payButton.disabled = true;
-            payButton.style.opacity = '0.7';
+            if (authRequired) authRequired.style.display = 'none';
+            if (checkoutContent) checkoutContent.style.display = 'block';
+            if (payButton) {
+                payButton.disabled = true;
+                payButton.style.opacity = '0.7';
+            }
             if (errorDiv) {
                 errorDiv.textContent = 'Your cart is empty';
                 errorDiv.classList.remove('hidden');
@@ -293,13 +385,17 @@ class CheckoutManager {
 
     showError(message) {
         const errorDiv = document.getElementById('error-message');
-        errorDiv.textContent = message;
-        errorDiv.classList.remove('hidden');
+        if (errorDiv) {
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
     }
 
     hideError() {
         const errorDiv = document.getElementById('error-message');
-        errorDiv.classList.add('hidden');
+        if (errorDiv) {
+            errorDiv.classList.add('hidden');
+        }
     }
 
     async handlePayment() {
@@ -339,18 +435,20 @@ class CheckoutManager {
 
     async processPayment() {
         const payButton = document.getElementById('pay-button');
-        payButton.disabled = true;
-        payButton.textContent = 'Processing...';
-    
+        if (payButton) {
+            payButton.disabled = true;
+            payButton.textContent = 'Processing...';
+        }
+
         const totalAmount = parseFloat(document.getElementById('order-total').textContent);
         const amountInCents = Math.round(totalAmount * 100);
         const userInfo = window.getUserInfo();
         const session = window.getSession();
-    
+
         if (!userInfo?.email || !session?.id_token) {
             throw new Error('Authentication information missing');
         }
-    
+
         const checkoutCartItems = this.cartItems.map(item => ({
             design_id: item.designId || item.design_id,
             palette_name: item.paletteName,
@@ -359,7 +457,7 @@ class CheckoutManager {
             original_price: item.originalPrice,
             image_url: item.imageUrl
         }));
-    
+
         const requestBody = {
             action: 'createCheckoutSession',
             user_email: userInfo.email,
@@ -368,9 +466,10 @@ class CheckoutManager {
             item_count: this.cartItems.length,
             is_gift: this.isGift
         };
-    
-        console.log('Creating checkout session with data:', requestBody);
-    
+
+        console.log('Sending checkout request to:', CONFIG.CHECKOUT_API_ENDPOINT);
+        console.log('Request body:', requestBody);
+
         const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
             method: 'POST',
             headers: {
@@ -379,32 +478,33 @@ class CheckoutManager {
             },
             body: JSON.stringify(requestBody)
         });
-    
+
+        console.log('Response status:', response.status);
+        
         const data = await response.json();
-    
+        console.log('Response data:', data);
+
         if (!response.ok) {
             throw new Error(data.error || `Server error: ${response.status}`);
         }
-    
+
         if (!data.id) {
             throw new Error('No session ID received from server');
         }
-    
-        console.log('Stripe session created, redirecting to:', data.id);
-    
-        // ✅ CRITICAL FIX: Use direct URL redirect for new Stripe Checkout
-        // The old stripe.redirectToCheckout() doesn't work with the new session format
-        window.location.href = data.url; // Use the session URL returned by Stripe
-        
-        // Alternative: If you want to use Stripe.js (make sure you're loading it)
-        // const result = await this.stripe.redirectToCheckout({
-        //     sessionId: data.id
-        // });
-        // 
-        // if (result.error) {
-        //     throw new Error(result.error.message);
-        // }
+
+        console.log('Stripe session created:', data);
+
+        // ✅ FIX: Use the URL returned by Stripe or construct it
+        if (data.url) {
+            console.log('Redirecting to Stripe Checkout URL:', data.url);
+            window.location.href = data.url;
+        } else {
+            // Fallback: construct the URL manually
+            console.log('Using fallback URL construction with session ID:', data.id);
+            window.location.href = `https://checkout.stripe.com/pay/${data.id}`;
+        }
     }
+
     // Cart modal functions
     openCartModal() {
         if (window.stripePayment) {
