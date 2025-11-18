@@ -394,7 +394,7 @@ class CheckoutManager {
     
         // ✅ CRITICAL FIX: Use direct URL redirect for new Stripe Checkout
         // The old stripe.redirectToCheckout() doesn't work with the new session format
-        window.location.href = `https://checkout.stripe.com/c/pay/${data.id}`;
+        window.location.href = data.url; // Use the session URL returned by Stripe
         
         // Alternative: If you want to use Stripe.js (make sure you're loading it)
         // const result = await this.stripe.redirectToCheckout({
