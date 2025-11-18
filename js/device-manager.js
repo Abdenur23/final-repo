@@ -94,6 +94,7 @@ class DeviceManager {
                 },
                 body: JSON.stringify({ 
                     device_id: deviceId,
+                    device_display: selectedDevice,
                     action: 'updateDevice'
                 })
             });
