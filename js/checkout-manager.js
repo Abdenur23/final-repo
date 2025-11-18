@@ -341,16 +341,16 @@ class CheckoutManager {
         const payButton = document.getElementById('pay-button');
         payButton.disabled = true;
         payButton.textContent = 'Processing...';
-
+    
         const totalAmount = parseFloat(document.getElementById('order-total').textContent);
         const amountInCents = Math.round(totalAmount * 100);
         const userInfo = window.getUserInfo();
         const session = window.getSession();
-
+    
         if (!userInfo?.email || !session?.id_token) {
             throw new Error('Authentication information missing');
         }
-
+    
         const checkoutCartItems = this.cartItems.map(item => ({
             design_id: item.designId || item.design_id,
             palette_name: item.paletteName,
@@ -359,7 +359,7 @@ class CheckoutManager {
             original_price: item.originalPrice,
             image_url: item.imageUrl
         }));
-
+    
         const requestBody = {
             action: 'createCheckoutSession',
             user_email: userInfo.email,
@@ -368,35 +368,43 @@ class CheckoutManager {
             item_count: this.cartItems.length,
             is_gift: this.isGift
         };
-
+    
+        console.log('Creating checkout session with data:', requestBody);
+    
         const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': session.id_token
+                'Authorization': 'Bearer ' + session.id_token
             },
             body: JSON.stringify(requestBody)
         });
-
+    
         const data = await response.json();
-
+    
         if (!response.ok) {
             throw new Error(data.error || `Server error: ${response.status}`);
         }
-
+    
         if (!data.id) {
             throw new Error('No session ID received from server');
         }
-
-        const result = await this.stripe.redirectToCheckout({
-            sessionId: data.id
-        });
-
-        if (result.error) {
-            throw new Error(result.error.message);
-        }
+    
+        console.log('Stripe session created, redirecting to:', data.id);
+    
+        // ✅ CRITICAL FIX: Use direct URL redirect for new Stripe Checkout
+        // The old stripe.redirectToCheckout() doesn't work with the new session format
+        window.location.href = `https://checkout.stripe.com/c/pay/${data.id}`;
+        
+        // Alternative: If you want to use Stripe.js (make sure you're loading it)
+        // const result = await this.stripe.redirectToCheckout({
+        //     sessionId: data.id
+        // });
+        // 
+        // if (result.error) {
+        //     throw new Error(result.error.message);
+        // }
     }
-
     // Cart modal functions
     openCartModal() {
         if (window.stripePayment) {
