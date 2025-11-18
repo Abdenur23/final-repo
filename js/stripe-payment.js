@@ -128,7 +128,7 @@ class StripePayment {
             paletteName: design.paletteName || 'Custom Design',
             imageUrl: design.imageUrls ? Object.values(design.imageUrls)[2] : '',
             addedAt: new Date().toISOString(),
-            itemType: 'phone-case',
+            itemType: 'Case & wallpaper',
             phoneModel: serverResponse.phone_model_display
         };
 
@@ -163,7 +163,7 @@ class StripePayment {
         notification.innerHTML = `
             <div style="font-weight: bold; margin-bottom: 4px;">✅ Added to Cart</div>
             <div style="font-size: 14px;">${item.paletteName}</div>
-            <div style="font-size: 12px; opacity: 0.9;">$${item.phoneModel}</div>
+            <div style="font-size: 12px; opacity: 0.9;">${item.phoneModel}</div>
             <div style="font-size: 12px; opacity: 0.9;">$${item.discountedPrice.toFixed(2)}</div>
             <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">Click to view cart</div>
         `;
@@ -423,7 +423,7 @@ class StripePayment {
                 <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px; line-height: 1.3;">${item.paletteName}</div>
                 
                 <div style="color: #666; font-size: 13px;">
-                    ${item.phoneModel}
+                    ${item.phoneModel} `<span style="color: #28a745; font-size: 12px;">(${item.itemType}% off)</span>`
                 </div>
                 <div style="color: #666; font-size: 13px;">
                     $${item.discountedPrice.toFixed(2)}
