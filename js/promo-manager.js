@@ -118,11 +118,11 @@ class PromoManager {
                 messageDiv.innerHTML += `<br><span style="color: #17a2b8;">Your current ${this.activePromoDiscount}% discount remains active.</span>`;
             }
         }
-        getActivePromoCode() {
-            return this.activePromoCode;
-        }
+        
     }
-
+    getActivePromoCode() {
+        return this.activePromoCode;
+    }
     updateAllProductPrices() {
         const productCards = document.querySelectorAll('.product-card');
         productCards.forEach(card => {
