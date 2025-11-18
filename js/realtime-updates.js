@@ -267,8 +267,14 @@ class RealTimeUpdates {
             );
 
             // Setup add to cart button
+            // Setup add to cart button
             const cartBtn = productElement.querySelector('.add-to-cart-btn');
-            cartBtn.addEventListener('click', () => this.addToCart(designId));
+            cartBtn.addEventListener('click', () => {
+                const design = this.progressTracker.getCompletedDesign(designId);
+                if (design) {
+                    window.stripePayment.addToCart(designId, this);
+                }
+            });
         } else {
             console.error('Products container could not be created');
         }
@@ -377,92 +383,7 @@ class RealTimeUpdates {
         this.progressTracker.pendingItems.delete(designId);
     }
 
-    // addToCart(designId) {
-    //     const design = this.progressTracker.getCompletedDesign(designId);
-    //     if (design) {
-    //         const paletteName = design.paletteName || 'Custom Design';
-    //         const currentDiscount = this.promoManager.getActiveDiscount();
-    //         const discountedPrice = CONFIG.PRODUCT_PRICE * (1 - currentDiscount / 100);
-    //         const displayPrice = (currentDiscount > 0) ? discountedPrice : CONFIG.PRODUCT_PRICE;
-            
-    //         alert(`Added ${paletteName} to cart! Price: $${displayPrice.toFixed(2)}`);
-    //     }
-    // }
     
-    // In the addToCart method, replace with:
-    addToCart(designId) {
-        //window.stripePayment.addToCart(designId, this);
-        const design = this.progressTracker.getCompletedDesign(designId);
-        if (!design) {
-            console.error('Design not found:', designId);
-            return;
-        }
-    
-        const session = this.getSession();
-        if (!session?.id_token) {
-            console.error('User not authenticated');
-            alert('Please sign in to add items to cart');
-            return;
-        }
-    
-        // Get design details
-        const paletteName = design.paletteName || 'Custom Design';
-        const currentDiscount = this.promoManager.getActiveDiscount();
-        const originalPrice = CONFIG.PRODUCT_PRICE;
-        const discountedPrice = originalPrice * (1 - currentDiscount / 100);
-        const displayPrice = (currentDiscount > 0) ? discountedPrice : originalPrice;
-        // FIX: Get the first image URL properly
-        const thumbnailUrl = design.imageUrls ? Object.values(design.imageUrls)[3] : '';
-        // Prepare cart item data
-        const cartItem = {
-            designId: designId,
-            paletteName: paletteName,
-            originalPrice: originalPrice,
-            discountedPrice: discountedPrice,
-            finalPrice: displayPrice,
-            discountPercentage: currentDiscount,
-            imageUrl: thumbnailUrl, // Use first image as thumbnail
-            timestamp: new Date().toISOString()
-        };
-    
-        console.log('Adding to cart:', cartItem);
-    
-        // Call the shopping cart API
-        this.callAddToCartAPI(cartItem, session.id_token)
-        .then(result => {
-            console.log('✅ Item added to cart successfully:', result);
-            window.stripePayment.addToCart(designId, this, result); // Pass the server response
-        })
-            .catch(error => {
-                console.error('❌ Failed to add item to cart:', error);
-            });
-    }
-    
-    async callAddToCartAPI(cartItem, idToken) {
-        if (!CONFIG.SHOPPING_CART_API_ENDPOINT) {
-            throw new Error('Shopping cart API endpoint not configured');
-        }
-    
-        const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + idToken
-            },
-            body: JSON.stringify({
-                action: 'addToCart',
-                item: cartItem
-            })
-        });
-    
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`API error: ${response.status} - ${errorText}`);
-        }
-    
-        return await response.json();
-    }
-
     // UPDATED METHOD
     renderUpdatesPanel() {
         if (document.getElementById('realtimePanel')) return;
