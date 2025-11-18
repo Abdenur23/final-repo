@@ -422,7 +422,7 @@ class StripePayment {
                 <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px; line-height: 1.3;">${item.paletteName}</div>
                 
                 <div style="color: #666; font-size: 13px;">
-                    $${item.phoneModel}
+                    ${item.phoneModel}
                 </div>
                 <div style="color: #666; font-size: 13px;">
                     $${item.discountedPrice.toFixed(2)}
