@@ -87,7 +87,7 @@ class PromoManager {
                         this.updateAllProductPrices();
                 
                         messageDiv.innerHTML =
-                            `<span style="color: #28a745;">✅ Promo code applied! ${newDiscount}% discount activated and will apply to all products</span>`;
+                            `<span style="color: #28a745;">✅ Promo code applied! ${newDiscount}% </span>`;
                     } else {
                         messageDiv.innerHTML =
                             `<span style="color: #ffc107;">ℹ️ You already have an active ${this.activePromoDiscount}% discount. This code offers ${newDiscount}% which is not better.</span>`;
