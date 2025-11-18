@@ -93,7 +93,7 @@ class DeviceManager {
                 },
                 body: JSON.stringify({ 
                     device_id: deviceId,
-                    device_display: selectedDevice,
+                    device_display: document.getElementById('selectedDevice').textContent,
                     action: 'updateDevice'
                 })
             });
