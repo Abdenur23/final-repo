@@ -56,6 +56,7 @@ class StripePayment {
                     paletteName: item.palette_name,
                     imageUrl: item.image_url,
                     addedAt: item.created_at,
+                    itemType: 'Case & wallpaper',
                     phoneModel: item.phone_model_display
                 }));
                 
