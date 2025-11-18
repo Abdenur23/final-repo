@@ -101,7 +101,7 @@ class StripePayment {
         });
     }
 
-    addToCart(designId, realtimeUpdates) {
+    addToCart(designId, realtimeUpdates, serverResponse) {
         // Check if already in cart
         if (this.isInCart(designId)) {
             this.showError('This design is already in your cart');
@@ -127,7 +127,8 @@ class StripePayment {
             paletteName: design.paletteName || 'Custom Design',
             imageUrl: design.imageUrls ? Object.values(design.imageUrls)[2] : '',
             addedAt: new Date().toISOString(),
-            itemType: 'phone-case'
+            itemType: 'phone-case',
+            phoneModel: serverResponse.phone_model_display
         };
 
         this.cart.push(cartItem);
@@ -161,6 +162,7 @@ class StripePayment {
         notification.innerHTML = `
             <div style="font-weight: bold; margin-bottom: 4px;">✅ Added to Cart</div>
             <div style="font-size: 14px;">${item.paletteName}</div>
+            <div style="font-size: 12px; opacity: 0.9;">$${item.phoneModel}</div>
             <div style="font-size: 12px; opacity: 0.9;">$${item.discountedPrice.toFixed(2)}</div>
             <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">Click to view cart</div>
         `;
@@ -418,6 +420,10 @@ class StripePayment {
                  style="width: 60px; height: 60px; object-fit: contain; border-radius: 8px; flex-shrink: 0; background: #f5f5f5;">
             <div style="flex: 1; min-width: 0;">
                 <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px; line-height: 1.3;">${item.paletteName}</div>
+                
+                <div style="color: #666; font-size: 13px;">
+                    $${item.phoneModel}
+                </div>
                 <div style="color: #666; font-size: 13px;">
                     $${item.discountedPrice.toFixed(2)}
                     ${item.discount > 0 ? `<span style="color: #28a745; font-size: 12px;">(${item.discount}% off)</span>` : ''}
