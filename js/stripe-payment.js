@@ -27,7 +27,7 @@ class StripePayment {
     }
 
     async syncCartWithServer() {
-        const session = getSession();
+        const session = this.getSession();
         if (!session?.id_token) return;
 
         try {
@@ -95,14 +95,17 @@ class StripePayment {
         });
 
         // Click outside to close modal
-        document.getElementById('cart-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'cart-modal') {
-                this.closeCartModal();
-            }
-        });
+        const cartModal = document.getElementById('cart-modal');
+        if (cartModal) {
+            cartModal.addEventListener('click', (e) => {
+                if (e.target.id === 'cart-modal') {
+                    this.closeCartModal();
+                }
+            });
+        }
     }
 
-    addToCart(designId, realtimeUpdates, serverResponse) {
+    async addToCart(designId, realtimeUpdates) {
         // Check if already in cart
         if (this.isInCart(designId)) {
             this.showError('This design is already in your cart');
@@ -115,28 +118,89 @@ class StripePayment {
             return;
         }
 
+        const session = this.getSession();
+        if (!session?.id_token) {
+            console.error('User not authenticated');
+            this.showError('Please sign in to add items to cart');
+            return;
+        }
+
+        // Get design details
+        const paletteName = design.paletteName || 'Custom Design';
         const currentDiscount = realtimeUpdates.promoManager.getActiveDiscount();
         const originalPrice = CONFIG.PRODUCT_PRICE;
         const discountedPrice = originalPrice * (1 - currentDiscount / 100);
-        
+        const displayPrice = (currentDiscount > 0) ? discountedPrice : originalPrice;
+        const thumbnailUrl = design.imageUrls ? Object.values(design.imageUrls)[3] : '';
+
+        // Prepare cart item data
         const cartItem = {
             designId: designId,
-            designData: design,
+            paletteName: paletteName,
             originalPrice: originalPrice,
             discountedPrice: discountedPrice,
-            discount: currentDiscount,
-            paletteName: design.paletteName || 'Custom Design',
-            imageUrl: design.imageUrls ? Object.values(design.imageUrls)[2] : '',
-            addedAt: new Date().toISOString(),
-            itemType: 'Case & wallpaper',
-            phoneModel: serverResponse.phone_model_display
+            finalPrice: displayPrice,
+            discountPercentage: currentDiscount,
+            imageUrl: thumbnailUrl,
+            timestamp: new Date().toISOString()
         };
 
-        this.cart.push(cartItem);
-        this.saveCartToStorage();
-        this.updateCartUI();
-        this.updateProductCardButtons(); // Update all product card buttons
-        this.showAddToCartConfirmation(cartItem);
+        console.log('Adding to cart:', cartItem);
+
+        try {
+            // Call the shopping cart API
+            const result = await this.callAddToCartAPI(cartItem, session.id_token);
+            console.log('✅ Item added to cart successfully:', result);
+            
+            // Add to local cart after successful API call
+            const localCartItem = {
+                designId: designId,
+                designData: design,
+                originalPrice: originalPrice,
+                discountedPrice: discountedPrice,
+                discount: currentDiscount,
+                paletteName: paletteName,
+                imageUrl: thumbnailUrl,
+                addedAt: new Date().toISOString(),
+                itemType: 'Case & wallpaper',
+                phoneModel: result.phone_model_display || 'Unknown Model'
+            };
+
+            this.cart.push(localCartItem);
+            this.saveCartToStorage();
+            this.updateCartUI();
+            this.updateProductCardButtons();
+            this.showAddToCartConfirmation(localCartItem);
+            
+        } catch (error) {
+            console.error('❌ Failed to add item to cart:', error);
+            this.showError('Failed to add item to cart. Please try again.');
+        }
+    }
+
+    async callAddToCartAPI(cartItem, idToken) {
+        if (!CONFIG.SHOPPING_CART_API_ENDPOINT) {
+            throw new Error('Shopping cart API endpoint not configured');
+        }
+
+        const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + idToken
+            },
+            body: JSON.stringify({
+                action: 'addToCart',
+                item: cartItem
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API error: ${response.status} - ${errorText}`);
+        }
+
+        return await response.json();
     }
 
     isInCart(designId) {
@@ -221,13 +285,13 @@ class StripePayment {
     }
 
     removeFromCart(designId) {
-        // Remove from local cart first (existing functionality)
+        // Remove from local cart first
         this.cart = this.cart.filter(item => item.designId !== designId);
         this.saveCartToStorage();
         this.updateCartUI();
         this.updateProductCardButtons();
         this.renderCartItems();
-    
+
         // Call Lambda API to remove from server-side cart
         this.callRemoveFromCartAPI(designId)
             .then(result => {
@@ -237,19 +301,18 @@ class StripePayment {
                 console.error('❌ Failed to remove item from server cart:', error);
             });
     }
-    
+
     async callRemoveFromCartAPI(designId) {
-        const session = getSession();
+        const session = this.getSession();
         if (!session?.id_token) {
             console.log('User not authenticated, skipping server cart removal');
             return;
         }
-    
+
         if (!CONFIG.SHOPPING_CART_API_ENDPOINT) {
             throw new Error('Shopping cart API endpoint not configured');
         }
-    
-        // Use POST method with action parameter - EXACTLY like addToCart
+
         const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
             method: 'POST',
             headers: {
@@ -261,12 +324,12 @@ class StripePayment {
                 designId: designId
             })
         });
-    
+
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`API error: ${response.status} - ${errorText}`);
         }
-    
+
         return await response.json();
     }
 
@@ -288,9 +351,8 @@ class StripePayment {
         const giftFee = this.isGift ? 12.00 : 0;
         return subtotal + giftFee;
     }
-    // Add this to stripe-payment.js - Better gift checkbox handling
+
     initializeGiftCheckbox() {
-        // Wait for modal to be available and set up event listener
         const checkModal = () => {
             const giftCheckbox = document.getElementById('gift-checkbox');
             if (giftCheckbox) {
@@ -318,13 +380,13 @@ class StripePayment {
         
         checkModal();
     }
-    
-    // Update the openCartModal method to initialize the checkbox
+
     openCartModal() {
         this.renderCartItems();
         document.getElementById('cart-modal').style.display = 'block';
-        this.initializeGiftCheckbox(); // Initialize when modal opens
+        this.initializeGiftCheckbox();
     }
+
     updateCartTotal() {
         const totalElement = document.getElementById('cart-total');
         const giftFeeElement = document.getElementById('gift-fee');
@@ -346,13 +408,12 @@ class StripePayment {
         }
     }
 
-    // js/stripe-payment.js - SIMPLE CHANGE
     async proceedToCheckout() {
         if (this.cart.length === 0) {
             this.showError('Your cart is empty');
             return;
         }
-    
+
         // Store gift option in localStorage for checkout page
         localStorage.setItem('checkoutGiftOption', JSON.stringify(this.isGift));
         
@@ -396,11 +457,6 @@ class StripePayment {
         }, 4000);
     }
 
-    openCartModal() {
-        this.renderCartItems();
-        document.getElementById('cart-modal').style.display = 'block';
-    }
-
     closeCartModal() {
         document.getElementById('cart-modal').style.display = 'none';
     }
@@ -416,26 +472,25 @@ class StripePayment {
         }
 
         container.innerHTML = this.cart.map(item => `
-        <div class="cart-item" style="display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #eee; gap: 12px;">
-            <img src="${item.imageUrl}" alt="${item.paletteName}" 
-                 style="width: 60px; height: 60px; object-fit: contain; border-radius: 8px; flex-shrink: 0; background: #f5f5f5;">
-            <div style="flex: 1; min-width: 0;">
-                <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px; line-height: 1.3;">${item.paletteName}</div>
-                
-                <div style="color: #666; font-size: 13px;">
-                    ${item.phoneModel} `<span style="color: #28a745; font-size: 12px;">(${item.itemType}% off)</span>`
+            <div class="cart-item" style="display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #eee; gap: 12px;">
+                <img src="${item.imageUrl}" alt="${item.paletteName}" 
+                     style="width: 60px; height: 60px; object-fit: contain; border-radius: 8px; flex-shrink: 0; background: #f5f5f5;">
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px; line-height: 1.3;">${item.paletteName}</div>
+                    <div style="color: #666; font-size: 13px;">
+                        ${item.phoneModel} <span style="color: #28a745; font-size: 12px;">(${item.itemType})</span>
+                    </div>
+                    <div style="color: #666; font-size: 13px;">
+                        $${item.discountedPrice.toFixed(2)}
+                        ${item.discount > 0 ? `<span style="color: #28a745; font-size: 12px;">(${item.discount}% off)</span>` : ''}
+                    </div>
                 </div>
-                <div style="color: #666; font-size: 13px;">
-                    $${item.discountedPrice.toFixed(2)}
-                    ${item.discount > 0 ? `<span style="color: #28a745; font-size: 12px;">(${item.discount}% off)</span>` : ''}
-                </div>
+                <button onclick="window.stripePayment.removeFromCart('${item.designId}')" 
+                        style="background: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; flex-shrink: 0;">
+                    Remove
+                </button>
             </div>
-            <button onclick="window.stripePayment.removeFromCart('${item.designId}')" 
-                    style="background: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; flex-shrink: 0;">
-                Remove
-            </button>
-        </div>
-    `).join('');
+        `).join('');
 
         this.updateCartTotal();
         
@@ -443,6 +498,16 @@ class StripePayment {
         const giftCheckbox = document.querySelector('#cart-modal input[type="checkbox"]');
         if (giftCheckbox) {
             giftCheckbox.checked = this.isGift;
+        }
+    }
+
+    getSession() {
+        try {
+            const session = localStorage.getItem('cognitoSession');
+            return session ? JSON.parse(session) : null;
+        } catch (error) {
+            console.error('Error getting session:', error);
+            return null;
         }
     }
 }
