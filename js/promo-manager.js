@@ -1,13 +1,16 @@
 class PromoManager {
     constructor() {
         this.activePromoDiscount = 0;
+        this.activePromoCode = '';
         this.loadPromoDiscount();
     }
 
     loadPromoDiscount() {
         const savedDiscount = localStorage.getItem('activePromoDiscount');
+        const savedCode = localStorage.getItem('activePromoCode');
         if (savedDiscount !== null) {
             this.activePromoDiscount = parseInt(savedDiscount);
+            this.activePromoCode = savedCode || '';
             this.updatePromoBadge();
             this.updateAllProductPrices();
         }
@@ -15,10 +18,12 @@ class PromoManager {
 
     savePromoDiscount() {
         localStorage.setItem('activePromoDiscount', this.activePromoDiscount.toString());
+        localStorage.setItem('activePromoCode', this.activePromoCode);
     }
     clearPromoData() {
         this.activePromoDiscount = 0;
         localStorage.removeItem('activePromoDiscount');
+        localStorage.removeItem('activePromoCode');
         this.updatePromoBadge();
         this.updateAllProductPrices();
     }
@@ -76,6 +81,7 @@ class PromoManager {
                 
                     if (newDiscount > this.activePromoDiscount) {
                         this.activePromoDiscount = newDiscount;
+                        this.activePromoCode = promoCode;
                         this.savePromoDiscount();
                         this.updatePromoBadge();
                         this.updateAllProductPrices();
@@ -111,6 +117,9 @@ class PromoManager {
             if (this.activePromoDiscount > 0) {
                 messageDiv.innerHTML += `<br><span style="color: #17a2b8;">Your current ${this.activePromoDiscount}% discount remains active.</span>`;
             }
+        }
+        getActivePromoCode() {
+            return this.activePromoCode;
         }
     }
 
