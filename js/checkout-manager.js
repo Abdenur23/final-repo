@@ -469,8 +469,10 @@ class CheckoutManager {
             amount: amountInCents,
             cart_items: checkoutCartItems,
             item_count: this.cartItems.length,
-            is_gift: this.isGift
+            is_gift: this.isGift,
+            promo_code: window.promoManager?.getActivePromoCode() || ''
         };
+        console.log('Promo code being sent to checkout:', window.promoManager?.getActivePromoCode());
 
         console.log('Sending checkout request to:', CONFIG.CHECKOUT_API_ENDPOINT);
         console.log('Request body:', requestBody);
