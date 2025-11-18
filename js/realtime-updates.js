@@ -429,9 +429,10 @@ class RealTimeUpdates {
     
         // Call the shopping cart API
         this.callAddToCartAPI(cartItem, session.id_token)
-            .then(result => {
-                console.log('✅ Item added to cart successfully:', result);
-            })
+        .then(result => {
+            console.log('✅ Item added to cart successfully:', result);
+            window.stripePayment.addToCart(designId, this, result); // Pass the server response
+        })
             .catch(error => {
                 console.error('❌ Failed to add item to cart:', error);
             });
