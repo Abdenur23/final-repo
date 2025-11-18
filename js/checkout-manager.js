@@ -462,7 +462,7 @@ class CheckoutManager {
             original_price: item.originalPrice,
             image_url: item.imageUrl
         }));
-
+        const promoCode = localStorage.getItem('activePromoCode') || '';
         const requestBody = {
             action: 'createCheckoutSession',
             user_email: userInfo.email,
@@ -470,9 +470,8 @@ class CheckoutManager {
             cart_items: checkoutCartItems,
             item_count: this.cartItems.length,
             is_gift: this.isGift,
-            promo_code: window.promoManager?.getActivePromoCode() || ''
+            promo_code: promoCode
         };
-        console.log('Promo code being sent to checkout:', window.promoManager?.getActivePromoCode());
 
         console.log('Sending checkout request to:', CONFIG.CHECKOUT_API_ENDPOINT);
         console.log('Request body:', requestBody);
