@@ -120,6 +120,10 @@ class CheckoutManager {
         
         // Load cart data
         this.loadCartData();
+        // Copy shipping to billing if checkbox is checked
+        if (document.getElementById('billing-same')?.checked) {
+            this.copyShippingToBilling();
+        }
     }
 
     loadCartData() {
