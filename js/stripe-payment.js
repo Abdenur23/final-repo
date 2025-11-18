@@ -101,19 +101,19 @@ class StripePayment {
         });
     }
 
-    addToCart(designId, realtimeUpdates) {
+    async addToCart(designId, realtimeUpdates) {
         // Check if already in cart
         if (this.isInCart(designId)) {
             this.showError('This design is already in your cart');
             return;
         }
-
+    
         const design = realtimeUpdates.progressTracker.getCompletedDesign(designId);
         if (!design) {
             console.error('Design not found:', designId);
             return;
         }
-
+    
         const currentDiscount = realtimeUpdates.promoManager.getActiveDiscount();
         const originalPrice = CONFIG.PRODUCT_PRICE;
         const discountedPrice = originalPrice * (1 - currentDiscount / 100);
@@ -129,12 +129,62 @@ class StripePayment {
             addedAt: new Date().toISOString(),
             itemType: 'phone-case'
         };
-
+    
+        // Add to local cart first
         this.cart.push(cartItem);
         this.saveCartToStorage();
         this.updateCartUI();
-        this.updateProductCardButtons(); // Update all product card buttons
+        this.updateProductCardButtons();
         this.showAddToCartConfirmation(cartItem);
+    
+        // Then sync with server if authenticated
+        const session = this.getSession();
+        if (session?.id_token) {
+            try {
+                await this.callAddToCartAPI(cartItem, session.id_token);
+                console.log('✅ Item added to server cart successfully');
+            } catch (error) {
+                console.error('❌ Failed to add item to server cart:', error);
+                // Don't show error to user since local cart was updated successfully
+            }
+        }
+    }
+
+    // ADD THESE METHODS TO StripePayment class:
+    
+    async callAddToCartAPI(cartItem, idToken) {
+        if (!CONFIG.SHOPPING_CART_API_ENDPOINT) {
+            throw new Error('Shopping cart API endpoint not configured');
+        }
+    
+        const response = await fetch(CONFIG.SHOPPING_CART_API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + idToken
+            },
+            body: JSON.stringify({
+                action: 'addToCart',
+                item: cartItem
+            })
+        });
+    
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API error: ${response.status} - ${errorText}`);
+        }
+    
+        return await response.json();
+    }
+    
+    getSession() {
+        try {
+            const session = localStorage.getItem('cognitoSession');
+            return session ? JSON.parse(session) : null;
+        } catch (error) {
+            console.error('Error getting session:', error);
+            return null;
+        }
     }
 
     isInCart(designId) {
