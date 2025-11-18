@@ -129,7 +129,9 @@ class PromoManager {
     }
 
     updateProductPrice(productCard) {
-        const originalPrice = CONFIG.PRODUCT_PRICE;
+        // const originalPrice = CONFIG.PRODUCT_PRICE;
+        const priceText = productCard.querySelector('.product-price').textContent;
+        const originalPrice = parseFloat(priceText.replace(/[^\d.]/g, '')) || CONFIG.PRODUCT_PRICE;
         const discountedPrice = originalPrice * (1 - this.activePromoDiscount / 100);
         
         const priceElement = productCard.querySelector('.product-price');
