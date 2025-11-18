@@ -217,7 +217,7 @@ class RealTimeUpdates {
         
         // Calculate pricing
         const currentDiscount = this.promoManager.getActiveDiscount();
-        const originalPrice = CONFIG.PRODUCT_PRICE;
+        const originalPrice = parseFloat(designData.price) || CONFIG.PRODUCT_PRICE;
         const discountedPrice = originalPrice * (1 - currentDiscount / 100);
         
         const priceInfo = {
