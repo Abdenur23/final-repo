@@ -196,13 +196,17 @@
   <script src="js/promo-manager.js"></script>
   <script src="js/upload-manager.js"></script>
 
-  <!-- Update your HTML to include the new modular files -->
+  <!-- Load Stripe Payment first since other files depend on it -->
   <script src="https://js.stripe.com/v3/"></script>
   <script src="js/stripe-payment.js"></script>
+  
+  <!-- Then load other dependencies -->
   <script src="js/websocket-manager.js"></script>
   <script src="js/progress-tracker.js"></script>
   <script src="js/ui-components-manager.js"></script>
   <script src="js/image-navigation-handler.js"></script>
+  
+  <!-- Finally load realtime-updates which depends on all above -->
   <script src="js/realtime-updates.js"></script>
   <script src="js/app.js"></script>
 
