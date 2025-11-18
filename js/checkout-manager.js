@@ -93,6 +93,7 @@ class CheckoutManager {
                 fieldElement.addEventListener('input', () => {
                     if (document.getElementById('billing-same')?.checked) {
                         this.copyShippingToBilling();
+                        this.calculateOrderTotal(); 
                     }
                 });
             }
