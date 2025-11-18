@@ -106,7 +106,7 @@ class StripePayment {
         }
     }
 
-    async addToCart(designId, realtimeUpdates) {
+    async addToCart(designId, realtimeUpdates,designData) {
         // Check if already in cart
         if (this.isInCart(designId)) {
             this.showError('This design is already in your cart');
@@ -129,7 +129,7 @@ class StripePayment {
         // Get design details
         const paletteName = design.paletteName || 'Custom Design';
         const currentDiscount = realtimeUpdates.promoManager.getActiveDiscount();
-        const originalPrice = CONFIG.PRODUCT_PRICE;
+        const originalPrice = parseFloat(designData.original_price) || CONFIG.PRODUCT_PRICE;
         const discountedPrice = originalPrice * (1 - currentDiscount / 100);
         const displayPrice = (currentDiscount > 0) ? discountedPrice : originalPrice;
         const thumbnailUrl = design.imageUrls ? Object.values(design.imageUrls)[3] : '';
