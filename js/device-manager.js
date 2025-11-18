@@ -85,7 +85,6 @@ class DeviceManager {
         }
         
         try {
-            console.log('🚀 Calling Lambda to update device:', deviceId);
             const response = await fetch(`${CONFIG.API_BASE_URL}/upload`, {
                 method: 'POST',
                 headers: { 
