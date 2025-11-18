@@ -272,7 +272,7 @@ class RealTimeUpdates {
             cartBtn.addEventListener('click', () => {
                 const design = this.progressTracker.getCompletedDesign(designId);
                 if (design) {
-                    window.stripePayment.addToCart(designId, this);
+                    window.stripePayment.addToCart(designId, this,designData);
                 }
             });
         } else {
