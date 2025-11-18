@@ -1,18 +1,19 @@
+//js/promo-manager.js
 class PromoManager {
     constructor() {
         this.activePromoDiscount = 0;
-        this.activePromoCode = '';
         this.loadPromoDiscount();
+        this.activePromoCode = '';
     }
 
     loadPromoDiscount() {
         const savedDiscount = localStorage.getItem('activePromoDiscount');
-        const savedCode = localStorage.getItem('activePromoCode');
         if (savedDiscount !== null) {
             this.activePromoDiscount = parseInt(savedDiscount);
-            this.activePromoCode = savedCode || '';
             this.updatePromoBadge();
             this.updateAllProductPrices();
+            const savedCode = localStorage.getItem('activePromoCode');
+            this.activePromoCode = savedCode || '';
         }
     }
 
@@ -23,9 +24,10 @@ class PromoManager {
     clearPromoData() {
         this.activePromoDiscount = 0;
         localStorage.removeItem('activePromoDiscount');
-        localStorage.removeItem('activePromoCode');
         this.updatePromoBadge();
         this.updateAllProductPrices();
+        this.activePromoCode = '';
+        localStorage.removeItem('activePromoCode');
     }
     updatePromoBadge() {
         const badge = document.getElementById('activePromoBadge');
@@ -78,16 +80,15 @@ class PromoManager {
                 if (result.valid === true) {
                     // Only proceed if the promo is valid
                     const newDiscount = result.discount_percentage || 0;
-                
+                    this.activePromoCode = promoCode;
                     if (newDiscount > this.activePromoDiscount) {
                         this.activePromoDiscount = newDiscount;
-                        this.activePromoCode = promoCode;
                         this.savePromoDiscount();
                         this.updatePromoBadge();
                         this.updateAllProductPrices();
                 
                         messageDiv.innerHTML =
-                            `<span style="color: #28a745;">✅ Promo code applied! ${newDiscount}% </span>`;
+                            `<span style="color: #28a745;">✅ Promo code applied! ${newDiscount}% discount activated and will apply to all products</span>`;
                     } else {
                         messageDiv.innerHTML =
                             `<span style="color: #ffc107;">ℹ️ You already have an active ${this.activePromoDiscount}% discount. This code offers ${newDiscount}% which is not better.</span>`;
@@ -118,11 +119,8 @@ class PromoManager {
                 messageDiv.innerHTML += `<br><span style="color: #17a2b8;">Your current ${this.activePromoDiscount}% discount remains active.</span>`;
             }
         }
-        
     }
-    getActivePromoCode() {
-        return this.activePromoCode;
-    }
+
     updateAllProductPrices() {
         const productCards = document.querySelectorAll('.product-card');
         productCards.forEach(card => {
