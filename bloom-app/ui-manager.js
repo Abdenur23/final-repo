@@ -29,6 +29,9 @@ class UIManager {
     checkAuthAndUpdateUI() {
         const userInfo = this.authManager.getUserInfo();
         
+        // Always update auth UI in header
+        this.renderAuthUI();
+        
         const appContentBox = document.getElementById('app-content-box');
         const authRequired = document.getElementById('auth-required-message');
         
@@ -53,22 +56,14 @@ class UIManager {
             }
         }
         
-        this.renderAuthUI();
         this.showSessionInfo();
     }
 
     showSessionInfo() {
-        const userInfo = this.authManager.getUserInfo();
+        // This is now handled in the header auth UI
         const tokenDiv = document.getElementById('token-display');
-        
-        if (!tokenDiv) return;
-        
-        // Remove the session info display since we show it in the header
-        tokenDiv.innerHTML = '';
-        
-        // Instead, we'll handle the "Not signed in" state in the auth-required message
-        if (!userInfo) {
-            // This is now handled in checkAuthAndUpdateUI
+        if (tokenDiv) {
+            tokenDiv.innerHTML = '';
         }
     }
 
@@ -77,10 +72,21 @@ class UIManager {
         const container = document.getElementById('cart-items-container');
         const totals = this.cartManager.getCartTotal();
         
-        if (!container) return;
+        if (!container) {
+            console.error('Cart container not found');
+            return;
+        }
         
-        document.getElementById('cart-total-display').innerText = `$${totals.total}`;
-        document.getElementById('checkout-button').disabled = cart.length === 0;
+        const cartTotalDisplay = document.getElementById('cart-total-display');
+        const checkoutButton = document.getElementById('checkout-button');
+        
+        if (cartTotalDisplay) {
+            cartTotalDisplay.innerText = `$${totals.total}`;
+        }
+        
+        if (checkoutButton) {
+            checkoutButton.disabled = cart.length === 0;
+        }
     
         if (cart.length === 0) {
             container.innerHTML = `<div id="empty-cart-message" class="text-center p-8 border border-gray-200 rounded-lg">
@@ -95,7 +101,7 @@ class UIManager {
                     <span class="text-gray-400 text-xs">${item.name}</span>
                 </div>
                 <div class="flex-grow">
-                    <h4 class="font-semibold">${product.name}</h4>
+                    <h4 class="font-semibold">${item.name}</h4>
                     <p class="text-sm text-gray-500">Device: ${item.device}</p>
                     <p class="text-sm gold-highlight">$${item.price.toFixed(2)}</p>
                 </div>
@@ -113,9 +119,12 @@ class UIManager {
             </div>
         `;
         
-        document.getElementById('promo-message').innerText = this.cartManager.promoDiscount > 0 
-            ? `Active Discount: ${this.cartManager.promoDiscount * 100}%` 
-            : '';
+        const promoMessage = document.getElementById('promo-message');
+        if (promoMessage) {
+            promoMessage.innerText = this.cartManager.promoDiscount > 0 
+                ? `Active Discount: ${this.cartManager.promoDiscount * 100}%` 
+                : '';
+        }
     }
 
     renderCheckout() {
