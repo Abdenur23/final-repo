@@ -72,7 +72,6 @@ class AuthManager {
             return false;
         }
         
-        console.log('Attempting silent token refresh...');
         const body = `grant_type=refresh_token&client_id=${cognitoConfig.clientId}&refresh_token=${session.refresh_token}`;
 
         try {
@@ -89,7 +88,6 @@ class AuthManager {
                     refresh_token: tokens.refresh_token || session.refresh_token 
                 };
                 this.saveSession(newSession);
-                console.log('Token refresh successful! Session extended.');
                 return true;
             } else {
                 console.error("Refresh token exchange failed. Logging out:", tokens.error_description || JSON.stringify(tokens));
