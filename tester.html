@@ -96,7 +96,7 @@
     </div>
 
     <script>
-        // --- PKCE UTILITY FUNCTIONS (Unchanged from previous version, handles base64, sha256) ---
+        // --- PKCE UTILITY FUNCTIONS (Standard, no changes) ---
         function base64urlencode(buffer){
             const bytes = new Uint8Array(buffer);
             let binary = '';
@@ -118,7 +118,7 @@
             return base64urlencode(arr); 
         }
 
-        // --- AUTH CONFIG & SESSION MANAGEMENT (Unchanged/Refined) ---
+        // --- AUTH CONFIG & SESSION MANAGEMENT (Standard, no changes) ---
         const cognitoConfig = {
             clientId: '73lf1h32phkqeb9ahu6tqcl9av',
             domain: 'auth.theweer.com',
@@ -169,7 +169,6 @@
                 clearSession();
                 return false;
             }
-            // ... [refresh logic remains the same]
             const body =
               `grant_type=refresh_token`
               + `&client_id=${cognitoConfig.clientId}`
@@ -257,7 +256,6 @@
                 window.history.replaceState({},document.title,cognitoConfig.redirectUri); 
                 return false;
             }
-            // ... [Exchange logic remains the same]
             const body =
               `grant_type=authorization_code`
               + `&client_id=${cognitoConfig.clientId}`
@@ -284,24 +282,6 @@
             } catch (error) {
                 return false;
             }
-        }
-
-        function setupTokenRefresh() {
-            setInterval(async () => {
-                const session = getSession();
-                if (session && isTokenExpired(session.id_token)) {
-                    await refreshSession();
-                    window.app.checkAuthAndUpdateUI(); 
-                }
-            }, 30000); 
-        }
-
-        async function initializeAuth() {
-            await handleCodeExchange();
-            const actualAuthStatus = await isAuthenticated();
-            window.app.checkAuthAndUpdateUI(); 
-            setupTokenRefresh();
-            return actualAuthStatus;
         }
         
         // --- CORE APPLICATION MANAGERS ---
@@ -338,7 +318,6 @@
                     console.log(`Product ${product.id} already in cart.`);
                     return false;
                 }
-                // Product is unique, add it (quantity is implicitly 1 for unique custom items)
                 this.items.push(product);
                 this.saveCart();
                 console.log(`Added product ${product.id} to cart.`);
@@ -368,7 +347,6 @@
 
             loadMockupProducts() {
                 const products = localStorage.getItem(this.productDataKey);
-                // Mock products structure: [{ id: 'unique-id', name: 'Design X', device: 'iPhone 15', price: 34.99, images: ['url1', 'url2', 'url3', 'url4'] }]
                 this.mockupProducts = products ? JSON.parse(products) : [];
             }
             
@@ -376,7 +354,6 @@
                  localStorage.setItem(this.productDataKey, JSON.stringify(this.mockupProducts));
             }
 
-            // Simulates server-side generation based on user input
             simulateGenerateMockups(device, fileNames) {
                 const baseId = crypto.randomUUID();
                 const designs = ['Rose Petal Bloom', 'Midnight Lily Mix'];
@@ -387,14 +364,13 @@
                         id: productId,
                         name: `${design}`,
                         device: device,
-                        price: 34.99 + (index * 5), // Vary price
+                        price: 34.99 + (index * 5),
                         images: [
                             `https://placehold.co/150x250/f9fafb/374151?text=Front`,
                             `https://placehold.co/150x250/f0fdf4/16a34a?text=Back`,
                             `https://placehold.co/150x250/f0f9ff/06b6d4?text=Side`,
                             `https://placehold.co/150x250/fff7ed/f97316?text=Room+Mockup`
                         ],
-                        // Store metadata about source files for fulfillment
                         sourceImages: fileNames 
                     };
                 });
@@ -402,7 +378,6 @@
                 return this.mockupProducts;
             }
             
-            // Retrieves the HTML for the product list
             getProductsHtml() {
                 if (this.mockupProducts.length === 0) {
                     return `
@@ -420,18 +395,19 @@
                 `;
             }
             
-            // Reusable component for a single product card
             renderProductCard(product, inCart) {
                 const buttonColor = inCart ? 'bg-gray-500 hover:bg-gray-600' : 'bg-rose-500 hover:bg-rose-600';
                 const buttonText = inCart ? 'Remove from Cart' : 'Add to Cart';
-                const buttonAction = inCart ? `window.app.cartManager.removeItem('${product.id}'); window.app.productManager.renderProductList()` : `window.app.cartManager.addItem(${JSON.stringify(product).replace(/"/g, '&quot;')}); window.app.productManager.renderProductList()`;
+                // NOTE: Using window.app methods directly in onclick for simplicity
+                const buttonAction = inCart ? 
+                    `window.app.cartManager.removeItem('${product.id}'); window.app.productManager.renderProductList()` : 
+                    `window.app.cartManager.addItem(${JSON.stringify(product).replace(/"/g, '&quot;')}); window.app.productManager.renderProductList()`;
 
                 return `
                     <div id="product-card-${product.id}" class="bg-white p-4 border border-gray-100 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col items-center">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">${product.name}</h3>
                         <p class="text-sm text-gray-500 mb-4">Device: ${product.device}</p>
                         
-                        <!-- Mockup Image Preview -->
                         <div class="w-full h-64 bg-gray-100 rounded-lg overflow-hidden mb-4 relative">
                             <img src="${product.images[0]}" alt="${product.name} Front Mockup" class="w-full h-full object-cover">
                             <span class="absolute top-2 right-2 px-3 py-1 bg-rose-500 text-white text-xs font-bold rounded-full">$${product.price.toFixed(2)}</span>
@@ -447,12 +423,10 @@
                 `;
             }
             
-            // Re-renders the product list dynamically (used after adding/removing from cart)
             renderProductList() {
                 const target = document.getElementById('product-mockups');
                 if (target) {
                     target.innerHTML = this.getProductsHtml();
-                    // Also update cart count in navigation
                     window.app.renderNavigation();
                 }
             }
@@ -471,11 +445,11 @@
                     isAuthenticated: false,
                     path: 'home', // 'home', 'case-studio', 'cart'
                 };
-                // Initialize managers here
+                
                 this.cartManager = new CartManager();
                 this.productManager = new ProductManager(this.cartManager);
                 
-                // Expose core methods to global scope
+                // Expose core methods to global scope using window.app
                 window.app = {
                     ...this,
                     signin: signin,
@@ -483,10 +457,30 @@
                     setPath: this.setPath.bind(this)
                 };
             }
+            
+            // --- AUTH INTEGRATION METHODS (Now part of the class) ---
+            
+            async initializeAuth() {
+                await handleCodeExchange();
+                const actualAuthStatus = await isAuthenticated();
+                this.checkAuthAndUpdateUI(); 
+                this.setupTokenRefresh();
+                return actualAuthStatus;
+            }
+            
+            setupTokenRefresh() {
+                setInterval(async () => {
+                    const session = getSession();
+                    if (session && isTokenExpired(session.id_token)) {
+                        await refreshSession();
+                        this.checkAuthAndUpdateUI(); 
+                    }
+                }, 30000); 
+            }
 
             async initialize() {
-                // Initial auth check and refresh handling
-                const authStatus = await initializeAuth();
+                // Initialize auth, which is now guaranteed to call this.checkAuthAndUpdateUI()
+                const authStatus = await this.initializeAuth();
                 this.state.isAuthenticated = authStatus;
                 
                 // Determine initial path based on URL hash or default
@@ -496,8 +490,9 @@
             setPath(newPath, updateHistory = true) {
                 if (newPath === this.state.path) return;
                 
-                // Protected routes
+                // Protected routes check
                 if (!this.state.isAuthenticated && (newPath === 'case-studio' || newPath === 'cart')) {
+                     alert('You must be signed in to access the studio or cart.');
                      newPath = 'home';
                 }
                 
@@ -514,7 +509,6 @@
                 const isAuthenticated = !!userInfo;
                 this.state.isAuthenticated = isAuthenticated;
                 
-                // Re-render core components
                 this.renderAuthUI();
                 this.renderNavigation();
                 this.showSessionInfo(userInfo);
@@ -523,7 +517,7 @@
                 if (!isAuthenticated && (this.state.path === 'case-studio' || this.state.path === 'cart')) {
                     this.setPath('home', false);
                 } else {
-                    this.renderApp(); // Re-render current view if necessary
+                    this.renderApp(); 
                 }
             }
             
@@ -597,12 +591,11 @@
                     authRequired.style.display = 'none';
                     appContent.style.display = 'block';
                     
-                    // Route to correct view
                     switch(this.state.path) {
                         case 'case-studio':
                             appContent.innerHTML = this.renderCaseStudioView();
-                            // Re-initialize state-specific logic
-                            document.getElementById('mockup-results').innerHTML = this.productManager.getProductsHtml();
+                            // Initial rendering of products after view is loaded
+                            document.getElementById('product-mockups').innerHTML = this.productManager.getProductsHtml();
                             break;
                         case 'cart':
                             appContent.innerHTML = this.renderCartView();
@@ -615,9 +608,10 @@
                 } else {
                     appContent.style.display = 'none';
                     authRequired.style.display = 'block';
+                    // Render home view even if not signed in (for marketing purposes)
+                    appContent.innerHTML = this.renderHomeView(); 
                 }
                 
-                // Ensure navigation/auth reflects current state
                 this.renderAuthUI();
                 this.renderNavigation();
             }
@@ -625,12 +619,19 @@
             // --- VIEW TEMPLATES ---
             
             renderHomeView() {
+                // If not authenticated, still show the home content but with a prompt to sign in.
+                const authMessage = this.state.isAuthenticated ? '' : 
+                    `<p class="text-md text-red-500 mt-4 mb-4 font-semibold">Sign in to start creating your case!</p>`;
+
                 return `
                     <div class="app-view text-center py-16">
                         <h2 class="text-3xl font-bold text-gray-800 mb-4">Welcome to FlowerBloom Custom Cases</h2>
                         <p class="text-xl text-rose-600 mb-6">Artistic flower collage & person image mix, designed for you.</p>
                         <p class="text-gray-600 max-w-2xl mx-auto mb-8">Create a unique, personalized phone case by uploading three images—a portrait and two floral images. Our AI-driven design studio merges them into an elegant, custom piece tailored for the modern woman.</p>
-                        <button onclick="window.app.setPath('case-studio')" class="px-8 py-3 bg-indigo-500 text-white text-lg font-semibold rounded-lg shadow-lg hover:bg-indigo-600 auth-button">
+                        
+                        ${authMessage}
+
+                        <button onclick="window.app.setPath('case-studio')" class="px-8 py-3 bg-indigo-500 text-white text-lg font-semibold rounded-lg shadow-lg hover:bg-indigo-600 auth-button" ${!this.state.isAuthenticated ? 'disabled' : ''}>
                             Start Designing Now!
                         </button>
                         
@@ -658,7 +659,7 @@
                             </select>
                             
                             <div class="flex items-start mb-6">
-                                <input type="checkbox" id="acknowledgement-check" class="w-4 h-4 text-rose-600 bg-gray-100 border-gray-300 rounded focus:ring-rose-500 mt-1">
+                                <input type="checkbox" id="acknowledgement-check" class="w-4 h-4 text-rose-600 bg-gray-100 border-gray-300 rounded focus:ring-rose-500 mt-1" onchange="window.app.toggleUploadStep2(true)">
                                 <label for="acknowledgement-check" class="ml-2 text-sm text-gray-600 cursor-pointer">
                                     I acknowledge that the design mockup will be based on a generic device shape for viewing, but my actual order will be fulfilled for the selected device model.
                                 </label>
@@ -706,7 +707,9 @@
             renderCartView() {
                 const items = this.cartManager.getCartItems();
                 const subtotal = items.reduce((sum, item) => sum + item.price, 0);
-                const discount = (localStorage.getItem('activePromoDiscount') || 0) * subtotal;
+                // Get discount value (0.20 for BLOOM20, 0 otherwise)
+                const discountRate = parseFloat(localStorage.getItem('activePromoDiscount') || 0);
+                const discount = discountRate * subtotal;
                 const total = subtotal - discount;
                 
                 return `
@@ -756,6 +759,7 @@
             toggleUploadStep2(enable) {
                 const ack = document.getElementById('acknowledgement-check');
                 const btn = document.getElementById('proceed-upload-btn');
+                const step2Div = document.getElementById('upload-step-2');
                 
                 if (ack && btn) {
                     btn.disabled = !ack.checked;
@@ -764,10 +768,11 @@
                     btn.classList.toggle('bg-indigo-500', ack.checked);
                     btn.classList.toggle('hover:bg-indigo-600', ack.checked);
                     
-                    if (ack.checked && enable) {
-                        document.getElementById('upload-step-2').style.display = 'block';
-                    } else if (enable) {
-                        document.getElementById('upload-step-2').style.display = 'none';
+                    if (ack.checked) {
+                        step2Div.style.display = 'block';
+                    } else {
+                        // Only hide if the checkbox is unchecked
+                        step2Div.style.display = 'none';
                     }
                 }
             }
@@ -812,7 +817,6 @@
                     if (step >= totalSteps) {
                         clearInterval(interval);
                         
-                        // Final step: Generate mockups and render
                         this.productManager.simulateGenerateMockups(targetDevice, fileNames);
                         this.productManager.renderProductList();
                         
@@ -820,9 +824,9 @@
                         generateBtn.disabled = false;
                         generateBtn.textContent = 'Generate Mockups (Simulated)';
                         
-                        console.log('Mockup Generation Complete.');
+                        console.log('Mockup Generation Complete. Designs are ready to be added to cart.');
                     }
-                }, 1500); // 1.5 seconds per step simulation
+                }, 1500); 
             }
             
             applyPromo(code) {
@@ -834,18 +838,19 @@
 
                 // Simulated server-side validation
                 if (code.toUpperCase() === 'BLOOM20') {
-                    discount = 0.20; // 20% discount
+                    discount = 0.20; 
                     message = `🎉 Success! Promo code BLOOM20 applied. Enjoy 20% off your total!`;
                 } else if (code.toUpperCase() === 'FREECASE') {
-                    discount = 1.00; // Mock 100% for one item
-                    message = `✨ Success! FREECASE code applied. Free item status confirmed.`;
+                    // This scenario would require more complex cart logic, but for now we'll treat it as a special case, still applying a large discount mock
+                    discount = 0.50; 
+                    message = `✨ Success! FREECASE code applied. Free item status confirmed (50% mock applied).`;
                 } else if (code.length > 0) {
                     discount = 0;
                     message = `❌ Invalid promo code: ${code}. Please try again.`;
                 } else {
                     localStorage.removeItem('activePromoDiscount');
                     if (promoDiv) promoDiv.style.display = 'none';
-                    this.renderApp(); // Re-render cart if on cart page
+                    this.renderApp(); 
                     return;
                 }
                 
@@ -853,30 +858,26 @@
                 
                 if (promoDiv) {
                     promoDiv.innerHTML = message;
+                    // Make sure it's visible on the home page if the user is there
+                    if(this.state.path === 'home') promoDiv.style.display = 'block';
                 }
                 
-                // Re-render current view to reflect changes (especially if on Cart page)
                 this.renderApp();
             }
         }
 
         // --- GLOBAL INITIALIZATION ---
 
-        // Register event listener for the acknowledgement checkbox
-        document.addEventListener('change', (e) => {
-            if (e.target.id === 'acknowledgement-check') {
-                window.app.toggleUploadStep2(false);
-            }
-        });
+        // Initialize the main application controller globally BEFORE the DOMContentLoaded event completes.
+        // This ensures window.app is defined immediately, resolving the TypeError.
+        window.app = new Application();
         
-        // Initialize application when DOM is loaded
         document.addEventListener('DOMContentLoaded', async () => {
-            // Mock window.stripePayment for the app logic
+            // Mock window.stripePayment
             window.stripePayment = { loadCart: () => console.log("Stripe cart loaded (simulated).") };
             
-            // Initialize the main application controller
-            const appInstance = new Application();
-            await appInstance.initialize();
+            // Start the application lifecycle
+            await window.app.initialize();
         });
     </script>
 </body>
