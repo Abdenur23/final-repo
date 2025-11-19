@@ -174,7 +174,7 @@
             clearUserData();
         }
 
-        // FIXED: Now takes a token and adds a buffer time
+        // Now takes a token and adds a buffer time
         function isTokenExpired(token) {
             if (!token) return true;
             
@@ -193,7 +193,7 @@
             }
         }
         
-        // NEW: Function to silently refresh the session using the Refresh Token
+        // Function to silently refresh the session using the Refresh Token
         async function refreshSession() {
             const session = getSession();
             if (!session || !session.refresh_token) {
@@ -238,7 +238,7 @@
             }
         }
 
-        // FIXED: is now async and leverages the refresh mechanism.
+        // is now async and leverages the refresh mechanism.
         async function isAuthenticated() {
             const session = getSession();
             if (!session || !session.id_token) return false;
@@ -420,7 +420,7 @@
             window.app.showSessionInfo(); // Update session display
         }
 
-        // FIXED: The interval now checks for expiration and attempts refresh.
+        // The interval now checks for expiration and attempts refresh.
         function setupTokenRefresh() {
             // Check token expiration and refresh every 30 seconds.
             setInterval(async () => {
@@ -435,7 +435,7 @@
             }, 30000); // Check every 30 seconds
         }
 
-        // FIXED: Now uses the async isAuthenticated
+        // Now uses the async isAuthenticated
         async function initializeAuth() {
             await handleCodeExchange();
             renderNavigation();
@@ -458,13 +458,12 @@
             return actualAuthStatus;
         }
         
-        // Make functions available globally for internal use
+        // Make functions available globally for internal use (removed the problematic 'isTokenExpired' wrapper)
         window.signin = signin;
         window.signout = signout;
         window.getSession = getSession;
         window.isAuthenticated = isAuthenticated;
         window.getUserInfo = getUserInfo;
-        window.isTokenExpired = (token) => isTokenExpired(getSession()?.id_token || token);
 
 
         // --- APPLICATION LOGIC (app.js fixed for async integration) ---
@@ -501,7 +500,7 @@
                 this.realtimeUpdates = null;
             }
 
-            // FIXED: Relies solely on the result of initializeAuth()
+            // Relies solely on the result of initializeAuth()
             async initialize() {
                 // Initialize managers
                 this.promoManager = new PromoManager();
