@@ -266,28 +266,220 @@ class StudioManager {
         document.getElementById('progress-bar').style.width = '0%';
         document.getElementById('progress-message').innerText = 'Starting image analysis...';
 
+        // Create image preview container if it doesn't exist
+        this.createImagePreviewContainer();
+
         // Show start over button
         const startOverBtn = document.getElementById('start-over-button');
         if (startOverBtn) {
             startOverBtn.style.display = 'block';
         }
 
-        // Simulate progress
+        // Simulate progress with image updates
+        this.simulateProgressWithImages();
+    }
+
+    createImagePreviewContainer() {
+        let previewContainer = document.getElementById('progress-image-preview');
+        if (!previewContainer) {
+            previewContainer = document.createElement('div');
+            previewContainer.id = 'progress-image-preview';
+            previewContainer.className = 'mt-6 grid grid-cols-1 md:grid-cols-2 gap-4';
+            
+            const progressContainer = document.getElementById('processing-progress');
+            progressContainer.appendChild(previewContainer);
+        } else {
+            previewContainer.innerHTML = '';
+        }
+    }
+
+    simulateProgressWithImages() {
         let progress = 0;
         const interval = setInterval(() => {
             progress += 10;
             document.getElementById('progress-bar').style.width = progress + '%';
 
-            if (progress === 30) {
+            // Update progress message and show intermediate images
+            if (progress === 10) {
+                document.getElementById('progress-message').innerText = 'Analyzing your photos...';
+                this.showIntermediateImage('analyzing', 'Photo analysis in progress');
+            } else if (progress === 30) {
+                document.getElementById('progress-message').innerText = 'Detecting facial features and composition...';
+                this.showIntermediateImage('feature-detection', 'Feature detection complete');
+            } else if (progress === 50) {
                 document.getElementById('progress-message').innerText = 'Generating flower collage composition...';
-            } else if (progress === 60) {
+                this.showIntermediateImage('composition', 'Initial composition created');
+            } else if (progress === 70) {
+                document.getElementById('progress-message').innerText = 'Applying artistic filters and color grading...';
+                this.showIntermediateImage('color-grading', 'Color grading applied');
+            } else if (progress === 85) {
                 document.getElementById('progress-message').innerText = 'Rendering 3D product mockups...';
+                this.showIntermediateImage('rendering', '3D rendering in progress');
             } else if (progress >= 100) {
                 clearInterval(interval);
-                document.getElementById('processing-progress').style.display = 'none';
-                this.finishProcessing();
+                document.getElementById('progress-message').innerText = 'Finalizing your bloom...';
+                setTimeout(() => {
+                    document.getElementById('processing-progress').style.display = 'none';
+                    this.finishProcessing();
+                }, 1000);
             }
         }, 500);
+    }
+
+    showIntermediateImage(stage, description) {
+        // In a real implementation, you would fetch these from your server
+        // For now, we'll use placeholder images that simulate server responses
+        
+        const imageUrls = {
+            'analyzing': `https://picsum.photos/300/200?random=1&t=${Date.now()}`,
+            'feature-detection': `https://picsum.photos/300/200?random=2&t=${Date.now()}`,
+            'composition': `https://picsum.photos/300/200?random=3&t=${Date.now()}`,
+            'color-grading': `https://picsum.photos/300/200?random=4&t=${Date.now()}`,
+            'rendering': `https://picsum.photos/300/200?random=5&t=${Date.now()}`
+        };
+
+        const previewContainer = document.getElementById('progress-image-preview');
+        const existingImage = document.getElementById(`progress-image-${stage}`);
+        
+        if (!existingImage) {
+            const imageCard = document.createElement('div');
+            imageCard.className = 'bg-white p-3 rounded-lg shadow-sm border border-gray-200';
+            imageCard.innerHTML = `
+                <div class="mb-2">
+                    <img id="progress-image-${stage}" 
+                         src="${imageUrls[stage]}" 
+                         alt="${description}"
+                         class="w-full h-32 object-cover rounded-md loading-image"
+                         onload="this.classList.remove('loading-image')"
+                         onerror="this.style.display='none'">
+                </div>
+                <p class="text-xs text-gray-600 text-center">${description}</p>
+            `;
+            previewContainer.appendChild(imageCard);
+        }
+
+        // Simulate server push - in real implementation, this would come from WebSocket/SSE
+        this.simulateServerImageUpdate(stage, description);
+    }
+
+    simulateServerImageUpdate(stage, description) {
+        // Simulate server sending updated images at different stages
+        setTimeout(() => {
+            const imageElement = document.getElementById(`progress-image-${stage}`);
+            if (imageElement) {
+                // Simulate image refinement - in real app, this would be actual server-sent images
+                imageElement.src = `https://picsum.photos/300/200?random=${Math.floor(Math.random() * 100)}&t=${Date.now()}`;
+                
+                // Add a subtle animation to show update
+                imageElement.classList.add('image-update');
+                setTimeout(() => imageElement.classList.remove('image-update'), 500);
+            }
+        }, 800);
+    }
+
+    // REAL SERVER INTEGRATION METHOD - Use this when you have a backend
+    async connectToProgressWebSocket() {
+        // Example WebSocket implementation for real server updates
+        try {
+            this.socket = new WebSocket('wss://your-server.com/progress');
+            
+            this.socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                switch (data.type) {
+                    case 'progress_update':
+                        document.getElementById('progress-bar').style.width = data.progress + '%';
+                        document.getElementById('progress-message').innerText = data.message;
+                        break;
+                        
+                    case 'intermediate_image':
+                        this.displayServerImage(data.imageUrl, data.stage, data.description);
+                        break;
+                        
+                    case 'processing_complete':
+                        this.handleProcessingComplete(data.designs);
+                        break;
+                }
+            };
+            
+            this.socket.onopen = () => {
+                console.log('Connected to progress server');
+                // Send the images to process
+                this.sendImagesToProcess();
+            };
+            
+        } catch (error) {
+            console.error('WebSocket connection failed:', error);
+            // Fall back to simulated progress
+            this.simulateProgressWithImages();
+        }
+    }
+
+    displayServerImage(imageUrl, stage, description) {
+        const previewContainer = document.getElementById('progress-image-preview');
+        let imageCard = document.getElementById(`progress-image-${stage}`);
+        
+        if (!imageCard) {
+            imageCard = document.createElement('div');
+            imageCard.id = `progress-image-${stage}`;
+            imageCard.className = 'bg-white p-3 rounded-lg shadow-sm border border-gray-200';
+            previewContainer.appendChild(imageCard);
+        }
+        
+        imageCard.innerHTML = `
+            <div class="mb-2">
+                <img src="${imageUrl}" 
+                    alt="${description}"
+                    class="w-full h-32 object-cover rounded-md"
+                    onerror="this.style.display='none'">
+            </div>
+            <p class="text-xs text-gray-600 text-center">${description}</p>
+        `;
+        
+        // Add update animation
+        imageCard.classList.add('image-update');
+        setTimeout(() => imageCard.classList.remove('image-update'), 500);
+    }
+
+    async sendImagesToProcess() {
+        // Convert files to FormData for real server upload
+        const formData = new FormData();
+        const files = [
+            document.getElementById('photo-upload-1').files[0],
+            document.getElementById('photo-upload-2').files[0],
+            document.getElementById('photo-upload-3').files[0]
+        ];
+        
+        files.forEach((file, index) => {
+            formData.append(`photo_${index + 1}`, file);
+        });
+        
+        // Add device information
+        const deviceSelection = JSON.parse(localStorage.getItem(STORAGE_KEYS.DEVICE_SELECTION) || '{}');
+        formData.append('device_info', JSON.stringify(deviceSelection));
+        
+        try {
+            const response = await fetch('https://your-server.com/process-images', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                console.log('Images sent to server successfully');
+            }
+        } catch (error) {
+            console.error('Failed to send images to server:', error);
+        }
+    }
+
+    handleProcessingComplete(designs) {
+        localStorage.setItem(STORAGE_KEYS.PRODUCT_DESIGNS, JSON.stringify(designs));
+        document.getElementById('processing-progress').style.display = 'none';
+        document.getElementById('product-list-area').style.display = 'block';
+        this.currentStep = 3;
+        this.updateStepIndicator(3);
+        
+        this.renderProductList();
     }
 
     finishProcessing() {
