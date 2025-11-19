@@ -40,6 +40,7 @@ class CartManager {
         if (window.app) {
             window.app.renderCurrentPage();
         }
+        this.refreshCartModal();
         
         console.log(`Added ${product.name} to cart.`);
         return true;
@@ -50,6 +51,7 @@ class CartManager {
         cart = cart.filter(item => item.designId !== designId);
         this.saveCart(cart);
         this.updateCartBadge();
+        this.refreshCartModal();
         
         if (window.app) {
             window.app.renderCurrentPage();
@@ -57,7 +59,17 @@ class CartManager {
         
         console.log(`Removed designId ${designId} from cart.`);
     }
-
+    // ADD THIS METHOD to refresh cart modal
+    refreshCartModal() {
+        // Check if cart modal is currently open
+        const cartModal = document.getElementById('cart-modal');
+        if (cartModal && cartModal.style.display === 'flex') {
+            // Re-render the cart content
+            if (window.app && window.app.uiManager) {
+                window.app.uiManager.renderCart();
+            }
+        }
+    }
     getCart() {
         const cart = localStorage.getItem(STORAGE_KEYS.SHOPPING_CART);
         return cart ? JSON.parse(cart) : [];
