@@ -3,112 +3,342 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixed Auth System</title>
+    <title>BloomCase - Custom Phone Cases</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --secondary: #ec4899;
+            --accent: #10b981;
+            --light: #f8fafc;
+            --dark: #1e293b;
+        }
+        
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f7f7f7;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
         }
-        .container {
-            width: 100%;
-            max-width: 800px;
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
         }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 16px;
-            border-bottom: 2px solid #eee;
-            margin-bottom: 24px;
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .auth-status {
-            font-size: 0.9rem;
-            color: #666;
+        
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
-        .auth-button {
-            transition: background-color 0.3s, transform 0.1s;
+        
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
         }
-        .auth-button:active {
-            transform: scale(0.98);
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        #app-content {
-            border: 1px dashed #4ade80;
-            padding: 20px;
-            border-radius: 8px;
-            background-color: #f0fdf4;
-            margin-top: 20px;
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
         }
-        #auth-required-message {
-            text-align: center;
-            padding: 40px;
-            background-color: #fef2f2;
-            border: 1px solid #fca5a5;
-            color: #dc2626;
-            border-radius: 8px;
-            margin-top: 20px;
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            transition: width 0.3s ease;
         }
-        .section-box {
-            background-color: #f3f4f6;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
+        
+        .product-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .floral-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%238b5cf6' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <header class="header">
-            <h1 class="text-3xl font-bold text-gray-800">Secure App Demo</h1>
-            <div id="auth-action">
-                <!-- Auth button will render here -->
+<body class="floral-pattern">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-flower text-2xl"></i>
+                    <h1 class="text-2xl font-bold">BloomCase</h1>
+                </div>
+                
+                <div id="auth-action" class="flex items-center space-x-4">
+                    <!-- Auth buttons will render here -->
+                </div>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <div id="nav-container">
-            <!-- Navigation will render here -->
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="container mx-auto px-4">
+            <div id="nav-container" class="flex justify-between items-center py-3">
+                <!-- Navigation will render here -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Session Info -->
+        <div id="token-display" class="mb-6 text-center">
+            <!-- Session information will render here -->
         </div>
 
-        <div id="token-display" class="auth-status mb-4">
-            <!-- Session information will render here -->
+        <!-- Home Page Content -->
+        <div id="home-content" class="mb-12">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Create Your Unique Phone Case</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Transform your photos into beautiful floral collage designs. Perfect for women who love personalized accessories.</p>
+                <div class="mt-8">
+                    <a href="case.html" class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105">
+                        Design Your Case Now
+                    </a>
+                </div>
+            </div>
+
+            <!-- Featured Products -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">How It Works</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white rounded-xl p-6 card-shadow text-center">
+                        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-mobile-alt text-purple-600 text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold mb-2">1. Select Your Device</h4>
+                        <p class="text-gray-600">Choose your phone model from our extensive list</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 card-shadow text-center">
+                        <div class="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-images text-pink-600 text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold mb-2">2. Upload Your Photos</h4>
+                        <p class="text-gray-600">Select 3 images to create your unique floral collage</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 card-shadow text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-shopping-cart text-green-600 text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold mb-2">3. Get Your Design & Order</h4>
+                        <p class="text-gray-600">Receive your custom designs and add to cart</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Case Design Page Content -->
+        <div id="case-content" style="display: none;">
+            <!-- Device Selection -->
+            <div id="device-selection" class="bg-white rounded-xl p-6 card-shadow mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Select Your Device</h2>
+                <div class="mb-4">
+                    <label for="device-dropdown" class="block text-gray-700 mb-2">Phone Model</label>
+                    <select id="device-dropdown" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <option value="">-- Select your phone --</option>
+                        <option value="iphone-14">iPhone 14</option>
+                        <option value="iphone-14-pro">iPhone 14 Pro</option>
+                        <option value="iphone-13">iPhone 13</option>
+                        <option value="samsung-s22">Samsung Galaxy S22</option>
+                        <option value="samsung-s21">Samsung Galaxy S21</option>
+                        <option value="google-pixel-6">Google Pixel 6</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="flex items-start">
+                        <input type="checkbox" id="acknowledgement" class="mt-1 mr-2">
+                        <label for="acknowledgement" class="text-gray-700">
+                            I understand that the mockup will be based on a standard device model for visualization purposes, but my actual case will be manufactured for the selected device.
+                        </label>
+                    </div>
+                </div>
+                
+                <button id="confirm-device" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Confirm Device Selection
+                </button>
+            </div>
+
+            <!-- Image Upload -->
+            <div id="image-upload" class="bg-white rounded-xl p-6 card-shadow mb-8" style="display: none;">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Upload Your Images</h2>
+                <p class="text-gray-600 mb-6">Please upload 3 images to create your floral collage design.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center upload-area" data-index="0">
+                        <i class="fas fa-cloud-upload-alt text-gray-400 text-4xl mb-3"></i>
+                        <p class="text-gray-500">Upload Image 1</p>
+                        <input type="file" class="hidden" accept="image/*">
+                        <div class="preview mt-3 hidden">
+                            <img src="" alt="Preview" class="max-h-40 mx-auto rounded">
+                        </div>
+                    </div>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center upload-area" data-index="1">
+                        <i class="fas fa-cloud-upload-alt text-gray-400 text-4xl mb-3"></i>
+                        <p class="text-gray-500">Upload Image 2</p>
+                        <input type="file" class="hidden" accept="image/*">
+                        <div class="preview mt-3 hidden">
+                            <img src="" alt="Preview" class="max-h-40 mx-auto rounded">
+                        </div>
+                    </div>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center upload-area" data-index="2">
+                        <i class="fas fa-cloud-upload-alt text-gray-400 text-4xl mb-3"></i>
+                        <p class="text-gray-500">Upload Image 3</p>
+                        <input type="file" class="hidden" accept="image/*">
+                        <div class="preview mt-3 hidden">
+                            <img src="" alt="Preview" class="max-h-40 mx-auto rounded">
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="process-images" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Process Images & Generate Designs
+                </button>
+            </div>
+
+            <!-- Processing Status -->
+            <div id="processing-status" class="bg-white rounded-xl p-6 card-shadow mb-8" style="display: none;">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Creating Your Designs</h2>
+                <p class="text-gray-600 mb-4">We're processing your images and generating beautiful floral collage designs. This may take a few moments.</p>
+                
+                <div class="mb-4">
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-medium">Processing Progress</span>
+                        <span class="text-sm font-medium" id="progress-percent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div id="status-messages" class="space-y-2">
+                    <!-- Status updates will appear here -->
+                </div>
+            </div>
+
+            <!-- Design Results -->
+            <div id="design-results" class="bg-white rounded-xl p-6 card-shadow" style="display: none;">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Your Custom Designs</h2>
+                <p class="text-gray-600 mb-6">Here are your unique floral collage designs. Each design includes 4 different views of your custom case.</p>
+                
+                <div id="designs-container" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Design cards will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Cart Section -->
+        <div id="cart-section" class="bg-white rounded-xl p-6 card-shadow mt-8" style="display: none;">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Your Shopping Cart</h2>
+            <div id="cart-items" class="space-y-4">
+                <!-- Cart items will appear here -->
+            </div>
+            <div id="empty-cart-message" class="text-center py-8">
+                <i class="fas fa-shopping-cart text-gray-300 text-5xl mb-4"></i>
+                <p class="text-gray-500">Your cart is empty</p>
+            </div>
+            <div id="cart-summary" class="mt-6 pt-6 border-t border-gray-200" style="display: none;">
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-600">Subtotal</span>
+                    <span id="cart-subtotal" class="font-semibold">$0.00</span>
+                </div>
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-600">Discount</span>
+                    <span id="cart-discount" class="font-semibold text-green-600">-$0.00</span>
+                </div>
+                <div class="flex justify-between text-lg font-bold">
+                    <span>Total</span>
+                    <span id="cart-total">$0.00</span>
+                </div>
+                <div class="mt-6">
+                    <button id="checkout-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">
+                        Proceed to Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Promo Code Section -->
+        <div id="promo-section" class="bg-white rounded-xl p-6 card-shadow mt-8" style="display: none;">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Apply Promo Code</h3>
+            <div class="flex">
+                <input type="text" id="promo-code" placeholder="Enter promo code" class="flex-grow p-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                <button id="apply-promo" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-r-lg transition duration-300">
+                    Apply
+                </button>
+            </div>
+            <div id="promo-message" class="mt-2 text-sm"></div>
         </div>
 
         <!-- AUTHENTICATED CONTENT -->
         <div id="app-content" style="display: none;">
-            <h2 class="text-xl font-semibold mb-3 text-green-700">Protected Application Content</h2>
-            <p>You can see this because your session is actively being managed and refreshed.</p>
-
-            <div id="promoSection" class="section-box">
-                <h3 class="font-medium">Promo Manager</h3>
-                <p class="text-sm text-gray-600">This section simulates a feature that keeps the session alive.</p>
-                <button onclick="window.app.applyPromoCode()" class="mt-2 px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 auth-button">
-                    Apply Promo (Simulates Activity)
-                </button>
-            </div>
-            
-            <div class="section-box">
-                <h3 class="font-medium">User Uploads</h3>
-                <button onclick="window.app.uploadFiles()" class="mt-2 px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 auth-button">
-                    Upload Files
-                </button>
-            </div>
+            <!-- Content for authenticated users -->
         </div>
 
         <!-- UNAUTHENTICATED MESSAGE -->
-        <div id="auth-required-message" style="display: block;">
-            <p class="font-bold">Access Denied.</p>
-            <p>Please sign in to view the application content.</p>
+        <div id="auth-required-message" class="bg-white rounded-xl p-8 card-shadow text-center" style="display: none;">
+            <i class="fas fa-lock text-red-500 text-5xl mb-4"></i>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Authentication Required</h2>
+            <p class="text-gray-600 mb-6">Please sign in to design and purchase custom phone cases.</p>
+            <button onclick="signin()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300">
+                Sign In / Sign Up
+            </button>
         </div>
-    </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-flower text-xl"></i>
+                        <span class="text-xl font-bold">BloomCase</span>
+                    </div>
+                    <p class="text-gray-400 mt-2">Creating beautiful personalized phone cases</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-white transition duration-300">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition duration-300">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition duration-300">
+                        <i class="fab fa-pinterest"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-6 pt-6 text-center text-gray-400">
+                <p>&copy; 2023 BloomCase. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 
     <script>
         // --- PKCE UTILITY FUNCTIONS ---
@@ -142,7 +372,6 @@
         };
 
         function saveSession(t){ 
-            // CRITICAL: Ensure the entire token object, including the refresh_token, is saved.
             localStorage.setItem('cognitoSession', JSON.stringify(t)); 
         }
 
@@ -152,40 +381,28 @@
         }
 
         function clearUserData() {
-            // Clear promo data
             localStorage.removeItem('activePromoDiscount');
-            
-            // Clear any upload-related data
             localStorage.removeItem('userUploads');
             localStorage.removeItem('deviceSelection');
-            
-            // Clear any shopping cart data
             localStorage.removeItem('shoppingCart');
-            
             console.log('All user-specific data cleared');
         }
 
         function clearSession() {
-            // Clear Cognito session
             localStorage.removeItem('cognitoSession');
             localStorage.removeItem('pkce_verifier');
-            
-            // Clear all user-specific data
             clearUserData();
         }
 
-        // Now takes a token and adds a buffer time
         function isTokenExpired(token) {
             if (!token) return true;
             
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                const exp = payload.exp * 1000; // Convert to milliseconds
+                const exp = payload.exp * 1000;
                 const now = Date.now();
-                // FIX: Added a 5-minute buffer to trigger refresh BEFORE actual expiration
                 const bufferTime = 300000; 
                 
-                // Return true if the token is *near* expiration (within the buffer) or already expired.
                 return now >= (exp - bufferTime);
             } catch (e) {
                 console.error('Error checking token expiration:', e);
@@ -193,7 +410,6 @@
             }
         }
         
-        // Function to silently refresh the session using the Refresh Token
         async function refreshSession() {
             const session = getSession();
             if (!session || !session.refresh_token) {
@@ -217,18 +433,15 @@
                 const tokens = await res.json();
 
                 if(res.ok && tokens.id_token) {
-                    // Preserve the old refresh_token if the response does not contain a new one
                     const newSession = {
                         ...tokens,
-                        // Cognito often doesn't return a new refresh token unless configured, so we preserve the old one.
                         refresh_token: tokens.refresh_token || session.refresh_token 
                     };
                     saveSession(newSession);
                     console.log('Token refresh successful! Session extended.');
                     return true;
                 } else {
-                    console.error("Refresh token exchange failed. Refresh token is likely expired/revoked, logging out:", tokens.error_description || JSON.stringify(tokens));
-                    // If refresh fails, it means the Refresh Token itself is invalid/expired. Must sign out.
+                    console.error("Refresh token exchange failed:", tokens.error_description || JSON.stringify(tokens));
                     clearSession();
                     return false;
                 }
@@ -238,33 +451,26 @@
             }
         }
 
-        // is now async and leverages the refresh mechanism.
         async function isAuthenticated() {
             const session = getSession();
             if (!session || !session.id_token) return false;
 
-            // Check if ID Token is expired/expiring (within 5-minute buffer)
             if (isTokenExpired(session.id_token)) {
                 console.log('ID Token expired/expiring. Attempting refresh...');
-                // Try to refresh the session
                 const refreshed = await refreshSession();
                 
-                // If the refresh was successful, the token is now fresh.
                 if (refreshed) {
                     return true;
                 } else {
-                    // Refresh failed (session already cleared in refreshSession())
                     return false;
                 }
             }
 
-            return true; // Token is valid and not expiring soon
+            return true;
         }
 
         function getUserInfo() {
             const session = getSession();
-            // IMPORTANT: We do NOT check for token expiration here. The calling function
-            // (e.g., initializeAuth) must ensure tokens are fresh via isAuthenticated().
             if (session && session.id_token) {
                 try {
                     const payload = JSON.parse(atob(session.id_token.split('.')[1]));
@@ -361,14 +567,19 @@
             
             if (userInfo) {
                 authDiv.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <span class="text-sm font-medium">Welcome, ${userInfo.displayName}</span>
-                        <button onclick="signout()" class="px-3 py-1 bg-red-500 text-white text-sm rounded-md shadow-md hover:bg-red-600 auth-button">Sign Out</button>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-purple-600"></i>
+                            </div>
+                            <span class="text-sm font-medium">${userInfo.displayName}</span>
+                        </div>
+                        <button onclick="signout()" class="px-3 py-1 bg-white text-purple-600 text-sm rounded-md shadow hover:bg-gray-100 transition duration-300">Sign Out</button>
                     </div>
                 `;
             } else {
                 authDiv.innerHTML = `
-                    <button onclick="signin()" class="px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg shadow-lg hover:bg-orange-600 auth-button">Sign In / Sign Up</button>
+                    <button onclick="signin()" class="px-4 py-2 bg-white text-purple-600 font-semibold rounded-lg shadow hover:bg-gray-100 transition duration-300">Sign In / Sign Up</button>
                 `;
             }
         }
@@ -380,235 +591,843 @@
             const currentPage = window.location.pathname.split('/').pop();
             const userInfo = getUserInfo();
             
-            let navHTML = '<div class="mb-4 p-3 bg-gray-100 rounded-lg flex items-center gap-3">';
-            navHTML += '<strong>Navigation:</strong> ';
+            let navHTML = '<div class="flex items-center space-x-6">';
             
             if (currentPage !== 'index.html' && currentPage !== '') {
-                navHTML += '<a href="index.html" class="text-blue-600 hover:text-blue-800">Home</a>';
+                navHTML += '<a href="index.html" class="text-gray-700 hover:text-purple-600 font-medium transition duration-300">Home</a>';
             }
             
             if (currentPage !== 'case.html') {
-                navHTML += '<a href="case.html" class="text-blue-600 hover:text-blue-800">Phone Cases</a>';
-            }
-            
-            if (userInfo) {
-                navHTML += `<span class="ml-auto text-sm text-gray-500">Hello, ${userInfo.displayName}</span>`;
+                navHTML += '<a href="case.html" class="text-gray-700 hover:text-purple-600 font-medium transition duration-300">Design Case</a>';
             }
             
             navHTML += '</div>';
+            
+            navHTML += '<div class="flex items-center space-x-4">';
+            
+            if (userInfo) {
+                navHTML += `
+                    <div id="cart-icon" class="relative cursor-pointer">
+                        <i class="fas fa-shopping-cart text-gray-700 text-xl"></i>
+                        <span id="cart-count" class="absolute -top-2 -right-2 bg-purple-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                    </div>
+                `;
+            }
+            
+            navHTML += '</div>';
+            
             navContainer.innerHTML = navHTML;
+            
+            // Add cart click handler
+            const cartIcon = document.getElementById('cart-icon');
+            if (cartIcon) {
+                cartIcon.addEventListener('click', () => {
+                    document.getElementById('cart-section').scrollIntoView({ behavior: 'smooth' });
+                });
+            }
         }
 
         function checkAuthAndUpdateUI() {
-            // Re-renders the UI based on the current session state
             const userInfo = getUserInfo();
             
-            const appContent = document.getElementById('app-content');
+            const homeContent = document.getElementById('home-content');
+            const caseContent = document.getElementById('case-content');
             const authRequired = document.getElementById('auth-required-message');
-            const authActionDiv = document.getElementById('auth-action');
+            const cartSection = document.getElementById('cart-section');
+            const promoSection = document.getElementById('promo-section');
+            
+            const currentPage = window.location.pathname.split('/').pop();
             
             if (userInfo) {
-                if (appContent) appContent.style.display = 'block';
                 if (authRequired) authRequired.style.display = 'none';
+                
+                if (currentPage === 'case.html' || currentPage === '') {
+                    if (caseContent) caseContent.style.display = 'block';
+                    if (homeContent) homeContent.style.display = 'none';
+                } else {
+                    if (caseContent) caseContent.style.display = 'none';
+                    if (homeContent) homeContent.style.display = 'block';
+                }
+                
+                if (cartSection) cartSection.style.display = 'block';
+                if (promoSection) promoSection.style.display = 'block';
             } else {
-                if (appContent) appContent.style.display = 'none';
                 if (authRequired) authRequired.style.display = 'block';
+                if (homeContent) homeContent.style.display = 'block';
+                if (caseContent) caseContent.style.display = 'none';
+                if (cartSection) cartSection.style.display = 'none';
+                if (promoSection) promoSection.style.display = 'none';
             }
             
             renderAuthUI('auth-action');
-            window.app.toggleAppContent(!!userInfo); // Update App instance visibility
-            window.app.showSessionInfo(); // Update session display
+            window.app.toggleAppContent(!!userInfo);
+            window.app.showSessionInfo();
+            window.app.updateCartDisplay();
         }
 
-        // The interval now checks for expiration and attempts refresh.
         function setupTokenRefresh() {
-            // Check token expiration and refresh every 30 seconds.
             setInterval(async () => {
                 const session = getSession();
-                // Only attempt refresh if a session exists AND the ID token is expired/expiring
                 if (session && isTokenExpired(session.id_token)) {
                     console.log('Scheduled check: ID Token is expired or expiring. Triggering refresh...');
-                    // refreshSession handles clearing the session and UI update if refresh fails
                     await refreshSession();
                     checkAuthAndUpdateUI();
                 }
-            }, 30000); // Check every 30 seconds
+            }, 30000);
         }
 
-        // Now uses the async isAuthenticated
         async function initializeAuth() {
             await handleCodeExchange();
             renderNavigation();
             
-            // This call to isAuthenticated() will automatically trigger a refresh 
-            // if the token is expired/expiring on page load.
             const actualAuthStatus = await isAuthenticated();
             
             checkAuthAndUpdateUI(); 
             
-            // Render auth UI if container exists
             const authContainer = document.querySelector('[id*="auth"], #auth-action, #auth-container');
             if (authContainer) {
                 renderAuthUI(authContainer.id);
             }
             
-            // Start token expiration monitoring
             setupTokenRefresh();
             
             return actualAuthStatus;
         }
         
-        // Make functions available globally for internal use (removed the problematic 'isTokenExpired' wrapper)
+        // Make functions available globally
         window.signin = signin;
         window.signout = signout;
         window.getSession = getSession;
         window.isAuthenticated = isAuthenticated;
         window.getUserInfo = getUserInfo;
 
-
-        // --- APPLICATION LOGIC (app.js fixed for async integration) ---
-
-        // Mock Managers for context
-        class PromoManager {
-            applyPromoCode() { console.log("Promo applied (simulated)."); }
-            clearPromoData() { console.log("Promo data cleared (simulated)."); }
-        }
+        // --- APPLICATION MODULES ---
         class DeviceManager {
-            updateDeviceOptions() { console.log("Device options updated (simulated)."); }
+            constructor() {
+                this.selectedDevice = null;
+                this.loadDeviceSelection();
+            }
+            
+            loadDeviceSelection() {
+                const savedDevice = localStorage.getItem('deviceSelection');
+                if (savedDevice) {
+                    this.selectedDevice = JSON.parse(savedDevice);
+                    this.updateUI();
+                }
+            }
+            
+            saveDeviceSelection(device) {
+                this.selectedDevice = device;
+                localStorage.setItem('deviceSelection', JSON.stringify(device));
+                this.updateUI();
+            }
+            
+            updateUI() {
+                const dropdown = document.getElementById('device-dropdown');
+                const confirmBtn = document.getElementById('confirm-device');
+                const acknowledgement = document.getElementById('acknowledgement');
+                
+                if (this.selectedDevice && dropdown) {
+                    dropdown.value = this.selectedDevice.id;
+                }
+                
+                // Enable confirm button only when device is selected and acknowledgement is checked
+                if (dropdown && confirmBtn && acknowledgement) {
+                    const checkValidity = () => {
+                        confirmBtn.disabled = !(dropdown.value && acknowledgement.checked);
+                    };
+                    
+                    dropdown.addEventListener('change', checkValidity);
+                    acknowledgement.addEventListener('change', checkValidity);
+                }
+            }
+            
+            getSelectedDevice() {
+                return this.selectedDevice;
+            }
         }
+
         class UploadManager {
-            constructor(deviceManager, promoManager) {
-                this.deviceManager = deviceManager;
-                this.promoManager = promoManager;
+            constructor() {
+                this.uploadedImages = [];
+                this.setupUploadAreas();
             }
-            uploadFiles() { console.log("Files uploaded (simulated)."); }
-            startOver() { console.log("Process restarted (simulated)."); }
+            
+            setupUploadAreas() {
+                const uploadAreas = document.querySelectorAll('.upload-area');
+                
+                uploadAreas.forEach(area => {
+                    const input = area.querySelector('input[type="file"]');
+                    const preview = area.querySelector('.preview');
+                    const index = parseInt(area.getAttribute('data-index'));
+                    
+                    area.addEventListener('click', () => {
+                        input.click();
+                    });
+                    
+                    area.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        area.classList.add('border-purple-500', 'bg-purple-50');
+                    });
+                    
+                    area.addEventListener('dragleave', () => {
+                        area.classList.remove('border-purple-500', 'bg-purple-50');
+                    });
+                    
+                    area.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        area.classList.remove('border-purple-500', 'bg-purple-50');
+                        
+                        if (e.dataTransfer.files.length) {
+                            this.handleFileSelect(e.dataTransfer.files[0], index, preview, input);
+                        }
+                    });
+                    
+                    input.addEventListener('change', (e) => {
+                        if (e.target.files.length) {
+                            this.handleFileSelect(e.target.files[0], index, preview, input);
+                        }
+                    });
+                });
+                
+                // Enable process button when all images are uploaded
+                const processBtn = document.getElementById('process-images');
+                if (processBtn) {
+                    const checkUploads = () => {
+                        processBtn.disabled = this.uploadedImages.length < 3;
+                    };
+                    
+                    // Check initially and set up listeners
+                    checkUploads();
+                    
+                    // We'll check after each upload in handleFileSelect
+                }
+            }
+            
+            handleFileSelect(file, index, preview, input) {
+                if (!file.type.match('image.*')) {
+                    alert('Please select an image file');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    // Store the image data
+                    this.uploadedImages[index] = {
+                        data: e.target.result,
+                        name: file.name
+                    };
+                    
+                    // Update preview
+                    preview.querySelector('img').src = e.target.result;
+                    preview.classList.remove('hidden');
+                    
+                    // Check if we can enable the process button
+                    const processBtn = document.getElementById('process-images');
+                    if (processBtn) {
+                        processBtn.disabled = this.uploadedImages.filter(img => img).length < 3;
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+            }
+            
+            getUploadedImages() {
+                return this.uploadedImages;
+            }
+            
+            clearUploads() {
+                this.uploadedImages = [];
+                
+                // Clear previews
+                document.querySelectorAll('.upload-area .preview').forEach(preview => {
+                    preview.classList.add('hidden');
+                });
+                
+                // Clear file inputs
+                document.querySelectorAll('.upload-area input[type="file"]').forEach(input => {
+                    input.value = '';
+                });
+            }
         }
-        class RealTimeUpdates {
-            constructor(promoManager, uploadManager) {
-                this.promoManager = promoManager;
-                this.uploadManager = uploadManager;
+
+        class DesignProcessor {
+            constructor() {
+                this.designs = [];
             }
-            initialize() { console.log("Realtime updates initialized (simulated)."); }
+            
+            async processImages(images, device) {
+                // Simulate processing with progress updates
+                return new Promise((resolve) => {
+                    const statusMessages = document.getElementById('status-messages');
+                    const progressFill = document.getElementById('progress-fill');
+                    const progressPercent = document.getElementById('progress-percent');
+                    
+                    // Reset
+                    this.designs = [];
+                    if (statusMessages) statusMessages.innerHTML = '';
+                    
+                    // Simulate processing steps
+                    const steps = [
+                        { percent: 10, message: "Analyzing images..." },
+                        { percent: 25, message: "Extracting floral elements..." },
+                        { percent: 40, message: "Creating collage composition..." },
+                        { percent: 60, message: "Applying artistic filters..." },
+                        { percent: 75, message: "Generating case previews..." },
+                        { percent: 90, message: "Finalizing designs..." },
+                        { percent: 100, message: "Designs complete!" }
+                    ];
+                    
+                    let currentStep = 0;
+                    
+                    const processStep = () => {
+                        if (currentStep < steps.length) {
+                            const step = steps[currentStep];
+                            
+                            // Update progress
+                            if (progressFill) progressFill.style.width = `${step.percent}%`;
+                            if (progressPercent) progressPercent.textContent = `${step.percent}%`;
+                            
+                            // Add status message
+                            if (statusMessages) {
+                                const messageEl = document.createElement('div');
+                                messageEl.className = 'flex items-center text-sm';
+                                messageEl.innerHTML = `
+                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                    <span>${step.message}</span>
+                                `;
+                                statusMessages.appendChild(messageEl);
+                            }
+                            
+                            currentStep++;
+                            setTimeout(processStep, 800); // Simulate processing time
+                        } else {
+                            // Generate mock designs
+                            this.generateMockDesigns(images, device);
+                            resolve(this.designs);
+                        }
+                    };
+                    
+                    processStep();
+                });
+            }
+            
+            generateMockDesigns(images, device) {
+                // In a real app, this would be done server-side
+                // For demo, we'll generate mock designs
+                this.designs = [
+                    {
+                        id: 'design-1',
+                        name: 'Floral Harmony',
+                        price: 29.99,
+                        images: [
+                            'https://via.placeholder.com/300x400/8b5cf6/ffffff?text=Front+View',
+                            'https://via.placeholder.com/300x400/ec4899/ffffff?text=Back+View',
+                            'https://via.placeholder.com/300x400/10b981/ffffff?text=Side+View',
+                            'https://via.placeholder.com/300x400/f59e0b/ffffff?text=Angle+View'
+                        ],
+                        description: 'A harmonious blend of your photos with delicate floral accents'
+                    },
+                    {
+                        id: 'design-2',
+                        name: 'Bloom Essence',
+                        price: 34.99,
+                        images: [
+                            'https://via.placeholder.com/300x400/8b5cf6/ffffff?text=Front+View',
+                            'https://via.placeholder.com/300x400/ec4899/ffffff?text=Back+View',
+                            'https://via.placeholder.com/300x400/10b981/ffffff?text=Side+View',
+                            'https://via.placeholder.com/300x400/f59e0b/ffffff?text=Angle+View'
+                        ],
+                        description: 'Ethereal floral patterns highlighting the essence of your images'
+                    },
+                    {
+                        id: 'design-3',
+                        name: 'Petals & Portraits',
+                        price: 31.99,
+                        images: [
+                            'https://via.placeholder.com/300x400/8b5cf6/ffffff?text=Front+View',
+                            'https://via.placeholder.com/300x400/ec4899/ffffff?text=Back+View',
+                            'https://via.placeholder.com/300x400/10b981/ffffff?text=Side+View',
+                            'https://via.placeholder.com/300x400/f59e0b/ffffff?text=Angle+View'
+                        ],
+                        description: 'A perfect balance between portrait focus and floral elements'
+                    }
+                ];
+            }
+            
+            getDesigns() {
+                return this.designs;
+            }
+        }
+
+        class CartManager {
+            constructor() {
+                this.items = [];
+                this.loadCart();
+            }
+            
+            loadCart() {
+                const savedCart = localStorage.getItem('shoppingCart');
+                if (savedCart) {
+                    this.items = JSON.parse(savedCart);
+                }
+            }
+            
+            saveCart() {
+                localStorage.setItem('shoppingCart', JSON.stringify(this.items));
+            }
+            
+            addItem(design, device) {
+                // Check if this design is already in cart
+                const existingIndex = this.items.findIndex(item => 
+                    item.designId === design.id && item.deviceId === device.id
+                );
+                
+                if (existingIndex >= 0) {
+                    // Design already in cart for this device
+                    return false;
+                }
+                
+                // Add to cart
+                this.items.push({
+                    id: `cart-${Date.now()}`,
+                    designId: design.id,
+                    designName: design.name,
+                    designImages: design.images,
+                    price: design.price,
+                    deviceId: device.id,
+                    deviceName: device.name,
+                    quantity: 1
+                });
+                
+                this.saveCart();
+                this.updateCartDisplay();
+                return true;
+            }
+            
+            removeItem(itemId) {
+                this.items = this.items.filter(item => item.id !== itemId);
+                this.saveCart();
+                this.updateCartDisplay();
+            }
+            
+            updateQuantity(itemId, quantity) {
+                const item = this.items.find(item => item.id === itemId);
+                if (item) {
+                    item.quantity = quantity;
+                    this.saveCart();
+                    this.updateCartDisplay();
+                }
+            }
+            
+            getItems() {
+                return this.items;
+            }
+            
+            getTotal() {
+                return this.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+            }
+            
+            getItemCount() {
+                return this.items.reduce((count, item) => count + item.quantity, 0);
+            }
+            
+            updateCartDisplay() {
+                const cartItems = document.getElementById('cart-items');
+                const emptyCartMessage = document.getElementById('empty-cart-message');
+                const cartSummary = document.getElementById('cart-summary');
+                const cartSubtotal = document.getElementById('cart-subtotal');
+                const cartTotal = document.getElementById('cart-total');
+                const cartCount = document.getElementById('cart-count');
+                
+                if (cartItems && emptyCartMessage && cartSummary) {
+                    if (this.items.length === 0) {
+                        cartItems.innerHTML = '';
+                        emptyCartMessage.style.display = 'block';
+                        cartSummary.style.display = 'none';
+                    } else {
+                        emptyCartMessage.style.display = 'none';
+                        cartSummary.style.display = 'block';
+                        
+                        // Render cart items
+                        cartItems.innerHTML = this.items.map(item => `
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                                <div class="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
+                                    <img src="${item.designImages[0]}" alt="${item.designName}" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-grow">
+                                    <h4 class="font-semibold">${item.designName}</h4>
+                                    <p class="text-sm text-gray-600">${item.deviceName}</p>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <button onclick="window.app.cartManager.updateQuantity('${item.id}', ${item.quantity - 1})" class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
+                                        <span>${item.quantity}</span>
+                                        <button onclick="window.app.cartManager.updateQuantity('${item.id}', ${item.quantity + 1})" class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">+</button>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold">$${(item.price * item.quantity).toFixed(2)}</p>
+                                    <button onclick="window.app.cartManager.removeItem('${item.id}')" class="text-red-500 text-sm mt-1">Remove</button>
+                                </div>
+                            </div>
+                        `).join('');
+                        
+                        // Update totals
+                        const subtotal = this.getTotal();
+                        const discount = window.app.promoManager.getDiscountAmount(subtotal);
+                        const total = subtotal - discount;
+                        
+                        if (cartSubtotal) cartSubtotal.textContent = `$${subtotal.toFixed(2)}`;
+                        if (cartTotal) cartTotal.textContent = `$${total.toFixed(2)}`;
+                    }
+                }
+                
+                // Update cart count in header
+                if (cartCount) {
+                    cartCount.textContent = this.getItemCount();
+                }
+                
+                // Update add to cart buttons in designs
+                this.updateDesignButtons();
+            }
+            
+            updateDesignButtons() {
+                const designCards = document.querySelectorAll('.design-card');
+                designCards.forEach(card => {
+                    const designId = card.getAttribute('data-design-id');
+                    const device = window.app.deviceManager.getSelectedDevice();
+                    
+                    if (designId && device) {
+                        const inCart = this.items.some(item => 
+                            item.designId === designId && item.deviceId === device.id
+                        );
+                        
+                        const button = card.querySelector('.add-to-cart-btn');
+                        if (button) {
+                            if (inCart) {
+                                button.innerHTML = '<i class="fas fa-check mr-2"></i>Added to Cart';
+                                button.classList.add('bg-green-600', 'hover:bg-green-700');
+                                button.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                                button.disabled = true;
+                            } else {
+                                button.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i>Add to Cart';
+                                button.classList.add('bg-purple-600', 'hover:bg-purple-700');
+                                button.classList.remove('bg-green-600', 'hover:bg-green-700');
+                                button.disabled = false;
+                            }
+                        }
+                    }
+                });
+            }
+            
+            clearCart() {
+                this.items = [];
+                this.saveCart();
+                this.updateCartDisplay();
+            }
+        }
+
+        class PromoManager {
+            constructor() {
+                this.activePromo = null;
+                this.loadPromo();
+            }
+            
+            loadPromo() {
+                const savedPromo = localStorage.getItem('activePromoDiscount');
+                if (savedPromo) {
+                    this.activePromo = JSON.parse(savedPromo);
+                    this.updatePromoDisplay();
+                }
+            }
+            
+            savePromo() {
+                if (this.activePromo) {
+                    localStorage.setItem('activePromoDiscount', JSON.stringify(this.activePromo));
+                } else {
+                    localStorage.removeItem('activePromoDiscount');
+                }
+            }
+            
+            async applyPromoCode(code) {
+                // In a real app, this would call your server to validate the promo code
+                // For demo, we'll simulate validation
+                
+                // Mock promo codes
+                const validPromos = {
+                    'BLOOM20': { discount: 0.2, type: 'percentage', message: '20% off applied!' },
+                    'WELCOME10': { discount: 0.1, type: 'percentage', message: '10% welcome discount applied!' },
+                    'SAVE5': { discount: 5, type: 'fixed', message: '$5 off applied!' }
+                };
+                
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        if (validPromos[code]) {
+                            this.activePromo = {
+                                code: code,
+                                ...validPromos[code]
+                            };
+                            this.savePromo();
+                            this.updatePromoDisplay();
+                            resolve({ success: true, message: validPromos[code].message });
+                        } else {
+                            resolve({ success: false, message: 'Invalid promo code' });
+                        }
+                    }, 1000);
+                });
+            }
+            
+            getDiscountAmount(subtotal) {
+                if (!this.activePromo) return 0;
+                
+                if (this.activePromo.type === 'percentage') {
+                    return subtotal * this.activePromo.discount;
+                } else {
+                    return Math.min(this.activePromo.discount, subtotal);
+                }
+            }
+            
+            removePromo() {
+                this.activePromo = null;
+                this.savePromo();
+                this.updatePromoDisplay();
+            }
+            
+            updatePromoDisplay() {
+                const promoMessage = document.getElementById('promo-message');
+                const cartDiscount = document.getElementById('cart-discount');
+                
+                if (promoMessage) {
+                    if (this.activePromo) {
+                        promoMessage.innerHTML = `
+                            <div class="flex items-center justify-between text-green-600">
+                                <span>${this.activePromo.message}</span>
+                                <button onclick="window.app.promoManager.removePromo()" class="text-red-500 ml-2">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        promoMessage.innerHTML = '';
+                    }
+                }
+                
+                // Update cart display to show discount
+                window.app.cartManager.updateCartDisplay();
+            }
         }
 
         class Application {
             constructor() {
                 this.deviceManager = null;
-                this.promoManager = null;
                 this.uploadManager = null;
-                this.realtimeUpdates = null;
+                this.designProcessor = null;
+                this.cartManager = null;
+                this.promoManager = null;
             }
 
-            // Relies solely on the result of initializeAuth()
             async initialize() {
                 // Initialize managers
-                this.promoManager = new PromoManager();
                 this.deviceManager = new DeviceManager();
-                this.uploadManager = new UploadManager(this.deviceManager, this.promoManager);
-                this.realtimeUpdates = new RealTimeUpdates(this.promoManager, this.uploadManager);
+                this.uploadManager = new UploadManager();
+                this.designProcessor = new DesignProcessor();
+                this.cartManager = new CartManager();
+                this.promoManager = new PromoManager();
 
                 // Set up global references
                 window.app = this;
 
-                // Initialize auth, which is now fully responsible for checking and refreshing tokens.
+                // Initialize auth
                 const isAuthenticatedStatus = await initializeAuth(); 
                 
                 this.showSessionInfo();
                 this.toggleAppContent(isAuthenticatedStatus);
-                // Note: renderAuthActions is now handled by checkAuthAndUpdateUI in auth.js, but kept for redundancy.
-                this.renderAuthActions(); 
+                this.setupEventListeners();
             
                 if (isAuthenticatedStatus) {
-                    // Assuming stripePayment is globally available as in the original context
-                    if (window.stripePayment && window.stripePayment.loadCart) {
-                        window.stripePayment.loadCart();
-                    }
-                    this.realtimeUpdates.initialize();
+                    this.cartManager.updateCartDisplay();
                 }
             }
-            applyNewTheme() {
-                // Simulating theme application
+            
+            setupEventListeners() {
+                // Device selection
+                const confirmDeviceBtn = document.getElementById('confirm-device');
+                if (confirmDeviceBtn) {
+                    confirmDeviceBtn.addEventListener('click', () => {
+                        const dropdown = document.getElementById('device-dropdown');
+                        const deviceId = dropdown.value;
+                        const deviceName = dropdown.options[dropdown.selectedIndex].text;
+                        
+                        if (deviceId) {
+                            this.deviceManager.saveDeviceSelection({
+                                id: deviceId,
+                                name: deviceName
+                            });
+                            
+                            // Show image upload section
+                            document.getElementById('image-upload').style.display = 'block';
+                        }
+                    });
+                }
+                
+                // Process images
+                const processImagesBtn = document.getElementById('process-images');
+                if (processImagesBtn) {
+                    processImagesBtn.addEventListener('click', async () => {
+                        const images = this.uploadManager.getUploadedImages();
+                        const device = this.deviceManager.getSelectedDevice();
+                        
+                        if (images.length >= 3 && device) {
+                            // Show processing status
+                            document.getElementById('processing-status').style.display = 'block';
+                            
+                            // Process images
+                            await this.designProcessor.processImages(images, device);
+                            
+                            // Show results
+                            document.getElementById('design-results').style.display = 'block';
+                            this.renderDesigns();
+                        }
+                    });
+                }
+                
+                // Apply promo code
+                const applyPromoBtn = document.getElementById('apply-promo');
+                if (applyPromoBtn) {
+                    applyPromoBtn.addEventListener('click', async () => {
+                        const promoCode = document.getElementById('promo-code').value.trim();
+                        
+                        if (promoCode) {
+                            const result = await this.promoManager.applyPromoCode(promoCode);
+                            
+                            const promoMessage = document.getElementById('promo-message');
+                            if (promoMessage) {
+                                if (result.success) {
+                                    promoMessage.className = 'mt-2 text-sm text-green-600';
+                                } else {
+                                    promoMessage.className = 'mt-2 text-sm text-red-600';
+                                }
+                                promoMessage.textContent = result.message;
+                            }
+                        }
+                    });
+                }
+                
+                // Checkout button
+                const checkoutBtn = document.getElementById('checkout-btn');
+                if (checkoutBtn) {
+                    checkoutBtn.addEventListener('click', () => {
+                        if (this.cartManager.getItems().length > 0) {
+                            alert('In a real application, this would redirect to checkout.');
+                            // Here you would integrate with your payment processor
+                        } else {
+                            alert('Your cart is empty.');
+                        }
+                    });
+                }
             }
+            
+            renderDesigns() {
+                const designsContainer = document.getElementById('designs-container');
+                const designs = this.designProcessor.getDesigns();
+                const device = this.deviceManager.getSelectedDevice();
+                
+                if (designsContainer && designs.length > 0 && device) {
+                    designsContainer.innerHTML = designs.map(design => `
+                        <div class="design-card bg-white rounded-xl overflow-hidden card-shadow product-card" data-design-id="${design.id}">
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">${design.name}</h3>
+                                <p class="text-gray-600 mb-4">${design.description}</p>
+                                
+                                <div class="grid grid-cols-2 gap-2 mb-4">
+                                    ${design.images.map(img => `
+                                        <div class="bg-gray-100 rounded-lg overflow-hidden">
+                                            <img src="${img}" alt="${design.name}" class="w-full h-32 object-cover">
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                
+                                <div class="flex justify-between items-center">
+                                    <span class="text-2xl font-bold text-purple-600">$${design.price.toFixed(2)}</span>
+                                    <button class="add-to-cart-btn bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300">
+                                        <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Add event listeners to add to cart buttons
+                    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const designCard = e.target.closest('.design-card');
+                            const designId = designCard.getAttribute('data-design-id');
+                            const design = designs.find(d => d.id === designId);
+                            
+                            if (design) {
+                                const added = this.cartManager.addItem(design, device);
+                                if (added) {
+                                    // Button will be updated via cartManager.updateDesignButtons()
+                                } else {
+                                    alert('This design is already in your cart for the selected device.');
+                                }
+                            }
+                        });
+                    });
+                    
+                    this.cartManager.updateDesignButtons();
+                }
+            }
+            
             showSessionInfo() {
                 const userInfo = getUserInfo();
                 const tokenDiv = document.getElementById('token-display');
                 
                 if (userInfo) {
-                    tokenDiv.innerHTML = `<h2 class="text-lg font-medium text-green-700">Signed in as ${userInfo.displayName}</h2>`;
-                } else {
-                    tokenDiv.innerHTML = `<h2 class="text-lg font-medium text-red-500">Not signed in</h2>`;
-                }
-            }
-
-            renderAuthActions() {
-                // This is largely redundant due to checkAuthAndUpdateUI but is left for completeness
-                const authActionDiv = document.getElementById('auth-action');
-                const userInfo = getUserInfo();
-                
-                if (userInfo) {
-                    authActionDiv.innerHTML = `
-                        <div class="flex items-center gap-4">
-                            <span class="text-sm font-medium">Welcome, ${userInfo.displayName}</span>
-                            <button onclick="window.app.signout()" class="px-3 py-1 bg-red-500 text-white text-sm rounded-md shadow-md hover:bg-red-600 auth-button">Sign Out</button>
+                    tokenDiv.innerHTML = `
+                        <div class="inline-block bg-green-100 text-green-800 px-4 py-2 rounded-full">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            Signed in as ${userInfo.displayName}
                         </div>
                     `;
                 } else {
-                    authActionDiv.innerHTML = `
-                        <button onclick="window.app.signin()" class="px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg shadow-lg hover:bg-orange-600 auth-button">Sign In / Sign Up</button>
+                    tokenDiv.innerHTML = `
+                        <div class="inline-block bg-red-100 text-red-800 px-4 py-2 rounded-full">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            Not signed in
+                        </div>
                     `;
                 }
             }
 
             toggleAppContent(show) {
-                const appContent = document.getElementById('app-content');
-                const authRequired = document.getElementById('auth-required-message');
-                const promoSection = document.getElementById('promoSection');
-                const deviceSection = document.querySelector('.device-selection');
-                
-                if (show) {
-                    appContent.style.display = 'block';
-                    authRequired.style.display = 'none';
-                    promoSection.style.display = 'block';
-                    if (deviceSection) deviceSection.style.display = 'block';
-                    this.deviceManager.updateDeviceOptions();
-                } else {
-                    appContent.style.display = 'none';
-                    authRequired.style.display = 'block';
-                    promoSection.style.display = 'none';
-                    if (deviceSection) deviceSection.style.display = 'none';
-                    this.promoManager.clearPromoData();
-                }
+                // This is handled by checkAuthAndUpdateUI now
             }
 
             applyPromoCode() {
-                this.promoManager.applyPromoCode();
-                console.log("Activity simulated. Session remains active.");
+                // This is now handled by the PromoManager class
+                console.log("Promo code application simulated.");
             }
 
             uploadFiles() {
-                this.uploadManager.uploadFiles();
-                console.log("Activity simulated. Session remains active.");
+                // This is now handled by the UploadManager class
+                console.log("File upload simulated.");
             }
 
             startOver() {
-                this.uploadManager.startOver();
-            }
-
-            signin() {
-                signin();
-            }
-
-            signout() {
-                this.promoManager.clearPromoData();
-                signout();
+                // Reset the design process
+                this.uploadManager.clearUploads();
+                document.getElementById('image-upload').style.display = 'none';
+                document.getElementById('processing-status').style.display = 'none';
+                document.getElementById('design-results').style.display = 'none';
+                
+                // Show device selection again
+                document.getElementById('device-selection').style.display = 'block';
             }
         }
 
         // Initialize application when DOM is loaded
         document.addEventListener('DOMContentLoaded', async () => {
-            // Mock window.stripePayment for the app.js code to run
-            window.stripePayment = { loadCart: () => console.log("Stripe cart loaded (simulated).") };
             window.app = new Application();
             await window.app.initialize();
         });
