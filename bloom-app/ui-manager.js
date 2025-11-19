@@ -1,0 +1,112 @@
+//ui-manager.js
+// UI rendering and management
+class UIManager {
+    constructor(authManager, cartManager) {
+        this.authManager = authManager;
+        this.cartManager = cartManager;
+    }
+
+    renderAuthUI() {
+        const authDiv = document.getElementById('auth-action');
+        if (!authDiv) return;
+        
+        const userInfo = this.authManager.getUserInfo();
+        
+        if (userInfo) {
+            authDiv.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <span class="text-sm font-medium">Welcome, ${userInfo.displayName}</span>
+                    <button onclick="window.app.authManager.signout()" class="px-3 py-1 bg-red-500 text-white text-sm rounded-full shadow-md hover:bg-red-600">Sign Out</button>
+                </div>
+            `;
+        } else {
+            authDiv.innerHTML = `
+                <button onclick="window.app.authManager.signin()" class="cta-gold px-4 py-2 text-sm font-semibold rounded-full shadow-lg">Sign In / Sign Up</button>
+            `;
+        }
+    }
+
+    checkAuthAndUpdateUI() {
+        const userInfo = this.authManager.getUserInfo();
+        
+        const appContentBox = document.getElementById('app-content-box');
+        const authRequired = document.getElementById('auth-required-message');
+        
+        if (appContentBox && authRequired) {
+            if (userInfo) {
+                appContentBox.style.display = 'block';
+                authRequired.style.display = 'none';
+            } else {
+                appContentBox.style.display = 'none';
+                authRequired.style.display = 'block';
+            }
+        }
+        
+        this.renderAuthUI();
+        this.showSessionInfo();
+    }
+
+    showSessionInfo() {
+        const userInfo = this.authManager.getUserInfo();
+        const tokenDiv = document.getElementById('token-display');
+        
+        if (!tokenDiv) return;
+        
+        if (userInfo) {
+            tokenDiv.innerHTML = `<span class="text-green-700 font-medium">Signed in as ${userInfo.displayName}</span>`;
+        } else {
+            tokenDiv.innerHTML = `<span class="text-red-500 font-medium">Not signed in</span>`;
+        }
+    }
+
+    renderCart() {
+        const cart = this.cartManager.getCart();
+        const container = document.getElementById('cart-items-container');
+        const totals = this.cartManager.getCartTotal();
+        
+        if (!container) return;
+        
+        document.getElementById('cart-total-display').innerText = `$${totals.total}`;
+        document.getElementById('checkout-button').disabled = cart.length === 0;
+    
+        if (cart.length === 0) {
+            container.innerHTML = `<div id="empty-cart-message" class="text-center p-8 border border-gray-200 rounded-lg">
+                Your cart is empty. <a href="#" onclick="window.app.closeCartModal(); window.app.navigateTo('studio')" class="text-magenta font-semibold">Begin the bloom</a>.
+            </div>`;
+            return;
+        }
+    
+        container.innerHTML = cart.map(item => `
+            <div class="flex items-center p-4 border border-gray-100 rounded-lg shadow-sm">
+                <div class="w-16 h-16 bg-gray-100 mr-4 flex-shrink-0 rounded-md flex items-center justify-center">
+                    <span class="text-gray-400 text-xs">${item.name}</span>
+                </div>
+                <div class="flex-grow">
+                    <h4 class="font-semibold">${item.name}</h4>
+                    <p class="text-sm text-gray-500">Device: ${item.device}</p>
+                    <p class="text-sm gold-highlight">$${item.price.toFixed(2)}</p>
+                </div>
+                <button onclick="window.app.cartManager.removeFromCart('${item.designId}')" class="text-sm text-red-500 hover:text-red-700 ml-4">
+                    Remove
+                </button>
+            </div>
+        `).join('');
+        
+        container.innerHTML += `
+            <div class="text-right pt-4 border-t border-gray-200">
+                <p class="mb-1">Subtotal: $${totals.subtotal}</p>
+                ${this.cartManager.promoDiscount > 0 ? `<p class="text-green-600 mb-1">Discount: -$${totals.discount}</p>` : ''}
+                <p class="font-bold text-lg">Total: $${totals.total}</p>
+            </div>
+        `;
+        
+        document.getElementById('promo-message').innerText = this.cartManager.promoDiscount > 0 
+            ? `Active Discount: ${this.cartManager.promoDiscount * 100}%` 
+            : '';
+    }
+
+    renderCheckout() {
+        // This will be implemented when we build the full checkout functionality
+        console.log("Checkout page rendered");
+    }
+}
