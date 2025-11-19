@@ -151,13 +151,89 @@
             justify-content: center;
             border: 2px solid white;
         }
+        
+        /* Cart Modal Styles */
+        .cart-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+        }
+        
+        .cart-modal-content {
+            background: white;
+            border-radius: 18px;
+            padding: 32px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        
+        .cart-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--color-charcoal);
+            background: none;
+            border: none;
+        }
+        
+        .cart-modal-close:hover {
+            color: var(--color-magenta);
+        }
     </style>
 </head>
 <body>
     <!-- Floating Cart -->
-    <div id="floating-cart" class="floating-cart" onclick="window.app.navigateTo('cart')">
+    <div id="floating-cart" class="floating-cart">
         <div class="cart-icon">🛒</div>
         <div id="cart-badge" class="cart-badge" style="display: none;">0</div>
+    </div>
+    
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="cart-modal">
+        <div class="cart-modal-content">
+            <button class="cart-modal-close" onclick="window.app.closeCartModal()">&times;</button>
+            
+            <h2 class="poetic-title text-3xl mb-4">Your Bloom Cart</h2>
+            <div class="text-center italic mb-8">
+                <p>"Every flower began as light. Your bloom is ready to take shape."</p>
+            </div>
+    
+            <div id="cart-items-container" class="space-y-4 mb-6">
+                <div id="empty-cart-message" class="text-center p-8 border border-gray-200 rounded-lg">
+                    Your cart is empty. <a href="#" onclick="window.app.closeCartModal(); window.app.navigateTo('studio')" class="text-magenta font-semibold">Begin the bloom</a>.
+                </div>
+            </div>
+    
+            <div class="flex justify-between items-center border-t border-gray-300 pt-4">
+                <h3 class="text-xl font-bold">Total: <span id="cart-total-display" class="gold-highlight">$0.00</span></h3>
+                <button onclick="window.app.navigateTo('checkout')" id="checkout-button" class="cta-magenta px-6 py-2 rounded-md font-semibold" disabled>
+                    Proceed to Checkout
+                </button>
+            </div>
+    
+            <div id="promo-section" class="section-background p-4 mt-6">
+                <h4 class="font-semibold mb-2">Have a Promo Code?</h4>
+                <div class="flex gap-2">
+                    <input type="text" id="promo-input" placeholder="Enter code" class="input-style flex-grow">
+                    <button onclick="window.app.promoManager.applyPromoCode(document.getElementById('promo-input').value)" class="cta-gold px-4 py-2 rounded-md font-semibold">Apply</button>
+                </div>
+                <p id="promo-message" class="text-sm mt-2 text-green-700"></p>
+            </div>
+        </div>
     </div>
     <div class="container">
         <header class="header flex justify-between items-center pb-4 mb-6">
@@ -257,34 +333,6 @@
                 </div>
             </section>
 
-            <section id="cart-page" style="display: none;">
-                <h2 class="poetic-title text-3xl mb-4">Your Bloom Cart</h2>
-                <div class="text-center italic mb-8">
-                    <p>"Every flower began as light. Your bloom is ready to take shape."</p>
-                </div>
-
-                <div id="cart-items-container" class="space-y-4 mb-6">
-                    <div id="empty-cart-message" class="text-center p-8 border border-gray-200 rounded-lg">
-                        Your cart is empty. <a href="#" onclick="window.app.navigateTo('studio')" class="text-magenta font-semibold">Begin the bloom</a>.
-                    </div>
-                </div>
-
-                <div class="flex justify-between items-center border-t border-gray-300 pt-4">
-                    <h3 class="text-xl font-bold">Total: <span id="cart-total-display" class="gold-highlight">$0.00</span></h3>
-                    <button onclick="window.app.navigateTo('checkout')" id="checkout-button" class="cta-magenta px-6 py-2 rounded-md font-semibold" disabled>
-                        Proceed to Checkout
-                    </button>
-                </div>
-
-                <div id="promo-section" class="section-background p-4 mt-6">
-                    <h4 class="font-semibold mb-2">Have a Promo Code?</h4>
-                    <div class="flex gap-2">
-                        <input type="text" id="promo-input" placeholder="Enter code" class="input-style flex-grow">
-                        <button onclick="window.app.promoManager.applyPromoCode(document.getElementById('promo-input').value)" class="cta-gold px-4 py-2 rounded-md font-semibold">Apply</button>
-                    </div>
-                    <p id="promo-message" class="text-sm mt-2 text-green-700"></p>
-                </div>
-            </section>
             <section id="checkout-page" style="display: none;">
                 <h2 class="poetic-title text-3xl mb-4">Complete Your Bloom</h2>
                 <div class="text-center italic mb-8">
@@ -610,7 +658,6 @@
             const links = [
                 { id: 'home', label: 'Home', target: 'home' },
                 { id: 'studio', label: 'Studio', target: 'studio' },
-                { id: 'cart', label: 'Cart', target: 'cart' },
                 { id: 'checkout', label: 'Checkout', target: 'checkout' }
             ];
             
@@ -982,12 +1029,31 @@
                 window.app = this;
                 
                 const isAuthenticatedStatus = await initializeAuth(); 
-
+                
                 // Initialize cart badge
                 this.cartManager.updateCartBadge();
                 
-                this.renderCurrentPage(); // Render initial page
+                // Add floating cart click event
+                document.getElementById('floating-cart').addEventListener('click', () => {
+                    this.openCartModal();
+                });
+                document.getElementById('cart-modal').addEventListener('click', (e) => {
+                    if (e.target.id === 'cart-modal') {
+                        this.closeCartModal();
+                    }
+                });
+                this.renderCurrentPage();
             }
+
+            openCartModal() {
+                this.renderCart();
+                document.getElementById('cart-modal').style.display = 'flex';
+            }
+            
+            closeCartModal() {
+                document.getElementById('cart-modal').style.display = 'none';
+            }
+            
             // In the Application class, add:
             renderCheckout() {
                 // This will be implemented when we build the full checkout functionality
@@ -1037,21 +1103,18 @@
                 
                 document.getElementById('cart-total-display').innerText = `$${totals.total}`;
                 document.getElementById('checkout-button').disabled = cart.length === 0;
-
+            
                 if (cart.length === 0) {
                     container.innerHTML = `<div id="empty-cart-message" class="text-center p-8 border border-gray-200 rounded-lg">
-                        Your cart is empty. <a href="#" onclick="window.app.navigateTo('studio')" class="text-magenta font-semibold">Begin the bloom</a>.
+                        Your cart is empty. <a href="#" onclick="window.app.closeCartModal(); window.app.navigateTo('studio')" class="text-magenta font-semibold">Begin the bloom</a>.
                     </div>`;
                     return;
                 }
-
+            
                 container.innerHTML = cart.map(item => `
                     <div class="flex items-center p-4 border border-gray-100 rounded-lg shadow-sm">
-                        <div class="w-16 h-16 bg-gray-100 mr-4 flex-shrink-0">
-                            
-
-[Image of ${item.name}]
-
+                        <div class="w-16 h-16 bg-gray-100 mr-4 flex-shrink-0 rounded-md flex items-center justify-center">
+                            <span class="text-gray-400 text-xs">${item.name}</span>
                         </div>
                         <div class="flex-grow">
                             <h4 class="font-semibold">${item.name}</h4>
@@ -1064,14 +1127,14 @@
                     </div>
                 `).join('');
                 
-                // Add totals and promo application message to the container for clarity
                 container.innerHTML += `
-                    <div class="text-right pt-4">
-                        <p>Subtotal: $${totals.subtotal}</p>
-                        ${this.cartManager.promoDiscount > 0 ? `<p class="text-green-600">Discount: -$${totals.discount}</p>` : ''}
+                    <div class="text-right pt-4 border-t border-gray-200">
+                        <p class="mb-1">Subtotal: $${totals.subtotal}</p>
+                        ${this.cartManager.promoDiscount > 0 ? `<p class="text-green-600 mb-1">Discount: -$${totals.discount}</p>` : ''}
+                        <p class="font-bold text-lg">Total: $${totals.total}</p>
                     </div>
                 `;
-                // Ensure the promo message is reset correctly
+                
                 document.getElementById('promo-message').innerText = this.cartManager.promoDiscount > 0 
                     ? `Active Discount: ${this.cartManager.promoDiscount * 100}%` 
                     : '';
