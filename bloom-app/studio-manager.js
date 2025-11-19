@@ -4,10 +4,13 @@ class StudioManager {
     constructor(cartManager) {
         this.cartManager = cartManager;
         this.currentStep = 1;
-        this.setupEventListeners();
+        // Delay setup to ensure DOM is ready
+        setTimeout(() => this.setupEventListeners(), 100);
     }
 
     setupEventListeners() {
+        console.log('Setting up studio event listeners'); // Debug
+        
         // Manufacturer radio buttons
         const manufacturerRadios = document.querySelectorAll('input[name="device-manufacturer"]');
         manufacturerRadios.forEach(radio => {
@@ -37,6 +40,9 @@ class StudioManager {
         if (startOverBtn) {
             startOverBtn.addEventListener('click', this.startOver.bind(this));
         }
+        
+        // Initialize step indicator
+        this.updateStepIndicator(1);
     }
 
     handleManufacturerChange(event) {
@@ -82,23 +88,36 @@ class StudioManager {
         // Enable button only if manufacturer is selected, device is selected AND the box is checked
         const isReady = manufacturerSelected && dropdown.value && ackBox.checked;
         proceedButton.disabled = !isReady;
-        
-        // Update step indicator
-        this.updateStepIndicator(1, isReady);
     }
 
-    updateStepIndicator(step, isCompleted = false) {
+    updateStepIndicator(step) {
+        console.log('Updating step indicator to:', step); // Debug
         const stepElements = document.querySelectorAll('.step-indicator');
         stepElements.forEach((element, index) => {
             const stepNumber = index + 1;
-            if (stepNumber === step) {
-                element.classList.add('active');
-                element.classList.remove('completed');
-            } else if (stepNumber < step) {
-                element.classList.remove('active');
-                element.classList.add('completed');
-            } else {
-                element.classList.remove('active', 'completed');
+            const stepCircle = element.querySelector('div:first-child');
+            const stepText = element.querySelector('span');
+            
+            if (stepCircle && stepText) {
+                if (stepNumber === step) {
+                    // Current active step
+                    stepCircle.classList.remove('bg-gray-300', 'bg-gold');
+                    stepCircle.classList.add('bg-magenta', 'text-white');
+                    stepText.classList.remove('border-gray-300', 'text-gray-600');
+                    stepText.classList.add('border-magenta', 'text-magenta', 'font-semibold');
+                } else if (stepNumber < step) {
+                    // Completed step
+                    stepCircle.classList.remove('bg-gray-300', 'bg-magenta');
+                    stepCircle.classList.add('bg-gold', 'text-white');
+                    stepText.classList.remove('border-gray-300', 'text-gray-600', 'border-magenta');
+                    stepText.classList.add('border-gold', 'text-gold', 'font-semibold');
+                } else {
+                    // Future step
+                    stepCircle.classList.remove('bg-magenta', 'bg-gold', 'text-white');
+                    stepCircle.classList.add('bg-gray-300', 'text-gray-600');
+                    stepText.classList.remove('border-magenta', 'border-gold', 'text-magenta', 'text-gold', 'font-semibold');
+                    stepText.classList.add('border-gray-300', 'text-gray-600');
+                }
             }
         });
     }
@@ -128,6 +147,12 @@ class StudioManager {
     }
 
     showConsentModal() {
+        // Remove existing modal if any
+        const existingModal = document.getElementById('consent-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
         const modalHTML = `
             <div id="consent-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg p-6 max-w-md mx-4">
@@ -184,20 +209,17 @@ class StudioManager {
         // Clear previous files
         fileInputs.forEach(input => {
             if (input) {
-                input.value = '';
+                const dataTransfer = new DataTransfer();
+                input.files = dataTransfer.files;
             }
         });
         
         // Assign files to individual inputs (up to 3)
         for (let i = 0; i < Math.min(files.length, 3); i++) {
             if (fileInputs[i]) {
-                // Create a new FileList-like object
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(files[i]);
                 fileInputs[i].files = dataTransfer.files;
-                
-                // Trigger change event to update any listeners
-                fileInputs[i].dispatchEvent(new Event('change'));
             }
         }
         
@@ -272,7 +294,7 @@ class StudioManager {
         localStorage.setItem(STORAGE_KEYS.PRODUCT_DESIGNS, JSON.stringify(MOCK_DESIGNS));
         document.getElementById('product-list-area').style.display = 'block';
         this.currentStep = 3;
-        this.updateStepIndicator(3, true);
+        this.updateStepIndicator(3);
         
         this.renderProductList();
     }
