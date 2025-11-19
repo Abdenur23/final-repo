@@ -1,338 +1,931 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from 'firebase/auth';
-import { getFirestore, collection, doc, setDoc } from 'firebase/firestore';
-
-// --- Global Environment Variables (MANDATORY USE) ---
-// These are provided by the canvas environment.
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-// --- Brand Colors and Constants ---
-const BRAND_MAGENTA = '#E6007E';
-const BRAND_GOLD = '#D4AF37';
-const BRAND_CHARCOAL = '#2E2E2E';
-
-// Initialize Firebase (will be done in useEffect, but setting up the variables globally for clarity)
-let db;
-let auth;
-
-// --- Utility Components ---
-
-// A simple SVG icon representing a stylized flower/bloom
-const BloomIcon = ({ className = 'w-6 h-6' }) => (
-    <svg className={className} fill="none" stroke={BRAND_MAGENTA} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364l-1.897 1.897a2.5 2.5 0 01-3.536 0L4.318 6.318zm0 0l-1.875-1.875a6 6 0 0110.607-1.414l1.414 1.414m-10.607 10.607l1.414 1.414a6 6 0 0010.607-1.414l-1.875-1.875" />
-    </svg>
-);
-
-// --- Core Application Logic ---
-
-const App = () => {
-    const [userId, setUserId] = useState(null);
-    const [isAuthReady, setIsAuthReady] = useState(false);
-    const [currentPage, setCurrentPage] = useState('Home');
-    const [isNavOpen, setIsNavOpen] = useState(false);
-
-    // 1. Firebase Initialization and Authentication
-    useEffect(() => {
-        // Only initialize once
-        if (!Object.keys(firebaseConfig).length) {
-            console.error("Firebase config is missing. Authentication will be skipped.");
-            setIsAuthReady(true);
-            return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowerBloom Custom Case Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #E6007E; /* Vivid magenta */
+            --secondary: #D4AF37; /* Gold */
+            --text-dark: #2E2E2E; /* Charcoal */
+            --bg-light: #fefcfc; /* Off-white, soft */
         }
 
-        try {
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-
-            const unsubscribe = onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    setUserId(user.uid);
-                    // Optional: Create a user document upon first sign-in (if it doesn't exist)
-                    const userDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data');
-                    await setDoc(userDocRef, { lastLogin: new Date().toISOString() }, { merge: true });
-                } else {
-                    setUserId(null);
-                }
-                setIsAuthReady(true);
-            });
-
-            // Attempt custom token sign-in first, fallback to anonymous
-            const authenticate = async () => {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken).catch(e => {
-                        console.error("Custom token sign-in failed, trying anonymous:", e);
-                        signInAnonymously(auth);
-                    });
-                } else {
-                    signInAnonymously(auth);
-                }
-            };
-
-            authenticate();
-            return () => unsubscribe(); // Cleanup auth listener
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-            setIsAuthReady(true);
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-image: linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0.9)), 
+                              url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23f0f0f0' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
         }
-    }, []);
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(230, 0, 126, 0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #E6007E;
+            margin-bottom: 30px;
+        }
+        .auth-button, .nav-button, .product-button {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .auth-button:hover, .nav-button:hover, .product-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .app-view {
+            min-height: 400px;
+        }
+        .input-style {
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            width: 100%;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .poetic-text {
+            font-family: 'Playfair Display', serif;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #E6007E 0%, #D4AF37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .bloom-border {
+            border: 1px solid transparent;
+            background: linear-gradient(white, white) padding-box,
+                        linear-gradient(135deg, #E6007E, #D4AF37) border-box;
+        }
+        .floral-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #E6007E, #D4AF37, transparent);
+            margin: 20px 0;
+        }
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #E6007E, #D4AF37);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER & AUTH -->
+        <header class="header">
+            <div class="flex items-center">
+                <h1 class="text-4xl font-bold text-[#E6007E]">FlowerBloom</h1>
+                <span class="ml-2 text-xs text-[#D4AF37] font-medium">by theweer.com</span>
+            </div>
+            <div id="auth-action" class="flex items-center space-x-4">
+                <!-- Auth button will render here -->
+            </div>
+        </header>
 
-    // 2. Authentication Actions
-    const handleLogout = useCallback(async () => {
-        if (auth) {
+        <!-- NAVIGATION & STATUS -->
+        <div id="nav-container" class="mb-6">
+            <!-- Navigation will render here -->
+        </div>
+        
+        <div id="token-display" class="text-sm font-medium mb-6 p-3 bg-gray-50 rounded-lg shadow-inner">
+            <!-- Session information will render here -->
+        </div>
+        
+        <!-- MAIN APPLICATION VIEWS -->
+        <div id="app-content">
+            <!-- Dynamic view (home, case-studio, cart) renders here -->
+        </div>
+
+        <!-- UNAUTHENTICATED MESSAGE -->
+        <div id="auth-required-message" class="text-center p-8 bg-red-50 border border-red-200 text-red-700 rounded-lg shadow-lg mt-8" style="display: none;">
+            <p class="font-bold text-xl">Access Denied.</p>
+            <p>Please sign in to access the custom case studio and view your cart.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- PKCE UTILITY FUNCTIONS (Unchanged from previous version, handles base64, sha256) ---
+        function base64urlencode(buffer){
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary)
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        async function sha256(str){
+            const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+            return base64urlencode(digest);
+        }
+
+        function genRandom(){ 
+            const arr = new Uint8Array(32); 
+            crypto.getRandomValues(arr); 
+            return base64urlencode(arr); 
+        }
+
+        // --- AUTH CONFIG & SESSION MANAGEMENT (Unchanged/Refined) ---
+        const cognitoConfig = {
+            clientId: '73lf1h32phkqeb9ahu6tqcl9av',
+            domain: 'auth.theweer.com',
+            redirectUri: window.location.origin + window.location.pathname,
+            tokenEndpoint: `https://auth.theweer.com/oauth2/token`
+        };
+
+        function saveSession(t){ 
+            localStorage.setItem('cognitoSession', JSON.stringify(t)); 
+        }
+
+        function getSession(){ 
+            const session = localStorage.getItem('cognitoSession');
+            return session ? JSON.parse(session) : null;
+        }
+
+        function clearUserData() {
+            localStorage.removeItem('activePromoDiscount');
+            localStorage.removeItem('userUploads');
+            localStorage.removeItem('deviceSelection');
+            localStorage.removeItem('shoppingCart');
+            console.log('All user-specific data cleared');
+        }
+
+        function clearSession() {
+            localStorage.removeItem('cognitoSession');
+            localStorage.removeItem('pkce_verifier');
+            clearUserData();
+        }
+
+        function isTokenExpired(token) {
+            if (!token) return true;
             try {
-                await signOut(auth);
-                // After logout, sign back in anonymously to maintain a session context
-                await signInAnonymously(auth);
-            } catch (error) {
-                console.error("Logout failed:", error);
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const exp = payload.exp * 1000; 
+                const now = Date.now();
+                const bufferTime = 300000; // 5 minutes buffer
+                return now >= (exp - bufferTime);
+            } catch (e) {
+                console.error('Error checking token expiration:', e);
+                return true;
             }
         }
-    }, []);
+        
+        async function refreshSession() {
+            const session = getSession();
+            if (!session || !session.refresh_token) {
+                clearSession();
+                return false;
+            }
+            // ... [refresh logic remains the same]
+            const body =
+              `grant_type=refresh_token`
+              + `&client_id=${cognitoConfig.clientId}`
+              + `&refresh_token=${session.refresh_token}`;
 
-    const handleLoginPlaceholder = useCallback(() => {
-        // Since we are using token/anonymous sign-in, this button acts as a trigger
-        // for a future proper login flow (e.g., Google sign-in).
-        alert('Login flow placeholder: Implement proper sign-in method here.');
-    }, []);
+            try {
+                const res = await fetch(cognitoConfig.tokenEndpoint,{
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body
+                });
+                const tokens = await res.json();
 
-    // 3. User Interface Components
+                if(res.ok && tokens.id_token) {
+                    const newSession = {
+                        ...tokens,
+                        refresh_token: tokens.refresh_token || session.refresh_token 
+                    };
+                    saveSession(newSession);
+                    return true;
+                } else {
+                    clearSession();
+                    return false;
+                }
+            } catch (error) {
+                console.error('Network or exchange error during refresh:', error);
+                return false;
+            }
+        }
 
-    const NavItem = ({ name }) => (
-        <button
-            onClick={() => {
-                setCurrentPage(name);
-                setIsNavOpen(false);
-            }}
-            className={`px-4 py-2 font-serif text-sm transition-all duration-200 rounded-lg hover:text-white ${currentPage === name ? 'text-white bg-opacity-90 bg-['+BRAND_MAGENTA+']' : 'text-['+BRAND_CHARCOAL+'] hover:bg-['+BRAND_MAGENTA+'] hover:bg-opacity-10'}`}
-        >
-            {name}
-        </button>
-    );
+        async function isAuthenticated() {
+            const session = getSession();
+            if (!session || !session.id_token) return false;
+            if (isTokenExpired(session.id_token)) {
+                return await refreshSession();
+            }
+            return true;
+        }
 
-    const Navbar = () => (
-        <nav className="bg-white/90 backdrop-blur-sm shadow-lg sticky top-0 z-50 transition-all duration-300">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center h-16">
-                    {/* Brand/Logo */}
-                    <div className="flex-shrink-0 flex items-center">
-                        <BloomIcon className="w-8 h-8 mr-2" />
-                        <span className="text-xl font-bold font-serif italic" style={{ color: BRAND_CHARCOAL }}>
-                            theweer.com
-                        </span>
+        function getUserInfo() {
+            const session = getSession();
+            if (session && session.id_token) {
+                try {
+                    const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+                    const displayName = payload.given_name || payload.email || 'User';
+                    return {
+                        email: payload.email,
+                        sub: payload.sub,
+                        displayName: displayName
+                    };
+                } catch (e) {
+                    console.error('Error parsing token:', e);
+                }
+            }
+            return null;
+        }
+
+        async function signin(){
+            const verifier = genRandom();
+            localStorage.setItem('pkce_verifier', verifier);
+            const challenge = await sha256(verifier);
+            const url =
+              `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code`
+              + `&client_id=${cognitoConfig.clientId}`
+              + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
+              + `&scope=email+openid+profile` 
+              + `&code_challenge_method=S256`
+              + `&code_challenge=${challenge}`;
+            window.location.href = url;
+        }
+
+        function signout(){
+            clearSession();
+            window.location.href =
+              `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}`
+              + `&logout_uri=${encodeURIComponent(window.location.origin)}`;
+        }
+
+        async function handleCodeExchange(){
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            if(!code) return false;
+            const verifier = localStorage.getItem('pkce_verifier');
+            if (!verifier) {
+                window.history.replaceState({},document.title,cognitoConfig.redirectUri); 
+                return false;
+            }
+            // ... [Exchange logic remains the same]
+            const body =
+              `grant_type=authorization_code`
+              + `&client_id=${cognitoConfig.clientId}`
+              + `&code=${code}`
+              + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
+              + `&code_verifier=${verifier}`;
+
+            try {
+                const res = await fetch(cognitoConfig.tokenEndpoint,{
+                    method:'POST',
+                    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+                    body
+                });
+                const tokens = await res.json();
+
+                if(res.ok && tokens.id_token) {
+                    saveSession(tokens);
+                    localStorage.removeItem('pkce_verifier');
+                    window.history.replaceState({},document.title,cognitoConfig.redirectUri);
+                    return true;
+                } else {
+                    return false;
+                }
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function setupTokenRefresh() {
+            setInterval(async () => {
+                const session = getSession();
+                if (session && isTokenExpired(session.id_token)) {
+                    await refreshSession();
+                    window.app.checkAuthAndUpdateUI(); 
+                }
+            }, 30000); 
+        }
+
+        async function initializeAuth() {
+            await handleCodeExchange();
+            const actualAuthStatus = await isAuthenticated();
+            window.app.checkAuthAndUpdateUI(); 
+            setupTokenRefresh();
+            return actualAuthStatus;
+        }
+        
+        // --- CORE APPLICATION MANAGERS ---
+
+        class CartManager {
+            constructor() {
+                this.cartKey = 'shoppingCart';
+                this.loadCart();
+            }
+
+            loadCart() {
+                const cart = localStorage.getItem(this.cartKey);
+                this.items = cart ? JSON.parse(cart) : [];
+            }
+
+            saveCart() {
+                localStorage.setItem(this.cartKey, JSON.stringify(this.items));
+            }
+
+            getCartItems() {
+                return this.items;
+            }
+            
+            getCartTotalItems() {
+                return this.items.length;
+            }
+
+            isInCart(productId) {
+                return this.items.some(item => item.id === productId);
+            }
+
+            addItem(product) {
+                if (this.isInCart(product.id)) {
+                    console.log(`Product ${product.id} already in cart.`);
+                    return false;
+                }
+                // Product is unique, add it (quantity is implicitly 1 for unique custom items)
+                this.items.push(product);
+                this.saveCart();
+                console.log(`Added product ${product.id} to cart.`);
+                return true;
+            }
+
+            removeItem(productId) {
+                const initialLength = this.items.length;
+                this.items = this.items.filter(item => item.id !== productId);
+                this.saveCart();
+                return this.items.length < initialLength;
+            }
+
+            clearCart() {
+                this.items = [];
+                this.saveCart();
+                console.log('Cart cleared.');
+            }
+        }
+        
+        class ProductManager {
+            constructor(cartManager) {
+                this.cartManager = cartManager;
+                this.productDataKey = 'userMockupProducts';
+                this.loadMockupProducts();
+            }
+
+            loadMockupProducts() {
+                const products = localStorage.getItem(this.productDataKey);
+                // Mock products structure: [{ id: 'unique-id', name: 'Design X', device: 'iPhone 15', price: 34.99, images: ['url1', 'url2', 'url3', 'url4'] }]
+                this.mockupProducts = products ? JSON.parse(products) : [];
+            }
+            
+            saveMockupProducts() {
+                 localStorage.setItem(this.productDataKey, JSON.stringify(this.mockupProducts));
+            }
+
+            // Simulates server-side generation based on user input
+            simulateGenerateMockups(device, fileNames) {
+                const baseId = crypto.randomUUID();
+                const designs = ['Rose Petal Bloom', 'Midnight Lily Mix'];
+                
+                this.mockupProducts = designs.map((design, index) => {
+                    const productId = `${baseId}-${index}`;
+                    return {
+                        id: productId,
+                        name: `${design}`,
+                        device: device,
+                        price: 34.99 + (index * 5), // Vary price
+                        images: [
+                            `https://placehold.co/150x250/f9fafb/374151?text=Front`,
+                            `https://placehold.co/150x250/f0fdf4/16a34a?text=Back`,
+                            `https://placehold.co/150x250/f0f9ff/06b6d4?text=Side`,
+                            `https://placehold.co/150x250/fff7ed/f97316?text=Room+Mockup`
+                        ],
+                        // Store metadata about source files for fulfillment
+                        sourceImages: fileNames 
+                    };
+                });
+                this.saveMockupProducts();
+                return this.mockupProducts;
+            }
+            
+            // Retrieves the HTML for the product list
+            getProductsHtml() {
+                if (this.mockupProducts.length === 0) {
+                    return `
+                        <p class="text-center text-gray-500 py-10">No custom designs found. <span class="text-[#E6007E] cursor-pointer" onclick="window.app.setPath('case-studio')">Start designing now!</span></p>
+                    `;
+                }
+                
+                return `
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        ${this.mockupProducts.map(product => {
+                            const inCart = this.cartManager.isInCart(product.id);
+                            return this.renderProductCard(product, inCart);
+                        }).join('')}
                     </div>
+                `;
+            }
+            
+            // Reusable component for a single product card
+            renderProductCard(product, inCart) {
+                const buttonColor = inCart ? 'bg-gray-500 hover:bg-gray-600' : 'bg-[#E6007E] hover:bg-[#c9006e]';
+                const buttonText = inCart ? 'Remove from Cart' : 'Add to Cart';
+                const buttonAction = inCart ? `window.app.cartManager.removeItem('${product.id}'); window.app.productManager.renderProductList()` : `window.app.cartManager.addItem(${JSON.stringify(product).replace(/"/g, '&quot;')}); window.app.productManager.renderProductList()`;
 
-                    {/* Desktop Navigation */}
-                    <div className="hidden md:flex space-x-4 items-center">
-                        <NavItem name="Home" />
-                        <NavItem name="The Encounter" />
-                        <NavItem name="Artistry" />
-                        <NavItem name="My Bloom" />
-                        <NavItem name="Contact" />
+                return `
+                    <div id="product-card-${product.id}" class="bg-white p-4 border border-gray-100 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col items-center bloom-border">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">${product.name}</h3>
+                        <p class="text-sm text-gray-500 mb-4">Device: ${product.device}</p>
                         
-                        {/* Auth Status & Button */}
-                        {isAuthReady && (
-                            userId ? (
-                                <button
-                                    onClick={handleLogout}
-                                    className="px-4 py-2 text-sm font-semibold text-white rounded-full transition-all duration-300 transform active:scale-95 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2"
-                                    style={{ backgroundColor: BRAND_MAGENTA, borderColor: BRAND_MAGENTA, transition: 'background-color 0.2s' }}
-                                >
-                                    Sign Out
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={handleLoginPlaceholder}
-                                    className="px-4 py-2 text-sm font-semibold text-['+BRAND_CHARCOAL+'] rounded-full border transition-all duration-300 hover:bg-['+BRAND_MAGENTA+'] hover:text-white transform active:scale-95"
-                                    style={{ borderColor: BRAND_MAGENTA }}
-                                >
-                                    Log In
-                                </button>
-                            )
-                        )}
-                    </div>
-
-                    {/* Mobile Menu Button */}
-                    <div className="md:hidden">
-                        <button
-                            onClick={() => setIsNavOpen(!isNavOpen)}
-                            className="inline-flex items-center justify-center p-2 rounded-md text-['+BRAND_MAGENTA+'] hover:text-white hover:bg-['+BRAND_MAGENTA+'] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-['+BRAND_MAGENTA+']"
+                        <!-- Mockup Image Preview -->
+                        <div class="w-full h-64 bg-gray-100 rounded-lg overflow-hidden mb-4 relative">
+                            <img src="${product.images[0]}" alt="${product.name} Front Mockup" class="w-full h-full object-cover">
+                            <span class="absolute top-2 right-2 px-3 py-1 bg-[#E6007E] text-white text-xs font-bold rounded-full">$${product.price.toFixed(2)}</span>
+                        </div>
+                        
+                        <button 
+                            onclick="${buttonAction}" 
+                            class="product-button w-full py-2 text-white font-medium ${buttonColor}"
                         >
-                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                {isNavOpen ? (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                ) : (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                                )}
-                            </svg>
+                            ${buttonText}
                         </button>
                     </div>
-                </div>
-            </div>
-
-            {/* Mobile Menu Content */}
-            <div className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${isNavOpen ? 'max-h-96 opacity-100 py-2' : 'max-h-0 opacity-0'}`}>
-                <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col items-start">
-                    <NavItem name="Home" />
-                    <NavItem name="The Encounter" />
-                    <NavItem name="Artistry" />
-                    <NavItem name="My Bloom" />
-                    <NavItem name="Contact" />
-                    <div className="mt-4 w-full">
-                        {isAuthReady && (
-                            userId ? (
-                                <button
-                                    onClick={handleLogout}
-                                    className="w-full text-center px-4 py-2 text-sm font-semibold text-white rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2"
-                                    style={{ backgroundColor: BRAND_MAGENTA }}
-                                >
-                                    Sign Out
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={handleLoginPlaceholder}
-                                    className="w-full text-center px-4 py-2 text-sm font-semibold border rounded-lg hover:bg-['+BRAND_MAGENTA+'] hover:text-white"
-                                    style={{ color: BRAND_CHARCOAL, borderColor: BRAND_MAGENTA }}
-                                >
-                                    Log In
-                                </button>
-                            )
-                        )}
-                    </div>
-                </div>
-            </div>
-        </nav>
-    );
-
-    // 4. Page Content based on current module (for easy integration)
-    const PageContent = () => {
-        const titleStyle = { color: BRAND_MAGENTA };
-        const textStyle = { color: BRAND_CHARCOAL };
-        const subTitleStyle = { color: BRAND_GOLD };
-
-        // Modular structure for you to build out the different sections
-        switch (currentPage) {
-            case 'Home':
-                return (
-                    <div className="min-h-[70vh] flex flex-col justify-center items-center text-center p-8 bg-white/50">
-                        <h1 className="text-5xl md:text-7xl font-serif italic mb-4" style={titleStyle}>
-                            Your reflection is waiting to bloom.
-                        </h1>
-                        <p className="text-xl md:text-2xl max-w-3xl mb-8 font-light" style={textStyle}>
-                            **She took a selfie. The flowers took over.**
-                        </p>
-                        <p className="text-lg font-light italic" style={subTitleStyle}>
-                            Where technology meets the tenderness of art.
-                        </p>
-                        <div className="mt-12 p-4 rounded-xl shadow-xl border-t-4 border-['+BRAND_MAGENTA+']" style={{ backgroundColor: '#fff' }}>
-                            <p className="text-sm font-medium" style={textStyle}>
-                                Current User Session: <span className="font-mono text-xs text-gray-500">{isAuthReady ? (userId || 'Not Logged In') : 'Loading...'}</span>
-                            </p>
-                            <p className="text-sm font-medium" style={textStyle}>
-                                User ID (for collaboration): <span className="font-mono text-xs text-['+BRAND_CHARCOAL+'] break-all">{userId || 'N/A'}</span>
-                            </p>
-                        </div>
-                    </div>
-                );
-            case 'The Encounter':
-                return (
-                    <div className="p-8">
-                        <h2 className="text-4xl font-serif mb-4" style={titleStyle}>The Experience Flow</h2>
-                        <p className="text-lg mb-6 max-w-4xl" style={textStyle}>
-                            This is where we capture the poetic instructions from your tent:
-                        </p>
-                        <ul className="space-y-4 text-xl list-none p-0">
-                            {[
-                                "Scan the code.",
-                                "Upload your 3 photos.",
-                                "Watch your hair blossom into art.",
-                                "See your wallpaper and case merge as one.",
-                                "Pick it up — or have it find you later."
-                            ].map((step, index) => (
-                                <li key={index} className="flex items-center text-['+BRAND_CHARCOAL+']">
-                                    <span className="text-3xl font-bold mr-4" style={titleStyle}>
-                                        {index + 1}.
-                                    </span>
-                                    {step}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                );
-            case 'Artistry':
-                return (
-                    <div className="p-8">
-                        <h2 className="text-4xl font-serif mb-4" style={titleStyle}>The Craft Wall</h2>
-                        <p className="text-lg max-w-4xl" style={textStyle}>
-                            "Every bloom here began as a reflection." This module is where you will integrate the AI image generation logic.
-                        </p>
-                        <div className="mt-6 p-6 rounded-lg border border-['+BRAND_GOLD+'] bg-white shadow-inner">
-                            <p className="italic text-gray-600">Placeholder for Image Upload and AI Generation Component.</p>
-                        </div>
-                    </div>
-                );
-            case 'My Bloom':
-                return (
-                    <div className="p-8">
-                        <h2 className="text-4xl font-serif mb-4" style={titleStyle}>Your Personal Portrait</h2>
-                        <p className="text-lg max-w-4xl" style={textStyle}>
-                            Access your saved designs and orders here. This section will rely heavily on the Firestore structure to retrieve private user data.
-                        </p>
-                        <div className="mt-6 p-6 rounded-lg border border-['+BRAND_CHARCOAL+'] bg-white shadow-inner">
-                            <p className="italic text-gray-600">Placeholder for User Dashboard/Order History.</p>
-                        </div>
-                    </div>
-                );
-            case 'Contact':
-                return (
-                    <div className="p-8">
-                        <h2 className="text-4xl font-serif mb-4" style={titleStyle}>Find Us</h2>
-                        <p className="text-lg max-w-4xl" style={textStyle}>
-                            Connect with us. We are motion and bloom.
-                        </p>
-                    </div>
-                );
-            default:
-                return null;
+                `;
+            }
+            
+            // Re-renders the product list dynamically (used after adding/removing from cart)
+            renderProductList() {
+                const target = document.getElementById('product-mockups');
+                if (target) {
+                    target.innerHTML = this.getProductsHtml();
+                    // Also update cart count in navigation
+                    window.app.renderNavigation();
+                }
+            }
+            
+            clearMockups() {
+                this.mockupProducts = [];
+                this.saveMockupProducts();
+            }
         }
-    };
 
-    return (
-        <div className="min-h-screen bg-gray-50 antialiased font-sans transition-all duration-300">
-            <style>{`
-                /* Ensure a clean, elegant look */
-                .font-serif {
-                    font-family: 'Georgia', 'Times New Roman', serif;
-                }
-                .font-sans {
-                    font-family: 'Inter', sans-serif;
-                }
-            `}</style>
-            
-            <Navbar />
-            <main className="container mx-auto p-0 pt-16">
-                <PageContent />
-            </main>
-            
-            {/* Footer with Branding */}
-            <footer className="mt-20 p-8 text-center" style={{ backgroundColor: BRAND_CHARCOAL }}>
-                <p className="text-white text-sm opacity-70">
-                    {/* Tagline Lockup */}
-                    <span className="text-lg font-serif italic" style={{ color: BRAND_GOLD }}>
-                        Your reflection. Reimagined in bloom.
-                    </span>
-                    <br/>
-                    <span className="mt-1 block">
-                        &copy; {new Date().getFullYear()} Theweer. All rights reserved.
-                    </span>
-                </p>
-            </footer>
-        </div>
-    );
-};
+        // --- APPLICATION CONTROLLER & ROUTER ---
 
-export default App;
+        class Application {
+            constructor() {
+                this.state = {
+                    isAuthenticated: false,
+                    path: 'home', // 'home', 'case-studio', 'cart'
+                };
+                // Initialize managers here
+                this.cartManager = new CartManager();
+                this.productManager = new ProductManager(this.cartManager);
+                
+                // Expose core methods to global scope
+                window.app = {
+                    ...this,
+                    signin: signin,
+                    signout: signout,
+                    setPath: this.setPath.bind(this)
+                };
+            }
+
+            async initialize() {
+                // Initial auth check and refresh handling
+                const authStatus = await initializeAuth();
+                this.state.isAuthenticated = authStatus;
+                
+                // Determine initial path based on URL hash or default
+                this.setPath(window.location.hash.substring(1) || 'home', false);
+            }
+            
+            setPath(newPath, updateHistory = true) {
+                if (newPath === this.state.path) return;
+                
+                // Protected routes
+                if (!this.state.isAuthenticated && (newPath === 'case-studio' || newPath === 'cart')) {
+                     newPath = 'home';
+                }
+                
+                this.state.path = newPath;
+                if (updateHistory) {
+                    window.location.hash = newPath;
+                }
+                
+                this.renderApp();
+            }
+
+            checkAuthAndUpdateUI() {
+                const userInfo = getUserInfo();
+                const isAuthenticated = !!userInfo;
+                this.state.isAuthenticated = isAuthenticated;
+                
+                // Re-render core components
+                this.renderAuthUI();
+                this.renderNavigation();
+                this.showSessionInfo(userInfo);
+                
+                // Reroute if authentication status changes and user is on a protected route
+                if (!isAuthenticated && (this.state.path === 'case-studio' || this.state.path === 'cart')) {
+                    this.setPath('home', false);
+                } else {
+                    this.renderApp(); // Re-render current view if necessary
+                }
+            }
+            
+            // --- UI RENDERERS ---
+            
+            renderAuthUI() {
+                const authDiv = document.getElementById('auth-action');
+                if (!authDiv) return;
+                const userInfo = getUserInfo();
+                
+                if (userInfo) {
+                    authDiv.innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <span class="text-sm font-medium text-gray-700 hidden md:inline">Hello, ${userInfo.displayName}</span>
+                            <button onclick="window.app.signout()" class="px-3 py-1 bg-[#E6007E] text-white text-sm rounded-lg shadow-md hover:bg-[#c9006e] auth-button">Sign Out</button>
+                        </div>
+                    `;
+                } else {
+                    authDiv.innerHTML = `
+                        <button onclick="window.app.signin()" class="px-4 py-2 bg-[#E6007E] text-white font-semibold rounded-lg shadow-lg hover:bg-[#c9006e] auth-button">Sign In / Sign Up</button>
+                    `;
+                }
+            }
+            
+            renderNavigation() {
+                const navContainer = document.getElementById('nav-container');
+                if (!navContainer) return;
+                const authenticated = this.state.isAuthenticated;
+                const path = this.state.path;
+                const cartCount = this.cartManager.getCartTotalItems();
+                
+                const navItem = (p, text, requiresAuth = false) => {
+                    const active = p === path ? 'bg-[#E6007E] text-white font-bold' : 'text-gray-600 hover:bg-gray-100';
+                    const authClass = requiresAuth && !authenticated ? 'opacity-50 cursor-not-allowed' : '';
+                    const action = requiresAuth && !authenticated ? '' : `onclick="window.app.setPath('${p}')"`;
+                    
+                    return `<button ${action} class="nav-button px-4 py-2 text-sm ${active} ${authClass}">${text}</button>`;
+                };
+                
+                navContainer.innerHTML = `
+                    <div class="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg shadow-inner justify-center">
+                        ${navItem('home', 'Home')}
+                        ${navItem('case-studio', 'Create Your Case', true)}
+                        ${navItem('cart', `Cart (${cartCount})`, true)}
+                        <div class="flex-grow"></div>
+                        <div class="w-full md:w-auto p-2">
+                             <input type="text" id="promo-code-input" placeholder="Promo Code (E.g. BLOOM20)" class="input-style bg-white text-sm w-full md:w-auto" onchange="window.app.applyPromo(this.value)">
+                        </div>
+                    </div>
+                `;
+            }
+            
+            showSessionInfo(userInfo) {
+                const tokenDiv = document.getElementById('token-display');
+                if (userInfo) {
+                    tokenDiv.classList.remove('bg-gray-50');
+                    tokenDiv.classList.add('bg-green-50');
+                    tokenDiv.innerHTML = `<span class="text-green-700">✅ Session Active for ${userInfo.displayName}.</span>`;
+                } else {
+                    tokenDiv.classList.remove('bg-green-50');
+                    tokenDiv.classList.add('bg-gray-50');
+                    tokenDiv.innerHTML = `<span class="text-gray-500">❌ Session inactive. Please sign in.</span>`;
+                }
+            }
+            
+            renderApp() {
+                const appContent = document.getElementById('app-content');
+                const authRequired = document.getElementById('auth-required-message');
+
+                if (this.state.isAuthenticated) {
+                    authRequired.style.display = 'none';
+                    appContent.style.display = 'block';
+                    
+                    // Route to correct view
+                    switch(this.state.path) {
+                        case 'case-studio':
+                            appContent.innerHTML = this.renderCaseStudioView();
+                            // Re-initialize state-specific logic
+                            document.getElementById('mockup-results').innerHTML = this.productManager.getProductsHtml();
+                            break;
+                        case 'cart':
+                            appContent.innerHTML = this.renderCartView();
+                            break;
+                        case 'home':
+                        default:
+                            appContent.innerHTML = this.renderHomeView();
+                            break;
+                    }
+                } else {
+                    appContent.style.display = 'none';
+                    authRequired.style.display = 'block';
+                }
+                
+                // Ensure navigation/auth reflects current state
+                this.renderAuthUI();
+                this.renderNavigation();
+            }
+
+            // --- VIEW TEMPLATES ---
+            
+            renderHomeView() {
+                return `
+                    <div class="app-view text-center py-16">
+                        <h2 class="text-4xl font-bold text-[#2E2E2E] mb-4">Your reflection is waiting to bloom.</h2>
+                        <p class="text-2xl hero-gradient mb-6 poetic-text">She took a selfie.<br>The flowers took over.</p>
+                        <p class="text-gray-600 max-w-2xl mx-auto mb-8 poetic-text">Your photo becomes art — flowing between your wallpaper and your phone case. Watch it come alive before your eyes.</p>
+                        <button onclick="window.app.setPath('case-studio')" class="px-8 py-3 bg-[#E6007E] text-white text-lg font-semibold rounded-lg shadow-lg hover:bg-[#c9006e] auth-button">
+                            Start Designing Now!
+                        </button>
+                        
+                        <div class="floral-divider"></div>
+                        
+                        <div class="poetic-text text-left max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg bloom-border">
+                            <h3 class="text-xl font-bold text-[#2E2E2E] mb-4 text-center">You are not pixels or paper.</h3>
+                            <p class="mb-4">You are motion and bloom.</p>
+                            <p class="mb-4">The flowers you wear are grown from your light.</p>
+                            <p class="mb-4">They drift between worlds — from your reflection, to your phone, to your hand.</p>
+                            <p class="font-bold text-center text-[#E6007E]">This is not a phone case. It's a portrait of your bloom.</p>
+                        </div>
+                        
+                        <div id="promo-display" class="mt-8 p-4 bg-yellow-50 text-yellow-800 rounded-lg hidden">
+                            <!-- Promo status updates here -->
+                        </div>
+                    </div>
+                `;
+            }
+            
+            renderCaseStudioView() {
+                const devices = ['iPhone 15 Pro Max', 'iPhone 15', 'Samsung Galaxy S24 Ultra', 'Google Pixel 8'];
+                
+                return `
+                    <div class="app-view">
+                        <h2 class="text-3xl font-bold text-[#2E2E2E] mb-6 border-b pb-2">Custom Case Studio</h2>
+                        
+                        <!-- STEP 1: Device Selection & Acknowledgement -->
+                        <div id="upload-step-1" class="p-6 bg-white rounded-xl shadow-lg mb-8 bloom-border">
+                            <h3 class="text-2xl font-semibold mb-4 text-[#E6007E]">1. Select Device & Confirm</h3>
+                            
+                            <label for="device-select" class="block text-gray-700 font-medium mb-2">Select Your Phone Model (for order fulfillment):</label>
+                            <select id="device-select" class="input-style mb-4">
+                                ${devices.map(d => `<option value="${d}">${d}</option>`).join('')}
+                            </select>
+                            
+                            <div class="flex items-start mb-6">
+                                <input type="checkbox" id="acknowledgement-check" class="w-4 h-4 text-[#E6007E] bg-gray-100 border-gray-300 rounded focus:ring-[#E6007E] mt-1">
+                                <label for="acknowledgement-check" class="ml-2 text-sm text-gray-600 cursor-pointer">
+                                    I acknowledge that the design mockup will be based on a generic device shape for viewing, but my actual order will be fulfilled for the selected device model.
+                                </label>
+                            </div>
+                            
+                            <button id="proceed-upload-btn" onclick="window.app.toggleUploadStep2(true)" class="px-6 py-2 bg-gray-400 text-white font-medium rounded-lg shadow cursor-not-allowed" disabled>
+                                Proceed to Image Upload
+                            </button>
+                        </div>
+                        
+                        <!-- STEP 2: Image Upload & Generation -->
+                        <div id="upload-step-2" class="p-6 bg-white border border-gray-200 rounded-xl shadow-lg" style="display: none;">
+                            <h3 class="text-2xl font-semibold mb-4 text-gray-700">2. Upload Images & Generate Design</h3>
+                            <p class="text-sm text-gray-500 mb-4">Upload exactly 3 images: 1 Portrait and 2 Floral/Artistic backgrounds.</p>
+                            
+                            <div class="grid grid-cols-3 gap-4 mb-6">
+                                <input type="file" id="image1" accept="image/*" class="col-span-1 border p-2 rounded-md">
+                                <input type="file" id="image2" accept="image/*" class="col-span-1 border p-2 rounded-md">
+                                <input type="file" id="image3" accept="image/*" class="col-span-1 border p-2 rounded-md">
+                            </div>
+                            
+                            <button onclick="window.app.startMockupGeneration()" class="px-6 py-3 bg-[#E6007E] text-white font-medium rounded-lg shadow-lg hover:bg-[#c9006e] product-button" id="generate-btn">
+                                Generate Mockups (Simulated)
+                            </button>
+                            
+                            <div id="generation-progress" class="mt-4 text-sm text-[#E6007E] font-medium hidden">
+                                <p>Processing images on server...</p>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+                                    <div id="progress-bar" class="bg-[#E6007E] h-2.5 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- STEP 3: Generated Products -->
+                        <div id="product-mockup-section" class="mt-8">
+                            <h3 class="text-2xl font-bold text-[#2E2E2E] mb-6">3. Your Custom Designs</h3>
+                            <div id="product-mockups">
+                                <!-- Products render here via ProductManager.renderProductList() -->
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderCartView() {
+                const items = this.cartManager.getCartItems();
+                const subtotal = items.reduce((sum, item) => sum + item.price, 0);
+                const discount = (localStorage.getItem('activePromoDiscount') || 0) * subtotal;
+                const total = subtotal - discount;
+                
+                return `
+                    <div class="app-view">
+                        <h2 class="text-3xl font-bold text-[#2E2E2E] mb-6 border-b pb-2">Your Shopping Cart</h2>
+                        
+                        <div class="flex flex-col lg:flex-row gap-8">
+                            <!-- Cart Items -->
+                            <div class="lg:w-2/3">
+                                ${items.length === 0 ? `
+                                    <div class="text-center p-10 bg-gray-50 rounded-lg text-gray-500">Your cart is empty.</div>
+                                ` : items.map(item => `
+                                    <div class="flex items-center justify-between p-4 mb-4 bg-white rounded-xl shadow border border-gray-100 bloom-border">
+                                        <img src="${item.images[0]}" class="w-16 h-16 object-cover rounded-md mr-4 border border-[#E6007E]" alt="${item.name}">
+                                        <div class="flex-grow">
+                                            <p class="font-semibold text-gray-800">${item.name}</p>
+                                            <p class="text-sm text-gray-500">${item.device}</p>
+                                        </div>
+                                        <div class="text-lg font-bold text-[#E6007E] mr-8">$${item.price.toFixed(2)}</div>
+                                        <button onclick="window.app.cartManager.removeItem('${item.id}'); window.app.setPath('cart')" class="text-red-500 hover:text-red-700 p-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                        </button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            
+                            <!-- Cart Summary -->
+                            <div class="lg:w-1/3 p-6 bg-white rounded-xl shadow-lg h-min bloom-border">
+                                <h3 class="text-2xl font-bold mb-4 text-gray-800">Order Summary</h3>
+                                <div class="space-y-2 text-gray-600">
+                                    <div class="flex justify-between"><span>Subtotal (${items.length} items):</span> <span>$${subtotal.toFixed(2)}</span></div>
+                                    <div class="flex justify-between text-green-600"><span>Discount:</span> <span>-$${discount.toFixed(2)}</span></div>
+                                    <div class="pt-4 border-t border-[#E6007E] flex justify-between font-bold text-xl text-[#E6007E]"><span>Total:</span> <span>$${total.toFixed(2)}</span></div>
+                                </div>
+                                <button onclick="alert('Checkout (Simulated): Proceeding with payment of $${total.toFixed(2)}') ; window.app.cartManager.clearCart(); window.app.setPath('home');" ${items.length === 0 ? 'disabled' : ''} class="w-full mt-6 py-3 bg-[#E6007E] text-white font-semibold rounded-lg hover:bg-[#c9006e] product-button ${items.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}">
+                                    Proceed to Checkout
+                                </button>
+                                <p class="text-xs text-center text-gray-400 mt-2">Final pricing and tax calculated at external payment processor.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- STUDIO LOGIC ---
+
+            toggleUploadStep2(enable) {
+                const ack = document.getElementById('acknowledgement-check');
+                const btn = document.getElementById('proceed-upload-btn');
+                
+                if (ack && btn) {
+                    btn.disabled = !ack.checked;
+                    btn.classList.toggle('bg-gray-400', !ack.checked);
+                    btn.classList.toggle('cursor-not-allowed', !ack.checked);
+                    btn.classList.toggle('bg-[#E6007E]', ack.checked);
+                    btn.classList.toggle('hover:bg-[#c9006e]', ack.checked);
+                    
+                    if (ack.checked && enable) {
+                        document.getElementById('upload-step-2').style.display = 'block';
+                    } else if (enable) {
+                        document.getElementById('upload-step-2').style.display = 'none';
+                    }
+                }
+            }
+            
+            startMockupGeneration() {
+                const ack = document.getElementById('acknowledgement-check');
+                const deviceSelect = document.getElementById('device-select');
+                const files = [
+                    document.getElementById('image1').files[0],
+                    document.getElementById('image2').files[0],
+                    document.getElementById('image3').files[0]
+                ];
+                
+                if (!ack.checked || files.filter(f => f).length !== 3) {
+                    alert('Please select a device, acknowledge the terms, and upload exactly 3 images.');
+                    return;
+                }
+                
+                const progressDiv = document.getElementById('generation-progress');
+                const progressBar = document.getElementById('progress-bar');
+                const generateBtn = document.getElementById('generate-btn');
+                const targetDevice = deviceSelect.value;
+                const fileNames = files.map(f => f.name);
+
+                generateBtn.disabled = true;
+                generateBtn.textContent = 'Generating...';
+                progressDiv.style.display = 'block';
+                progressBar.style.width = '0%';
+                
+                let step = 0;
+                const totalSteps = 4;
+
+                const interval = setInterval(() => {
+                    step++;
+                    const progress = (step / totalSteps) * 100;
+                    progressBar.style.width = `${progress}%`;
+                    
+                    if (step === 1) console.log('Simulating: Step 1 (Image Upload & Validation) complete...');
+                    if (step === 2) console.log('Simulating: Step 2 (AI Flower Collage Creation) complete...');
+                    if (step === 3) console.log('Simulating: Step 3 (Person-Image Masking/Mix) complete...');
+
+                    if (step >= totalSteps) {
+                        clearInterval(interval);
+                        
+                        // Final step: Generate mockups and render
+                        this.productManager.simulateGenerateMockups(targetDevice, fileNames);
+                        this.productManager.renderProductList();
+                        
+                        progressDiv.style.display = 'none';
+                        generateBtn.disabled = false;
+                        generateBtn.textContent = 'Generate Mockups (Simulated)';
+                        
+                        console.log('Mockup Generation Complete.');
+                    }
+                }, 1500); // 1.5 seconds per step simulation
+            }
+            
+            applyPromo(code) {
+                const promoDiv = document.getElementById('promo-display');
+                if (promoDiv) promoDiv.style.display = 'block';
+                
+                let discount = 0;
+                let message = '';
+
+                // Simulated server-side validation
+                if (code.toUpperCase() === 'BLOOM20') {
+                    discount = 0.20; // 20% discount
+                    message = `🎉 Success! Promo code BLOOM20 applied. Enjoy 20% off your total!`;
+                } else if (code.toUpperCase() === 'FREECASE') {
+                    discount = 1.00; // Mock 100% for one item
+                    message = `✨ Success! FREECASE code applied. Free item status confirmed.`;
+                } else if (code.length > 0) {
+                    discount = 0;
+                    message = `❌ Invalid promo code: ${code}. Please try again.`;
+                } else {
+                    localStorage.removeItem('activePromoDiscount');
+                    if (promoDiv) promoDiv.style.display = 'none';
+                    this.renderApp(); // Re-render cart if on cart page
+                    return;
+                }
+                
+                localStorage.setItem('activePromoDiscount', discount);
+                
+                if (promoDiv) {
+                    promoDiv.innerHTML = message;
+                }
+                
+                // Re-render current view to reflect changes (especially if on Cart page)
+                this.renderApp();
+            }
+        }
+
+        // --- GLOBAL INITIALIZATION ---
+
+        // Register event listener for the acknowledgement checkbox
+        document.addEventListener('change', (e) => {
+            if (e.target.id === 'acknowledgement-check') {
+                window.app.toggleUploadStep2(false);
+            }
+        });
+        
+        // Initialize application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Mock window.stripePayment for the app logic
+            window.stripePayment = { loadCart: () => console.log("Stripe cart loaded (simulated).") };
+            
+            // Initialize the main application controller
+            const appInstance = new Application();
+            await appInstance.initialize();
+        });
+    </script>
+</body>
+</html>
