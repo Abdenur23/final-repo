@@ -220,7 +220,7 @@
     
             <div class="flex justify-between items-center border-t border-gray-300 pt-4">
                 <h3 class="text-xl font-bold">Total: <span id="cart-total-display" class="gold-highlight">$0.00</span></h3>
-                <button onclick="window.app.navigateTo('checkout')" id="checkout-button" class="cta-magenta px-6 py-2 rounded-md font-semibold" disabled>
+                <button onclick="window.app.closeCartModal(); window.app.navigateTo('checkout')" id="checkout-button" class="cta-magenta px-6 py-2 rounded-md font-semibold" disabled>
                     Proceed to Checkout
                 </button>
             </div>
@@ -1060,23 +1060,32 @@
                 console.log("Checkout page rendered");
             }
             navigateTo(page) {
-                this.currentPage = page;
-                this.renderCurrentPage();
+                if (page === 'cart') {
+                    this.openCartModal(); // Open modal instead of navigating to cart page
+                } else {
+                    this.currentPage = page;
+                    this.renderCurrentPage();
+                }
             }
 
             renderCurrentPage() {
                 // Hide all main sections first
-                document.getElementById('homepage').style.display = 'none';
-                document.getElementById('studio-page').style.display = 'none';
-                document.getElementById('cart-page').style.display = 'none';
-                document.getElementById('checkout-page').style.display = 'none';
+                const sections = ['homepage', 'studio-page', 'checkout-page'];
+                sections.forEach(section => {
+                    const element = document.getElementById(section);
+                    if (element) {
+                        element.style.display = 'none';
+                    }
+                });
                 
-                // Show the current page
-                const targetElement = document.getElementById(`${this.currentPage}-page`) || document.getElementById(this.currentPage);
-                if (targetElement) {
-                    targetElement.style.display = 'block';
+                // Show the current page (only if it's not cart, since cart is now a modal)
+                if (this.currentPage !== 'cart') {
+                    const targetElement = document.getElementById(`${this.currentPage}-page`) || document.getElementById(this.currentPage);
+                    if (targetElement) {
+                        targetElement.style.display = 'block';
+                    }
                 }
-
+            
                 // Call page-specific render functions
                 if (this.currentPage === 'studio') {
                     // Check auth again and update UI of studio page specifically
@@ -1085,13 +1094,10 @@
                     if (isAuth) {
                         this.studioManager.renderProductList(); // Re-render product list to update cart button states
                     }
-                } else if (this.currentPage === 'cart') {
-                    this.renderCart();
                 } else if (this.currentPage === 'checkout') {
                     this.renderCheckout();
                 }
-                
-
+            
                 renderNavigation(this.currentPage); // Update navigation highlights
                 this.showSessionInfo();
             }
