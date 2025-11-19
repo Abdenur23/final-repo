@@ -39,6 +39,17 @@ class UIManager {
             } else {
                 appContentBox.style.display = 'none';
                 authRequired.style.display = 'block';
+                
+                // Update auth required message to be more inviting
+                authRequired.innerHTML = `
+                    <div class="text-center p-10 bg-blush-start border border-magenta rounded-lg mb-6">
+                        <p class="font-bold text-xl mb-2">Join the Bloom Community</p>
+                        <p class="mb-4">Sign in to create and view your personalized blooms</p>
+                        <button onclick="window.app.authManager.signin()" class="cta-gold px-6 py-2 text-sm font-semibold rounded-full shadow-lg">
+                            Sign In / Sign Up to Begin
+                        </button>
+                    </div>
+                `;
             }
         }
         
@@ -52,10 +63,12 @@ class UIManager {
         
         if (!tokenDiv) return;
         
-        if (userInfo) {
-            tokenDiv.innerHTML = `<span class="text-green-700 font-medium">Signed in as ${userInfo.displayName}</span>`;
-        } else {
-            tokenDiv.innerHTML = `<span class="text-red-500 font-medium">Not signed in</span>`;
+        // Remove the session info display since we show it in the header
+        tokenDiv.innerHTML = '';
+        
+        // Instead, we'll handle the "Not signed in" state in the auth-required message
+        if (!userInfo) {
+            // This is now handled in checkAuthAndUpdateUI
         }
     }
 
@@ -82,7 +95,7 @@ class UIManager {
                     <span class="text-gray-400 text-xs">${item.name}</span>
                 </div>
                 <div class="flex-grow">
-                    <h4 class="font-semibold">${item.name}</h4>
+                    <h4 class="font-semibold">${product.name}</h4>
                     <p class="text-sm text-gray-500">Device: ${item.device}</p>
                     <p class="text-sm gold-highlight">$${item.price.toFixed(2)}</p>
                 </div>
