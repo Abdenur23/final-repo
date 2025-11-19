@@ -105,9 +105,60 @@
             background-color: #fcf6f9; 
             margin-top: 20px;
         }
+        /* Floating Cart Styles */
+        .floating-cart {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid var(--color-blush-start);
+        }
+        
+        .floating-cart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+            border-color: var(--color-magenta);
+        }
+        
+        .cart-icon {
+            font-size: 24px;
+            color: var(--color-charcoal);
+        }
+        
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--color-magenta);
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
     </style>
 </head>
 <body>
+    <!-- Floating Cart -->
+    <div id="floating-cart" class="floating-cart" onclick="window.app.navigateTo('cart')">
+        <div class="cart-icon">🛒</div>
+        <div id="cart-badge" class="cart-badge" style="display: none;">0</div>
+    </div>
     <div class="container">
         <header class="header flex justify-between items-center pb-4 mb-6">
             <img src="logo.png" alt="Bloom" class="h-12 w-auto">
@@ -636,6 +687,51 @@
                 this.promoDiscount = 0;
             }
 
+            updateCartBadge() {
+                const cart = this.getCart();
+                const badge = document.getElementById('cart-badge');
+                const count = cart.length;
+                
+                if (count > 0) {
+                    badge.style.display = 'flex';
+                    badge.textContent = count > 9 ? '9+' : count.toString();
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+
+            addToCart(product) {
+                let cart = this.getCart();
+                const exists = cart.some(item => item.designId === product.designId);
+                
+                if (exists) {
+                    console.warn(`Product with designId ${product.designId} already in cart.`);
+                    return false;
+                }
+            
+                cart.push({
+                    designId: product.designId,
+                    name: product.name,
+                    price: product.price,
+                    images: product.images,
+                    device: product.device
+                });
+                this.saveCart(cart);
+                this.updateCartBadge(); // Add this line
+                window.app.renderCurrentPage();
+                console.log(`Added ${product.name} to cart.`);
+                return true;
+            }
+            
+            removeFromCart(designId) {
+                let cart = this.getCart();
+                cart = cart.filter(item => item.designId !== designId);
+                this.saveCart(cart);
+                this.updateCartBadge(); // Add this line
+                window.app.renderCurrentPage();
+                console.log(`Removed designId ${designId} from cart.`);
+            }
+            
             getCart() {
                 const cart = localStorage.getItem(this.cartKey);
                 return cart ? JSON.parse(cart) : [];
@@ -886,6 +982,9 @@
                 window.app = this;
                 
                 const isAuthenticatedStatus = await initializeAuth(); 
+
+                // Initialize cart badge
+                this.cartManager.updateCartBadge();
                 
                 this.renderCurrentPage(); // Render initial page
             }
