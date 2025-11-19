@@ -3,46 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlowerBloom Custom Case Studio</title>
+    <title>FlowerBloom · Your reflection, reimagined in bloom</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
-        
         :root {
-            --primary: #f87171; /* Rose 400/500 */
-            --secondary: #6366f1; /* Indigo */
-            --text-base: #4b5563; /* Gray 600 */
-            --bg-light: #fefcfc; /* Off-white, soft */
+            --mag: #E6007E;
+            --gold: #D4AF37;
+            --charcoal: #2E2E2E;
+            --soft-white: #FFFAFF;
         }
-
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-light);
+            background: var(--soft-white);
+            font-family: 'Cormorant Garamond', serif;
+            color: var(--charcoal);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
         }
-        h1, h2, h3 {
-            font-family: 'Playfair Display', serif;
+        h1, h2, .playfair { font-family: 'Playfair Display', serif; }
+        .mag { color: var(--mag); }
+        .gold { color: var(--gold); }
+        .gradient-bg {
+            background: linear-gradient(135deg, #fff9ff 0%, #fff4fb 50%, #fef5ff 100%);
         }
-        .container {
-            width: 100%;
-            max-width: 1000px;
-            background: white;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(248, 113, 113, 0.1);
+        .iridescent {
+            background: linear-gradient(90deg, #ffd1e9, #e6c3ff, #c3e6ff, #d1ffe6);
+            background-size: 300% 300%;
+            animation: shimmer 12s ease infinite;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f87171;
-            margin-bottom: 30px;
-        }
+        @keyframes shimmer { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+        .petal-border { border: 1px solid rgba(230,0,126,0.15); }
+        .glow { box-shadow: 0 0 30px rgba(230,0,126,0.15); }
+        
+        /* Original functional styles preserved */
         .auth-button, .nav-button, .product-button {
             transition: all 0.2s ease-in-out;
             cursor: pointer;
@@ -64,821 +59,877 @@
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <!-- HEADER & AUTH -->
-        <header class="header">
-            <h1 class="text-4xl font-bold text-rose-500">FlowerBloom Cases</h1>
-            <div id="auth-action" class="flex items-center space-x-4">
-                <!-- Auth button will render here -->
+<body class="gradient-bg">
+
+<div class="container max-w-5xl mx-auto p-6 lg:p-12">
+
+    <!-- HERO / INVITATION WALL -->
+    <header class="text-center py-16 lg:py-24 relative overflow-hidden rounded-3xl glow">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute inset-0 iridescent"></div>
+        </div>
+        
+        <h1 class="text-5xl lg:text-7xl font-bold playfair mb-6 leading-tight">
+            Your reflection<br><span class="mag">is waiting to bloom.</span>
+        </h1>
+        
+        <p class="text-2xl lg:text-4xl playfair italic gold mb-8 opacity-90">
+            She took a selfie.<br>The flowers took over.
+        </p>
+        
+        <p class="text-lg lg:text-xl max-w-2xl mx-auto mb-12 leading-relaxed opacity-80">
+            Your photo becomes art — flowing between your wallpaper and your phone case.<br>
+            <span class="gold">Watch it come alive before your eyes.</span>
+        </p>
+
+        <!-- Logo Lockup -->
+        <div class="mb-12">
+            <img src="logo.png" alt="FlowerBloom logo" class="mx-auto h-20">
+        </div>
+    </header>
+
+    <!-- POEM WALL (Manifesto) -->
+    <section class="my-20 lg:my-32 text-center lg:text-left lg:flex lg:items-center lg:justify-between">
+        <div class="max-w-3xl mx-auto lg:mx-0 leading-loose text-2xl lg:text-3xl italic">
+            <p class="mb-8">You are not pixels or paper.</p>
+            <p class="mb-8">You are motion and bloom.</p>
+            <p class="mb-8">The flowers you wear are grown from your light.</p>
+            <p class="mb-8">They drift between worlds —</p>
+            <p class="mb-8">from your reflection,<br>to your phone,<br>to your hand.</p>
+            <p class="mt-16 text-3xl lg:text-4xl playfair font-bold mag">
+                This is not a phone case.<br>
+                It's a portrait of your bloom.
+            </p>
+        </div>
+    </section>
+
+    <!-- CORE TAGLINE LOCKUP -->
+    <div class="text-center py-16 border-y-2 border-dashed border-pink-100 my-20">
+        <h2 class="text-4xl lg:text-6xl playfair font-bold mb-4">
+            Your reflection.<br><span class="mag">Reimagined in bloom.</span>
+        </h2>
+        <p class="text-xl italic gold">Where technology meets the tenderness of art.</p>
+    </div>
+
+    <!-- EXISTING APP (restyled) -->
+    <div class="mt-20">
+        <div class="bg-white/80 backdrop-blur rounded-3xl shadow-2xl p-8 lg:p-12 petal-border glow">
+            <!-- HEADER & AUTH -->
+            <header class="flex justify-between items-center pb-6 border-b-2 border-pink-100 mb-10">
+                <h1 class="text-4xl playfair font-bold mag">FlowerBloom Cases</h1>
+                <div id="auth-action" class="flex items-center space-x-4">
+                    <!-- Auth button will render here -->
+                </div>
+            </header>
+
+            <!-- NAVIGATION & STATUS -->
+            <div id="nav-container" class="mb-8">
+                <!-- Navigation will render here -->
             </div>
-        </header>
+            
+            <div id="token-display" class="text-sm font-medium mb-8 p-4 bg-pink-50/50 rounded-xl">
+                <!-- Session information will render here -->
+            </div>
+            
+            <!-- MAIN APPLICATION VIEWS -->
+            <div id="app-content">
+                <!-- Dynamic view (home, case-studio, cart) renders here -->
+            </div>
 
-        <!-- NAVIGATION & STATUS -->
-        <div id="nav-container" class="mb-6">
-            <!-- Navigation will render here -->
-        </div>
-        
-        <div id="token-display" class="text-sm font-medium mb-6 p-3 bg-gray-50 rounded-lg shadow-inner">
-            <!-- Session information will render here -->
-        </div>
-        
-        <!-- MAIN APPLICATION VIEWS -->
-        <div id="app-content">
-            <!-- Dynamic view (home, case-studio, cart) renders here -->
-        </div>
-
-        <!-- UNAUTHENTICATED MESSAGE -->
-        <div id="auth-required-message" class="text-center p-8 bg-red-50 border border-red-200 text-red-700 rounded-lg shadow-lg mt-8" style="display: none;">
-            <p class="font-bold text-xl">Access Denied.</p>
-            <p>Please sign in to access the custom case studio and view your cart.</p>
+            <!-- UNAUTHENTICATED MESSAGE -->
+            <div id="auth-required-message" class="text-center p-8 bg-red-50 border border-red-200 text-red-700 rounded-lg shadow-lg mt-8" style="display: none;">
+                <p class="font-bold text-xl">Access Denied.</p>
+                <p>Please sign in to access the custom case studio and view your cart.</p>
+            </div>
         </div>
     </div>
 
-    <script>
-        // --- PKCE UTILITY FUNCTIONS (Standard, no changes) ---
-        function base64urlencode(buffer){
-            const bytes = new Uint8Array(buffer);
-            let binary = '';
-            for (let i = 0; i < bytes.byteLength; i++) {
-                binary += String.fromCharCode(bytes[i]);
-            }
-            return btoa(binary)
-                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+</div>
+
+<script>
+    // --- PKCE UTILITY FUNCTIONS (Standard, no changes) ---
+    function base64urlencode(buffer){
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
         }
+        return btoa(binary)
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
 
-        async function sha256(str){
-            const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-            return base64urlencode(digest);
+    async function sha256(str){
+        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+        return base64urlencode(digest);
+    }
+
+    function genRandom(){ 
+        const arr = new Uint8Array(32); 
+        crypto.getRandomValues(arr); 
+        return base64urlencode(arr); 
+    }
+
+    // --- AUTH CONFIG & SESSION MANAGEMENT (Standard, no changes) ---
+    const cognitoConfig = {
+        clientId: '73lf1h32phkqeb9ahu6tqcl9av',
+        domain: 'auth.theweer.com',
+        redirectUri: window.location.origin + window.location.pathname,
+        tokenEndpoint: `https://auth.theweer.com/oauth2/token`
+    };
+
+    function saveSession(t){ 
+        localStorage.setItem('cognitoSession', JSON.stringify(t)); 
+    }
+
+    function getSession(){ 
+        const session = localStorage.getItem('cognitoSession');
+        return session ? JSON.parse(session) : null;
+    }
+
+    function clearUserData() {
+        localStorage.removeItem('activePromoDiscount');
+        localStorage.removeItem('userUploads');
+        localStorage.removeItem('deviceSelection');
+        localStorage.removeItem('shoppingCart');
+        console.log('All user-specific data cleared');
+    }
+
+    function clearSession() {
+        localStorage.removeItem('cognitoSession');
+        localStorage.removeItem('pkce_verifier');
+        clearUserData();
+    }
+
+    function isTokenExpired(token) {
+        if (!token) return true;
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const exp = payload.exp * 1000; 
+            const now = Date.now();
+            const bufferTime = 300000; // 5 minutes buffer
+            return now >= (exp - bufferTime);
+        } catch (e) {
+            console.error('Error checking token expiration:', e);
+            return true;
         }
-
-        function genRandom(){ 
-            const arr = new Uint8Array(32); 
-            crypto.getRandomValues(arr); 
-            return base64urlencode(arr); 
+    }
+    
+    async function refreshSession() {
+        const session = getSession();
+        if (!session || !session.refresh_token) {
+            clearSession();
+            return false;
         }
+        const body =
+          `grant_type=refresh_token`
+          + `&client_id=${cognitoConfig.clientId}`
+          + `&refresh_token=${session.refresh_token}`;
 
-        // --- AUTH CONFIG & SESSION MANAGEMENT (Standard, no changes) ---
-        const cognitoConfig = {
-            clientId: '73lf1h32phkqeb9ahu6tqcl9av',
-            domain: 'auth.theweer.com',
-            redirectUri: window.location.origin + window.location.pathname,
-            tokenEndpoint: `https://auth.theweer.com/oauth2/token`
-        };
+        try {
+            const res = await fetch(cognitoConfig.tokenEndpoint,{
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body
+            });
+            const tokens = await res.json();
 
-        function saveSession(t){ 
-            localStorage.setItem('cognitoSession', JSON.stringify(t)); 
-        }
-
-        function getSession(){ 
-            const session = localStorage.getItem('cognitoSession');
-            return session ? JSON.parse(session) : null;
-        }
-
-        function clearUserData() {
-            localStorage.removeItem('activePromoDiscount');
-            localStorage.removeItem('userUploads');
-            localStorage.removeItem('deviceSelection');
-            localStorage.removeItem('shoppingCart');
-            console.log('All user-specific data cleared');
-        }
-
-        function clearSession() {
-            localStorage.removeItem('cognitoSession');
-            localStorage.removeItem('pkce_verifier');
-            clearUserData();
-        }
-
-        function isTokenExpired(token) {
-            if (!token) return true;
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                const exp = payload.exp * 1000; 
-                const now = Date.now();
-                const bufferTime = 300000; // 5 minutes buffer
-                return now >= (exp - bufferTime);
-            } catch (e) {
-                console.error('Error checking token expiration:', e);
+            if(res.ok && tokens.id_token) {
+                const newSession = {
+                    ...tokens,
+                    refresh_token: tokens.refresh_token || session.refresh_token 
+                };
+                saveSession(newSession);
                 return true;
-            }
-        }
-        
-        async function refreshSession() {
-            const session = getSession();
-            if (!session || !session.refresh_token) {
+            } else {
                 clearSession();
                 return false;
             }
-            const body =
-              `grant_type=refresh_token`
-              + `&client_id=${cognitoConfig.clientId}`
-              + `&refresh_token=${session.refresh_token}`;
+        } catch (error) {
+            console.error('Network or exchange error during refresh:', error);
+            return false;
+        }
+    }
 
+    async function isAuthenticated() {
+        const session = getSession();
+        if (!session || !session.id_token) return false;
+        if (isTokenExpired(session.id_token)) {
+            return await refreshSession();
+        }
+        return true;
+    }
+
+    function getUserInfo() {
+        const session = getSession();
+        if (session && session.id_token) {
             try {
-                const res = await fetch(cognitoConfig.tokenEndpoint,{
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body
-                });
-                const tokens = await res.json();
-
-                if(res.ok && tokens.id_token) {
-                    const newSession = {
-                        ...tokens,
-                        refresh_token: tokens.refresh_token || session.refresh_token 
-                    };
-                    saveSession(newSession);
-                    return true;
-                } else {
-                    clearSession();
-                    return false;
-                }
-            } catch (error) {
-                console.error('Network or exchange error during refresh:', error);
-                return false;
+                const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+                const displayName = payload.given_name || payload.email || 'User';
+                return {
+                    email: payload.email,
+                    sub: payload.sub,
+                    displayName: displayName
+                };
+            } catch (e) {
+                console.error('Error parsing token:', e);
             }
         }
+        return null;
+    }
 
-        async function isAuthenticated() {
-            const session = getSession();
-            if (!session || !session.id_token) return false;
-            if (isTokenExpired(session.id_token)) {
-                return await refreshSession();
+    async function signin(){
+        const verifier = genRandom();
+        localStorage.setItem('pkce_verifier', verifier);
+        const challenge = await sha256(verifier);
+        const url =
+          `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code`
+          + `&client_id=${cognitoConfig.clientId}`
+          + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
+          + `&scope=email+openid+profile` 
+          + `&code_challenge_method=S256`
+          + `&code_challenge=${challenge}`;
+        window.location.href = url;
+    }
+
+    function signout(){
+        clearSession();
+        window.location.href =
+          `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}`
+          + `&logout_uri=${encodeURIComponent(window.location.origin)}`;
+    }
+
+    async function handleCodeExchange(){
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        if(!code) return false;
+        const verifier = localStorage.getItem('pkce_verifier');
+        if (!verifier) {
+            window.history.replaceState({},document.title,cognitoConfig.redirectUri); 
+            return false;
+        }
+        const body =
+          `grant_type=authorization_code`
+          + `&client_id=${cognitoConfig.clientId}`
+          + `&code=${code}`
+          + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
+          + `&code_verifier=${verifier}`;
+
+        try {
+            const res = await fetch(cognitoConfig.tokenEndpoint,{
+                method:'POST',
+                headers:{'Content-Type':'application/x-www-form-urlencoded'},
+                body
+            });
+            const tokens = await res.json();
+
+            if(res.ok && tokens.id_token) {
+                saveSession(tokens);
+                localStorage.removeItem('pkce_verifier');
+                window.history.replaceState({},document.title,cognitoConfig.redirectUri);
+                return true;
+            } else {
+                return false;
             }
+        } catch (error) {
+            return false;
+        }
+    }
+    
+    // --- CORE APPLICATION MANAGERS ---
+
+    class CartManager {
+        constructor() {
+            this.cartKey = 'shoppingCart';
+            this.loadCart();
+        }
+
+        loadCart() {
+            const cart = localStorage.getItem(this.cartKey);
+            this.items = cart ? JSON.parse(cart) : [];
+        }
+
+        saveCart() {
+            localStorage.setItem(this.cartKey, JSON.stringify(this.items));
+        }
+
+        getCartItems() {
+            return this.items;
+        }
+        
+        getCartTotalItems() {
+            return this.items.length;
+        }
+
+        isInCart(productId) {
+            return this.items.some(item => item.id === productId);
+        }
+
+        addItem(product) {
+            if (this.isInCart(product.id)) {
+                console.log(`Product ${product.id} already in cart.`);
+                return false;
+            }
+            this.items.push(product);
+            this.saveCart();
+            console.log(`Added product ${product.id} to cart.`);
             return true;
         }
 
-        function getUserInfo() {
-            const session = getSession();
-            if (session && session.id_token) {
-                try {
-                    const payload = JSON.parse(atob(session.id_token.split('.')[1]));
-                    const displayName = payload.given_name || payload.email || 'User';
-                    return {
-                        email: payload.email,
-                        sub: payload.sub,
-                        displayName: displayName
-                    };
-                } catch (e) {
-                    console.error('Error parsing token:', e);
-                }
+        removeItem(productId) {
+            const initialLength = this.items.length;
+            this.items = this.items.filter(item => item.id !== productId);
+            this.saveCart();
+            return this.items.length < initialLength;
+        }
+
+        clearCart() {
+            this.items = [];
+            this.saveCart();
+            console.log('Cart cleared.');
+        }
+    }
+    
+    class ProductManager {
+        constructor(cartManager) {
+            this.cartManager = cartManager;
+            this.productDataKey = 'userMockupProducts';
+            this.loadMockupProducts();
+        }
+
+        loadMockupProducts() {
+            const products = localStorage.getItem(this.productDataKey);
+            this.mockupProducts = products ? JSON.parse(products) : [];
+        }
+        
+        saveMockupProducts() {
+             localStorage.setItem(this.productDataKey, JSON.stringify(this.mockupProducts));
+        }
+
+        simulateGenerateMockups(device, fileNames) {
+            const baseId = crypto.randomUUID();
+            const designs = ['Rose Petal Bloom', 'Midnight Lily Mix'];
+            
+            this.mockupProducts = designs.map((design, index) => {
+                const productId = `${baseId}-${index}`;
+                return {
+                    id: productId,
+                    name: `${design}`,
+                    device: device,
+                    price: 34.99 + (index * 5),
+                    images: [
+                        `https://placehold.co/150x250/f9fafb/374151?text=Front`,
+                        `https://placehold.co/150x250/f0fdf4/16a34a?text=Back`,
+                        `https://placehold.co/150x250/f0f9ff/06b6d4?text=Side`,
+                        `https://placehold.co/150x250/fff7ed/f97316?text=Room+Mockup`
+                    ],
+                    sourceImages: fileNames 
+                };
+            });
+            this.saveMockupProducts();
+            return this.mockupProducts;
+        }
+        
+        getProductsHtml() {
+            if (this.mockupProducts.length === 0) {
+                return `
+                    <p class="text-center text-gray-500 py-10">No custom designs found. <span class="mag cursor-pointer" onclick="window.app.setPath('case-studio')">Start designing now!</span></p>
+                `;
             }
-            return null;
+            
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    ${this.mockupProducts.map(product => {
+                        const inCart = this.cartManager.isInCart(product.id);
+                        return this.renderProductCard(product, inCart);
+                    }).join('')}
+                </div>
+            `;
         }
+        
+        renderProductCard(product, inCart) {
+            const buttonColor = inCart ? 'bg-gray-500 hover:bg-gray-600' : 'bg-[var(--mag)] hover:opacity-90';
+            const buttonText = inCart ? 'Remove from Cart' : 'Add to Cart';
+            // NOTE: Using window.app methods directly in onclick for simplicity
+            const buttonAction = inCart ? 
+                `window.app.cartManager.removeItem('${product.id}'); window.app.productManager.renderProductList()` : 
+                `window.app.cartManager.addItem(${JSON.stringify(product).replace(/"/g, '&quot;')}); window.app.productManager.renderProductList()`;
 
-        async function signin(){
-            const verifier = genRandom();
-            localStorage.setItem('pkce_verifier', verifier);
-            const challenge = await sha256(verifier);
-            const url =
-              `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code`
-              + `&client_id=${cognitoConfig.clientId}`
-              + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
-              + `&scope=email+openid+profile` 
-              + `&code_challenge_method=S256`
-              + `&code_challenge=${challenge}`;
-            window.location.href = url;
+            return `
+                <div id="product-card-${product.id}" class="bg-white p-4 border border-gray-100 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col items-center">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">${product.name}</h3>
+                    <p class="text-sm text-gray-500 mb-4">Device: ${product.device}</p>
+                    
+                    <div class="w-full h-64 bg-gray-100 rounded-lg overflow-hidden mb-4 relative">
+                        <img src="${product.images[0]}" alt="${product.name} Front Mockup" class="w-full h-full object-cover">
+                        <span class="absolute top-2 right-2 px-3 py-1 bg-[var(--mag)] text-white text-xs font-bold rounded-full">$${product.price.toFixed(2)}</span>
+                    </div>
+                    
+                    <button 
+                        onclick="${buttonAction}" 
+                        class="product-button w-full py-2 text-white font-medium ${buttonColor}"
+                    >
+                        ${buttonText}
+                    </button>
+                </div>
+            `;
         }
-
-        function signout(){
-            clearSession();
-            window.location.href =
-              `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}`
-              + `&logout_uri=${encodeURIComponent(window.location.origin)}`;
-        }
-
-        async function handleCodeExchange(){
-            const params = new URLSearchParams(window.location.search);
-            const code = params.get('code');
-            if(!code) return false;
-            const verifier = localStorage.getItem('pkce_verifier');
-            if (!verifier) {
-                window.history.replaceState({},document.title,cognitoConfig.redirectUri); 
-                return false;
-            }
-            const body =
-              `grant_type=authorization_code`
-              + `&client_id=${cognitoConfig.clientId}`
-              + `&code=${code}`
-              + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
-              + `&code_verifier=${verifier}`;
-
-            try {
-                const res = await fetch(cognitoConfig.tokenEndpoint,{
-                    method:'POST',
-                    headers:{'Content-Type':'application/x-www-form-urlencoded'},
-                    body
-                });
-                const tokens = await res.json();
-
-                if(res.ok && tokens.id_token) {
-                    saveSession(tokens);
-                    localStorage.removeItem('pkce_verifier');
-                    window.history.replaceState({},document.title,cognitoConfig.redirectUri);
-                    return true;
-                } else {
-                    return false;
-                }
-            } catch (error) {
-                return false;
+        
+        renderProductList() {
+            const target = document.getElementById('product-mockups');
+            if (target) {
+                target.innerHTML = this.getProductsHtml();
+                window.app.renderNavigation();
             }
         }
         
-        // --- CORE APPLICATION MANAGERS ---
+        clearMockups() {
+            this.mockupProducts = [];
+            this.saveMockupProducts();
+        }
+    }
 
-        class CartManager {
-            constructor() {
-                this.cartKey = 'shoppingCart';
-                this.loadCart();
-            }
+    // --- APPLICATION CONTROLLER & ROUTER ---
 
-            loadCart() {
-                const cart = localStorage.getItem(this.cartKey);
-                this.items = cart ? JSON.parse(cart) : [];
-            }
+    class Application {
+        constructor() {
+            this.state = {
+                isAuthenticated: false,
+                path: 'home', // 'home', 'case-studio', 'cart'
+            };
+            
+            this.cartManager = new CartManager();
+            this.productManager = new ProductManager(this.cartManager);
+            
+            // Expose core methods to global scope using window.app
+            window.app = {
+                ...this,
+                signin: signin,
+                signout: signout,
+                setPath: this.setPath.bind(this)
+            };
+        }
+        
+        // --- AUTH INTEGRATION METHODS (Now part of the class) ---
+        
+        async initializeAuth() {
+            await handleCodeExchange();
+            const actualAuthStatus = await isAuthenticated();
+            this.checkAuthAndUpdateUI(); 
+            this.setupTokenRefresh();
+            return actualAuthStatus;
+        }
+        
+        setupTokenRefresh() {
+            setInterval(async () => {
+                const session = getSession();
+                if (session && isTokenExpired(session.id_token)) {
+                    await refreshSession();
+                    this.checkAuthAndUpdateUI(); 
+                }
+            }, 30000); 
+        }
 
-            saveCart() {
-                localStorage.setItem(this.cartKey, JSON.stringify(this.items));
-            }
-
-            getCartItems() {
-                return this.items;
+        async initialize() {
+            // Initialize auth, which is now guaranteed to call this.checkAuthAndUpdateUI()
+            const authStatus = await this.initializeAuth();
+            this.state.isAuthenticated = authStatus;
+            
+            // Determine initial path based on URL hash or default
+            this.setPath(window.location.hash.substring(1) || 'home', false);
+        }
+        
+        setPath(newPath, updateHistory = true) {
+            if (newPath === this.state.path) return;
+            
+            // Protected routes check
+            if (!this.state.isAuthenticated && (newPath === 'case-studio' || newPath === 'cart')) {
+                 alert('You must be signed in to access the studio or cart.');
+                 newPath = 'home';
             }
             
-            getCartTotalItems() {
-                return this.items.length;
+            this.state.path = newPath;
+            if (updateHistory) {
+                window.location.hash = newPath;
             }
+            
+            this.renderApp();
+        }
 
-            isInCart(productId) {
-                return this.items.some(item => item.id === productId);
-            }
-
-            addItem(product) {
-                if (this.isInCart(product.id)) {
-                    console.log(`Product ${product.id} already in cart.`);
-                    return false;
-                }
-                this.items.push(product);
-                this.saveCart();
-                console.log(`Added product ${product.id} to cart.`);
-                return true;
-            }
-
-            removeItem(productId) {
-                const initialLength = this.items.length;
-                this.items = this.items.filter(item => item.id !== productId);
-                this.saveCart();
-                return this.items.length < initialLength;
-            }
-
-            clearCart() {
-                this.items = [];
-                this.saveCart();
-                console.log('Cart cleared.');
+        checkAuthAndUpdateUI() {
+            const userInfo = getUserInfo();
+            const isAuthenticated = !!userInfo;
+            this.state.isAuthenticated = isAuthenticated;
+            
+            this.renderAuthUI();
+            this.renderNavigation();
+            this.showSessionInfo(userInfo);
+            
+            // Reroute if authentication status changes and user is on a protected route
+            if (!isAuthenticated && (this.state.path === 'case-studio' || this.state.path === 'cart')) {
+                this.setPath('home', false);
+            } else {
+                this.renderApp(); 
             }
         }
         
-        class ProductManager {
-            constructor(cartManager) {
-                this.cartManager = cartManager;
-                this.productDataKey = 'userMockupProducts';
-                this.loadMockupProducts();
-            }
-
-            loadMockupProducts() {
-                const products = localStorage.getItem(this.productDataKey);
-                this.mockupProducts = products ? JSON.parse(products) : [];
-            }
+        // --- UI RENDERERS ---
+        
+        renderAuthUI() {
+            const authDiv = document.getElementById('auth-action');
+            if (!authDiv) return;
+            const userInfo = getUserInfo();
             
-            saveMockupProducts() {
-                 localStorage.setItem(this.productDataKey, JSON.stringify(this.mockupProducts));
-            }
-
-            simulateGenerateMockups(device, fileNames) {
-                const baseId = crypto.randomUUID();
-                const designs = ['Rose Petal Bloom', 'Midnight Lily Mix'];
-                
-                this.mockupProducts = designs.map((design, index) => {
-                    const productId = `${baseId}-${index}`;
-                    return {
-                        id: productId,
-                        name: `${design}`,
-                        device: device,
-                        price: 34.99 + (index * 5),
-                        images: [
-                            `https://placehold.co/150x250/f9fafb/374151?text=Front`,
-                            `https://placehold.co/150x250/f0fdf4/16a34a?text=Back`,
-                            `https://placehold.co/150x250/f0f9ff/06b6d4?text=Side`,
-                            `https://placehold.co/150x250/fff7ed/f97316?text=Room+Mockup`
-                        ],
-                        sourceImages: fileNames 
-                    };
-                });
-                this.saveMockupProducts();
-                return this.mockupProducts;
-            }
-            
-            getProductsHtml() {
-                if (this.mockupProducts.length === 0) {
-                    return `
-                        <p class="text-center text-gray-500 py-10">No custom designs found. <span class="text-rose-500 cursor-pointer" onclick="window.app.setPath('case-studio')">Start designing now!</span></p>
-                    `;
-                }
-                
-                return `
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        ${this.mockupProducts.map(product => {
-                            const inCart = this.cartManager.isInCart(product.id);
-                            return this.renderProductCard(product, inCart);
-                        }).join('')}
+            if (userInfo) {
+                authDiv.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-medium text-gray-700 hidden md:inline">Hello, ${userInfo.displayName}</span>
+                        <button onclick="window.app.signout()" class="px-3 py-1 bg-red-400 text-white text-sm rounded-lg shadow-md hover:bg-red-500 auth-button">Sign Out</button>
                     </div>
                 `;
-            }
-            
-            renderProductCard(product, inCart) {
-                const buttonColor = inCart ? 'bg-gray-500 hover:bg-gray-600' : 'bg-rose-500 hover:bg-rose-600';
-                const buttonText = inCart ? 'Remove from Cart' : 'Add to Cart';
-                // NOTE: Using window.app methods directly in onclick for simplicity
-                const buttonAction = inCart ? 
-                    `window.app.cartManager.removeItem('${product.id}'); window.app.productManager.renderProductList()` : 
-                    `window.app.cartManager.addItem(${JSON.stringify(product).replace(/"/g, '&quot;')}); window.app.productManager.renderProductList()`;
-
-                return `
-                    <div id="product-card-${product.id}" class="bg-white p-4 border border-gray-100 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col items-center">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">${product.name}</h3>
-                        <p class="text-sm text-gray-500 mb-4">Device: ${product.device}</p>
-                        
-                        <div class="w-full h-64 bg-gray-100 rounded-lg overflow-hidden mb-4 relative">
-                            <img src="${product.images[0]}" alt="${product.name} Front Mockup" class="w-full h-full object-cover">
-                            <span class="absolute top-2 right-2 px-3 py-1 bg-rose-500 text-white text-xs font-bold rounded-full">$${product.price.toFixed(2)}</span>
-                        </div>
-                        
-                        <button 
-                            onclick="${buttonAction}" 
-                            class="product-button w-full py-2 text-white font-medium ${buttonColor}"
-                        >
-                            ${buttonText}
-                        </button>
-                    </div>
+            } else {
+                authDiv.innerHTML = `
+                    <button onclick="window.app.signin()" class="px-4 py-2 bg-[var(--mag)] text-white font-semibold rounded-lg shadow-lg hover:opacity-90 auth-button">Sign In / Sign Up</button>
                 `;
-            }
-            
-            renderProductList() {
-                const target = document.getElementById('product-mockups');
-                if (target) {
-                    target.innerHTML = this.getProductsHtml();
-                    window.app.renderNavigation();
-                }
-            }
-            
-            clearMockups() {
-                this.mockupProducts = [];
-                this.saveMockupProducts();
             }
         }
-
-        // --- APPLICATION CONTROLLER & ROUTER ---
-
-        class Application {
-            constructor() {
-                this.state = {
-                    isAuthenticated: false,
-                    path: 'home', // 'home', 'case-studio', 'cart'
-                };
-                
-                this.cartManager = new CartManager();
-                this.productManager = new ProductManager(this.cartManager);
-                
-                // Expose core methods to global scope using window.app
-                window.app = {
-                    ...this,
-                    signin: signin,
-                    signout: signout,
-                    setPath: this.setPath.bind(this)
-                };
-            }
+        
+        renderNavigation() {
+            const navContainer = document.getElementById('nav-container');
+            if (!navContainer) return;
+            const authenticated = this.state.isAuthenticated;
+            const path = this.state.path;
+            const cartCount = this.cartManager.getCartTotalItems();
             
-            // --- AUTH INTEGRATION METHODS (Now part of the class) ---
+            const navItem = (p, text, requiresAuth = false) => {
+                const active = p === path ? 'bg-pink-100 text-[var(--mag)] font-bold' : 'text-gray-600 hover:bg-gray-100';
+                const authClass = requiresAuth && !authenticated ? 'opacity-50 cursor-not-allowed' : '';
+                const action = requiresAuth && !authenticated ? '' : `onclick="window.app.setPath('${p}')"`;
+                
+                return `<button ${action} class="nav-button px-4 py-2 text-sm ${active} ${authClass}">${text}</button>`;
+            };
             
-            async initializeAuth() {
-                await handleCodeExchange();
-                const actualAuthStatus = await isAuthenticated();
-                this.checkAuthAndUpdateUI(); 
-                this.setupTokenRefresh();
-                return actualAuthStatus;
-            }
-            
-            setupTokenRefresh() {
-                setInterval(async () => {
-                    const session = getSession();
-                    if (session && isTokenExpired(session.id_token)) {
-                        await refreshSession();
-                        this.checkAuthAndUpdateUI(); 
-                    }
-                }, 30000); 
-            }
-
-            async initialize() {
-                // Initialize auth, which is now guaranteed to call this.checkAuthAndUpdateUI()
-                const authStatus = await this.initializeAuth();
-                this.state.isAuthenticated = authStatus;
-                
-                // Determine initial path based on URL hash or default
-                this.setPath(window.location.hash.substring(1) || 'home', false);
-            }
-            
-            setPath(newPath, updateHistory = true) {
-                if (newPath === this.state.path) return;
-                
-                // Protected routes check
-                if (!this.state.isAuthenticated && (newPath === 'case-studio' || newPath === 'cart')) {
-                     alert('You must be signed in to access the studio or cart.');
-                     newPath = 'home';
-                }
-                
-                this.state.path = newPath;
-                if (updateHistory) {
-                    window.location.hash = newPath;
-                }
-                
-                this.renderApp();
-            }
-
-            checkAuthAndUpdateUI() {
-                const userInfo = getUserInfo();
-                const isAuthenticated = !!userInfo;
-                this.state.isAuthenticated = isAuthenticated;
-                
-                this.renderAuthUI();
-                this.renderNavigation();
-                this.showSessionInfo(userInfo);
-                
-                // Reroute if authentication status changes and user is on a protected route
-                if (!isAuthenticated && (this.state.path === 'case-studio' || this.state.path === 'cart')) {
-                    this.setPath('home', false);
-                } else {
-                    this.renderApp(); 
-                }
-            }
-            
-            // --- UI RENDERERS ---
-            
-            renderAuthUI() {
-                const authDiv = document.getElementById('auth-action');
-                if (!authDiv) return;
-                const userInfo = getUserInfo();
-                
-                if (userInfo) {
-                    authDiv.innerHTML = `
-                        <div class="flex items-center gap-4">
-                            <span class="text-sm font-medium text-gray-700 hidden md:inline">Hello, ${userInfo.displayName}</span>
-                            <button onclick="window.app.signout()" class="px-3 py-1 bg-red-400 text-white text-sm rounded-lg shadow-md hover:bg-red-500 auth-button">Sign Out</button>
-                        </div>
-                    `;
-                } else {
-                    authDiv.innerHTML = `
-                        <button onclick="window.app.signin()" class="px-4 py-2 bg-rose-500 text-white font-semibold rounded-lg shadow-lg hover:bg-rose-600 auth-button">Sign In / Sign Up</button>
-                    `;
-                }
-            }
-            
-            renderNavigation() {
-                const navContainer = document.getElementById('nav-container');
-                if (!navContainer) return;
-                const authenticated = this.state.isAuthenticated;
-                const path = this.state.path;
-                const cartCount = this.cartManager.getCartTotalItems();
-                
-                const navItem = (p, text, requiresAuth = false) => {
-                    const active = p === path ? 'bg-rose-100 text-rose-700 font-bold' : 'text-gray-600 hover:bg-gray-100';
-                    const authClass = requiresAuth && !authenticated ? 'opacity-50 cursor-not-allowed' : '';
-                    const action = requiresAuth && !authenticated ? '' : `onclick="window.app.setPath('${p}')"`;
-                    
-                    return `<button ${action} class="nav-button px-4 py-2 text-sm ${active} ${authClass}">${text}</button>`;
-                };
-                
-                navContainer.innerHTML = `
-                    <div class="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg shadow-inner justify-center">
-                        ${navItem('home', 'Home')}
-                        ${navItem('case-studio', 'Create Your Case', true)}
-                        ${navItem('cart', `Cart (${cartCount})`, true)}
-                        <div class="flex-grow"></div>
-                        <div class="w-full md:w-auto p-2">
-                             <input type="text" id="promo-code-input" placeholder="Promo Code (E.g. BLOOM20)" class="input-style bg-white text-sm w-full md:w-auto" onchange="window.app.applyPromo(this.value)">
-                        </div>
+            navContainer.innerHTML = `
+                <div class="flex flex-wrap gap-2 p-3 bg-pink-50/50 rounded-lg shadow-inner justify-center">
+                    ${navItem('home', 'Home')}
+                    ${navItem('case-studio', 'Create Your Case', true)}
+                    ${navItem('cart', `Cart (${cartCount})`, true)}
+                    <div class="flex-grow"></div>
+                    <div class="w-full md:w-auto p-2">
+                         <input type="text" id="promo-code-input" placeholder="Promo Code (E.g. BLOOM20)" class="input-style bg-white text-sm w-full md:w-auto" onchange="window.app.applyPromo(this.value)">
                     </div>
-                `;
+                </div>
+            `;
+        }
+        
+        showSessionInfo(userInfo) {
+            const tokenDiv = document.getElementById('token-display');
+            if (userInfo) {
+                tokenDiv.classList.remove('bg-pink-50/50');
+                tokenDiv.classList.add('bg-green-50');
+                tokenDiv.innerHTML = `<span class="text-green-700">✅ Session Active for ${userInfo.displayName}.</span>`;
+            } else {
+                tokenDiv.classList.remove('bg-green-50');
+                tokenDiv.classList.add('bg-pink-50/50');
+                tokenDiv.innerHTML = `<span class="text-gray-500">❌ Session inactive. Please sign in.</span>`;
             }
-            
-            showSessionInfo(userInfo) {
-                const tokenDiv = document.getElementById('token-display');
-                if (userInfo) {
-                    tokenDiv.classList.remove('bg-gray-50');
-                    tokenDiv.classList.add('bg-green-50');
-                    tokenDiv.innerHTML = `<span class="text-green-700">✅ Session Active for ${userInfo.displayName}.</span>`;
-                } else {
-                    tokenDiv.classList.remove('bg-green-50');
-                    tokenDiv.classList.add('bg-gray-50');
-                    tokenDiv.innerHTML = `<span class="text-gray-500">❌ Session inactive. Please sign in.</span>`;
-                }
-            }
-            
-            renderApp() {
-                const appContent = document.getElementById('app-content');
-                const authRequired = document.getElementById('auth-required-message');
+        }
+        
+        renderApp() {
+            const appContent = document.getElementById('app-content');
+            const authRequired = document.getElementById('auth-required-message');
 
-                if (this.state.isAuthenticated) {
-                    authRequired.style.display = 'none';
-                    appContent.style.display = 'block';
-                    
-                    switch(this.state.path) {
-                        case 'case-studio':
-                            appContent.innerHTML = this.renderCaseStudioView();
-                            // Initial rendering of products after view is loaded
-                            document.getElementById('product-mockups').innerHTML = this.productManager.getProductsHtml();
-                            break;
-                        case 'cart':
-                            appContent.innerHTML = this.renderCartView();
-                            break;
-                        case 'home':
-                        default:
-                            appContent.innerHTML = this.renderHomeView();
-                            break;
-                    }
-                } else {
-                    appContent.style.display = 'none';
-                    authRequired.style.display = 'block';
-                    // Render home view even if not signed in (for marketing purposes)
-                    appContent.innerHTML = this.renderHomeView(); 
-                }
+            if (this.state.isAuthenticated) {
+                authRequired.style.display = 'none';
+                appContent.style.display = 'block';
                 
-                this.renderAuthUI();
-                this.renderNavigation();
+                switch(this.state.path) {
+                    case 'case-studio':
+                        appContent.innerHTML = this.renderCaseStudioView();
+                        // Initial rendering of products after view is loaded
+                        document.getElementById('product-mockups').innerHTML = this.productManager.getProductsHtml();
+                        break;
+                    case 'cart':
+                        appContent.innerHTML = this.renderCartView();
+                        break;
+                    case 'home':
+                    default:
+                        appContent.innerHTML = this.renderHomeView();
+                        break;
+                }
+            } else {
+                appContent.style.display = 'none';
+                authRequired.style.display = 'block';
+                // Render home view even if not signed in (for marketing purposes)
+                appContent.innerHTML = this.renderHomeView(); 
             }
-
-            // --- VIEW TEMPLATES ---
             
-            renderHomeView() {
-                // If not authenticated, still show the home content but with a prompt to sign in.
-                const authMessage = this.state.isAuthenticated ? '' : 
-                    `<p class="text-md text-red-500 mt-4 mb-4 font-semibold">Sign in to start creating your case!</p>`;
+            this.renderAuthUI();
+            this.renderNavigation();
+        }
 
-                return `
-                    <div class="app-view text-center py-16">
-                        <h2 class="text-3xl font-bold text-gray-800 mb-4">Welcome to FlowerBloom Custom Cases</h2>
-                        <p class="text-xl text-rose-600 mb-6">Artistic flower collage & person image mix, designed for you.</p>
-                        <p class="text-gray-600 max-w-2xl mx-auto mb-8">Create a unique, personalized phone case by uploading three images—a portrait and two floral images. Our AI-driven design studio merges them into an elegant, custom piece tailored for the modern woman.</p>
+        // --- VIEW TEMPLATES ---
+        
+        renderHomeView() {
+            // If not authenticated, still show the home content but with a prompt to sign in.
+            const authMessage = this.state.isAuthenticated ? '' : 
+                `<p class="text-md text-red-500 mt-4 mb-4 font-semibold">Sign in to start creating your case!</p>`;
+
+            return `
+                <div class="app-view text-center py-16">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">Welcome to FlowerBloom Custom Cases</h2>
+                    <p class="text-xl text-[var(--mag)] mb-6">Artistic flower collage & person image mix, designed for you.</p>
+                    <p class="text-gray-600 max-w-2xl mx-auto mb-8">Create a unique, personalized phone case by uploading three images—a portrait and two floral images. Our AI-driven design studio merges them into an elegant, custom piece tailored for the modern woman.</p>
+                    
+                    ${authMessage}
+
+                    <button onclick="window.app.setPath('case-studio')" class="px-8 py-3 bg-[var(--mag)] text-white text-lg font-semibold rounded-lg shadow-lg hover:opacity-90 auth-button" ${!this.state.isAuthenticated ? 'disabled' : ''}>
+                        Start Designing Now!
+                    </button>
+                    
+                    <div id="promo-display" class="mt-8 p-4 bg-yellow-50 text-yellow-800 rounded-lg hidden">
+                        <!-- Promo status updates here -->
+                    </div>
+                </div>
+            `;
+        }
+        
+        renderCaseStudioView() {
+            const devices = ['iPhone 15 Pro Max', 'iPhone 15', 'Samsung Galaxy S24 Ultra', 'Google Pixel 8'];
+            
+            return `
+                <div class="app-view">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Custom Case Studio</h2>
+                    
+                    <!-- STEP 1: Device Selection & Acknowledgement -->
+                    <div id="upload-step-1" class="p-6 bg-pink-50 rounded-xl shadow-inner mb-8">
+                        <h3 class="text-2xl font-semibold mb-4 text-[var(--mag)]">1. Select Device & Confirm</h3>
                         
-                        ${authMessage}
-
-                        <button onclick="window.app.setPath('case-studio')" class="px-8 py-3 bg-indigo-500 text-white text-lg font-semibold rounded-lg shadow-lg hover:bg-indigo-600 auth-button" ${!this.state.isAuthenticated ? 'disabled' : ''}>
-                            Start Designing Now!
+                        <label for="device-select" class="block text-gray-700 font-medium mb-2">Select Your Phone Model (for order fulfillment):</label>
+                        <select id="device-select" class="input-style mb-4">
+                            ${devices.map(d => `<option value="${d}">${d}</option>`).join('')}
+                        </select>
+                        
+                        <div class="flex items-start mb-6">
+                            <input type="checkbox" id="acknowledgement-check" class="w-4 h-4 text-[var(--mag)] bg-gray-100 border-gray-300 rounded focus:ring-[var(--mag)] mt-1" onchange="window.app.toggleUploadStep2(true)">
+                            <label for="acknowledgement-check" class="ml-2 text-sm text-gray-600 cursor-pointer">
+                                I acknowledge that the design mockup will be based on a generic device shape for viewing, but my actual order will be fulfilled for the selected device model.
+                            </label>
+                        </div>
+                        
+                        <button id="proceed-upload-btn" onclick="window.app.toggleUploadStep2(true)" class="px-6 py-2 bg-gray-400 text-white font-medium rounded-lg shadow cursor-not-allowed" disabled>
+                            Proceed to Image Upload
+                        </button>
+                    </div>
+                    
+                    <!-- STEP 2: Image Upload & Generation -->
+                    <div id="upload-step-2" class="p-6 bg-white border border-gray-200 rounded-xl shadow-lg" style="display: none;">
+                        <h3 class="text-2xl font-semibold mb-4 text-gray-700">2. Upload Images & Generate Design</h3>
+                        <p class="text-sm text-gray-500 mb-4">Upload exactly 3 images: 1 Portrait and 2 Floral/Artistic backgrounds.</p>
+                        
+                        <div class="grid grid-cols-3 gap-4 mb-6">
+                            <input type="file" id="image1" accept="image/*" class="col-span-1 border p-2 rounded-md">
+                            <input type="file" id="image2" accept="image/*" class="col-span-1 border p-2 rounded-md">
+                            <input type="file" id="image3" accept="image/*" class="col-span-1 border p-2 rounded-md">
+                        </div>
+                        
+                        <button onclick="window.app.startMockupGeneration()" class="px-6 py-3 bg-[var(--mag)] text-white font-medium rounded-lg shadow-lg hover:opacity-90 product-button" id="generate-btn">
+                            Generate Mockups (Simulated)
                         </button>
                         
-                        <div id="promo-display" class="mt-8 p-4 bg-yellow-50 text-yellow-800 rounded-lg hidden">
-                            <!-- Promo status updates here -->
-                        </div>
-                    </div>
-                `;
-            }
-            
-            renderCaseStudioView() {
-                const devices = ['iPhone 15 Pro Max', 'iPhone 15', 'Samsung Galaxy S24 Ultra', 'Google Pixel 8'];
-                
-                return `
-                    <div class="app-view">
-                        <h2 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Custom Case Studio</h2>
-                        
-                        <!-- STEP 1: Device Selection & Acknowledgement -->
-                        <div id="upload-step-1" class="p-6 bg-rose-50 rounded-xl shadow-inner mb-8">
-                            <h3 class="text-2xl font-semibold mb-4 text-rose-700">1. Select Device & Confirm</h3>
-                            
-                            <label for="device-select" class="block text-gray-700 font-medium mb-2">Select Your Phone Model (for order fulfillment):</label>
-                            <select id="device-select" class="input-style mb-4">
-                                ${devices.map(d => `<option value="${d}">${d}</option>`).join('')}
-                            </select>
-                            
-                            <div class="flex items-start mb-6">
-                                <input type="checkbox" id="acknowledgement-check" class="w-4 h-4 text-rose-600 bg-gray-100 border-gray-300 rounded focus:ring-rose-500 mt-1" onchange="window.app.toggleUploadStep2(true)">
-                                <label for="acknowledgement-check" class="ml-2 text-sm text-gray-600 cursor-pointer">
-                                    I acknowledge that the design mockup will be based on a generic device shape for viewing, but my actual order will be fulfilled for the selected device model.
-                                </label>
-                            </div>
-                            
-                            <button id="proceed-upload-btn" onclick="window.app.toggleUploadStep2(true)" class="px-6 py-2 bg-gray-400 text-white font-medium rounded-lg shadow cursor-not-allowed" disabled>
-                                Proceed to Image Upload
-                            </button>
-                        </div>
-                        
-                        <!-- STEP 2: Image Upload & Generation -->
-                        <div id="upload-step-2" class="p-6 bg-white border border-gray-200 rounded-xl shadow-lg" style="display: none;">
-                            <h3 class="text-2xl font-semibold mb-4 text-gray-700">2. Upload Images & Generate Design</h3>
-                            <p class="text-sm text-gray-500 mb-4">Upload exactly 3 images: 1 Portrait and 2 Floral/Artistic backgrounds.</p>
-                            
-                            <div class="grid grid-cols-3 gap-4 mb-6">
-                                <input type="file" id="image1" accept="image/*" class="col-span-1 border p-2 rounded-md">
-                                <input type="file" id="image2" accept="image/*" class="col-span-1 border p-2 rounded-md">
-                                <input type="file" id="image3" accept="image/*" class="col-span-1 border p-2 rounded-md">
-                            </div>
-                            
-                            <button onclick="window.app.startMockupGeneration()" class="px-6 py-3 bg-rose-500 text-white font-medium rounded-lg shadow-lg hover:bg-rose-600 product-button" id="generate-btn">
-                                Generate Mockups (Simulated)
-                            </button>
-                            
-                            <div id="generation-progress" class="mt-4 text-sm text-indigo-600 font-medium hidden">
-                                <p>Processing images on server...</p>
-                                <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
-                                    <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- STEP 3: Generated Products -->
-                        <div id="product-mockup-section" class="mt-8">
-                            <h3 class="text-2xl font-bold text-gray-800 mb-6">3. Your Custom Designs</h3>
-                            <div id="product-mockups">
-                                <!-- Products render here via ProductManager.renderProductList() -->
+                        <div id="generation-progress" class="mt-4 text-sm text-indigo-600 font-medium hidden">
+                            <p>Processing images on server...</p>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+                                <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
                             </div>
                         </div>
                     </div>
-                `;
-            }
+                    
+                    <!-- STEP 3: Generated Products -->
+                    <div id="product-mockup-section" class="mt-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6">3. Your Custom Designs</h3>
+                        <div id="product-mockups">
+                            <!-- Products render here via ProductManager.renderProductList() -->
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
 
-            renderCartView() {
-                const items = this.cartManager.getCartItems();
-                const subtotal = items.reduce((sum, item) => sum + item.price, 0);
-                // Get discount value (0.20 for BLOOM20, 0 otherwise)
-                const discountRate = parseFloat(localStorage.getItem('activePromoDiscount') || 0);
-                const discount = discountRate * subtotal;
-                const total = subtotal - discount;
-                
-                return `
-                    <div class="app-view">
-                        <h2 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Your Shopping Cart</h2>
-                        
-                        <div class="flex flex-col lg:flex-row gap-8">
-                            <!-- Cart Items -->
-                            <div class="lg:w-2/3">
-                                ${items.length === 0 ? `
-                                    <div class="text-center p-10 bg-gray-50 rounded-lg text-gray-500">Your cart is empty.</div>
-                                ` : items.map(item => `
-                                    <div class="flex items-center justify-between p-4 mb-4 bg-white rounded-xl shadow border border-gray-100">
-                                        <img src="${item.images[0]}" class="w-16 h-16 object-cover rounded-md mr-4 border border-rose-200" alt="${item.name}">
-                                        <div class="flex-grow">
-                                            <p class="font-semibold text-gray-800">${item.name}</p>
-                                            <p class="text-sm text-gray-500">${item.device}</p>
-                                        </div>
-                                        <div class="text-lg font-bold text-rose-600 mr-8">$${item.price.toFixed(2)}</div>
-                                        <button onclick="window.app.cartManager.removeItem('${item.id}'); window.app.setPath('cart')" class="text-red-500 hover:text-red-700 p-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-                                        </button>
+        renderCartView() {
+            const items = this.cartManager.getCartItems();
+            const subtotal = items.reduce((sum, item) => sum + item.price, 0);
+            // Get discount value (0.20 for BLOOM20, 0 otherwise)
+            const discountRate = parseFloat(localStorage.getItem('activePromoDiscount') || 0);
+            const discount = discountRate * subtotal;
+            const total = subtotal - discount;
+            
+            return `
+                <div class="app-view">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Your Shopping Cart</h2>
+                    
+                    <div class="flex flex-col lg:flex-row gap-8">
+                        <!-- Cart Items -->
+                        <div class="lg:w-2/3">
+                            ${items.length === 0 ? `
+                                <div class="text-center p-10 bg-gray-50 rounded-lg text-gray-500">Your cart is empty.</div>
+                            ` : items.map(item => `
+                                <div class="flex items-center justify-between p-4 mb-4 bg-white rounded-xl shadow border border-gray-100">
+                                    <img src="${item.images[0]}" class="w-16 h-16 object-cover rounded-md mr-4 border border-pink-200" alt="${item.name}">
+                                    <div class="flex-grow">
+                                        <p class="font-semibold text-gray-800">${item.name}</p>
+                                        <p class="text-sm text-gray-500">${item.device}</p>
                                     </div>
-                                `).join('')}
-                            </div>
-                            
-                            <!-- Cart Summary -->
-                            <div class="lg:w-1/3 p-6 bg-rose-50 rounded-xl shadow-lg h-min">
-                                <h3 class="text-2xl font-bold mb-4 text-gray-800">Order Summary</h3>
-                                <div class="space-y-2 text-gray-600">
-                                    <div class="flex justify-between"><span>Subtotal (${items.length} items):</span> <span>$${subtotal.toFixed(2)}</span></div>
-                                    <div class="flex justify-between text-green-600"><span>Discount:</span> <span>-$${discount.toFixed(2)}</span></div>
-                                    <div class="pt-4 border-t border-rose-200 flex justify-between font-bold text-xl text-rose-700"><span>Total:</span> <span>$${total.toFixed(2)}</span></div>
+                                    <div class="text-lg font-bold text-[var(--mag)] mr-8">$${item.price.toFixed(2)}</div>
+                                    <button onclick="window.app.cartManager.removeItem('${item.id}'); window.app.setPath('cart')" class="text-red-500 hover:text-red-700 p-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                    </button>
                                 </div>
-                                <button onclick="alert('Checkout (Simulated): Proceeding with payment of $${total.toFixed(2)}') ; window.app.cartManager.clearCart(); window.app.setPath('home');" ${items.length === 0 ? 'disabled' : ''} class="w-full mt-6 py-3 bg-indigo-500 text-white font-semibold rounded-lg hover:bg-indigo-600 product-button ${items.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}">
-                                    Proceed to Checkout
-                                </button>
-                                <p class="text-xs text-center text-gray-400 mt-2">Final pricing and tax calculated at external payment processor.</p>
+                            `).join('')}
+                        </div>
+                        
+                        <!-- Cart Summary -->
+                        <div class="lg:w-1/3 p-6 bg-pink-50 rounded-xl shadow-lg h-min">
+                            <h3 class="text-2xl font-bold mb-4 text-gray-800">Order Summary</h3>
+                            <div class="space-y-2 text-gray-600">
+                                <div class="flex justify-between"><span>Subtotal (${items.length} items):</span> <span>$${subtotal.toFixed(2)}</span></div>
+                                <div class="flex justify-between text-green-600"><span>Discount:</span> <span>-$${discount.toFixed(2)}</span></div>
+                                <div class="pt-4 border-t border-pink-200 flex justify-between font-bold text-xl text-[var(--mag)]"><span>Total:</span> <span>$${total.toFixed(2)}</span></div>
                             </div>
+                            <button onclick="alert('Checkout (Simulated): Proceeding with payment of $${total.toFixed(2)}') ; window.app.cartManager.clearCart(); window.app.setPath('home');" ${items.length === 0 ? 'disabled' : ''} class="w-full mt-6 py-3 bg-[var(--mag)] text-white font-semibold rounded-lg hover:opacity-90 product-button ${items.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}">
+                                Proceed to Checkout
+                            </button>
+                            <p class="text-xs text-center text-gray-400 mt-2">Final pricing and tax calculated at external payment processor.</p>
                         </div>
                     </div>
-                `;
-            }
-
-            // --- STUDIO LOGIC ---
-
-            toggleUploadStep2(enable) {
-                const ack = document.getElementById('acknowledgement-check');
-                const btn = document.getElementById('proceed-upload-btn');
-                const step2Div = document.getElementById('upload-step-2');
-                
-                if (ack && btn) {
-                    btn.disabled = !ack.checked;
-                    btn.classList.toggle('bg-gray-400', !ack.checked);
-                    btn.classList.toggle('cursor-not-allowed', !ack.checked);
-                    btn.classList.toggle('bg-indigo-500', ack.checked);
-                    btn.classList.toggle('hover:bg-indigo-600', ack.checked);
-                    
-                    if (ack.checked) {
-                        step2Div.style.display = 'block';
-                    } else {
-                        // Only hide if the checkbox is unchecked
-                        step2Div.style.display = 'none';
-                    }
-                }
-            }
-            
-            startMockupGeneration() {
-                const ack = document.getElementById('acknowledgement-check');
-                const deviceSelect = document.getElementById('device-select');
-                const files = [
-                    document.getElementById('image1').files[0],
-                    document.getElementById('image2').files[0],
-                    document.getElementById('image3').files[0]
-                ];
-                
-                if (!ack.checked || files.filter(f => f).length !== 3) {
-                    alert('Please select a device, acknowledge the terms, and upload exactly 3 images.');
-                    return;
-                }
-                
-                const progressDiv = document.getElementById('generation-progress');
-                const progressBar = document.getElementById('progress-bar');
-                const generateBtn = document.getElementById('generate-btn');
-                const targetDevice = deviceSelect.value;
-                const fileNames = files.map(f => f.name);
-
-                generateBtn.disabled = true;
-                generateBtn.textContent = 'Generating...';
-                progressDiv.style.display = 'block';
-                progressBar.style.width = '0%';
-                
-                let step = 0;
-                const totalSteps = 4;
-
-                const interval = setInterval(() => {
-                    step++;
-                    const progress = (step / totalSteps) * 100;
-                    progressBar.style.width = `${progress}%`;
-                    
-                    if (step === 1) console.log('Simulating: Step 1 (Image Upload & Validation) complete...');
-                    if (step === 2) console.log('Simulating: Step 2 (AI Flower Collage Creation) complete...');
-                    if (step === 3) console.log('Simulating: Step 3 (Person-Image Masking/Mix) complete...');
-
-                    if (step >= totalSteps) {
-                        clearInterval(interval);
-                        
-                        this.productManager.simulateGenerateMockups(targetDevice, fileNames);
-                        this.productManager.renderProductList();
-                        
-                        progressDiv.style.display = 'none';
-                        generateBtn.disabled = false;
-                        generateBtn.textContent = 'Generate Mockups (Simulated)';
-                        
-                        console.log('Mockup Generation Complete. Designs are ready to be added to cart.');
-                    }
-                }, 1500); 
-            }
-            
-            applyPromo(code) {
-                const promoDiv = document.getElementById('promo-display');
-                if (promoDiv) promoDiv.style.display = 'block';
-                
-                let discount = 0;
-                let message = '';
-
-                // Simulated server-side validation
-                if (code.toUpperCase() === 'BLOOM20') {
-                    discount = 0.20; 
-                    message = `🎉 Success! Promo code BLOOM20 applied. Enjoy 20% off your total!`;
-                } else if (code.toUpperCase() === 'FREECASE') {
-                    // This scenario would require more complex cart logic, but for now we'll treat it as a special case, still applying a large discount mock
-                    discount = 0.50; 
-                    message = `✨ Success! FREECASE code applied. Free item status confirmed (50% mock applied).`;
-                } else if (code.length > 0) {
-                    discount = 0;
-                    message = `❌ Invalid promo code: ${code}. Please try again.`;
-                } else {
-                    localStorage.removeItem('activePromoDiscount');
-                    if (promoDiv) promoDiv.style.display = 'none';
-                    this.renderApp(); 
-                    return;
-                }
-                
-                localStorage.setItem('activePromoDiscount', discount);
-                
-                if (promoDiv) {
-                    promoDiv.innerHTML = message;
-                    // Make sure it's visible on the home page if the user is there
-                    if(this.state.path === 'home') promoDiv.style.display = 'block';
-                }
-                
-                this.renderApp();
-            }
+                </div>
+            `;
         }
 
-        // --- GLOBAL INITIALIZATION ---
+        // --- STUDIO LOGIC ---
 
-        // Initialize the main application controller globally BEFORE the DOMContentLoaded event completes.
-        // This ensures window.app is defined immediately, resolving the TypeError.
-        window.app = new Application();
-        
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Mock window.stripePayment
-            window.stripePayment = { loadCart: () => console.log("Stripe cart loaded (simulated).") };
+        toggleUploadStep2(enable) {
+            const ack = document.getElementById('acknowledgement-check');
+            const btn = document.getElementById('proceed-upload-btn');
+            const step2Div = document.getElementById('upload-step-2');
             
-            // Start the application lifecycle
-            await window.app.initialize();
-        });
-    </script>
+            if (ack && btn) {
+                btn.disabled = !ack.checked;
+                btn.classList.toggle('bg-gray-400', !ack.checked);
+                btn.classList.toggle('cursor-not-allowed', !ack.checked);
+                btn.classList.toggle('bg-[var(--mag)]', ack.checked);
+                btn.classList.toggle('hover:opacity-90', ack.checked);
+                
+                if (ack.checked) {
+                    step2Div.style.display = 'block';
+                } else {
+                    // Only hide if the checkbox is unchecked
+                    step2Div.style.display = 'none';
+                }
+            }
+        }
+        
+        startMockupGeneration() {
+            const ack = document.getElementById('acknowledgement-check');
+            const deviceSelect = document.getElementById('device-select');
+            const files = [
+                document.getElementById('image1').files[0],
+                document.getElementById('image2').files[0],
+                document.getElementById('image3').files[0]
+            ];
+            
+            if (!ack.checked || files.filter(f => f).length !== 3) {
+                alert('Please select a device, acknowledge the terms, and upload exactly 3 images.');
+                return;
+            }
+            
+            const progressDiv = document.getElementById('generation-progress');
+            const progressBar = document.getElementById('progress-bar');
+            const generateBtn = document.getElementById('generate-btn');
+            const targetDevice = deviceSelect.value;
+            const fileNames = files.map(f => f.name);
+
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+            progressDiv.style.display = 'block';
+            progressBar.style.width = '0%';
+            
+            let step = 0;
+            const totalSteps = 4;
+
+            const interval = setInterval(() => {
+                step++;
+                const progress = (step / totalSteps) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                if (step === 1) console.log('Simulating: Step 1 (Image Upload & Validation) complete...');
+                if (step === 2) console.log('Simulating: Step 2 (AI Flower Collage Creation) complete...');
+                if (step === 3) console.log('Simulating: Step 3 (Person-Image Masking/Mix) complete...');
+
+                if (step >= totalSteps) {
+                    clearInterval(interval);
+                    
+                    this.productManager.simulateGenerateMockups(targetDevice, fileNames);
+                    this.productManager.renderProductList();
+                    
+                    progressDiv.style.display = 'none';
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = 'Generate Mockups (Simulated)';
+                    
+                    console.log('Mockup Generation Complete. Designs are ready to be added to cart.');
+                }
+            }, 1500); 
+        }
+        
+        applyPromo(code) {
+            const promoDiv = document.getElementById('promo-display');
+            if (promoDiv) promoDiv.style.display = 'block';
+            
+            let discount = 0;
+            let message = '';
+
+            // Simulated server-side validation
+            if (code.toUpperCase() === 'BLOOM20') {
+                discount = 0.20; 
+                message = `🎉 Success! Promo code BLOOM20 applied. Enjoy 20% off your total!`;
+            } else if (code.toUpperCase() === 'FREECASE') {
+                // This scenario would require more complex cart logic, but for now we'll treat it as a special case, still applying a large discount mock
+                discount = 0.50; 
+                message = `✨ Success! FREECASE code applied. Free item status confirmed (50% mock applied).`;
+            } else if (code.length > 0) {
+                discount = 0;
+                message = `❌ Invalid promo code: ${code}. Please try again.`;
+            } else {
+                localStorage.removeItem('activePromoDiscount');
+                if (promoDiv) promoDiv.style.display = 'none';
+                this.renderApp(); 
+                return;
+            }
+            
+            localStorage.setItem('activePromoDiscount', discount);
+            
+            if (promoDiv) {
+                promoDiv.innerHTML = message;
+                // Make sure it's visible on the home page if the user is there
+                if(this.state.path === 'home') promoDiv.style.display = 'block';
+            }
+            
+            this.renderApp();
+        }
+    }
+
+    // --- GLOBAL INITIALIZATION ---
+
+    // Initialize the main application controller globally BEFORE the DOMContentLoaded event completes.
+    // This ensures window.app is defined immediately, resolving the TypeError.
+    window.app = new Application();
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Mock window.stripePayment
+        window.stripePayment = { loadCart: () => console.log("Stripe cart loaded (simulated).") };
+        
+        // Start the application lifecycle
+        await window.app.initialize();
+    });
+</script>
 </body>
 </html>
