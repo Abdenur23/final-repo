@@ -3,199 +3,616 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout - TheWeer</title>
-    <script src="https://js.stripe.com/v3/"></script>
-    <script src="js/auth.js"></script>
+    <title>Fixed Auth System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
         .container {
-            max-width: 500px;
-            margin: 40px auto;
-            padding: 20px;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        .product-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-        .gift-option {
-            background: white;
-            padding: 20px;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            margin: 20px 0;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .gift-option:hover {
-            border-color: #007bff;
-        }
-        .gift-option.selected {
-            border-color: #007bff;
-            background: #f8fbff;
-        }
-        .checkbox {
-            width: 20px;
-            height: 20px;
-            margin-right: 12px;
-        }
-        .price {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2c5530;
-        }
-        .gift-price {
-            color: #d4af37;
-            font-weight: 600;
-        }
-        .btn-primary {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
             width: 100%;
+            max-width: 800px;
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 24px;
+        }
+        .auth-status {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .auth-button {
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .auth-button:active {
+            transform: scale(0.98);
+        }
+        #app-content {
+            border: 1px dashed #4ade80;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f0fdf4;
             margin-top: 20px;
         }
-        .btn-primary:hover {
-            background: #0056b3;
+        #auth-required-message {
+            text-align: center;
+            padding: 40px;
+            background-color: #fef2f2;
+            border: 1px solid #fca5a5;
+            color: #dc2626;
+            border-radius: 8px;
+            margin-top: 20px;
         }
-        .gift-icon {
-            font-size: 24px;
-            margin-right: 10px;
+        .section-box {
+            background-color: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="auth-action"></div>
-        <div id="auth-required-message" style="display: none;">
-            <p>Please sign in to proceed with checkout.</p>
+        <header class="header">
+            <h1 class="text-3xl font-bold text-gray-800">Secure App Demo</h1>
+            <div id="auth-action">
+                <!-- Auth button will render here -->
+            </div>
+        </header>
+
+        <div id="nav-container">
+            <!-- Navigation will render here -->
         </div>
-        
+
+        <div id="token-display" class="auth-status mb-4">
+            <!-- Session information will render here -->
+        </div>
+
+        <!-- AUTHENTICATED CONTENT -->
         <div id="app-content" style="display: none;">
-            <h1>Checkout</h1>
+            <h2 class="text-xl font-semibold mb-3 text-green-700">Protected Application Content</h2>
+            <p>You can see this because your session is actively being managed and refreshed.</p>
+
+            <div id="promoSection" class="section-box">
+                <h3 class="font-medium">Promo Manager</h3>
+                <p class="text-sm text-gray-600">This section simulates a feature that keeps the session alive.</p>
+                <button onclick="window.app.applyPromoCode()" class="mt-2 px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 auth-button">
+                    Apply Promo (Simulates Activity)
+                </button>
+            </div>
             
-            <div class="product-card">
-                <h3>Your Product</h3>
-                <p>High-quality product with fast shipping</p>
-                <div class="price">$1.00</div>
+            <div class="section-box">
+                <h3 class="font-medium">User Uploads</h3>
+                <button onclick="window.app.uploadFiles()" class="mt-2 px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 auth-button">
+                    Upload Files
+                </button>
             </div>
+        </div>
 
-            <div class="gift-option" id="giftOption">
-                <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="checkbox" id="is-gift" class="checkbox">
-                    <span class="gift-icon">🎁</span>
-                    <div>
-                        <div style="font-weight: bold;">Send as a gift</div>
-                        <div style="color: #666; font-size: 14px; margin-top: 4px;">
-                            We'll wrap it beautifully and ship directly to your recipient
-                        </div>
-                        <div class="gift-price" style="margin-top: 8px;">+ $12.00 gift service</div>
-                    </div>
-                </label>
-            </div>
-
-            <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin: 20px 0;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span>Product:</span>
-                    <span>$1.00</span>
-                </div>
-                <div style="display: flex; justify-content: between; margin-bottom: 8px;" id="gift-fee-line">
-                    <span>Gift service:</span>
-                    <span>$0.00</span>
-                </div>
-                <hr>
-                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px;">
-                    <span>Total:</span>
-                    <span id="total-amount">$1.00</span>
-                </div>
-            </div>
-
-            <button class="btn-primary" onclick="startCheckout()">
-                Proceed to Payment
-            </button>
-            
-            <p style="text-align: center; color: #666; margin-top: 20px; font-size: 14px;">
-                You'll provide shipping details after payment
-            </p>
+        <!-- UNAUTHENTICATED MESSAGE -->
+        <div id="auth-required-message" style="display: block;">
+            <p class="font-bold">Access Denied.</p>
+            <p>Please sign in to view the application content.</p>
         </div>
     </div>
 
     <script>
-        const stripe = Stripe('pk_test_51SMYv7DBeWU7VJzLNGNEY9wllekcfhQZaMndBcGbvbK5zA7gROVkeWX5lAd8By9QCXVqAinfe5TkHlURcml7Eky700lHbTzbU1');
-        
-        // Initialize auth
-        initializeAuth().then(() => {
-            checkAuthAndUpdateUI();
-        });
-
-        // Gift option toggle
-        document.getElementById('is-gift').addEventListener('change', function() {
-            const giftOption = document.getElementById('giftOption');
-            const giftFeeLine = document.getElementById('gift-fee-line');
-            const totalAmount = document.getElementById('total-amount');
-            
-            if (this.checked) {
-                giftOption.classList.add('selected');
-                giftFeeLine.innerHTML = '<span>Gift service:</span><span class="gift-price">$12.00</span>';
-                totalAmount.textContent = '$13.00';
-            } else {
-                giftOption.classList.remove('selected');
-                giftFeeLine.innerHTML = '<span>Gift service:</span><span>$0.00</span>';
-                totalAmount.textContent = '$1.00';
+        // --- PKCE UTILITY FUNCTIONS ---
+        function base64urlencode(buffer){
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
             }
-        });
+            return btoa(binary)
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
 
-        async function startCheckout() {
-            const isGift = document.getElementById('is-gift').checked;
-            const amount = isGift ? 1300 : 100; // $13.00 or $1.00 in cents
+        async function sha256(str){
+            const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+            return base64urlencode(digest);
+        }
 
+        function genRandom(){ 
+            const arr = new Uint8Array(32); 
+            crypto.getRandomValues(arr); 
+            return base64urlencode(arr); 
+        }
+
+        // --- CONFIG & SESSION MANAGEMENT ---
+        const cognitoConfig = {
+            clientId: '73lf1h32phkqeb9ahu6tqcl9av',
+            domain: 'auth.theweer.com',
+            redirectUri: window.location.origin + window.location.pathname,
+            tokenEndpoint: `https://auth.theweer.com/oauth2/token`
+        };
+
+        function saveSession(t){ 
+            // CRITICAL: Ensure the entire token object, including the refresh_token, is saved.
+            localStorage.setItem('cognitoSession', JSON.stringify(t)); 
+        }
+
+        function getSession(){ 
+            const session = localStorage.getItem('cognitoSession');
+            return session ? JSON.parse(session) : null;
+        }
+
+        function clearUserData() {
+            // Clear promo data
+            localStorage.removeItem('activePromoDiscount');
+            
+            // Clear any upload-related data
+            localStorage.removeItem('userUploads');
+            localStorage.removeItem('deviceSelection');
+            
+            // Clear any shopping cart data
+            localStorage.removeItem('shoppingCart');
+            
+            console.log('All user-specific data cleared');
+        }
+
+        function clearSession() {
+            // Clear Cognito session
+            localStorage.removeItem('cognitoSession');
+            localStorage.removeItem('pkce_verifier');
+            
+            // Clear all user-specific data
+            clearUserData();
+        }
+
+        // FIXED: Now takes a token and adds a buffer time
+        function isTokenExpired(token) {
+            if (!token) return true;
+            
             try {
-                const session = getSession();
-                if (!session || !session.id_token) {
-                    alert('Please sign in first');
-                    return;
-                }
-
-                const userInfo = getUserInfo();
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const exp = payload.exp * 1000; // Convert to milliseconds
+                const now = Date.now();
+                // FIX: Added a 5-minute buffer to trigger refresh BEFORE actual expiration
+                const bufferTime = 300000; 
                 
-                const response = await fetch('https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.id_token}`
-                    },
-                    body: JSON.stringify({
-                        action: 'createCheckoutSession',
-                        user_email: userInfo ? userInfo.email : null,
-                        is_gift: isGift,
-                        amount: amount
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to create checkout session');
-                }
-
-                const checkoutSession = await response.json();
-                
-                const result = await stripe.redirectToCheckout({
-                    sessionId: checkoutSession.id
-                });
-
-                if (result.error) {
-                    alert(result.error.message);
-                }
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred: ' + error.message);
+                // Return true if the token is *near* expiration (within the buffer) or already expired.
+                return now >= (exp - bufferTime);
+            } catch (e) {
+                console.error('Error checking token expiration:', e);
+                return true;
             }
         }
+        
+        // NEW: Function to silently refresh the session using the Refresh Token
+        async function refreshSession() {
+            const session = getSession();
+            if (!session || !session.refresh_token) {
+                console.log('No refresh token available, clearing session.');
+                clearSession();
+                return false;
+            }
+
+            console.log('Attempting silent token refresh...');
+            const body =
+              `grant_type=refresh_token`
+              + `&client_id=${cognitoConfig.clientId}`
+              + `&refresh_token=${session.refresh_token}`;
+
+            try {
+                const res = await fetch(cognitoConfig.tokenEndpoint,{
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body
+                });
+                const tokens = await res.json();
+
+                if(res.ok && tokens.id_token) {
+                    // Preserve the old refresh_token if the response does not contain a new one
+                    const newSession = {
+                        ...tokens,
+                        // Cognito often doesn't return a new refresh token unless configured, so we preserve the old one.
+                        refresh_token: tokens.refresh_token || session.refresh_token 
+                    };
+                    saveSession(newSession);
+                    console.log('Token refresh successful! Session extended.');
+                    return true;
+                } else {
+                    console.error("Refresh token exchange failed. Refresh token is likely expired/revoked, logging out:", tokens.error_description || JSON.stringify(tokens));
+                    // If refresh fails, it means the Refresh Token itself is invalid/expired. Must sign out.
+                    clearSession();
+                    return false;
+                }
+            } catch (error) {
+                console.error('Network or exchange error during refresh:', error);
+                return false;
+            }
+        }
+
+        // FIXED: is now async and leverages the refresh mechanism.
+        async function isAuthenticated() {
+            const session = getSession();
+            if (!session || !session.id_token) return false;
+
+            // Check if ID Token is expired/expiring (within 5-minute buffer)
+            if (isTokenExpired(session.id_token)) {
+                console.log('ID Token expired/expiring. Attempting refresh...');
+                // Try to refresh the session
+                const refreshed = await refreshSession();
+                
+                // If the refresh was successful, the token is now fresh.
+                if (refreshed) {
+                    return true;
+                } else {
+                    // Refresh failed (session already cleared in refreshSession())
+                    return false;
+                }
+            }
+
+            return true; // Token is valid and not expiring soon
+        }
+
+        function getUserInfo() {
+            const session = getSession();
+            // IMPORTANT: We do NOT check for token expiration here. The calling function
+            // (e.g., initializeAuth) must ensure tokens are fresh via isAuthenticated().
+            if (session && session.id_token) {
+                try {
+                    const payload = JSON.parse(atob(session.id_token.split('.')[1]));
+                    
+                    const displayName = payload.name || payload.given_name || payload.email || payload.sub;
+                    
+                    return {
+                        email: payload.email,
+                        sub: payload.sub,
+                        name: payload.name,
+                        given_name: payload.given_name,
+                        family_name: payload.family_name,
+                        displayName: displayName
+                    };
+                } catch (e) {
+                    console.error('Error parsing token:', e);
+                }
+            }
+            return null;
+        }
+
+        // --- AUTH FLOW FUNCTIONS (PKCE) ---
+        async function signin(){
+            const verifier = genRandom();
+            localStorage.setItem('pkce_verifier', verifier);
+            const challenge = await sha256(verifier);
+            
+            const url =
+              `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code`
+              + `&client_id=${cognitoConfig.clientId}`
+              + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
+              + `&scope=email+openid+profile` 
+              + `&code_challenge_method=S256`
+              + `&code_challenge=${challenge}`;
+              
+            window.location.href = url;
+        }
+
+        function signout(){
+            clearSession();
+            window.location.href =
+              `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}`
+              + `&logout_uri=${encodeURIComponent(window.location.origin)}`;
+        }
+
+        async function handleCodeExchange(){
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            if(!code) return false;
+
+            const verifier = localStorage.getItem('pkce_verifier');
+            if (!verifier) {
+                console.error("PKCE Error: Code verifier not found in storage.");
+                window.history.replaceState({},document.title,cognitoConfig.redirectUri); 
+                return false;
+            }
+
+            const body =
+              `grant_type=authorization_code`
+              + `&client_id=${cognitoConfig.clientId}`
+              + `&code=${code}`
+              + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
+              + `&code_verifier=${verifier}`;
+
+            try {
+                const res = await fetch(cognitoConfig.tokenEndpoint,{
+                    method:'POST',
+                    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+                    body
+                });
+                const tokens = await res.json();
+
+                if(res.ok && tokens.id_token) {
+                    saveSession(tokens);
+                    localStorage.removeItem('pkce_verifier');
+                    window.history.replaceState({},document.title,cognitoConfig.redirectUri);
+                    return true;
+                } else {
+                    console.error("Token exchange failed:", tokens.error_description || JSON.stringify(tokens));
+                    return false;
+                }
+            } catch (error) {
+                console.error('Network or exchange error:', error);
+                return false;
+            }
+        }
+
+        // --- UI MANAGEMENT ---
+        function renderAuthUI(authContainerId) {
+            const authDiv = document.getElementById(authContainerId);
+            if (!authDiv) return;
+            
+            const userInfo = getUserInfo();
+            
+            if (userInfo) {
+                authDiv.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-medium">Welcome, ${userInfo.displayName}</span>
+                        <button onclick="signout()" class="px-3 py-1 bg-red-500 text-white text-sm rounded-md shadow-md hover:bg-red-600 auth-button">Sign Out</button>
+                    </div>
+                `;
+            } else {
+                authDiv.innerHTML = `
+                    <button onclick="signin()" class="px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg shadow-lg hover:bg-orange-600 auth-button">Sign In / Sign Up</button>
+                `;
+            }
+        }
+
+        function renderNavigation() {
+            const navContainer = document.getElementById('nav-container');
+            if (!navContainer) return;
+            
+            const currentPage = window.location.pathname.split('/').pop();
+            const userInfo = getUserInfo();
+            
+            let navHTML = '<div class="mb-4 p-3 bg-gray-100 rounded-lg flex items-center gap-3">';
+            navHTML += '<strong>Navigation:</strong> ';
+            
+            if (currentPage !== 'index.html' && currentPage !== '') {
+                navHTML += '<a href="index.html" class="text-blue-600 hover:text-blue-800">Home</a>';
+            }
+            
+            if (currentPage !== 'case.html') {
+                navHTML += '<a href="case.html" class="text-blue-600 hover:text-blue-800">Phone Cases</a>';
+            }
+            
+            if (userInfo) {
+                navHTML += `<span class="ml-auto text-sm text-gray-500">Hello, ${userInfo.displayName}</span>`;
+            }
+            
+            navHTML += '</div>';
+            navContainer.innerHTML = navHTML;
+        }
+
+        function checkAuthAndUpdateUI() {
+            // Re-renders the UI based on the current session state
+            const userInfo = getUserInfo();
+            
+            const appContent = document.getElementById('app-content');
+            const authRequired = document.getElementById('auth-required-message');
+            const authActionDiv = document.getElementById('auth-action');
+            
+            if (userInfo) {
+                if (appContent) appContent.style.display = 'block';
+                if (authRequired) authRequired.style.display = 'none';
+            } else {
+                if (appContent) appContent.style.display = 'none';
+                if (authRequired) authRequired.style.display = 'block';
+            }
+            
+            renderAuthUI('auth-action');
+            window.app.toggleAppContent(!!userInfo); // Update App instance visibility
+            window.app.showSessionInfo(); // Update session display
+        }
+
+        // FIXED: The interval now checks for expiration and attempts refresh.
+        function setupTokenRefresh() {
+            // Check token expiration and refresh every 30 seconds.
+            setInterval(async () => {
+                const session = getSession();
+                // Only attempt refresh if a session exists AND the ID token is expired/expiring
+                if (session && isTokenExpired(session.id_token)) {
+                    console.log('Scheduled check: ID Token is expired or expiring. Triggering refresh...');
+                    // refreshSession handles clearing the session and UI update if refresh fails
+                    await refreshSession();
+                    checkAuthAndUpdateUI();
+                }
+            }, 30000); // Check every 30 seconds
+        }
+
+        // FIXED: Now uses the async isAuthenticated
+        async function initializeAuth() {
+            await handleCodeExchange();
+            renderNavigation();
+            
+            // This call to isAuthenticated() will automatically trigger a refresh 
+            // if the token is expired/expiring on page load.
+            const actualAuthStatus = await isAuthenticated();
+            
+            checkAuthAndUpdateUI(); 
+            
+            // Render auth UI if container exists
+            const authContainer = document.querySelector('[id*="auth"], #auth-action, #auth-container');
+            if (authContainer) {
+                renderAuthUI(authContainer.id);
+            }
+            
+            // Start token expiration monitoring
+            setupTokenRefresh();
+            
+            return actualAuthStatus;
+        }
+        
+        // Make functions available globally for internal use
+        window.signin = signin;
+        window.signout = signout;
+        window.getSession = getSession;
+        window.isAuthenticated = isAuthenticated;
+        window.getUserInfo = getUserInfo;
+        window.isTokenExpired = (token) => isTokenExpired(getSession()?.id_token || token);
+
+
+        // --- APPLICATION LOGIC (app.js fixed for async integration) ---
+
+        // Mock Managers for context
+        class PromoManager {
+            applyPromoCode() { console.log("Promo applied (simulated)."); }
+            clearPromoData() { console.log("Promo data cleared (simulated)."); }
+        }
+        class DeviceManager {
+            updateDeviceOptions() { console.log("Device options updated (simulated)."); }
+        }
+        class UploadManager {
+            constructor(deviceManager, promoManager) {
+                this.deviceManager = deviceManager;
+                this.promoManager = promoManager;
+            }
+            uploadFiles() { console.log("Files uploaded (simulated)."); }
+            startOver() { console.log("Process restarted (simulated)."); }
+        }
+        class RealTimeUpdates {
+            constructor(promoManager, uploadManager) {
+                this.promoManager = promoManager;
+                this.uploadManager = uploadManager;
+            }
+            initialize() { console.log("Realtime updates initialized (simulated)."); }
+        }
+
+        class Application {
+            constructor() {
+                this.deviceManager = null;
+                this.promoManager = null;
+                this.uploadManager = null;
+                this.realtimeUpdates = null;
+            }
+
+            // FIXED: Relies solely on the result of initializeAuth()
+            async initialize() {
+                // Initialize managers
+                this.promoManager = new PromoManager();
+                this.deviceManager = new DeviceManager();
+                this.uploadManager = new UploadManager(this.deviceManager, this.promoManager);
+                this.realtimeUpdates = new RealTimeUpdates(this.promoManager, this.uploadManager);
+
+                // Set up global references
+                window.app = this;
+
+                // Initialize auth, which is now fully responsible for checking and refreshing tokens.
+                const isAuthenticatedStatus = await initializeAuth(); 
+                
+                this.showSessionInfo();
+                this.toggleAppContent(isAuthenticatedStatus);
+                // Note: renderAuthActions is now handled by checkAuthAndUpdateUI in auth.js, but kept for redundancy.
+                this.renderAuthActions(); 
+            
+                if (isAuthenticatedStatus) {
+                    // Assuming stripePayment is globally available as in the original context
+                    if (window.stripePayment && window.stripePayment.loadCart) {
+                        window.stripePayment.loadCart();
+                    }
+                    this.realtimeUpdates.initialize();
+                }
+            }
+            applyNewTheme() {
+                // Simulating theme application
+            }
+            showSessionInfo() {
+                const userInfo = getUserInfo();
+                const tokenDiv = document.getElementById('token-display');
+                
+                if (userInfo) {
+                    tokenDiv.innerHTML = `<h2 class="text-lg font-medium text-green-700">Signed in as ${userInfo.displayName}</h2>`;
+                } else {
+                    tokenDiv.innerHTML = `<h2 class="text-lg font-medium text-red-500">Not signed in</h2>`;
+                }
+            }
+
+            renderAuthActions() {
+                // This is largely redundant due to checkAuthAndUpdateUI but is left for completeness
+                const authActionDiv = document.getElementById('auth-action');
+                const userInfo = getUserInfo();
+                
+                if (userInfo) {
+                    authActionDiv.innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <span class="text-sm font-medium">Welcome, ${userInfo.displayName}</span>
+                            <button onclick="window.app.signout()" class="px-3 py-1 bg-red-500 text-white text-sm rounded-md shadow-md hover:bg-red-600 auth-button">Sign Out</button>
+                        </div>
+                    `;
+                } else {
+                    authActionDiv.innerHTML = `
+                        <button onclick="window.app.signin()" class="px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg shadow-lg hover:bg-orange-600 auth-button">Sign In / Sign Up</button>
+                    `;
+                }
+            }
+
+            toggleAppContent(show) {
+                const appContent = document.getElementById('app-content');
+                const authRequired = document.getElementById('auth-required-message');
+                const promoSection = document.getElementById('promoSection');
+                const deviceSection = document.querySelector('.device-selection');
+                
+                if (show) {
+                    appContent.style.display = 'block';
+                    authRequired.style.display = 'none';
+                    promoSection.style.display = 'block';
+                    if (deviceSection) deviceSection.style.display = 'block';
+                    this.deviceManager.updateDeviceOptions();
+                } else {
+                    appContent.style.display = 'none';
+                    authRequired.style.display = 'block';
+                    promoSection.style.display = 'none';
+                    if (deviceSection) deviceSection.style.display = 'none';
+                    this.promoManager.clearPromoData();
+                }
+            }
+
+            applyPromoCode() {
+                this.promoManager.applyPromoCode();
+                console.log("Activity simulated. Session remains active.");
+            }
+
+            uploadFiles() {
+                this.uploadManager.uploadFiles();
+                console.log("Activity simulated. Session remains active.");
+            }
+
+            startOver() {
+                this.uploadManager.startOver();
+            }
+
+            signin() {
+                signin();
+            }
+
+            signout() {
+                this.promoManager.clearPromoData();
+                signout();
+            }
+        }
+
+        // Initialize application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Mock window.stripePayment for the app.js code to run
+            window.stripePayment = { loadCart: () => console.log("Stripe cart loaded (simulated).") };
+            window.app = new Application();
+            await window.app.initialize();
+        });
     </script>
 </body>
 </html>
