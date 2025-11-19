@@ -1,4 +1,3 @@
-//config.js
 // Configuration and constants
 const cognitoConfig = {
     clientId: '73lf1h32phkqeb9ahu6tqcl9av',
@@ -14,7 +13,8 @@ const STORAGE_KEYS = {
     DEVICE_SELECTION: 'deviceSelection',
     USER_UPLOADS: 'userUploads',
     ACTIVE_PROMO: 'activePromoDiscount',
-    PRODUCT_DESIGNS: 'currentProductDesigns'
+    PRODUCT_DESIGNS: 'currentProductDesigns',
+    USER_CONSENT: 'userConsent'
 };
 
 const MOCK_DESIGNS = [
@@ -25,4 +25,21 @@ const MOCK_DESIGNS = [
 const VALID_PROMO_CODES = {
     "BLOOM20": 0.20,
     "FREESHIP": 0
+};
+
+const DEVICE_OPTIONS = {
+    apple: [
+        { value: 'iphone_15_pro_max', label: 'iPhone 15 Pro Max' },
+        { value: 'iphone_15_pro', label: 'iPhone 15 Pro' },
+        { value: 'iphone_15', label: 'iPhone 15' },
+        { value: 'iphone_14_pro_max', label: 'iPhone 14 Pro Max' },
+        { value: 'iphone_14', label: 'iPhone 14' }
+    ],
+    samsung: [
+        { value: 'samsung_s24_ultra', label: 'Samsung S24 Ultra' },
+        { value: 'samsung_s24_plus', label: 'Samsung S24 Plus' },
+        { value: 'samsung_s24', label: 'Samsung S24' },
+        { value: 'samsung_s23_ultra', label: 'Samsung S23 Ultra' },
+        { value: 'samsung_z_fold5', label: 'Samsung Z Fold 5' }
+    ]
 };
