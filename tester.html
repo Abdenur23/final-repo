@@ -3,367 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BloomCase - Custom Phone Cases</title>
+    <title>Bloom - Your Reflection is Waiting to Bloom</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* --- Dreamlike Elegance Theme --- */
         :root {
-            --primary: #8b5cf6;
-            --primary-dark: #7c3aed;
-            --secondary: #ec4899;
-            --accent: #10b981;
-            --light: #f8fafc;
-            --dark: #1e293b;
+            --color-magenta: #E6007E;
+            --color-gold: #D4AF37;
+            --color-charcoal: #2E2E2E;
+            --color-blush-start: #FFD0E6;
+            --color-blush-end: #FFF7FB;
         }
-        
+
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Manrope:wght@400;600&display=swap');
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Manrope', sans-serif;
+            background-color: var(--color-blush-end);
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: var(--color-charcoal);
         }
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        .container {
+            width: 100%;
+            max-width: 960px; /* Increased max-width for artistic content */
+            background: white;
+            padding: 32px;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
         }
-        
-        .gradient-text {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .header {
+            border-bottom: 1px solid var(--color-blush-start);
         }
-        
-        .card-shadow {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        h1, h2, h3, .poetic-title {
+            font-family: 'Cormorant Garamond', serif;
+            letter-spacing: 0.05em;
         }
-        
-        .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
+        .poetic-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-bottom: 1.5rem;
+            text-align: center;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .cta-magenta {
+            background-color: var(--color-magenta);
+            color: white;
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
-        
-        .progress-bar {
-            height: 8px;
-            background-color: #e5e7eb;
-            border-radius: 4px;
-            overflow: hidden;
+        .cta-magenta:hover {
+            background-color: #C00063; 
+            box-shadow: 0 4px 10px rgba(230, 0, 126, 0.4);
         }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
-            transition: width 0.3s ease;
+        .cta-gold {
+            background-color: var(--color-gold);
+            color: var(--color-charcoal);
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
-        
-        .product-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .cta-gold:hover {
+            background-color: #C09A34;
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.4);
         }
-        
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        .nav-link {
+            color: var(--color-charcoal);
+            border-bottom: 2px solid transparent;
+            transition: border-bottom 0.3s;
+            font-weight: 600;
         }
-        
-        .floral-pattern {
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%238b5cf6' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        .nav-link:hover, .nav-link.active {
+            border-bottom-color: var(--color-magenta);
+        }
+        .input-style {
+            border: 1px solid var(--color-blush-start);
+            padding: 10px;
+            border-radius: 8px;
+            color: var(--color-charcoal);
+            transition: border-color 0.3s;
+        }
+        .input-style:focus {
+            outline: none;
+            border-color: var(--color-magenta);
+            box-shadow: 0 0 0 1px rgba(230, 0, 126, 0.5);
+        }
+        .section-background {
+            background: linear-gradient(135deg, var(--color-blush-start) 0%, var(--color-blush-end) 100%);
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .gold-highlight {
+            color: var(--color-gold);
+            font-weight: 600;
+        }
+        /* Style for the simulated app content box */
+        #app-content-box {
+            border: 1px dashed var(--color-magenta);
+            padding: 24px;
+            border-radius: 12px;
+            background-color: #fcf6f9; 
+            margin-top: 20px;
         }
     </style>
 </head>
-<body class="floral-pattern">
-    <!-- Header -->
-    <header class="gradient-bg text-white shadow-lg">
-        <div class="container mx-auto px-4 py-3">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-flower text-2xl"></i>
-                    <h1 class="text-2xl font-bold">BloomCase</h1>
+<body>
+    <div class="container">
+        <header class="header flex justify-between items-center pb-4 mb-6">
+            <h1 class="text-4xl font-bold text-gray-800 poetic-title m-0">BLOOM</h1>
+            <div id="auth-action">
+                </div>
+        </header>
+
+        <div id="nav-container" class="mb-6">
+            </div>
+
+        <div id="token-display" class="auth-status text-center mb-4 text-sm">
+            </div>
+
+        <main id="app-main-content">
+            <section id="homepage" style="display: none;">
+                <div class="poetic-title">Your reflection is waiting to bloom.</div>
+                <div class="text-center mb-10">
+                    <p class="text-xl font-medium text-gray-600 mb-6">"She took a selfie. The flowers took over."</p>
+                    <p class="mb-8">Your photo becomes art — flowing between your wallpaper and your phone case. Your photo becomes art — flowing between your wallpaper and your phone case.</p>
+                    <button onclick="window.app.navigateTo('studio')" class="cta-magenta px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl">Begin the bloom</button>
                 </div>
                 
-                <div id="auth-action" class="flex items-center space-x-4">
-                    <!-- Auth buttons will render here -->
+                <div class="section-background mt-10 p-8">
+                    <h3 class="text-2xl mb-4 font-semibold text-center">Manifesto</h3>
+                    <p class="text-center italic mb-2">You are not pixels or paper.</p>
+                    <p class="text-center italic mb-2">You are motion and bloom.</p>
+                    <p class="text-center italic mb-2">The flowers you wear are grown from your light.</p>
+                    <p class="text-center italic mb-4">From your reflection, to your phone, to your hand.</p>
+                    <p class="text-center font-bold">This is not a phone case. It’s a portrait of your bloom.</p>
                 </div>
-            </div>
-        </div>
-    </header>
+            </section>
 
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm sticky top-0 z-10">
-        <div class="container mx-auto px-4">
-            <div id="nav-container" class="flex justify-between items-center py-3">
-                <!-- Navigation will render here -->
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
-        <!-- Session Info -->
-        <div id="token-display" class="mb-6 text-center">
-            <!-- Session information will render here -->
-        </div>
-
-        <!-- Home Page Content -->
-        <div id="home-content" class="mb-12">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold text-gray-800 mb-4">Create Your Unique Phone Case</h2>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Transform your photos into beautiful floral collage designs. Perfect for women who love personalized accessories.</p>
-                <div class="mt-8">
-                    <a href="case.html" class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105">
-                        Design Your Case Now
-                    </a>
+            <section id="studio-page" style="display: none;">
+                <div id="auth-required-message" class="text-center p-10 bg-red-50 border border-red-300 text-red-700 rounded-lg mb-6">
+                    <p class="font-bold text-xl">Access Denied.</p>
+                    <p>Please sign in to view and create your bloom.</p>
                 </div>
-            </div>
 
-            <!-- Featured Products -->
-            <div class="mb-12">
-                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">How It Works</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="bg-white rounded-xl p-6 card-shadow text-center">
-                        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-mobile-alt text-purple-600 text-2xl"></i>
-                        </div>
-                        <h4 class="text-xl font-semibold mb-2">1. Select Your Device</h4>
-                        <p class="text-gray-600">Choose your phone model from our extensive list</p>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 card-shadow text-center">
-                        <div class="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-images text-pink-600 text-2xl"></i>
-                        </div>
-                        <h4 class="text-xl font-semibold mb-2">2. Upload Your Photos</h4>
-                        <p class="text-gray-600">Select 3 images to create your unique floral collage</p>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 card-shadow text-center">
-                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-shopping-cart text-green-600 text-2xl"></i>
-                        </div>
-                        <h4 class="text-xl font-semibold mb-2">3. Get Your Design & Order</h4>
-                        <p class="text-gray-600">Receive your custom designs and add to cart</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+                <div id="app-content-box" style="display: none;">
+                    <h2 class="poetic-title text-3xl mb-4">Studio: Capture Your Bloom</h2>
+                    <p class="text-center text-lg mb-8">"Your reflection is growing into art."</p>
 
-        <!-- Case Design Page Content -->
-        <div id="case-content" style="display: none;">
-            <!-- Device Selection -->
-            <div id="device-selection" class="bg-white rounded-xl p-6 card-shadow mb-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Select Your Device</h2>
-                <div class="mb-4">
-                    <label for="device-dropdown" class="block text-gray-700 mb-2">Phone Model</label>
-                    <select id="device-dropdown" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                        <option value="">-- Select your phone --</option>
-                        <option value="iphone-14">iPhone 14</option>
-                        <option value="iphone-14-pro">iPhone 14 Pro</option>
-                        <option value="iphone-13">iPhone 13</option>
-                        <option value="samsung-s22">Samsung Galaxy S22</option>
-                        <option value="samsung-s21">Samsung Galaxy S21</option>
-                        <option value="google-pixel-6">Google Pixel 6</option>
-                    </select>
-                </div>
-                
-                <div class="mb-4">
-                    <div class="flex items-start">
-                        <input type="checkbox" id="acknowledgement" class="mt-1 mr-2">
-                        <label for="acknowledgement" class="text-gray-700">
-                            I understand that the mockup will be based on a standard device model for visualization purposes, but my actual case will be manufactured for the selected device.
-                        </label>
+                    <div class="flex justify-center gap-8 mb-8 text-center text-sm font-medium">
+                        <span class="p-2 border-b-2 border-magenta">1. Device & Acknowledge</span>
+                        <span class="p-2 border-b-2 border-gray-300">2. Upload Photos</span>
+                        <span class="p-2 border-b-2 border-gray-300">3. Preview & Cart</span>
                     </div>
-                </div>
-                
-                <button id="confirm-device" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    Confirm Device Selection
-                </button>
-            </div>
 
-            <!-- Image Upload -->
-            <div id="image-upload" class="bg-white rounded-xl p-6 card-shadow mb-8" style="display: none;">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Upload Your Images</h2>
-                <p class="text-gray-600 mb-6">Please upload 3 images to create your floral collage design.</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center upload-area" data-index="0">
-                        <i class="fas fa-cloud-upload-alt text-gray-400 text-4xl mb-3"></i>
-                        <p class="text-gray-500">Upload Image 1</p>
-                        <input type="file" class="hidden" accept="image/*">
-                        <div class="preview mt-3 hidden">
-                            <img src="" alt="Preview" class="max-h-40 mx-auto rounded">
+                    <div id="device-selection-step" class="section-background p-6 mb-6">
+                        <h3 class="text-xl font-semibold mb-3">1. Select Your Device</h3>
+                        <p class="text-sm text-gray-600 mb-4">This device model will be used for final order fulfillment.</p>
+                        <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                            <select id="device-dropdown" class="input-style flex-grow">
+                                <option value="" disabled selected>Choose your phone model...</option>
+                                <option value="iphone_15_pro_max">iPhone 15 Pro Max</option>
+                                <option value="samsung_s24_ultra">Samsung S24 Ultra</option>
+                                <option value="google_pixel_8">Google Pixel 8</option>
+                            </select>
                         </div>
-                    </div>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center upload-area" data-index="1">
-                        <i class="fas fa-cloud-upload-alt text-gray-400 text-4xl mb-3"></i>
-                        <p class="text-gray-500">Upload Image 2</p>
-                        <input type="file" class="hidden" accept="image/*">
-                        <div class="preview mt-3 hidden">
-                            <img src="" alt="Preview" class="max-h-40 mx-auto rounded">
+                        
+                        <div class="flex items-start">
+                            <input type="checkbox" id="acknowledgement-box" class="mt-1 mr-2 accent-magenta">
+                            <label for="acknowledgement-box" class="text-sm">
+                                I acknowledge that the <span class="gold-highlight">initial product mockup</span> may be based on a standard, generic device model for design purposes, regardless of my selection. However, my chosen device (<span id="selected-device-text" class="font-bold italic">None Selected</span>) will be used for the final, physical product.
+                            </label>
                         </div>
+                        <button id="proceed-upload-button" onclick="window.app.studioManager.checkDeviceAndProceed()" class="cta-magenta mt-4 px-6 py-2 rounded-md font-semibold" disabled>
+                            Confirm Selection & Proceed
+                        </button>
                     </div>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center upload-area" data-index="2">
-                        <i class="fas fa-cloud-upload-alt text-gray-400 text-4xl mb-3"></i>
-                        <p class="text-gray-500">Upload Image 3</p>
-                        <input type="file" class="hidden" accept="image/*">
-                        <div class="preview mt-3 hidden">
-                            <img src="" alt="Preview" class="max-h-40 mx-auto rounded">
+
+                    <div id="upload-and-product-step" style="display: none;">
+                        <div id="upload-area" class="section-background p-6 mb-6">
+                            <h3 class="text-xl font-semibold mb-3">2. Upload Your Reflections (3 Images)</h3>
+                            <input type="file" id="photo-upload-1" accept="image/*" class="input-style block w-full mb-2">
+                            <input type="file" id="photo-upload-2" accept="image/*" class="input-style block w-full mb-2">
+                            <input type="file" id="photo-upload-3" accept="image/*" class="input-style block w-full mb-4">
+                            <button onclick="window.app.studioManager.processImages()" class="cta-gold px-6 py-2 rounded-md font-semibold w-full">Watch your reflection grow</button>
+                        </div>
+
+                        <div id="processing-progress" class="section-background p-6 mb-6" style="display: none;">
+                            <h3 class="text-xl font-semibold mb-3">Processing Your Bloom...</h3>
+                            <div class="bg-gray-200 rounded-full h-2.5 mb-2">
+                                <div id="progress-bar" class="bg-magenta h-2.5 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <p id="progress-message" class="text-sm text-gray-600"></p>
+                        </div>
+
+                        <div id="product-list-area" style="display: none;">
+                            <h3 class="poetic-title text-2xl mt-8 mb-4">3. Your Ready Blooms</h3>
+                            <p class="text-center text-sm text-gray-600 mb-6">"This isn’t a case — it’s your bloom captured in color."</p>
+                            <div id="mockup-products" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                </div>
                         </div>
                     </div>
                 </div>
-                
-                <button id="process-images" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    Process Images & Generate Designs
-                </button>
-            </div>
+            </section>
 
-            <!-- Processing Status -->
-            <div id="processing-status" class="bg-white rounded-xl p-6 card-shadow mb-8" style="display: none;">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Creating Your Designs</h2>
-                <p class="text-gray-600 mb-4">We're processing your images and generating beautiful floral collage designs. This may take a few moments.</p>
-                
-                <div class="mb-4">
-                    <div class="flex justify-between mb-1">
-                        <span class="text-sm font-medium">Processing Progress</span>
-                        <span class="text-sm font-medium" id="progress-percent">0%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+            <section id="cart-page" style="display: none;">
+                <h2 class="poetic-title text-3xl mb-4">Your Bloom Cart</h2>
+                <div class="text-center italic mb-8">
+                    <p>"Every flower began as light. Your bloom is ready to take shape."</p>
+                </div>
+
+                <div id="cart-items-container" class="space-y-4 mb-6">
+                    <div id="empty-cart-message" class="text-center p-8 border border-gray-200 rounded-lg">
+                        Your cart is empty. <a href="#" onclick="window.app.navigateTo('studio')" class="text-magenta font-semibold">Begin the bloom</a>.
                     </div>
                 </div>
-                
-                <div id="status-messages" class="space-y-2">
-                    <!-- Status updates will appear here -->
-                </div>
-            </div>
 
-            <!-- Design Results -->
-            <div id="design-results" class="bg-white rounded-xl p-6 card-shadow" style="display: none;">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Your Custom Designs</h2>
-                <p class="text-gray-600 mb-6">Here are your unique floral collage designs. Each design includes 4 different views of your custom case.</p>
-                
-                <div id="designs-container" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Design cards will be inserted here -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Cart Section -->
-        <div id="cart-section" class="bg-white rounded-xl p-6 card-shadow mt-8" style="display: none;">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Your Shopping Cart</h2>
-            <div id="cart-items" class="space-y-4">
-                <!-- Cart items will appear here -->
-            </div>
-            <div id="empty-cart-message" class="text-center py-8">
-                <i class="fas fa-shopping-cart text-gray-300 text-5xl mb-4"></i>
-                <p class="text-gray-500">Your cart is empty</p>
-            </div>
-            <div id="cart-summary" class="mt-6 pt-6 border-t border-gray-200" style="display: none;">
-                <div class="flex justify-between mb-2">
-                    <span class="text-gray-600">Subtotal</span>
-                    <span id="cart-subtotal" class="font-semibold">$0.00</span>
-                </div>
-                <div class="flex justify-between mb-2">
-                    <span class="text-gray-600">Discount</span>
-                    <span id="cart-discount" class="font-semibold text-green-600">-$0.00</span>
-                </div>
-                <div class="flex justify-between text-lg font-bold">
-                    <span>Total</span>
-                    <span id="cart-total">$0.00</span>
-                </div>
-                <div class="mt-6">
-                    <button id="checkout-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">
+                <div class="flex justify-between items-center border-t border-gray-300 pt-4">
+                    <h3 class="text-xl font-bold">Total: <span id="cart-total-display" class="gold-highlight">$0.00</span></h3>
+                    <button onclick="window.app.navigateTo('checkout')" id="checkout-button" class="cta-magenta px-6 py-2 rounded-md font-semibold" disabled>
                         Proceed to Checkout
                     </button>
                 </div>
-            </div>
-        </div>
 
-        <!-- Promo Code Section -->
-        <div id="promo-section" class="bg-white rounded-xl p-6 card-shadow mt-8" style="display: none;">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Apply Promo Code</h3>
-            <div class="flex">
-                <input type="text" id="promo-code" placeholder="Enter promo code" class="flex-grow p-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                <button id="apply-promo" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-r-lg transition duration-300">
-                    Apply
-                </button>
-            </div>
-            <div id="promo-message" class="mt-2 text-sm"></div>
-        </div>
-
-        <!-- AUTHENTICATED CONTENT -->
-        <div id="app-content" style="display: none;">
-            <!-- Content for authenticated users -->
-        </div>
-
-        <!-- UNAUTHENTICATED MESSAGE -->
-        <div id="auth-required-message" class="bg-white rounded-xl p-8 card-shadow text-center" style="display: none;">
-            <i class="fas fa-lock text-red-500 text-5xl mb-4"></i>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Authentication Required</h2>
-            <p class="text-gray-600 mb-6">Please sign in to design and purchase custom phone cases.</p>
-            <button onclick="signin()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300">
-                Sign In / Sign Up
-            </button>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-8 mt-12">
-        <div class="container mx-auto px-4">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="mb-4 md:mb-0">
-                    <div class="flex items-center space-x-2">
-                        <i class="fas fa-flower text-xl"></i>
-                        <span class="text-xl font-bold">BloomCase</span>
+                <div id="promo-section" class="section-background p-4 mt-6">
+                    <h4 class="font-semibold mb-2">Have a Promo Code?</h4>
+                    <div class="flex gap-2">
+                        <input type="text" id="promo-input" placeholder="Enter code" class="input-style flex-grow">
+                        <button onclick="window.app.promoManager.applyPromoCode(document.getElementById('promo-input').value)" class="cta-gold px-4 py-2 rounded-md font-semibold">Apply</button>
                     </div>
-                    <p class="text-gray-400 mt-2">Creating beautiful personalized phone cases</p>
+                    <p id="promo-message" class="text-sm mt-2 text-green-700"></p>
                 </div>
-                <div class="flex space-x-6">
-                    <a href="#" class="text-gray-400 hover:text-white transition duration-300">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition duration-300">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition duration-300">
-                        <i class="fab fa-pinterest"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="border-t border-gray-700 mt-6 pt-6 text-center text-gray-400">
-                <p>&copy; 2023 BloomCase. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+            </section>
+        </main>
+    </div>
 
     <script>
-        // --- PKCE UTILITY FUNCTIONS ---
+        // --- PKCE UTILITY FUNCTIONS (Unchanged, for brevity) ---
         function base64urlencode(buffer){
             const bytes = new Uint8Array(buffer);
             let binary = '';
             for (let i = 0; i < bytes.byteLength; i++) {
                 binary += String.fromCharCode(bytes[i]);
             }
-            return btoa(binary)
-                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         }
-
         async function sha256(str){
             const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
             return base64urlencode(digest);
         }
-
         function genRandom(){ 
             const arr = new Uint8Array(32); 
             crypto.getRandomValues(arr); 
             return base64urlencode(arr); 
         }
 
-        // --- CONFIG & SESSION MANAGEMENT ---
+        // --- CONFIG & SESSION MANAGEMENT (Unchanged, for brevity) ---
         const cognitoConfig = {
             clientId: '73lf1h32phkqeb9ahu6tqcl9av',
             domain: 'auth.theweer.com',
@@ -371,23 +265,19 @@
             tokenEndpoint: `https://auth.theweer.com/oauth2/token`
         };
 
-        function saveSession(t){ 
-            localStorage.setItem('cognitoSession', JSON.stringify(t)); 
-        }
-
-        function getSession(){ 
+        function saveSession(t){ localStorage.setItem('cognitoSession', JSON.stringify(t)); }
+        function getSession(){
             const session = localStorage.getItem('cognitoSession');
             return session ? JSON.parse(session) : null;
         }
-
         function clearUserData() {
             localStorage.removeItem('activePromoDiscount');
             localStorage.removeItem('userUploads');
             localStorage.removeItem('deviceSelection');
             localStorage.removeItem('shoppingCart');
+            localStorage.removeItem('currentProductDesigns'); // Added for the new flow
             console.log('All user-specific data cleared');
         }
-
         function clearSession() {
             localStorage.removeItem('cognitoSession');
             localStorage.removeItem('pkce_verifier');
@@ -396,13 +286,11 @@
 
         function isTokenExpired(token) {
             if (!token) return true;
-            
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 const exp = payload.exp * 1000;
                 const now = Date.now();
-                const bufferTime = 300000; 
-                
+                const bufferTime = 300000; // 5-minute buffer
                 return now >= (exp - bufferTime);
             } catch (e) {
                 console.error('Error checking token expiration:', e);
@@ -413,11 +301,9 @@
         async function refreshSession() {
             const session = getSession();
             if (!session || !session.refresh_token) {
-                console.log('No refresh token available, clearing session.');
                 clearSession();
                 return false;
             }
-
             console.log('Attempting silent token refresh...');
             const body =
               `grant_type=refresh_token`
@@ -441,7 +327,7 @@
                     console.log('Token refresh successful! Session extended.');
                     return true;
                 } else {
-                    console.error("Refresh token exchange failed:", tokens.error_description || JSON.stringify(tokens));
+                    console.error("Refresh token exchange failed. Logging out:", tokens.error_description || JSON.stringify(tokens));
                     clearSession();
                     return false;
                 }
@@ -458,14 +344,8 @@
             if (isTokenExpired(session.id_token)) {
                 console.log('ID Token expired/expiring. Attempting refresh...');
                 const refreshed = await refreshSession();
-                
-                if (refreshed) {
-                    return true;
-                } else {
-                    return false;
-                }
+                return refreshed;
             }
-
             return true;
         }
 
@@ -474,17 +354,8 @@
             if (session && session.id_token) {
                 try {
                     const payload = JSON.parse(atob(session.id_token.split('.')[1]));
-                    
                     const displayName = payload.name || payload.given_name || payload.email || payload.sub;
-                    
-                    return {
-                        email: payload.email,
-                        sub: payload.sub,
-                        name: payload.name,
-                        given_name: payload.given_name,
-                        family_name: payload.family_name,
-                        displayName: displayName
-                    };
+                    return { email: payload.email, sub: payload.sub, displayName: displayName };
                 } catch (e) {
                     console.error('Error parsing token:', e);
                 }
@@ -492,14 +363,13 @@
             return null;
         }
 
-        // --- AUTH FLOW FUNCTIONS (PKCE) ---
+        // --- AUTH FLOW FUNCTIONS (PKCE) (Unchanged, for brevity) ---
         async function signin(){
             const verifier = genRandom();
             localStorage.setItem('pkce_verifier', verifier);
             const challenge = await sha256(verifier);
             
-            const url =
-              `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code`
+            const url = `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code`
               + `&client_id=${cognitoConfig.clientId}`
               + `&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}`
               + `&scope=email+openid+profile` 
@@ -511,8 +381,7 @@
 
         function signout(){
             clearSession();
-            window.location.href =
-              `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}`
+            window.location.href = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}`
               + `&logout_uri=${encodeURIComponent(window.location.origin)}`;
         }
 
@@ -558,111 +427,67 @@
             }
         }
 
-        // --- UI MANAGEMENT ---
-        function renderAuthUI(authContainerId) {
-            const authDiv = document.getElementById(authContainerId);
+        // --- UI MANAGEMENT (Slightly modified to use the new navigation) ---
+        function renderAuthUI() {
+            const authDiv = document.getElementById('auth-action');
             if (!authDiv) return;
             
             const userInfo = getUserInfo();
             
             if (userInfo) {
                 authDiv.innerHTML = `
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-purple-600"></i>
-                            </div>
-                            <span class="text-sm font-medium">${userInfo.displayName}</span>
-                        </div>
-                        <button onclick="signout()" class="px-3 py-1 bg-white text-purple-600 text-sm rounded-md shadow hover:bg-gray-100 transition duration-300">Sign Out</button>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-medium">Welcome, ${userInfo.displayName}</span>
+                        <button onclick="window.app.signout()" class="px-3 py-1 bg-red-500 text-white text-sm rounded-full shadow-md hover:bg-red-600">Sign Out</button>
                     </div>
                 `;
             } else {
                 authDiv.innerHTML = `
-                    <button onclick="signin()" class="px-4 py-2 bg-white text-purple-600 font-semibold rounded-lg shadow hover:bg-gray-100 transition duration-300">Sign In / Sign Up</button>
+                    <button onclick="window.app.signin()" class="cta-gold px-4 py-2 text-sm font-semibold rounded-full shadow-lg">Sign In / Sign Up</button>
                 `;
             }
         }
 
-        function renderNavigation() {
+        function renderNavigation(currentPage) {
             const navContainer = document.getElementById('nav-container');
             if (!navContainer) return;
             
-            const currentPage = window.location.pathname.split('/').pop();
-            const userInfo = getUserInfo();
+            const links = [
+                { id: 'home', label: 'Home', target: 'home' },
+                { id: 'studio', label: 'Studio', target: 'studio' },
+                { id: 'cart', label: 'Cart', target: 'cart' },
+                // { id: 'checkout', label: 'Checkout', target: 'checkout' } // Checkout is a flow, not primary nav
+            ];
             
-            let navHTML = '<div class="flex items-center space-x-6">';
-            
-            if (currentPage !== 'index.html' && currentPage !== '') {
-                navHTML += '<a href="index.html" class="text-gray-700 hover:text-purple-600 font-medium transition duration-300">Home</a>';
-            }
-            
-            if (currentPage !== 'case.html') {
-                navHTML += '<a href="case.html" class="text-gray-700 hover:text-purple-600 font-medium transition duration-300">Design Case</a>';
-            }
-            
-            navHTML += '</div>';
-            
-            navHTML += '<div class="flex items-center space-x-4">';
-            
-            if (userInfo) {
-                navHTML += `
-                    <div id="cart-icon" class="relative cursor-pointer">
-                        <i class="fas fa-shopping-cart text-gray-700 text-xl"></i>
-                        <span id="cart-count" class="absolute -top-2 -right-2 bg-purple-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
-                    </div>
-                `;
-            }
-            
-            navHTML += '</div>';
-            
+            let navHTML = '<nav class="flex justify-center gap-6">';
+            links.forEach(link => {
+                const activeClass = currentPage === link.target ? 'active' : '';
+                // Use a simple link to call the app's navigation method
+                navHTML += `<a href="#" onclick="window.app.navigateTo('${link.target}')" class="nav-link ${activeClass} py-1">${link.label}</a>`;
+            });
+            navHTML += '</nav>';
             navContainer.innerHTML = navHTML;
-            
-            // Add cart click handler
-            const cartIcon = document.getElementById('cart-icon');
-            if (cartIcon) {
-                cartIcon.addEventListener('click', () => {
-                    document.getElementById('cart-section').scrollIntoView({ behavior: 'smooth' });
-                });
-            }
         }
 
         function checkAuthAndUpdateUI() {
+            // Re-renders the UI based on the current session state
             const userInfo = getUserInfo();
             
-            const homeContent = document.getElementById('home-content');
-            const caseContent = document.getElementById('case-content');
+            const appContentBox = document.getElementById('app-content-box');
             const authRequired = document.getElementById('auth-required-message');
-            const cartSection = document.getElementById('cart-section');
-            const promoSection = document.getElementById('promo-section');
             
-            const currentPage = window.location.pathname.split('/').pop();
-            
-            if (userInfo) {
-                if (authRequired) authRequired.style.display = 'none';
-                
-                if (currentPage === 'case.html' || currentPage === '') {
-                    if (caseContent) caseContent.style.display = 'block';
-                    if (homeContent) homeContent.style.display = 'none';
+            if (appContentBox && authRequired) {
+                if (userInfo) {
+                    appContentBox.style.display = 'block';
+                    authRequired.style.display = 'none';
                 } else {
-                    if (caseContent) caseContent.style.display = 'none';
-                    if (homeContent) homeContent.style.display = 'block';
+                    appContentBox.style.display = 'none';
+                    authRequired.style.display = 'block';
                 }
-                
-                if (cartSection) cartSection.style.display = 'block';
-                if (promoSection) promoSection.style.display = 'block';
-            } else {
-                if (authRequired) authRequired.style.display = 'block';
-                if (homeContent) homeContent.style.display = 'block';
-                if (caseContent) caseContent.style.display = 'none';
-                if (cartSection) cartSection.style.display = 'none';
-                if (promoSection) promoSection.style.display = 'none';
             }
             
-            renderAuthUI('auth-action');
-            window.app.toggleAppContent(!!userInfo);
-            window.app.showSessionInfo();
-            window.app.updateCartDisplay();
+            renderAuthUI();
+            window.app.showSessionInfo(); // Update session display
         }
 
         function setupTokenRefresh() {
@@ -673,757 +498,392 @@
                     await refreshSession();
                     checkAuthAndUpdateUI();
                 }
-            }, 30000);
+            }, 30000); // Check every 30 seconds
         }
 
         async function initializeAuth() {
             await handleCodeExchange();
-            renderNavigation();
             
+            // This call to isAuthenticated() will automatically trigger a refresh 
             const actualAuthStatus = await isAuthenticated();
             
             checkAuthAndUpdateUI(); 
             
-            const authContainer = document.querySelector('[id*="auth"], #auth-action, #auth-container');
-            if (authContainer) {
-                renderAuthUI(authContainer.id);
-            }
+            renderAuthUI();
             
             setupTokenRefresh();
             
             return actualAuthStatus;
         }
         
-        // Make functions available globally
         window.signin = signin;
         window.signout = signout;
         window.getSession = getSession;
         window.isAuthenticated = isAuthenticated;
         window.getUserInfo = getUserInfo;
 
-        // --- APPLICATION MODULES ---
-        class DeviceManager {
-            constructor() {
-                this.selectedDevice = null;
-                this.loadDeviceSelection();
-            }
-            
-            loadDeviceSelection() {
-                const savedDevice = localStorage.getItem('deviceSelection');
-                if (savedDevice) {
-                    this.selectedDevice = JSON.parse(savedDevice);
-                    this.updateUI();
-                }
-            }
-            
-            saveDeviceSelection(device) {
-                this.selectedDevice = device;
-                localStorage.setItem('deviceSelection', JSON.stringify(device));
-                this.updateUI();
-            }
-            
-            updateUI() {
-                const dropdown = document.getElementById('device-dropdown');
-                const confirmBtn = document.getElementById('confirm-device');
-                const acknowledgement = document.getElementById('acknowledgement');
-                
-                if (this.selectedDevice && dropdown) {
-                    dropdown.value = this.selectedDevice.id;
-                }
-                
-                // Enable confirm button only when device is selected and acknowledgement is checked
-                if (dropdown && confirmBtn && acknowledgement) {
-                    const checkValidity = () => {
-                        confirmBtn.disabled = !(dropdown.value && acknowledgement.checked);
-                    };
-                    
-                    dropdown.addEventListener('change', checkValidity);
-                    acknowledgement.addEventListener('change', checkValidity);
-                }
-            }
-            
-            getSelectedDevice() {
-                return this.selectedDevice;
-            }
-        }
 
-        class UploadManager {
-            constructor() {
-                this.uploadedImages = [];
-                this.setupUploadAreas();
-            }
-            
-            setupUploadAreas() {
-                const uploadAreas = document.querySelectorAll('.upload-area');
-                
-                uploadAreas.forEach(area => {
-                    const input = area.querySelector('input[type="file"]');
-                    const preview = area.querySelector('.preview');
-                    const index = parseInt(area.getAttribute('data-index'));
-                    
-                    area.addEventListener('click', () => {
-                        input.click();
-                    });
-                    
-                    area.addEventListener('dragover', (e) => {
-                        e.preventDefault();
-                        area.classList.add('border-purple-500', 'bg-purple-50');
-                    });
-                    
-                    area.addEventListener('dragleave', () => {
-                        area.classList.remove('border-purple-500', 'bg-purple-50');
-                    });
-                    
-                    area.addEventListener('drop', (e) => {
-                        e.preventDefault();
-                        area.classList.remove('border-purple-500', 'bg-purple-50');
-                        
-                        if (e.dataTransfer.files.length) {
-                            this.handleFileSelect(e.dataTransfer.files[0], index, preview, input);
-                        }
-                    });
-                    
-                    input.addEventListener('change', (e) => {
-                        if (e.target.files.length) {
-                            this.handleFileSelect(e.target.files[0], index, preview, input);
-                        }
-                    });
-                });
-                
-                // Enable process button when all images are uploaded
-                const processBtn = document.getElementById('process-images');
-                if (processBtn) {
-                    const checkUploads = () => {
-                        processBtn.disabled = this.uploadedImages.length < 3;
-                    };
-                    
-                    // Check initially and set up listeners
-                    checkUploads();
-                    
-                    // We'll check after each upload in handleFileSelect
-                }
-            }
-            
-            handleFileSelect(file, index, preview, input) {
-                if (!file.type.match('image.*')) {
-                    alert('Please select an image file');
-                    return;
-                }
-                
-                const reader = new FileReader();
-                
-                reader.onload = (e) => {
-                    // Store the image data
-                    this.uploadedImages[index] = {
-                        data: e.target.result,
-                        name: file.name
-                    };
-                    
-                    // Update preview
-                    preview.querySelector('img').src = e.target.result;
-                    preview.classList.remove('hidden');
-                    
-                    // Check if we can enable the process button
-                    const processBtn = document.getElementById('process-images');
-                    if (processBtn) {
-                        processBtn.disabled = this.uploadedImages.filter(img => img).length < 3;
-                    }
-                };
-                
-                reader.readAsDataURL(file);
-            }
-            
-            getUploadedImages() {
-                return this.uploadedImages;
-            }
-            
-            clearUploads() {
-                this.uploadedImages = [];
-                
-                // Clear previews
-                document.querySelectorAll('.upload-area .preview').forEach(preview => {
-                    preview.classList.add('hidden');
-                });
-                
-                // Clear file inputs
-                document.querySelectorAll('.upload-area input[type="file"]').forEach(input => {
-                    input.value = '';
-                });
-            }
-        }
+        // --- APPLICATION LOGIC (Modularized for E-commerce) ---
 
-        class DesignProcessor {
-            constructor() {
-                this.designs = [];
-            }
-            
-            async processImages(images, device) {
-                // Simulate processing with progress updates
-                return new Promise((resolve) => {
-                    const statusMessages = document.getElementById('status-messages');
-                    const progressFill = document.getElementById('progress-fill');
-                    const progressPercent = document.getElementById('progress-percent');
-                    
-                    // Reset
-                    this.designs = [];
-                    if (statusMessages) statusMessages.innerHTML = '';
-                    
-                    // Simulate processing steps
-                    const steps = [
-                        { percent: 10, message: "Analyzing images..." },
-                        { percent: 25, message: "Extracting floral elements..." },
-                        { percent: 40, message: "Creating collage composition..." },
-                        { percent: 60, message: "Applying artistic filters..." },
-                        { percent: 75, message: "Generating case previews..." },
-                        { percent: 90, message: "Finalizing designs..." },
-                        { percent: 100, message: "Designs complete!" }
-                    ];
-                    
-                    let currentStep = 0;
-                    
-                    const processStep = () => {
-                        if (currentStep < steps.length) {
-                            const step = steps[currentStep];
-                            
-                            // Update progress
-                            if (progressFill) progressFill.style.width = `${step.percent}%`;
-                            if (progressPercent) progressPercent.textContent = `${step.percent}%`;
-                            
-                            // Add status message
-                            if (statusMessages) {
-                                const messageEl = document.createElement('div');
-                                messageEl.className = 'flex items-center text-sm';
-                                messageEl.innerHTML = `
-                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                                    <span>${step.message}</span>
-                                `;
-                                statusMessages.appendChild(messageEl);
-                            }
-                            
-                            currentStep++;
-                            setTimeout(processStep, 800); // Simulate processing time
-                        } else {
-                            // Generate mock designs
-                            this.generateMockDesigns(images, device);
-                            resolve(this.designs);
-                        }
-                    };
-                    
-                    processStep();
-                });
-            }
-            
-            generateMockDesigns(images, device) {
-                // In a real app, this would be done server-side
-                // For demo, we'll generate mock designs
-                this.designs = [
-                    {
-                        id: 'design-1',
-                        name: 'Floral Harmony',
-                        price: 29.99,
-                        images: [
-                            'https://via.placeholder.com/300x400/8b5cf6/ffffff?text=Front+View',
-                            'https://via.placeholder.com/300x400/ec4899/ffffff?text=Back+View',
-                            'https://via.placeholder.com/300x400/10b981/ffffff?text=Side+View',
-                            'https://via.placeholder.com/300x400/f59e0b/ffffff?text=Angle+View'
-                        ],
-                        description: 'A harmonious blend of your photos with delicate floral accents'
-                    },
-                    {
-                        id: 'design-2',
-                        name: 'Bloom Essence',
-                        price: 34.99,
-                        images: [
-                            'https://via.placeholder.com/300x400/8b5cf6/ffffff?text=Front+View',
-                            'https://via.placeholder.com/300x400/ec4899/ffffff?text=Back+View',
-                            'https://via.placeholder.com/300x400/10b981/ffffff?text=Side+View',
-                            'https://via.placeholder.com/300x400/f59e0b/ffffff?text=Angle+View'
-                        ],
-                        description: 'Ethereal floral patterns highlighting the essence of your images'
-                    },
-                    {
-                        id: 'design-3',
-                        name: 'Petals & Portraits',
-                        price: 31.99,
-                        images: [
-                            'https://via.placeholder.com/300x400/8b5cf6/ffffff?text=Front+View',
-                            'https://via.placeholder.com/300x400/ec4899/ffffff?text=Back+View',
-                            'https://via.placeholder.com/300x400/10b981/ffffff?text=Side+View',
-                            'https://via.placeholder.com/300x400/f59e0b/ffffff?text=Angle+View'
-                        ],
-                        description: 'A perfect balance between portrait focus and floral elements'
-                    }
-                ];
-            }
-            
-            getDesigns() {
-                return this.designs;
-            }
-        }
-
+        /** * 1. CartManager: Handles all cart state and calculation.
+         */
         class CartManager {
             constructor() {
-                this.items = [];
-                this.loadCart();
+                this.cartKey = 'shoppingCart';
+                this.promoDiscount = 0;
             }
-            
-            loadCart() {
-                const savedCart = localStorage.getItem('shoppingCart');
-                if (savedCart) {
-                    this.items = JSON.parse(savedCart);
-                }
+
+            getCart() {
+                const cart = localStorage.getItem(this.cartKey);
+                return cart ? JSON.parse(cart) : [];
             }
-            
-            saveCart() {
-                localStorage.setItem('shoppingCart', JSON.stringify(this.items));
+
+            saveCart(cart) {
+                localStorage.setItem(this.cartKey, JSON.stringify(cart));
             }
-            
-            addItem(design, device) {
-                // Check if this design is already in cart
-                const existingIndex = this.items.findIndex(item => 
-                    item.designId === design.id && item.deviceId === device.id
-                );
+
+            getCartTotal() {
+                const cart = this.getCart();
+                const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+                // Simple discount calculation
+                const finalTotal = subtotal * (1 - this.promoDiscount);
+                return {
+                    subtotal: subtotal.toFixed(2),
+                    discount: (subtotal * this.promoDiscount).toFixed(2),
+                    total: finalTotal.toFixed(2)
+                };
+            }
+
+            /**
+             * Adds a unique product design to the cart.
+             * A unique product can only be in the cart once.
+             */
+            addToCart(product) {
+                let cart = this.getCart();
+                const exists = cart.some(item => item.designId === product.designId);
                 
-                if (existingIndex >= 0) {
-                    // Design already in cart for this device
+                if (exists) {
+                    console.warn(`Product with designId ${product.designId} already in cart.`);
                     return false;
                 }
-                
-                // Add to cart
-                this.items.push({
-                    id: `cart-${Date.now()}`,
-                    designId: design.id,
-                    designName: design.name,
-                    designImages: design.images,
-                    price: design.price,
-                    deviceId: device.id,
-                    deviceName: device.name,
-                    quantity: 1
+
+                cart.push({
+                    designId: product.designId,
+                    name: product.name,
+                    price: product.price,
+                    images: product.images,
+                    device: product.device // The selected device model
                 });
-                
-                this.saveCart();
-                this.updateCartDisplay();
+                this.saveCart(cart);
+                window.app.renderCurrentPage(); // Re-render Cart/Studio for button updates
+                console.log(`Added ${product.name} to cart.`);
                 return true;
             }
-            
-            removeItem(itemId) {
-                this.items = this.items.filter(item => item.id !== itemId);
-                this.saveCart();
-                this.updateCartDisplay();
-            }
-            
-            updateQuantity(itemId, quantity) {
-                const item = this.items.find(item => item.id === itemId);
-                if (item) {
-                    item.quantity = quantity;
-                    this.saveCart();
-                    this.updateCartDisplay();
-                }
-            }
-            
-            getItems() {
-                return this.items;
-            }
-            
-            getTotal() {
-                return this.items.reduce((total, item) => total + (item.price * item.quantity), 0);
-            }
-            
-            getItemCount() {
-                return this.items.reduce((count, item) => count + item.quantity, 0);
-            }
-            
-            updateCartDisplay() {
-                const cartItems = document.getElementById('cart-items');
-                const emptyCartMessage = document.getElementById('empty-cart-message');
-                const cartSummary = document.getElementById('cart-summary');
-                const cartSubtotal = document.getElementById('cart-subtotal');
-                const cartTotal = document.getElementById('cart-total');
-                const cartCount = document.getElementById('cart-count');
-                
-                if (cartItems && emptyCartMessage && cartSummary) {
-                    if (this.items.length === 0) {
-                        cartItems.innerHTML = '';
-                        emptyCartMessage.style.display = 'block';
-                        cartSummary.style.display = 'none';
-                    } else {
-                        emptyCartMessage.style.display = 'none';
-                        cartSummary.style.display = 'block';
-                        
-                        // Render cart items
-                        cartItems.innerHTML = this.items.map(item => `
-                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                                <div class="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
-                                    <img src="${item.designImages[0]}" alt="${item.designName}" class="w-full h-full object-cover">
-                                </div>
-                                <div class="flex-grow">
-                                    <h4 class="font-semibold">${item.designName}</h4>
-                                    <p class="text-sm text-gray-600">${item.deviceName}</p>
-                                    <div class="flex items-center space-x-2 mt-1">
-                                        <button onclick="window.app.cartManager.updateQuantity('${item.id}', ${item.quantity - 1})" class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
-                                        <span>${item.quantity}</span>
-                                        <button onclick="window.app.cartManager.updateQuantity('${item.id}', ${item.quantity + 1})" class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">+</button>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <p class="font-semibold">$${(item.price * item.quantity).toFixed(2)}</p>
-                                    <button onclick="window.app.cartManager.removeItem('${item.id}')" class="text-red-500 text-sm mt-1">Remove</button>
-                                </div>
-                            </div>
-                        `).join('');
-                        
-                        // Update totals
-                        const subtotal = this.getTotal();
-                        const discount = window.app.promoManager.getDiscountAmount(subtotal);
-                        const total = subtotal - discount;
-                        
-                        if (cartSubtotal) cartSubtotal.textContent = `$${subtotal.toFixed(2)}`;
-                        if (cartTotal) cartTotal.textContent = `$${total.toFixed(2)}`;
-                    }
-                }
-                
-                // Update cart count in header
-                if (cartCount) {
-                    cartCount.textContent = this.getItemCount();
-                }
-                
-                // Update add to cart buttons in designs
-                this.updateDesignButtons();
-            }
-            
-            updateDesignButtons() {
-                const designCards = document.querySelectorAll('.design-card');
-                designCards.forEach(card => {
-                    const designId = card.getAttribute('data-design-id');
-                    const device = window.app.deviceManager.getSelectedDevice();
-                    
-                    if (designId && device) {
-                        const inCart = this.items.some(item => 
-                            item.designId === designId && item.deviceId === device.id
-                        );
-                        
-                        const button = card.querySelector('.add-to-cart-btn');
-                        if (button) {
-                            if (inCart) {
-                                button.innerHTML = '<i class="fas fa-check mr-2"></i>Added to Cart';
-                                button.classList.add('bg-green-600', 'hover:bg-green-700');
-                                button.classList.remove('bg-purple-600', 'hover:bg-purple-700');
-                                button.disabled = true;
-                            } else {
-                                button.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i>Add to Cart';
-                                button.classList.add('bg-purple-600', 'hover:bg-purple-700');
-                                button.classList.remove('bg-green-600', 'hover:bg-green-700');
-                                button.disabled = false;
-                            }
-                        }
-                    }
-                });
-            }
-            
-            clearCart() {
-                this.items = [];
-                this.saveCart();
-                this.updateCartDisplay();
+
+            removeFromCart(designId) {
+                let cart = this.getCart();
+                cart = cart.filter(item => item.designId !== designId);
+                this.saveCart(cart);
+                window.app.renderCurrentPage(); // Re-render Cart/Studio for button updates
+                console.log(`Removed designId ${designId} from cart.`);
             }
         }
-
+        
+        /**
+         * 2. PromoManager: Manages promotional codes.
+         */
         class PromoManager {
-            constructor() {
-                this.activePromo = null;
-                this.loadPromo();
-            }
-            
-            loadPromo() {
-                const savedPromo = localStorage.getItem('activePromoDiscount');
-                if (savedPromo) {
-                    this.activePromo = JSON.parse(savedPromo);
-                    this.updatePromoDisplay();
-                }
-            }
-            
-            savePromo() {
-                if (this.activePromo) {
-                    localStorage.setItem('activePromoDiscount', JSON.stringify(this.activePromo));
-                } else {
-                    localStorage.removeItem('activePromoDiscount');
-                }
-            }
-            
-            async applyPromoCode(code) {
-                // In a real app, this would call your server to validate the promo code
-                // For demo, we'll simulate validation
-                
-                // Mock promo codes
-                const validPromos = {
-                    'BLOOM20': { discount: 0.2, type: 'percentage', message: '20% off applied!' },
-                    'WELCOME10': { discount: 0.1, type: 'percentage', message: '10% welcome discount applied!' },
-                    'SAVE5': { discount: 5, type: 'fixed', message: '$5 off applied!' }
+            constructor(cartManager) {
+                this.cartManager = cartManager;
+                this.validCodes = {
+                    "BLOOM20": 0.20, // 20% off
+                    "FREESHIP": 0 // Placeholder for free shipping logic
                 };
-                
-                return new Promise((resolve) => {
-                    setTimeout(() => {
-                        if (validPromos[code]) {
-                            this.activePromo = {
-                                code: code,
-                                ...validPromos[code]
-                            };
-                            this.savePromo();
-                            this.updatePromoDisplay();
-                            resolve({ success: true, message: validPromos[code].message });
-                        } else {
-                            resolve({ success: false, message: 'Invalid promo code' });
-                        }
-                    }, 1000);
-                });
             }
-            
-            getDiscountAmount(subtotal) {
-                if (!this.activePromo) return 0;
-                
-                if (this.activePromo.type === 'percentage') {
-                    return subtotal * this.activePromo.discount;
+
+            applyPromoCode(code) {
+                const normalizedCode = code.toUpperCase().trim();
+                const discountRate = this.validCodes[normalizedCode];
+
+                if (discountRate !== undefined) {
+                    this.cartManager.promoDiscount = discountRate;
+                    document.getElementById('promo-message').innerText = `Success! ${normalizedCode} applied. ${discountRate * 100}% discount active.`;
                 } else {
-                    return Math.min(this.activePromo.discount, subtotal);
+                    this.cartManager.promoDiscount = 0;
+                    document.getElementById('promo-message').innerText = `Error: Code '${code}' is invalid or expired.`;
+                    document.getElementById('promo-message').classList.remove('text-green-700');
+                    document.getElementById('promo-message').classList.add('text-red-700');
                 }
+                window.app.renderCurrentPage(); // Update total in cart
             }
-            
-            removePromo() {
-                this.activePromo = null;
-                this.savePromo();
-                this.updatePromoDisplay();
-            }
-            
-            updatePromoDisplay() {
-                const promoMessage = document.getElementById('promo-message');
-                const cartDiscount = document.getElementById('cart-discount');
-                
-                if (promoMessage) {
-                    if (this.activePromo) {
-                        promoMessage.innerHTML = `
-                            <div class="flex items-center justify-between text-green-600">
-                                <span>${this.activePromo.message}</span>
-                                <button onclick="window.app.promoManager.removePromo()" class="text-red-500 ml-2">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        `;
-                    } else {
-                        promoMessage.innerHTML = '';
-                    }
-                }
-                
-                // Update cart display to show discount
-                window.app.cartManager.updateCartDisplay();
+
+            clearPromoData() {
+                this.cartManager.promoDiscount = 0;
             }
         }
 
+        /**
+         * 3. StudioManager: Handles the product configuration flow.
+         */
+        class StudioManager {
+            constructor(cartManager) {
+                this.cartManager = cartManager;
+                this.mockDesigns = [
+                    { designId: 'design_a', name: 'Coral Bloom Case', price: 49.99, images: ['mockup_a_1.jpg', 'mockup_a_2.jpg', 'mockup_a_3.jpg', 'mockup_a_4.jpg'] },
+                    { designId: 'design_b', name: 'Midnight Petal Case', price: 54.99, images: ['mockup_b_1.jpg', 'mockup_b_2.jpg', 'mockup_b_3.jpg', 'mockup_b_4.jpg'] }
+                ];
+                // Event listener for device selection change
+                document.getElementById('device-dropdown').addEventListener('change', this.updateDeviceDisplay.bind(this));
+                document.getElementById('acknowledgement-box').addEventListener('change', this.updateDeviceDisplay.bind(this));
+            }
+
+            updateDeviceDisplay() {
+                const dropdown = document.getElementById('device-dropdown');
+                const ackBox = document.getElementById('acknowledgement-box');
+                const proceedButton = document.getElementById('proceed-upload-button');
+                const selectedText = dropdown.options[dropdown.selectedIndex].text;
+
+                document.getElementById('selected-device-text').innerText = selectedText === 'Choose your phone model...' ? 'None Selected' : selectedText;
+                
+                // Enable button only if a device is selected AND the box is checked
+                proceedButton.disabled = dropdown.value === '' || !ackBox.checked;
+            }
+
+            checkDeviceAndProceed() {
+                const device = document.getElementById('device-dropdown').value;
+                const acknowledged = document.getElementById('acknowledgement-box').checked;
+
+                if (device && acknowledged) {
+                    localStorage.setItem('deviceSelection', device);
+                    document.getElementById('device-selection-step').style.display = 'none';
+                    document.getElementById('upload-and-product-step').style.display = 'block';
+                    // Update steps UI
+                    document.querySelector('#studio-page .flex span:nth-child(1)').classList.remove('border-magenta');
+                    document.querySelector('#studio-page .flex span:nth-child(1)').classList.add('border-gray-300');
+                    document.querySelector('#studio-page .flex span:nth-child(2)').classList.add('border-magenta');
+                } else {
+                    alert('Please select a device and acknowledge the statement to proceed.');
+                }
+            }
+
+            /**
+             * Simulates the server-side process of creating product mockups.
+             */
+            processImages() {
+                // Check if files are selected
+                const files = [
+                    document.getElementById('photo-upload-1').files[0],
+                    document.getElementById('photo-upload-2').files[0],
+                    document.getElementById('photo-upload-3').files[0]
+                ];
+
+                if (files.some(f => !f)) {
+                    alert('Please upload exactly 3 photos.');
+                    return;
+                }
+
+                document.getElementById('upload-area').style.display = 'none';
+                document.getElementById('processing-progress').style.display = 'block';
+                document.getElementById('progress-bar').style.width = '0%';
+                document.getElementById('progress-message').innerText = 'Starting image analysis...';
+
+                // Simulate progress
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    document.getElementById('progress-bar').style.width = progress + '%';
+
+                    if (progress === 30) {
+                        document.getElementById('progress-message').innerText = 'Generating flower collage composition...';
+                    } else if (progress === 60) {
+                        document.getElementById('progress-message').innerText = 'Rendering 3D product mockups...';
+                    } else if (progress >= 100) {
+                        clearInterval(interval);
+                        document.getElementById('processing-progress').style.display = 'none';
+                        this.finishProcessing();
+                    }
+                }, 500);
+            }
+            
+            finishProcessing() {
+                localStorage.setItem('currentProductDesigns', JSON.stringify(this.mockDesigns));
+                document.getElementById('product-list-area').style.display = 'block';
+                // Update steps UI
+                document.querySelector('#studio-page .flex span:nth-child(2)').classList.remove('border-magenta');
+                document.querySelector('#studio-page .flex span:nth-child(2)').classList.add('border-gray-300');
+                document.querySelector('#studio-page .flex span:nth-child(3)').classList.add('border-magenta');
+
+                this.renderProductList();
+            }
+
+            renderProductList() {
+                const productListDiv = document.getElementById('mockup-products');
+                const designs = JSON.parse(localStorage.getItem('currentProductDesigns') || '[]');
+                const cart = this.cartManager.getCart();
+                const selectedDevice = localStorage.getItem('deviceSelection') || 'Not Set';
+                
+                if (designs.length === 0) {
+                    productListDiv.innerHTML = '<p class="text-center">No blooms generated yet.</p>';
+                    return;
+                }
+
+                productListDiv.innerHTML = designs.map(product => {
+                    const isInCart = cart.some(item => item.designId === product.designId);
+                    const buttonText = isInCart ? 'In Cart (Remove)' : 'Add to Cart';
+                    const buttonClass = isInCart ? 'bg-red-500 hover:bg-red-600' : 'cta-magenta';
+
+                    return `
+                        <div class="p-4 border border-gray-200 rounded-lg shadow-sm">
+                            <h4 class="text-xl font-semibold mb-2">${product.name}</h4>
+                            <p class="text-sm text-gray-600 mb-2">For: <span class="font-medium">${selectedDevice}</span></p>
+                            <div class="bg-gray-100 h-40 flex items-center justify-center mb-3 rounded-md">
+                                
+                            </div>
+                            <p class="font-bold text-lg mb-3 gold-highlight">$${product.price.toFixed(2)}</p>
+                            <button onclick="window.app.studioManager.handleCartAction('${product.designId}')" 
+                                class="w-full px-4 py-2 text-white font-semibold rounded-md ${buttonClass}">
+                                ${buttonText}
+                            </button>
+                            <p class="text-xs text-gray-500 mt-2 text-center">See all 4 images on Cart page.</p>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            handleCartAction(designId) {
+                const cart = this.cartManager.getCart();
+                const isInCart = cart.some(item => item.designId === designId);
+                const designs = JSON.parse(localStorage.getItem('currentProductDesigns') || '[]');
+                const product = designs.find(d => d.designId === designId);
+                const device = localStorage.getItem('deviceSelection');
+
+                if (!product || !device) return;
+
+                if (isInCart) {
+                    this.cartManager.removeFromCart(designId);
+                } else {
+                    this.cartManager.addToCart({ ...product, device });
+                }
+            }
+        }
+
+        /**
+         * 4. Application: The main orchestrator and router.
+         */
         class Application {
             constructor() {
-                this.deviceManager = null;
-                this.uploadManager = null;
-                this.designProcessor = null;
-                this.cartManager = null;
-                this.promoManager = null;
+                this.cartManager = new CartManager();
+                this.promoManager = new PromoManager(this.cartManager);
+                this.studioManager = new StudioManager(this.cartManager);
+                this.currentPage = 'home';
             }
 
             async initialize() {
-                // Initialize managers
-                this.deviceManager = new DeviceManager();
-                this.uploadManager = new UploadManager();
-                this.designProcessor = new DesignProcessor();
-                this.cartManager = new CartManager();
-                this.promoManager = new PromoManager();
-
                 // Set up global references
                 window.app = this;
-
-                // Initialize auth
+                
                 const isAuthenticatedStatus = await initializeAuth(); 
                 
+                this.renderCurrentPage(); // Render initial page
+            }
+            
+            navigateTo(page) {
+                this.currentPage = page;
+                this.renderCurrentPage();
+            }
+
+            renderCurrentPage() {
+                // Hide all main sections first
+                document.getElementById('homepage').style.display = 'none';
+                document.getElementById('studio-page').style.display = 'none';
+                document.getElementById('cart-page').style.display = 'none';
+                
+                // Show the current page
+                const targetElement = document.getElementById(`${this.currentPage}-page`) || document.getElementById(this.currentPage);
+                if (targetElement) {
+                    targetElement.style.display = 'block';
+                }
+
+                // Call page-specific render functions
+                if (this.currentPage === 'studio') {
+                    // Check auth again and update UI of studio page specifically
+                    const isAuth = !!getUserInfo();
+                    checkAuthAndUpdateUI(); // Updates the auth-required message visibility
+                    if (isAuth) {
+                        this.studioManager.renderProductList(); // Re-render product list to update cart button states
+                    }
+                } else if (this.currentPage === 'cart') {
+                    this.renderCart();
+                }
+
+                renderNavigation(this.currentPage); // Update navigation highlights
                 this.showSessionInfo();
-                this.toggleAppContent(isAuthenticatedStatus);
-                this.setupEventListeners();
-            
-                if (isAuthenticatedStatus) {
-                    this.cartManager.updateCartDisplay();
-                }
             }
-            
-            setupEventListeners() {
-                // Device selection
-                const confirmDeviceBtn = document.getElementById('confirm-device');
-                if (confirmDeviceBtn) {
-                    confirmDeviceBtn.addEventListener('click', () => {
-                        const dropdown = document.getElementById('device-dropdown');
-                        const deviceId = dropdown.value;
-                        const deviceName = dropdown.options[dropdown.selectedIndex].text;
-                        
-                        if (deviceId) {
-                            this.deviceManager.saveDeviceSelection({
-                                id: deviceId,
-                                name: deviceName
-                            });
-                            
-                            // Show image upload section
-                            document.getElementById('image-upload').style.display = 'block';
-                        }
-                    });
-                }
+
+            renderCart() {
+                const cart = this.cartManager.getCart();
+                const container = document.getElementById('cart-items-container');
+                const totals = this.cartManager.getCartTotal();
                 
-                // Process images
-                const processImagesBtn = document.getElementById('process-images');
-                if (processImagesBtn) {
-                    processImagesBtn.addEventListener('click', async () => {
-                        const images = this.uploadManager.getUploadedImages();
-                        const device = this.deviceManager.getSelectedDevice();
-                        
-                        if (images.length >= 3 && device) {
-                            // Show processing status
-                            document.getElementById('processing-status').style.display = 'block';
-                            
-                            // Process images
-                            await this.designProcessor.processImages(images, device);
-                            
-                            // Show results
-                            document.getElementById('design-results').style.display = 'block';
-                            this.renderDesigns();
-                        }
-                    });
+                document.getElementById('cart-total-display').innerText = `$${totals.total}`;
+                document.getElementById('checkout-button').disabled = cart.length === 0;
+
+                if (cart.length === 0) {
+                    container.innerHTML = `<div id="empty-cart-message" class="text-center p-8 border border-gray-200 rounded-lg">
+                        Your cart is empty. <a href="#" onclick="window.app.navigateTo('studio')" class="text-magenta font-semibold">Begin the bloom</a>.
+                    </div>`;
+                    return;
                 }
-                
-                // Apply promo code
-                const applyPromoBtn = document.getElementById('apply-promo');
-                if (applyPromoBtn) {
-                    applyPromoBtn.addEventListener('click', async () => {
-                        const promoCode = document.getElementById('promo-code').value.trim();
-                        
-                        if (promoCode) {
-                            const result = await this.promoManager.applyPromoCode(promoCode);
+
+                container.innerHTML = cart.map(item => `
+                    <div class="flex items-center p-4 border border-gray-100 rounded-lg shadow-sm">
+                        <div class="w-16 h-16 bg-gray-100 mr-4 flex-shrink-0">
                             
-                            const promoMessage = document.getElementById('promo-message');
-                            if (promoMessage) {
-                                if (result.success) {
-                                    promoMessage.className = 'mt-2 text-sm text-green-600';
-                                } else {
-                                    promoMessage.className = 'mt-2 text-sm text-red-600';
-                                }
-                                promoMessage.textContent = result.message;
-                            }
-                        }
-                    });
-                }
-                
-                // Checkout button
-                const checkoutBtn = document.getElementById('checkout-btn');
-                if (checkoutBtn) {
-                    checkoutBtn.addEventListener('click', () => {
-                        if (this.cartManager.getItems().length > 0) {
-                            alert('In a real application, this would redirect to checkout.');
-                            // Here you would integrate with your payment processor
-                        } else {
-                            alert('Your cart is empty.');
-                        }
-                    });
-                }
-            }
-            
-            renderDesigns() {
-                const designsContainer = document.getElementById('designs-container');
-                const designs = this.designProcessor.getDesigns();
-                const device = this.deviceManager.getSelectedDevice();
-                
-                if (designsContainer && designs.length > 0 && device) {
-                    designsContainer.innerHTML = designs.map(design => `
-                        <div class="design-card bg-white rounded-xl overflow-hidden card-shadow product-card" data-design-id="${design.id}">
-                            <div class="p-4">
-                                <h3 class="text-xl font-bold text-gray-800 mb-2">${design.name}</h3>
-                                <p class="text-gray-600 mb-4">${design.description}</p>
-                                
-                                <div class="grid grid-cols-2 gap-2 mb-4">
-                                    ${design.images.map(img => `
-                                        <div class="bg-gray-100 rounded-lg overflow-hidden">
-                                            <img src="${img}" alt="${design.name}" class="w-full h-32 object-cover">
-                                        </div>
-                                    `).join('')}
-                                </div>
-                                
-                                <div class="flex justify-between items-center">
-                                    <span class="text-2xl font-bold text-purple-600">$${design.price.toFixed(2)}</span>
-                                    <button class="add-to-cart-btn bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300">
-                                        <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
-                                    </button>
-                                </div>
-                            </div>
+
+[Image of ${item.name}]
+
                         </div>
-                    `).join('');
-                    
-                    // Add event listeners to add to cart buttons
-                    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            const designCard = e.target.closest('.design-card');
-                            const designId = designCard.getAttribute('data-design-id');
-                            const design = designs.find(d => d.id === designId);
-                            
-                            if (design) {
-                                const added = this.cartManager.addItem(design, device);
-                                if (added) {
-                                    // Button will be updated via cartManager.updateDesignButtons()
-                                } else {
-                                    alert('This design is already in your cart for the selected device.');
-                                }
-                            }
-                        });
-                    });
-                    
-                    this.cartManager.updateDesignButtons();
-                }
+                        <div class="flex-grow">
+                            <h4 class="font-semibold">${item.name}</h4>
+                            <p class="text-sm text-gray-500">Device: ${item.device}</p>
+                            <p class="text-sm gold-highlight">$${item.price.toFixed(2)}</p>
+                        </div>
+                        <button onclick="window.app.cartManager.removeFromCart('${item.designId}')" class="text-sm text-red-500 hover:text-red-700 ml-4">
+                            Remove
+                        </button>
+                    </div>
+                `).join('');
+                
+                // Add totals and promo application message to the container for clarity
+                container.innerHTML += `
+                    <div class="text-right pt-4">
+                        <p>Subtotal: $${totals.subtotal}</p>
+                        ${this.cartManager.promoDiscount > 0 ? `<p class="text-green-600">Discount: -$${totals.discount}</p>` : ''}
+                    </div>
+                `;
+                // Ensure the promo message is reset correctly
+                document.getElementById('promo-message').innerText = this.cartManager.promoDiscount > 0 
+                    ? `Active Discount: ${this.cartManager.promoDiscount * 100}%` 
+                    : '';
             }
-            
+
+            // Simulators for feature interaction
+            applyPromoCode() { /* Handled by PromoManager */ }
+            uploadFiles() { console.log("Upload flow started/resumed."); }
+
             showSessionInfo() {
                 const userInfo = getUserInfo();
                 const tokenDiv = document.getElementById('token-display');
                 
                 if (userInfo) {
-                    tokenDiv.innerHTML = `
-                        <div class="inline-block bg-green-100 text-green-800 px-4 py-2 rounded-full">
-                            <i class="fas fa-check-circle mr-2"></i>
-                            Signed in as ${userInfo.displayName}
-                        </div>
-                    `;
+                    tokenDiv.innerHTML = `<span class="text-green-700 font-medium">Signed in as ${userInfo.displayName}</span>`;
                 } else {
-                    tokenDiv.innerHTML = `
-                        <div class="inline-block bg-red-100 text-red-800 px-4 py-2 rounded-full">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            Not signed in
-                        </div>
-                    `;
+                    tokenDiv.innerHTML = `<span class="text-red-500 font-medium">Not signed in</span>`;
                 }
             }
-
-            toggleAppContent(show) {
-                // This is handled by checkAuthAndUpdateUI now
-            }
-
-            applyPromoCode() {
-                // This is now handled by the PromoManager class
-                console.log("Promo code application simulated.");
-            }
-
-            uploadFiles() {
-                // This is now handled by the UploadManager class
-                console.log("File upload simulated.");
-            }
-
-            startOver() {
-                // Reset the design process
-                this.uploadManager.clearUploads();
-                document.getElementById('image-upload').style.display = 'none';
-                document.getElementById('processing-status').style.display = 'none';
-                document.getElementById('design-results').style.display = 'none';
-                
-                // Show device selection again
-                document.getElementById('device-selection').style.display = 'block';
-            }
+            
+            signin() { signin(); }
+            signout() { signout(); }
         }
 
         // Initialize application when DOM is loaded
