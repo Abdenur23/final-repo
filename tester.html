@@ -92,33 +92,61 @@
             </section>
 
             <section id="studio-page" style="display: none;">
-                <div id="auth-required-message" class="text-center p-10 bg-red-50 border border-red-300 text-red-700 rounded-lg mb-6">
-                    <p class="font-bold text-xl">Access Denied.</p>
-                    <p>Please sign in to view and create your bloom.</p>
+                <div id="auth-required-message" class="text-center p-10 bg-blush-start border border-magenta rounded-lg mb-6">
+                    <p class="font-bold text-xl mb-2">Join the Bloom Community</p>
+                    <p class="mb-4">Sign in to create and view your personalized blooms</p>
+                    <button onclick="window.app.authManager.signin()" class="cta-gold px-6 py-2 text-sm font-semibold rounded-full shadow-lg">
+                        Sign In / Sign Up to Begin
+                    </button>
                 </div>
-
+            
                 <div id="app-content-box" style="display: none;">
                     <h2 class="poetic-title text-3xl mb-4">Studio: Capture Your Bloom</h2>
                     <p class="text-center text-lg mb-8">"Your reflection is growing into art."</p>
-
+            
+                    <!-- Updated Step Indicators -->
                     <div class="flex justify-center gap-8 mb-8 text-center text-sm font-medium">
-                        <span class="p-2 border-b-2 border-magenta">1. Device & Acknowledge</span>
-                        <span class="p-2 border-b-2 border-gray-300">2. Upload Photos</span>
-                        <span class="p-2 border-b-2 border-gray-300">3. Preview & Cart</span>
+                        <div class="step-indicator active flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full bg-magenta text-white flex items-center justify-center mb-1">1</div>
+                            <span class="p-2 border-b-2 border-magenta">Select Device</span>
+                        </div>
+                        <div class="step-indicator flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center mb-1">2</div>
+                            <span class="p-2 border-b-2 border-gray-300">Upload & Processing</span>
+                        </div>
+                        <div class="step-indicator flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center mb-1">3</div>
+                            <span class="p-2 border-b-2 border-gray-300">Preview & Cart</span>
+                        </div>
                     </div>
-
+            
                     <div id="device-selection-step" class="section-background p-6 mb-6">
                         <h3 class="text-xl font-semibold mb-3">1. Select Your Device</h3>
                         <p class="text-sm text-gray-600 mb-4">This device model will be used for final order fulfillment.</p>
-                        <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                            <select id="device-dropdown" class="input-style flex-grow">
+                        
+                        <!-- Manufacturer Selection -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium mb-2">Device Manufacturer</label>
+                            <div class="flex gap-6">
+                                <label class="flex items-center">
+                                    <input type="radio" name="device-manufacturer" value="apple" class="mr-2 accent-magenta">
+                                    <span>Apple</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="device-manufacturer" value="samsung" class="mr-2 accent-magenta">
+                                    <span>Samsung</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Device Model Selection -->
+                        <div class="mb-4">
+                            <select id="device-dropdown" class="input-style flex-grow" disabled>
                                 <option value="" disabled selected>Choose your phone model...</option>
-                                <option value="iphone_15_pro_max">iPhone 15 Pro Max</option>
-                                <option value="samsung_s24_ultra">Samsung S24 Ultra</option>
-                                <option value="google_pixel_8">Google Pixel 8</option>
                             </select>
                         </div>
                         
+                        <!-- Acknowledgement -->
                         <div class="flex items-start">
                             <input type="checkbox" id="acknowledgement-box" class="mt-1 mr-2 accent-magenta">
                             <label for="acknowledgement-box" class="text-sm">
@@ -129,29 +157,58 @@
                             Confirm Selection & Proceed
                         </button>
                     </div>
-
+            
                     <div id="upload-and-product-step" style="display: none;">
+                        <!-- Start Over Button -->
+                        <div class="text-right mb-4">
+                            <button id="start-over-button" onclick="window.app.studioManager.startOver()" class="text-sm text-gray-600 hover:text-magenta flex items-center gap-1" style="display: none;">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                Start Over with New Images
+                            </button>
+                        </div>
+            
                         <div id="upload-area" class="section-background p-6 mb-6">
                             <h3 class="text-xl font-semibold mb-3">2. Upload Your Reflections (3 Images)</h3>
-                            <input type="file" id="photo-upload-1" accept="image/*" class="input-style block w-full mb-2">
-                            <input type="file" id="photo-upload-2" accept="image/*" class="input-style block w-full mb-2">
-                            <input type="file" id="photo-upload-3" accept="image/*" class="input-style block w-full mb-4">
+                            
+                            <!-- Multi-file Upload -->
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium mb-2">Upload all 3 images at once:</label>
+                                <input type="file" id="multi-photo-upload" accept="image/*" multiple class="input-style block w-full mb-2">
+                                <p class="text-xs text-gray-500">Select 3 images. You can select multiple files at once.</p>
+                            </div>
+                            
+                            <!-- Individual file inputs (hidden but functional) -->
+                            <div style="display: none;">
+                                <input type="file" id="photo-upload-1" accept="image/*">
+                                <input type="file" id="photo-upload-2" accept="image/*">
+                                <input type="file" id="photo-upload-3" accept="image/*">
+                            </div>
+                            
+                            <!-- File names display -->
+                            <div id="file-names-display" class="mb-4 p-3 bg-gray-50 rounded-lg">
+                                <p class="text-sm text-gray-500">No files selected</p>
+                            </div>
+                            
                             <button onclick="window.app.studioManager.processImages()" class="cta-gold px-6 py-2 rounded-md font-semibold w-full">Watch your reflection grow</button>
                         </div>
-
+            
                         <div id="processing-progress" class="section-background p-6 mb-6" style="display: none;">
                             <h3 class="text-xl font-semibold mb-3">Processing Your Bloom...</h3>
+                            <p class="text-sm text-gray-600 mb-4">Creating your unique artwork. This typically takes 3-4 minutes.</p>
                             <div class="bg-gray-200 rounded-full h-2.5 mb-2">
-                                <div id="progress-bar" class="bg-magenta h-2.5 rounded-full" style="width: 0%"></div>
+                                <div id="progress-bar" class="bg-magenta h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
                             </div>
                             <p id="progress-message" class="text-sm text-gray-600"></p>
                         </div>
-
+            
                         <div id="product-list-area" style="display: none;">
                             <h3 class="poetic-title text-2xl mt-8 mb-4">3. Your Ready Blooms</h3>
-                            <p class="text-center text-sm text-gray-600 mb-6">"This isn’t a case — it’s your bloom captured in color."</p>
+                            <p class="text-center text-sm text-gray-600 mb-6">"This isn't a case — it's your bloom captured in color."</p>
                             <div id="mockup-products" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                </div>
+                                <!-- Products will be rendered here -->
+                            </div>
                         </div>
                     </div>
                 </div>
