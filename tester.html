@@ -124,10 +124,10 @@
             border: 2px solid var(--color-blush-start);
         }
         
-        /* Mobile-specific positioning */
+        /* Mobile-specific positioning - only adjust top position */
         @media (max-width: 768px) {
             .floating-cart {
-                top: 70px; /* Move below the header area */
+                top: 90px; /* Push down just enough to clear the header */
                 right: 15px;
                 width: 50px;
                 height: 50px;
@@ -149,7 +149,7 @@
         /* For very small screens */
         @media (max-width: 480px) {
             .floating-cart {
-                top: 65px;
+                top: 85px;
                 right: 10px;
                 width: 45px;
                 height: 45px;
@@ -224,32 +224,6 @@
         
         .cart-modal-close:hover {
             color: var(--color-magenta);
-        }
-        /* Update header for better mobile spacing */
-        .header {
-            border-bottom: 1px solid var(--color-blush-start);
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        /* Mobile header adjustments */
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
-            
-            #auth-action {
-                order: -1; /* Move auth buttons to top on mobile */
-                width: 100%;
-                display: flex;
-                justify-content: center;
-            }
-            
-            .container {
-                padding: 20px 16px;
-            }
         }
     </style>
 </head>
