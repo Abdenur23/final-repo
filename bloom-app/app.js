@@ -19,41 +19,45 @@ class Application {
     }
 
     async initialize() {
-        // Load saved promo if any
-        this.promoManager.loadSavedPromo();
-        
-        // Initialize authentication
-        const isAuthenticatedStatus = await this.authManager.initialize();
-        
-        // Initialize cart badge
-        this.cartManager.updateCartBadge();
-        
-        // Set up event listeners
-        this.setupEventListeners();
-        
-        // Render initial UI
-        this.renderCurrentPage();
-        
-        // Set up token refresh
-        this.authManager.setupTokenRefresh();
-        
-        console.log('Bloom application initialized successfully');
+        try {
+            // Load saved promo if any
+            this.promoManager.loadSavedPromo();
+            
+            // Initialize authentication FIRST
+            await this.authManager.initialize();
+            
+            // Initialize cart badge
+            this.cartManager.updateCartBadge();
+            
+            // Set up event listeners
+            this.setupEventListeners();
+            
+            // Render initial UI - force update auth state
+            this.uiManager.checkAuthAndUpdateUI();
+            this.renderCurrentPage();
+            
+            // Set up token refresh
+            this.authManager.setupTokenRefresh();
+            
+            console.log('Bloom application initialized successfully');
+        } catch (error) {
+            console.error('Error initializing application:', error);
+        }
     }
 
     setupEventListeners() {
-        // Floating cart click event
-        const floatingCart = document.getElementById('floating-cart');
-        if (floatingCart) {
-            floatingCart.addEventListener('click', () => {
+        // Floating cart click event - FIXED: Use event delegation
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#floating-cart')) {
                 this.openCartModal();
-            });
-        }
+            }
+        });
         
         // Cart modal close event
         const cartModal = document.getElementById('cart-modal');
         if (cartModal) {
             cartModal.addEventListener('click', (e) => {
-                if (e.target.id === 'cart-modal') {
+                if (e.target.id === 'cart-modal' || e.target.classList.contains('cart-modal-close')) {
                     this.closeCartModal();
                 }
             });
@@ -61,12 +65,19 @@ class Application {
     }
 
     openCartModal() {
+        console.log('Opening cart modal'); // Debug log
         this.uiManager.renderCart();
-        document.getElementById('cart-modal').style.display = 'flex';
+        const modal = document.getElementById('cart-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
     }
     
     closeCartModal() {
-        document.getElementById('cart-modal').style.display = 'none';
+        const modal = document.getElementById('cart-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
     }
 
     navigateTo(page) {
