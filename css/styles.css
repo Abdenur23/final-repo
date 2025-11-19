@@ -1,208 +1,223 @@
 body {
-            font-family: 'Manrope', sans-serif;
-            background-color: var(--color-blush-end);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            color: var(--color-charcoal);
-        }
-        .container {
-            width: 100%;
-            max-width: 960px; /* Increased max-width for artistic content */
-            background: white;
-            padding: 32px;
-            border-radius: 18px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        }
-        .header {
-            border-bottom: 1px solid var(--color-blush-start);
-        }
-        h1, h2, h3, .poetic-title {
-            font-family: 'Cormorant Garamond', serif;
-            letter-spacing: 0.05em;
-        }
-        .poetic-title {
-            font-size: 2.5rem;
-            font-weight: 600;
-            color: var(--color-charcoal);
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-        .cta-magenta {
-            background-color: var(--color-magenta);
-            color: white;
-            transition: background-color 0.3s, box-shadow 0.3s;
-        }
-        .cta-magenta:hover {
-            background-color: #C00063; 
-            box-shadow: 0 4px 10px rgba(230, 0, 126, 0.4);
-        }
-        .cta-gold {
-            background-color: var(--color-gold);
-            color: var(--color-charcoal);
-            transition: background-color 0.3s, box-shadow 0.3s;
-        }
-        .cta-gold:hover {
-            background-color: #C09A34;
-            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.4);
-        }
-        .nav-link {
-            color: var(--color-charcoal);
-            border-bottom: 2px solid transparent;
-            transition: border-bottom 0.3s;
-            font-weight: 600;
-        }
-        .nav-link:hover, .nav-link.active {
-            border-bottom-color: var(--color-magenta);
-        }
-        .input-style {
-            border: 1px solid var(--color-blush-start);
-            padding: 10px;
-            border-radius: 8px;
-            color: var(--color-charcoal);
-            transition: border-color 0.3s;
-        }
-        .input-style:focus {
-            outline: none;
-            border-color: var(--color-magenta);
-            box-shadow: 0 0 0 1px rgba(230, 0, 126, 0.5);
-        }
-        .section-background {
-            background: linear-gradient(135deg, var(--color-blush-start) 0%, var(--color-blush-end) 100%);
-            padding: 20px;
-            border-radius: 12px;
-        }
-        .gold-highlight {
-            color: var(--color-gold);
-            font-weight: 600;
-        }
-        /* Style for the simulated app content box */
-        #app-content-box {
-            border: 1px dashed var(--color-magenta);
-            padding: 24px;
-            border-radius: 12px;
-            background-color: #fcf6f9; 
-            margin-top: 20px;
-        }
-        /* Floating Cart Styles */
-        .floating-cart {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: white;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid var(--color-blush-start);
-        }
-        
-        /* Mobile-specific positioning - only adjust top position */
-        @media (max-width: 768px) {
-            .floating-cart {
-                top: 90px;
-                right: 15px;
-                width: 50px;
-                height: 50px;
-            }
-            
-            .cart-icon {
-                font-size: 20px;
-            }
-            
-            .cart-badge {
-                width: 18px;
-                height: 18px;
-                font-size: 10px;
-                top: -3px;
-                right: -3px;
-            }
-        }
-        
-        /* For very small screens */
-        @media (max-width: 480px) {
-            .floating-cart {
-                top: 85px;
-                right: 10px;
-                width: 45px;
-                height: 45px;
-            }
-        }
-        
-        .floating-cart:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
-            border-color: var(--color-magenta);
-        }
-        
-        .cart-icon {
-            font-size: 24px;
-            color: var(--color-charcoal);
-        }
-        
-        .cart-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: var(--color-magenta);
-            color: white;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            font-size: 12px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid white;
-        }
-        
-        /* Cart Modal Styles */
-        .cart-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1001;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(2px);
-        }
-        
-        .cart-modal-content {
-            background: white;
-            border-radius: 18px;
-            padding: 32px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            position: relative;
-        }
-        
-        .cart-modal-close {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--color-charcoal);
-            background: none;
-            border: none;
-        }
-        
-        .cart-modal-close:hover {
-            color: var(--color-magenta);
-        }
+font-family: 'Manrope', sans-serif;
+background-color: var(--color-blush-end);
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 20px;
+color: var(--color-charcoal);
+}
+.container {
+width: 100%;
+max-width: 960px; /* Increased max-width for artistic content */
+background: white;
+padding: 32px;
+border-radius: 18px;
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+.header {
+border-bottom: 1px solid var(--color-blush-start);
+}
+h1, h2, h3, .poetic-title {
+font-family: 'Cormorant Garamond', serif;
+letter-spacing: 0.05em;
+}
+.poetic-title {
+font-size: 2.5rem;
+font-weight: 600;
+color: var(--color-charcoal);
+margin-bottom: 1.5rem;
+text-align: center;
+}
+.cta-magenta {
+background-color: var(--color-magenta);
+color: white;
+transition: background-color 0.3s, box-shadow 0.3s;
+}
+.cta-magenta:hover {
+background-color: #C00063; 
+box-shadow: 0 4px 10px rgba(230, 0, 126, 0.4);
+}
+.cta-gold {
+background-color: var(--color-gold);
+color: var(--color-charcoal);
+transition: background-color 0.3s, box-shadow 0.3s;
+}
+.cta-gold:hover {
+background-color: #C09A34;
+box-shadow: 0 4px 10px rgba(212, 175, 55, 0.4);
+}
+.nav-link {
+color: var(--color-charcoal);
+border-bottom: 2px solid transparent;
+transition: border-bottom 0.3s;
+font-weight: 600;
+}
+.nav-link:hover, .nav-link.active {
+border-bottom-color: var(--color-magenta);
+}
+.input-style {
+border: 1px solid var(--color-blush-start);
+padding: 10px;
+border-radius: 8px;
+color: var(--color-charcoal);
+transition: border-color 0.3s;
+}
+.input-style:focus {
+outline: none;
+border-color: var(--color-magenta);
+box-shadow: 0 0 0 1px rgba(230, 0, 126, 0.5);
+}
+.section-background {
+background: linear-gradient(135deg, var(--color-blush-start) 0%, var(--color-blush-end) 100%);
+padding: 20px;
+border-radius: 12px;
+}
+.gold-highlight {
+color: var(--color-gold);
+font-weight: 600;
+}
+/* Style for the simulated app content box */
+#app-content-box {
+border: 1px dashed var(--color-magenta);
+padding: 24px;
+border-radius: 12px;
+background-color: #fcf6f9; 
+margin-top: 20px;
+}
+/* Floating Cart Styles */
+.floating-cart {
+position: fixed;
+top: 20px;
+right: 20px;
+z-index: 1000;
+background: white;
+border-radius: 50%;
+width: 60px;
+height: 60px;
+display: flex;
+align-items: center;
+justify-content: center;
+box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+cursor: pointer;
+transition: all 0.3s ease;
+border: 2px solid var(--color-blush-start);
+}
+
+/* Mobile-specific positioning - only adjust top position */
+@media (max-width: 768px) {
+.floating-cart {
+    top: 90px;
+    right: 15px;
+    width: 50px;
+    height: 50px;
+}
+
+.cart-icon {
+    font-size: 20px;
+}
+
+.cart-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    top: -3px;
+    right: -3px;
+}
+}
+
+/* For very small screens */
+@media (max-width: 480px) {
+.floating-cart {
+    top: 85px;
+    right: 10px;
+    width: 45px;
+    height: 45px;
+}
+}
+
+.floating-cart:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+border-color: var(--color-magenta);
+}
+
+.cart-icon {
+font-size: 24px;
+color: var(--color-charcoal);
+}
+
+.cart-badge {
+position: absolute;
+top: -5px;
+right: -5px;
+background: var(--color-magenta);
+color: white;
+border-radius: 50%;
+width: 22px;
+height: 22px;
+font-size: 12px;
+font-weight: bold;
+display: flex;
+align-items: center;
+justify-content: center;
+border: 2px solid white;
+}
+
+/* Cart Modal Styles */
+.cart-modal {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.5);
+z-index: 1001;
+align-items: center;
+justify-content: center;
+backdrop-filter: blur(2px);
+}
+
+.cart-modal-content {
+background: white;
+border-radius: 18px;
+padding: 32px;
+width: 90%;
+max-width: 600px;
+max-height: 80vh;
+overflow-y: auto;
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+position: relative;
+}
+
+.cart-modal-close {
+position: absolute;
+top: 15px;
+right: 20px;
+font-size: 24px;
+cursor: pointer;
+color: var(--color-charcoal);
+background: none;
+border: none;
+}
+
+.cart-modal-close:hover {
+color: var(--color-magenta);
+}
+/* Step Indicator Styles */
+.step-indicator.active .step-number {
+    background-color: var(--color-magenta);
+    color: white;
+}
+
+.step-indicator.completed .step-number {
+    background-color: var(--color-gold);
+    color: white;
+}
+
+.step-indicator.completed span {
+    border-bottom-color: var(--color-gold);
+    color: var(--color-gold);
+}
