@@ -6,7 +6,7 @@
     <title>Privacy Policy - Golden Gate Blooms LLC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- Dreamlike Elegance Theme Variables --- */
+        /* --- Dreamlike Elegance Theme Variables (Copied from Example) --- */
         :root {
             --color-magenta: #E6007E;
             --color-gold: #D4AF37;
@@ -31,7 +31,7 @@
 
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Manrope:wght@400;600&display=swap');
 
-        /* Custom Styles (from styles.css) */
+        /* Custom Styles (Simulating styles.css content) */
         body {
             font-family: 'Manrope', sans-serif;
             background-color: var(--color-blush-end);
@@ -97,7 +97,7 @@
             font-weight: 600;
         }
         .data-table tr:nth-child(even) {
-            background-color: #fcf6f9; /* Lighter blush for alternating rows */
+            background-color: #fcf6f9;
         }
         .list-style-none {
             list-style: none;
@@ -108,18 +108,35 @@
             border: 0;
             border-top: 1px solid var(--color-blush-start);
         }
+        /* Navigation Style */
+        .nav-link {
+            color: var(--color-charcoal);
+            border-bottom: 2px solid transparent;
+            transition: border-bottom 0.3s;
+            font-weight: 600;
+        }
+        .nav-link:hover {
+            border-bottom-color: var(--color-magenta);
+        }
     </style>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
     <div class="container">
+        <div class="mb-6 pb-4 border-b border-gray-300">
+            <a href="www.theweer.com/index.html" class="nav-link text-sm uppercase tracking-wider">
+                &larr; Go to Home
+            </a>
+        </div>
+        
         <header class="header">
             <h1 class="poetic-title">🔒 Privacy Policy</h1>
             <p class="text-center text-gray-600 font-semibold">Effective Date: November 24, 2025</p>
         </header>
 
         <p class="mb-6">
-            This Privacy Policy governs the manner in which **Golden Gate Blooms LLC** (referred to herein as "the Company," "we," "us," or "our"), a California-based limited liability company, collects, uses, maintains, and discloses information collected from users (each, a "**User**") of the **www.theweer.com** website ("**the Site**") and any associated mobile applications or digital services (collectively, "**Our Services**").
+            This Privacy Policy governs the manner in which **Golden Gate Blooms LLC** (referred to herein as "the Company," "we," "us," or "our"), a California-based limited liability company, collects, uses, maintains, and discloses information collected from users (each, a "User") of the **www.theweer.com** website ("the Site") and any associated mobile applications or digital services (collectively, "**Our Services**").
         </p>
 
         <p class="mb-8">
@@ -128,7 +145,7 @@
 
         <h2>1. Data Controllers, Transfers, and Third-Party Sharing</h2>
         <p>
-            We share personal information with third-party vendors and service providers who assist us in operating Our Services and fulfilling orders. These entities are contractually obligated to use your information only as "**Service Providers**" for the specific purposes we direct and are prohibited from using your personal information for their own independent purposes.
+            We share personal information with third-party vendors and service providers who assist us in operating Our Services and fulfilling orders. These entities are contractually obligated to use your information only as "Service Providers" for the specific purposes we direct and are prohibited from using your personal information for their own independent purposes.
         </p>
         <p>
             The legal bases for our processing of your personal information are primarily:
