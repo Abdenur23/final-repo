@@ -138,9 +138,6 @@ class StudioManager {
             document.getElementById('upload-and-product-step').style.display = 'block';
             this.currentStep = 2;
             this.updateStepIndicator(2);
-            
-            // Show consent modal
-            this.showConsentModal();
         } else {
             alert('Please select a device manufacturer, specific model, and acknowledge the statement to proceed.');
         }
@@ -275,6 +272,9 @@ class StudioManager {
             startOverBtn.style.display = 'block';
         }
 
+        // Show consent modal
+        this.showConsentModal();
+
         // Simulate progress with image updates
         this.simulateProgressWithImages();
     }
@@ -379,6 +379,9 @@ class StudioManager {
 
     // REAL SERVER INTEGRATION METHOD - Use this when you have a backend
     async connectToProgressWebSocket() {
+        // Show consent modal
+        this.showConsentModal();
+
         // Example WebSocket implementation for real server updates
         try {
             this.socket = new WebSocket('wss://your-server.com/progress');
