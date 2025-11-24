@@ -3,47 +3,464 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - BloomCase</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/components.css">
+    <title>Privacy Policy - Golden Gate Blooms LLC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* --- Dreamlike Elegance Theme Variables --- */
+        :root {
+            --color-magenta: #E6007E;
+            --color-gold: #D4AF37;
+            --color-charcoal: #2E2E2E;
+            --color-blush-start: #FFD0E6;
+            --color-blush-end: #FFF7FB;
+            --color-gray-300: #d1d5db;
+            --color-gray-600: #4b5563;
+        }
+
+        .bg-magenta { background-color: var(--color-magenta); }
+        .bg-gold { background-color: var(--color-gold); }
+        .bg-gray-300 { background-color: var(--color-gray-300); }
+        .text-white { color: white; }
+        .text-gray-600 { color: var(--color-gray-600); }
+        .border-magenta { border-color: var(--color-magenta); }
+        .border-gold { border-color: var(--color-gold); }
+        .border-gray-300 { border-color: var(--color-gray-300); }
+        .text-magenta { color: var(--color-magenta); }
+        .text-gold { color: var(--color-gold); }
+        .font-semibold { font-weight: 600; }
+
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Manrope:wght@400;600&display=swap');
+
+        /* Custom Styles (from styles.css) */
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: var(--color-blush-end);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: var(--color-charcoal);
+        }
+        .container {
+            width: 100%;
+            max-width: 960px;
+            background: white;
+            padding: 32px;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+        .header {
+            border-bottom: 1px solid var(--color-blush-start);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        h1, h2, h3, .poetic-title {
+            font-family: 'Cormorant Garamond', serif;
+            letter-spacing: 0.05em;
+        }
+        .poetic-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--color-magenta);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--color-blush-start);
+        }
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .gold-highlight {
+            color: var(--color-gold);
+            font-weight: 600;
+        }
+        .data-table th, .data-table td {
+            padding: 10px;
+            border: 1px solid var(--color-gray-300);
+            text-align: left;
+        }
+        .data-table th {
+            background-color: var(--color-blush-start);
+            color: var(--color-charcoal);
+            font-weight: 600;
+        }
+        .data-table tr:nth-child(even) {
+            background-color: #fcf6f9; /* Lighter blush for alternating rows */
+        }
+        .list-style-none {
+            list-style: none;
+            padding-left: 0;
+        }
+        .section-separator {
+            margin: 2rem 0;
+            border: 0;
+            border-top: 1px solid var(--color-blush-start);
+        }
+    </style>
 </head>
 <body>
-    <header class="header">
-        <div class="container">
-            <div class="logo">
-                <h1><a href="index.html" style="text-decoration: none; color: inherit;">🌸 BloomCase</a></h1>
-            </div>
-        </div>
-    </header>
 
-    <main class="main">
-        <div class="container">
-            <div class="privacy-policy">
-                <h2>Privacy Policy</h2>
-                
-                <div class="policy-section">
-                    <h3>Image Usage & Storage</h3>
-                    <p>When you upload images to create your custom floral design, we store them securely in our AWS S3 storage. Your images are used solely for creating your custom phone case or jewelry and are not shared with third parties.</p>
-                </div>
+    <div class="container">
+        <header class="header">
+            <h1 class="poetic-title">🔒 Privacy Policy</h1>
+            <p class="text-center text-gray-600 font-semibold">Effective Date: November 24, 2025</p>
+        </header>
 
-                <div class="policy-section">
-                    <h3>Data Protection</h3>
-                    <p>We implement industry-standard security measures to protect your images and personal information. All file transfers are encrypted, and access to your images is strictly limited to design processing.</p>
-                </div>
+        <p class="mb-6">
+            This Privacy Policy governs the manner in which **Golden Gate Blooms LLC** (referred to herein as "the Company," "we," "us," or "our"), a California-based limited liability company, collects, uses, maintains, and discloses information collected from users (each, a "**User**") of the **www.theweer.com** website ("**the Site**") and any associated mobile applications or digital services (collectively, "**Our Services**").
+        </p>
 
-                <div class="policy-section">
-                    <h3>Design Rights</h3>
-                    <p>By uploading images, you confirm you have the right to use them for creating custom products. We respect intellectual property rights and will remove any content that infringes on copyrights.</p>
-                </div>
+        <p class="mb-8">
+            By accessing or using Our Services, you signify your acceptance of this Privacy Policy. If you do not agree to this policy, please do not use Our Services.
+        </p>
 
-                <div class="policy-section">
-                    <h3>Contact Us</h3>
-                    <p>If you have any questions about our privacy practices, please contact us at privacy@bloomcase.com</p>
-                </div>
+        <h2>1. Data Controllers, Transfers, and Third-Party Sharing</h2>
+        <p>
+            We share personal information with third-party vendors and service providers who assist us in operating Our Services and fulfilling orders. These entities are contractually obligated to use your information only as "**Service Providers**" for the specific purposes we direct and are prohibited from using your personal information for their own independent purposes.
+        </p>
+        <p>
+            The legal bases for our processing of your personal information are primarily:
+        </p>
+        <ul class="list-disc ml-6 space-y-1">
+            <li>(a) the performance of our contract with you (e.g., order fulfillment);</li>
+            <li>(b) your consent (e.g., for marketing communications);</li>
+            <li>(c) compliance with legal obligations (e.g., tax record-keeping); and</li>
+            <li>(d) our legitimate interests (e.g., website security and analytics), which we balance against your privacy rights.</li>
+        </ul>
 
-                <a href="index.html" class="back-btn">← Back to Design Studio</a>
-            </div>
-        </div>
-    </main>
+        <h3>Data Controllership and Accountability</h3>
+        <p>
+            The Company is the primary **Data Controller** responsible for the processing of all Personal Information collected through Our Services. We are responsible for establishing and maintaining the practices and standards outlined in this Policy.
+        </p>
+
+        <h3>Flexibility for Business Growth and Restructuring</h3>
+        <p>
+            In the event of a merger, acquisition, sale, restructuring, transfer of assets, or similar corporate change (collectively, a "**Business Transaction**"), User information, including Personal Information, may be disclosed or transferred to the successor entity. We will ensure that the recipient agrees to adhere to the material terms of this Privacy Policy, or will notify you of any material changes to the Policy necessitated by the Business Transaction.
+        </p>
+
+        <h3>Joint Controller Relationships</h3>
+        <p>
+            We may, from time to time, enter into arrangements with strategic partners (e.g., specific advertising platforms or payment processors) that may result in a joint controller relationship for certain specific, defined processing activities. In such cases, we will maintain transparency regarding our respective responsibilities, which will be accessible upon request.
+        </p>
+
+        <h3>Disclaimer for Third-Party Misuse</h3>
+        <p>
+            Our Services may link to third-party websites, products, or services. We disclaim any liability or responsibility for the privacy practices, content, or actions of any third party. Once you leave Our Services, this Privacy Policy is no longer in effect, and we strongly encourage you to review the privacy policies of any site you visit.
+        </p>
+
+        <hr class="section-separator"/>
+
+        <h2>2. Data Collection & Usage</h2>
+        <p>
+            We collect information primarily to fulfill orders, create personalized artwork, and maintain the functionality of Our Services. The types of data collected and their specific uses are as follows:
+        </p>
+
+        <table class="data-table w-full mt-4 border-collapse">
+            <thead>
+                <tr>
+                    <th class="border border-gray-300 p-2">Type of Data</th>
+                    <th class="border border-gray-300 p-2">Details and Purpose of Use</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="border border-gray-300 p-2 font-semibold">User-Submitted Photo Uploads</td>
+                    <td class="border border-gray-300 p-2">
+                        <p>Users may upload personal photos to create personalized digital artwork. These photos are processed as image files to generate the requested artwork. While a photo may depict individuals or elements that could be classified as sensitive personal information under certain laws, we do not actively process, analyze, or catalog any such characteristics (e.g., we do not identify or store data related to racial or ethnic origin, health information, or biometric data). We do not use facial recognition or create biometric identifiers. By uploading a photo, you warrant you have the legal right to do so, as detailed in Section 8.</p>
+                        <p class="mt-2"><span class="gold-highlight">Purpose of Use:</span> Core Service Fulfillment — essential for transforming the image into original digital artwork and manufacturing the physical products (e.g., jewelry, accessories) ordered by the User or a gift-giver.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2 font-semibold">Contact and Identity Data</td>
+                    <td class="border border-gray-300 p-2">
+                        <p>Name, email address, shipping address, billing address, and telephone number.</p>
+                        <p class="mt-2"><span class="gold-highlight">Purpose of Use:</span> Order Fulfillment — processing and shipping physical goods. Customer Service — communication regarding orders, artwork previews, and inquiries. Account Management — maintaining a User profile on The Site.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2 font-semibold">Financial and Transaction Data</td>
+                    <td class="border border-gray-300 p-2">
+                        <p>Payment information (e.g., credit card numbers, which are typically processed by a third-party processor and not stored by The Company), and complete order history/details.</p>
+                        <p class="mt-2"><span class="gold-highlight">Purpose of Use:</span> Payment Processing — completing commercial transactions. Legal Compliance — maintaining transactional records for tax and auditing purposes (retention minimums apply).</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2 font-semibold">Technical & Analytical Data</td>
+                    <td class="border border-gray-300 p-2">
+                        <p>IP address, browser type, operating system, pages visited, date/time stamps, and device identifiers.</p>
+                        <p class="mt-2"><span class="gold-highlight">Purpose of Use:</span> Performance and Security — troubleshooting, fraud prevention, and ensuring the security of The Site. Analytics & Optimization — analyzing user behavior, improving website performance, and optimizing the product experience.</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <hr class="section-separator"/>
+
+        <h2>3. Data Retention & Deletion</h2>
+        <p>
+            We retain data only for as long as necessary to fulfill the purposes outlined in this policy, comply with legal obligations, or enforce our agreements. The criteria used to determine our retention periods include the nature and sensitivity of the data, the specific business purposes for which we process the data, and applicable legal, tax, and regulatory requirements.
+        </p>
+
+        <hr class="section-separator"/>
+
+        <h2>4. Children's Privacy (Minors Policy)</h2>
+        <p>
+            Protecting the privacy of minors is paramount, especially when dealing with personal images.
+        </p>
+
+        <h3>Prohibition for Users Under 13</h3>
+        <p>
+            Our Services are not directed to children under the age of **thirteen (13)**. We do not knowingly collect Personal Information, especially photo uploads, from children under 13. If we become aware that we have collected Personal Information from a child under 13 without verifiable parental consent, we will take steps to remove that information from our servers immediately.
+        </p>
+
+        <h3>Users Aged 13 to 17</h3>
+        <p>
+            Users between the ages of thirteen (13) and seventeen (17) must obtain the **express permission** of a parent or legal guardian to upload photos or submit Personal Information. We reserve the right to request verification of parental consent before processing any orders or images from a minor in this age range.
+        </p>
+
+        <hr class="section-separator"/>
+
+        <h2>5. Cross-Border Processing and International Operations</h2>
+
+        <h3>Global Operations Disclosure</h3>
+        <p>
+            The Company is headquartered in the United States. By submitting your data, you consent to this cross-border transfer. Your Personal Information may be transferred to and processed in the United States and other countries. We use legally approved mechanisms, such as Standard Contractual Clauses, to ensure an adequate level of protection for data transfers from the EEA, UK, Switzerland, and other regions.
+        </p>
+
+        <h3>International Vendor Infrastructure</h3>
+        <p>
+            We utilize third-party vendors and contractors, including those for cloud hosting, manufacturing, and analytics, which may have globally distributed infrastructure. We commit to implementing technical and organizational measures to ensure that your data remains protected to a standard commensurate with the requirements of this Policy, regardless of where it is processed. This includes using standard contractual clauses or similar legal safeguards where appropriate.
+        </p>
+
+        <hr class="section-separator"/>
+
+        <h2>6. Marketing & Communications</h2>
+
+        <h3>Opt-In and Consent Requirements</h3>
+        <p>
+            We will only send promotional and marketing communications to Users who have provided **explicit, separate, and affirmative consent** to receive such messages. This consent is distinct from agreeing to our general Terms and Conditions or completing a transaction.
+        </p>
+
+        <h3>Personalized Product Marketing</h3>
+        <p>
+            If you have provided consent to receive marketing communications, we may use the images you have submitted to create new, personalized digital artwork and product designs (e.g., for new accessories or decorative items). These personalized creations will be sent to you via marketing communications. This process allows us to offer you products that are tailored to your preferences.
+        </p>
+
+        <h3>Gift Recipient Handling</h3>
+        <p>
+            If you provide us with information (e.g., name, address) of a gift recipient, we use that information solely to fulfill the gift order. We do not use the gift recipient's information for marketing purposes unless they independently and separately opt-in to receive communications from us.
+        </p>
+
+        <h3>Clear Opt-Out Mechanisms</h3>
+        <p>
+            All marketing communications will contain a clear, conspicuous, and functional **unsubscribe link**. We will honor all opt-out requests promptly, which will cease all marketing materials, including messages containing personalized product designs.
+        </p>
+
+        <hr class="section-separator"/>
+
+        <h2>7. Employee/Vendor Confidentiality</h2>
+
+        <h3>Strict Confidentiality Agreements</h3>
+        <p>
+            All employees, independent contractors, and external vendors who may have access to User data, especially photo uploads and derivative artwork, are required to execute strict, legally binding confidentiality and **non-disclosure agreements (NDAs)**. These agreements mandate that personal and proprietary information be handled in strict confidence and used only for the purpose of performing their contracted duties.
+        </p>
+
+        <h3>Access Control</h3>
+        <p>
+            Access to Personal Information is restricted on a "**need-to-know**" basis to only those personnel who require it to fulfill the service (e.g., the digital artist, the manufacturing liaison, customer service).
+        </p>
+
+        <hr class="section-separator"/>
+
+        <h2>8. User Warranties and Indemnification for Uploaded Content</h2>
+        <p>
+            By uploading photos to Our Services, you represent and warrant that:
+        </p>
+        <ul class="list-disc ml-6 space-y-1">
+            <li>**You Have Necessary Rights:** You either (a) are the individual depicted in the photo, or (b) have obtained explicit, informed consent from every identifiable individual depicted in the photo to use their image for the purposes of creating personalized artwork and physical products.</li>
+            <li>**Purpose of Use:** You are uploading the photo for the sole purpose of creating a custom product, either for yourself or as a gift for the individual depicted in the photo or another person known to you.</li>
+            <li>**No Infringement:** The photo does not infringe upon the copyright, trademark, privacy, publicity, or other intellectual property rights of any third party.</li>
+        </ul>
+
+        <h3>Indemnification</h3>
+        <p>
+            You agree to **indemnify, defend, and hold harmless** The Company, its officers, directors, employees, agents, and affiliates from and against any and all claims, damages, liabilities, costs, and expenses (including reasonable attorneys' fees) arising out of or related to your breach of the above representations and warranties. This includes, but is not limited to, any claims brought by individuals whose photos you uploaded without their consent.
+        </p>
+
+        <hr class="section-separator"/>
+
+        <h2>9. Information for Affiliates</h2>
+
+        <h3>Information We Collect from Affiliates</h3>
+        <p>
+            When you apply or agree to work with us, we collect information necessary to administer the Program and fulfill legal obligations. This includes your name, email, address, payment details, and Tax Identification Number via a W-9/W-8BEN form.
+        </p>
+
+        <h3>How We Use & Share Affiliate Information</h3>
+        <p>
+            We use this information to administer the Program, process payments, and comply with tax laws. We share aggregated, non-identifying transaction data (e.g., transaction ID, product, commission) with Affiliates for tracking purposes. We do not share our customers' personally identifiable information with Affiliates.
+        </p>
+
+        <h3>Tracking & Cookies for Attribution</h3>
+        <p>
+            We use tracking technologies like cookies to attribute sales to the correct Affiliate. This is used solely for calculating commissions. Customers can control cookies through their browser settings.
+        </p>
+
+        <h3>Updates to Affiliate Privacy Terms</h3>
+        <p>
+            We reserve the right to update these privacy practices specific to the Affiliate Program. Significant changes will be communicated, and your continued participation constitutes acceptance of the updated terms.
+        </p>
+
+        <hr class="section-separator"/>
+
+        <h2>10. Your California Privacy Rights (CPRA/CCPA)</h2>
+        <p>
+            If you are a California resident, the California Consumer Privacy Act (CCPA), as amended by the CPRA, provides you with specific rights regarding your personal information. This section describes your CPRA/CCPA rights and explains how to exercise them.
+        </p>
+
+        <h3>A. Categories of Personal Information Collected, Used, and Disclosed</h3>
+        <table class="data-table w-full mt-4 border-collapse">
+            <thead>
+                <tr>
+                    <th class="border border-gray-300 p-2">Category of Personal Information</th>
+                    <th class="border border-gray-300 p-2">Examples</th>
+                    <th class="border border-gray-300 p-2">Collected</th>
+                    <th class="border border-gray-300 p-2">Business or Commercial Purpose for Collection</th>
+                    <th class="border border-gray-300 p-2">Categories of Third Parties With Whom We Share</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="border border-gray-300 p-2">Identifiers</td>
+                    <td class="border border-gray-300 p-2">Real name, alias, postal address, unique personal identifier, online identifier, Internet Protocol (IP) address, email address, account name.</td>
+                    <td class="border border-gray-300 p-2">YES</td>
+                    <td class="border border-gray-300 p-2">Order fulfillment, customer service, marketing (with consent), site security and analytics.</td>
+                    <td class="border border-gray-300 p-2">Service Providers, Payment Processors, Advertising Partners.</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2">Personal Records</td>
+                    <td class="border border-gray-300 p-2">Name, signature, address, telephone number. Note: Some personal information included in this category may overlap with other categories.</td>
+                    <td class="border border-gray-300 p-2">YES</td>
+                    <td class="border border-gray-300 p-2">Order fulfillment, customer service.</td>
+                    <td class="border border-gray-300 p-2">Service Providers, Payment Processors.</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2">Commercial Information</td>
+                    <td class="border border-gray-300 p-2">Records of products or services purchased, obtained, or considered, or other purchasing or consuming histories or tendencies.</td>
+                    <td class="border border-gray-300 p-2">YES</td>
+                    <td class="border border-gray-300 p-2">Order fulfillment, analytics, personalization.</td>
+                    <td class="border border-gray-300 p-2">Service Providers, Analytics Providers.</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2">Internet/Network Information</td>
+                    <td class="border border-gray-300 p-2">Browsing history, search history, and information regarding your interaction with our website, application, or advertisement.</td>
+                    <td class="border border-gray-300 p-2">YES</td>
+                    <td class="border border-gray-300 p-2">Site security, analytics, website functionality.</td>
+                    <td class="border border-gray-300 p-2">Service Providers, Advertising Partners.</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2">Geolocation Data</td>
+                    <td class="border border-gray-300 p-2">Physical location derived from your IP address.</td>
+                    <td class="border border-gray-300 p-2">YES</td>
+                    <td class="border border-gray-300 p-2">Fraud prevention, analytics, regional compliance.</td>
+                    <td class="border border-gray-300 p-2">Service Providers.</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2">Sensory Data</td>
+                    <td class="border border-gray-300 p-2">Digital images, audio, electronic, or similar information (e.g., User-uploaded photos).</td>
+                    <td class="border border-gray-300 p-2">YES</td>
+                    <td class="border border-gray-300 p-2">Core service fulfillment (creating personalized artwork).</td>
+                    <td class="border border-gray-300 p-2">Service Providers (e.g., cloud storage, manufacturing partners).</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2">Inferences</td>
+                    <td class="border border-gray-300 p-2">Inferences drawn from any of the information identified to create a profile about a consumer reflecting the consumer’s preferences.</td>
+                    <td class="border border-gray-300 p-2">YES</td>
+                    <td class="border border-gray-300 p-2">Personalization, marketing, and service improvement.</td>
+                    <td class="border border-gray-300 p-2">Service Providers, Advertising Partners.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>B. Categories of Sources of Personal Information</h3>
+        <p>
+            We collect the categories of personal information listed above from the following sources:
+        </p>
+        <ul class="list-disc ml-6 space-y-1">
+            <li>**Directly from you:** When you provide it to us (e.g., when you create an account, place an order, upload a photo, or contact customer service).</li>
+            <li>**Automatically from your device:** As you navigate through Our Services (e.g., via cookies and similar tracking technologies).</li>
+            <li>**From third parties:** Such as payment processors who confirm your payment information and analytics providers who help us understand site usage.</li>
+        </ul>
+
+        <h3>C. Your CPRA/CCPA Rights and How to Exercise Them</h3>
+        <ul class="list-disc ml-6 space-y-1">
+            <li>**Right to Know and Data Portability:** You have the right to request that we disclose certain information to you about our collection and use of your personal information over the past 12 months. Upon verification, we will provide you with the specific pieces of information we have collected about you.</li>
+            <li>**Right to Delete:** You have the right to request that we delete any of your personal information that we collected from you and retained, subject to certain exceptions.</li>
+            <li>**Exercising Your Rights:**<br/>
+                To exercise your Right to Know or Right to Delete, please submit a verifiable consumer request to us by using the contact information provided in the "Contact Information" section of this Privacy Policy.
+            </li>
+            <li>We do not sell your personal information. We only share your personal information with our trusted Service Providers as necessary to fulfill your orders and operate our Services, which is not considered a "sale" under the CCPA/CPRA.</li>
+            <li>**Right to Limit Use of Sensitive Personal Information:** You have the right to limit the use of your "sensitive personal information" to only what is necessary to perform the services or provide the goods reasonably expected. We only use sensitive personal information, such as the contents of your photo uploads, for the limited purpose of providing our core service of creating personalized artwork, for which we do not offer a right to limit.</li>
+        </ul>
+
+        <h3>D. How to Submit a Verifiable Request</h3>
+        <p>
+            To exercise the Right to Know, Delete, or Correct, please submit a verifiable request using the information provided in the "Contact Information" section of this Privacy Policy.
+        </p>
+
+        <h4>Verification Process</h4>
+        <p>
+            To protect your privacy, we must verify your identity before processing most requests. Upon receiving a request, we will match the information you provide (e.g., name, email address, phone number) with the information we have maintained in our systems. We may require you to confirm at least two to three pieces of personal information we already hold about you. In certain cases, we may use a third-party verification service to assist with this process. We will only use the personal information you provide in your request for the purpose of verifying your identity and will delete any verification information after the process is complete.
+        </p>
+        <p>
+            We will not discriminate against you for exercising any of your CCPA/CPRA rights.
+        </p>
+
+        <hr class="section-separator"/>
+
+        <h2>11. Documentation & Accountability</h2>
+
+        <h3>Data Processing Records</h3>
+        <p>
+            We maintain comprehensive records of all data processing activities, including records of consent, data categories collected, purposes of processing, data retention schedules, and all third-party data sharing arrangements. These records are subject to regular internal audits.
+        </p>
+
+        <h3>Policy Update Procedures</h3>
+        <p>
+            This Privacy Policy may be updated periodically to reflect changes in our practices or legal requirements. When we make material changes, we will:
+        </p>
+        <ul class="list-disc ml-6 space-y-1">
+            <li>Revise the "**Effective Date**" at the top of this document.</li>
+            <li>Provide conspicuous notice on The Site's homepage or notify Users directly via email (if consent is given) prior to the change becoming effective.</li>
+        </ul>
+
+        <hr class="section-separator"/>
+
+        <h2>Contact Information</h2>
+        <p>
+            For questions or concerns regarding this Privacy Policy, or to exercise your rights, please contact The Company at:
+        </p>
+        <ul class="list-style-none space-y-1">
+            <li>**Golden Gate Blooms LLC**</li>
+            <li>3400 COTTAGE WAY, STE G2 #32468</li>
+            <li>SACRAMENTO, CA 95825</li>
+            <li>Email: <a href="mailto:goldengateblooms@gmail.com" class="text-magenta font-semibold hover:underline">goldengateblooms@gmail.com</a></li>
+            <li>Website: <a href="www.theweer.com" class="text-magenta font-semibold hover:underline">www.theweer.com</a></li>
+        </ul>
+
+    </div>
+
 </body>
 </html>
