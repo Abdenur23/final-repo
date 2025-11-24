@@ -28,37 +28,39 @@ const VALID_PROMO_CODES = {
 };
 
 const DEVICE_OPTIONS = {
-    "apple": [
-            { "name": "iPhone 17", "value": "iphone17" },
-            { "name": "iPhone 17 Pro", "value": "iphone17pro" },
-            { "name": "iPhone 17 Pro Max", "value": "iphone17promax" },
-            { "name": "iPhone Air", "value": "iphoneair" },
-            { "name": "iPhone 16", "value": "iphone16" },
-            { "name": "iPhone 16e", "value": "iphone16e" },
-            { "name": "iPhone 16 Plus", "value": "iphone16plus" },
-            { "name": "iPhone 16 Pro", "value": "iphone16pro" },
-            { "name": "iPhone 16 Pro Max", "value": "iphone16promax" },
-            { "name": "iPhone 15", "value": "iphone15" },
-            { "name": "iPhone 15 Plus", "value": "iphone15plus" },
-            { "name": "iPhone 15 Pro", "value": "iphone15pro" },
-            { "name": "iPhone 15 Pro Max", "value": "iphone15promax" },
-            { "name": "iPhone 14", "value": "iphone14" },
-            { "name": "iPhone 14 Plus", "value": "iphone14plus" },
-            { "name": "iPhone 14 Pro", "value": "iphone14pro" },
-            { "name": "iPhone 14 Pro Max", "value": "iphone14promax" }
-        ],
-        "samsung": [
-            { "name": "Galaxy S25", "value": "samsungs25" },
-            { "name": "Galaxy S25 Plus", "value": "samsungs25plus" },
-            { "name": "Galaxy S25 Ultra", "value": "samsungs25ultra" },
-            { "name": "Galaxy S24", "value": "samsungs24" },
-            { "name": "Galaxy S24 Plus", "value": "samsungs24plus" },
-            { "name": "Galaxy S24 Ultra", "value": "samsungs24ultra" },
-            { "name": "Galaxy S23", "value": "samsungs23" },
-            { "name": "Galaxy S23 Plus", "value": "samsungs23plus" },
-            { "name": "Galaxy S23 Ultra", "value": "samsungs23ultra" },
-            { "name": "Galaxy S22", "value": "samsungs22" },
-            { "name": "Galaxy S22 Plus", "value": "samsungs22plus" },
-            { "name": "Galaxy S22 Ultra", "value": "samsungs22ultra" }
-        ]
+    apple: [
+        { value: 'iphone17', label: 'iPhone 17' },
+        { value: 'iphone17pro', label: 'iPhone 17 Pro' },
+        { value: 'iphone17promax', label: 'iPhone 17 Pro Max' },
+        { value: 'iphoneair', label: 'iPhone Air' },
+        { value: 'iphone16', label: 'iPhone 16' },
+        { value: 'iphone16e', label: 'iPhone 16e' },
+        { value: 'iphone16plus', label: 'iPhone 16 Plus' },
+        { value: 'iphone16pro', label: 'iPhone 16 Pro' },
+        { value: 'iphone16promax', label: 'iPhone 16 Pro Max' },
+        { value: 'iphone15', label: 'iPhone 15' },
+        { value: 'iphone15plus', label: 'iPhone 15 Plus' },
+        { value: 'iphone15pro', label: 'iPhone 15 Pro' },
+        { value: 'iphone15promax', label: 'iPhone 15 Pro Max' },
+        { value: 'iphone14', label: 'iPhone 14' },
+        { value: 'iphone14plus', label: 'iPhone 14 Plus' },
+        { value: 'iphone14pro', label: 'iPhone 14 Pro' },
+        { value: 'iphone14promax', label: 'iPhone 14 Pro Max' }
+    ],
+    
+    samsung: [
+        { value: 'samsungs25', label: 'Galaxy S25' },
+        { value: 'samsungs25plus', label: 'Galaxy S25 Plus' },
+        { value: 'samsungs25ultra', label: 'Galaxy S25 Ultra' },
+        { value: 'samsungs24', label: 'Galaxy S24' },
+        { value: 'samsungs24plus', label: 'Galaxy S24 Plus' },
+        { value: 'samsungs24ultra', label: 'Galaxy S24 Ultra' },
+        { value: 'samsungs23', label: 'Galaxy S23' },
+        { value: 'samsungs23plus', label: 'Galaxy S23 Plus' },
+        { value: 'samsungs23ultra', label: 'Galaxy S23 Ultra' },
+        { value: 'samsungs22', label: 'Galaxy S22' },
+        { value: 'samsungs22plus', label: 'Galaxy S22 Plus' },
+        { value: 'samsungs22ultra', label: 'Galaxy S22 Ultra' }
+    ]
+
 };
