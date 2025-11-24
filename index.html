@@ -43,7 +43,15 @@ p { color: #555; }
     <img src="logo.png" alt="Logo" class="logo">
     <h1>Welcome</h1>
     <p>Create your custom phone case</p>
-    
+       <!-- Legal Links -->
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Legal</h3>
+                    <div class="space-y-2">
+                        <a href="/privacy-policy" class="block text-sm text-gray-600 hover:text-magenta transition-colors">Privacy Policy</a>
+                        <a href="/terms-of-service" class="block text-sm text-gray-600 hover:text-magenta transition-colors">Terms of Service</a>
+                    </div>
+                </div>
+         
     <div id="auth-action"></div>
     
     <div style="margin-top: 30px;">
@@ -57,42 +65,7 @@ p { color: #555; }
     document.addEventListener('DOMContentLoaded', async () => {
         await initializeAuth();
     });
-</script>
-    <footer class="w-full max-w-960px mt-12 py-8 border-t border-gray-200">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Contact -->
-                <div>
-                    <h3 class="font-bold text-lg mb-4">Contact</h3>
-                    <p class="text-sm text-gray-600">Need help with your order?</p>
-                    <a href="mailto:support@goldengateblooms.com" class="text-sm text-magenta hover:underline">support@goldengateblooms.com</a>
-                </div>
-
-                <!-- Legal Links -->
-                <div>
-                    <h3 class="font-bold text-lg mb-4">Legal</h3>
-                    <div class="space-y-2">
-                        <a href="/privacy-policy" class="block text-sm text-gray-600 hover:text-magenta transition-colors">Privacy Policy</a>
-                        <a href="/terms-of-service" class="block text-sm text-gray-600 hover:text-magenta transition-colors">Terms of Service</a>
-                    </div>
-                </div>
-                
-                <!-- Company Info -->
-                <div>
-                    <h3 class="font-bold text-lg mb-4">GOLDEN GATE BLOOMS LLC</h3>
-                    <address class="not-italic text-sm text-gray-600">
-                        <p>3400 COTTAGE WAY</p>
-                        <p>STE G2</p>
-                        <p>SACRAMENTO, CA 95825</p>
-                    </address>
-                </div>
-                
-            </div>
-            
-            <div class="border-t border-gray-200 mt-8 pt-6 text-center">
-                <p class="text-sm text-gray-500">&copy; 2025 Golden Gate Blooms LLC. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+</script>       
+             
 </body>
 </html>
