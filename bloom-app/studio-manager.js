@@ -9,6 +9,9 @@ class StudioManager {
         // Delay setup to ensure DOM is ready
         setTimeout(() => this.setupEventListeners(), 100);
     }
+    setRealTimeUpdates(realTimeUpdates) {
+        this.realTimeUpdates = realTimeUpdates;
+    }
     // Method for RealTimeUpdates to add products
     addRealTimeProduct(product) {
         console.log('Adding real-time product:', product);
@@ -323,15 +326,20 @@ class StudioManager {
             startOverBtn.style.display = 'block';
         }
 
-        // Start real-time WebSocket connection
-        this.realTimeUpdates.initialize();
+        // Check if realTimeUpdates exists before using it
+        if (this.realTimeUpdates) {
+            this.realTimeUpdates.initialize();
+        } else {
+            console.error('RealTimeUpdates not initialized');
+            // Fallback to simulated progress if real-time updates aren't available
+            this.simulateProgressWithImages();
+            return;
+        }
         
         // Upload files - this triggers server processing
         this.uploadManager.uploadFiles(files);
         
         this.showConsentModal();
-        
-        // REMOVE: this.simulateProgressWithImages() - No more dummy images!
     }
 
     createImagePreviewContainer() {
