@@ -64,3 +64,45 @@ const DEVICE_OPTIONS = {
     ]
 
 };
+// Application constants and configuration
+const CONFIG = {
+    // WebSocket
+    WS_URL: 'wss://h5akjyhdj6.execute-api.us-east-1.amazonaws.com/production',
+    
+    // API Endpoints
+    API_BASE_URL: 'https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod',
+    API_ENDPOINT: 'https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload',
+    SHOPPING_CART_API_ENDPOINT: 'https://h35raa35sh.execute-api.us-east-1.amazonaws.com/prod/prod',
+    
+
+    // Stripe Configuration
+    STRIPE_PUBLISHABLE_KEY: 'pk_test_51SMYv7DBeWU7VJzLNGNEY9wllekcfhQZaMndBcGbvbK5zA7gROVkeWX5lAd8By9QCXVqAinfe5TkHlURcml7Eky700lHbTzbU1', // Replace with your actual key
+    CHECKOUT_API_ENDPOINT: 'https://qohagpc75m.execute-api.us-east-1.amazonaws.com/prod/prod',
+
+    
+    // Product
+    PRODUCT_PRICE: 1.00,//make it $34
+    TOTAL_EXPECTED_DESIGNS: 3,
+    // Auth Configuration
+    AUTH: {
+        CLIENT_ID: '73lf1h32phkqeb9ahu6tqcl9av',
+        REDIRECT_URI: window.location.origin + window.location.pathname,
+        DOMAIN: 'auth.theweer.com'
+    },    
+    // Stage mappings for user-friendly display
+    STAGE_MAP: {
+        'enhancing image': '🧪 Enhancing your image',
+        'preparing wallpaper and case': '🧩 Preparing wallpaper and case',
+        'producing design': '🎨 Generating your phone case design',
+        'mockup ready': '✅ Your design is ready'
+    },
+    
+    // Stage colors for progress indicators
+    STAGE_COLORS: {
+        'enhancing image': '#17a2b8',     // Teal
+        'preparing wallpaper and case': '#6610f2', // Purple
+        'producing design': '#fd7e14',     // Orange
+        'mockup ready': '#28a745'          // Green success
+    }
+
+};
