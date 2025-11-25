@@ -1,6 +1,6 @@
 //realtime-updates.js
 class RealTimeUpdates {
-    constructor(studioManager, uploadManager) {
+    constructor(studioManager) {
         this.studioManager = studioManager;
         this.websocketManager = new WebSocketManager();
         this.setupWebSocketHandlers();
