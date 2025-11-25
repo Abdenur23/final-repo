@@ -8,10 +8,7 @@ class ProductCarousel {
 
     // Initialize carousels for all product cards
     setupCarousels() {
-        // This will be called when products are rendered
         setTimeout(() => this.initializeExistingProducts(), 100);
-        
-        // Observe DOM changes for dynamically added products
         this.setupMutationObserver();
     }
 
@@ -58,52 +55,45 @@ class ProductCarousel {
     }
 
     getProductId(productCard) {
-        // Try to find designId from data attribute or generate one
         return productCard.dataset.designId || 
                productCard.id || 
                `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     }
 
     generateProductImages(productId) {
-        // Generate 4 unique portrait-oriented images from Unsplash
+        // Use Picsum Photos for reliable placeholder images
+        // These are guaranteed to work and provide portrait-oriented images
         const imageUrls = [];
-        const categories = ['portrait', 'face', 'person', 'flower', 'art', 'nature', 'fashion', 'beauty'];
         
         for (let i = 0; i < 4; i++) {
-            const category = categories[Math.floor(Math.random() * categories.length)];
-            const imageUrl = `https://images.unsplash.com/photo-${this.getRandomUnsplashId()}?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=800&q=80`;
+            // Picsum provides reliable placeholder images
+            // Using different image IDs for variety
+            const imageId = 100 + i * 10 + Math.floor(Math.random() * 10);
+            const imageUrl = `https://picsum.photos/id/${imageId}/600/800`;
             imageUrls.push(imageUrl);
         }
 
         return imageUrls;
     }
 
-    getRandomUnsplashId() {
-        // Some realistic-looking Unsplash photo IDs for portrait images
-        const photoIds = [
-            '1567532939604-f6f0a6d3b6c0', '1573496359142-b8d87734a5a5', '1580489944761-15a19d654956',
-            '1544005313-94ddf0286df2', '1531746020798-2c61255d53d7', '1517841905240-472988babdf9',
-            '1534528741772-539b2c9c5c66', '1507003211169-0a1dd7228f2d', '1494790108377-be9c29b29330',
-            '1519699047746-7c6d6d6e6c6f', '1531123897726-4b0e0c5c8a8a', '1508214751736-68fb27d0c65f'
-        ];
-        return photoIds[Math.floor(Math.random() * photoIds.length)];
-    }
-
     createCarouselHTML(productCard, productId, images) {
-        // Find the product image container or create one
         let imageContainer = productCard.querySelector('.product-image-container');
         
         if (!imageContainer) {
-            // Look for existing placeholder or create new container
             const placeholder = productCard.querySelector('.bg-gray-100, [class*="placeholder"], [class*="preview"]');
             if (placeholder) {
                 imageContainer = placeholder;
-                imageContainer.innerHTML = ''; // Clear placeholder content
+                imageContainer.innerHTML = '';
                 imageContainer.classList.add('product-image-container');
             } else {
                 imageContainer = document.createElement('div');
                 imageContainer.className = 'product-image-container bg-gray-100 rounded-md overflow-hidden relative';
-                productCard.insertBefore(imageContainer, productCard.querySelector('button') || productCard.firstChild);
+                const button = productCard.querySelector('button');
+                if (button) {
+                    productCard.insertBefore(imageContainer, button);
+                } else {
+                    productCard.prepend(imageContainer);
+                }
             }
         }
 
@@ -117,7 +107,7 @@ class ProductCarousel {
                                  alt="Product view ${index + 1}"
                                  class="w-full h-full object-cover loading-image"
                                  onload="this.classList.remove('loading-image')"
-                                 onerror="this.style.display='none'">
+                                 onerror="this.handleImageError(this, '${productId}', ${index})">
                         </div>
                     `).join('')}
                 </div>
@@ -160,6 +150,21 @@ class ProductCarousel {
                 next.style.opacity = '0';
             }
         });
+    }
+
+    handleImageError(imgElement, productId, index) {
+        console.log(`Image failed to load for product ${productId}, index ${index}`);
+        
+        // Fallback to a reliable placeholder service
+        const fallbackUrls = [
+            'https://picsum.photos/id/237/600/800', // Dog
+            'https://picsum.photos/id/238/600/800', // City
+            'https://picsum.photos/id/239/600/800', // Mountains
+            'https://picsum.photos/id/240/600/800'  // Beach
+        ];
+        
+        imgElement.src = fallbackUrls[index % fallbackUrls.length];
+        imgElement.alt = `Product image ${index + 1} (fallback)`;
     }
 
     attachEventListeners(productCard, productId) {
@@ -275,14 +280,13 @@ class ProductCarousel {
     }
 
     findProductCard(productId) {
-        // Find product card by various possible selectors
         return document.querySelector(`[data-design-id="${productId}"]`) ||
                document.getElementById(productId) ||
                document.querySelector(`.product-card`) ||
                document.querySelector(`[class*="product"][class*="${productId}"]`);
     }
 
-    // Public method to refresh carousels (call this after rendering products)
+    // Public method to refresh carousels
     refreshCarousels() {
         this.initializeExistingProducts();
     }
@@ -304,9 +308,24 @@ class ProductCarousel {
 
         return productId;
     }
+
+    // Method to update images for a specific product
+    updateProductImages(productId, newImages) {
+        const carouselData = this.carousels.get(productId);
+        if (carouselData) {
+            carouselData.images = newImages;
+            carouselData.currentIndex = 0;
+            
+            const productCard = this.findProductCard(productId);
+            if (productCard) {
+                this.createCarouselHTML(productCard, productId, newImages);
+                this.attachEventListeners(productCard, productId);
+            }
+        }
+    }
 }
 
-// Initialize carousel system when DOM is ready
+// Initialize carousel system
 let productCarousel = null;
 
 function initializeProductCarousels() {
@@ -321,4 +340,9 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeProductCarousels);
 } else {
     initializeProductCarousels();
+}
+
+// Export for use in other modules
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { ProductCarousel, initializeProductCarousels };
 }
