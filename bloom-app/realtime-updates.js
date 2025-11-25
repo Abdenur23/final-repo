@@ -57,11 +57,11 @@ class RealTimeUpdates {
     }
 
     handleDesignReady(designData) {
-        console.log('Complete design ready:', designData);
+        console.log('Complete design ready with images:', designData);
         
         const designId = designData.designId;
         
-        // FIX 3: Prevent duplicate products
+        // Prevent duplicate products
         if (this.completedDesigns.has(designId)) {
             console.log('Skipping duplicate design:', designId);
             return;
@@ -69,19 +69,47 @@ class RealTimeUpdates {
         
         this.completedDesigns.add(designId);
         
+        // FIX: Ensure we have an array of 4 images for the product
+        const productImages = this.extractProductImages(designData);
+        
         // Convert to product format and send to StudioManager
         const product = {
             designId: designId,
             name: designData.name || `Bloom Design ${designId}`,
             price: designData.price || 49.99,
-            images: designData.images || [] // Should contain 4 product view images
+            images: productImages // This should be an array of 4 image URLs
         };
+        
+        console.log(`Creating product ${designId} with ${product.images.length} images`);
         
         // Add product to StudioManager
         this.studioManager.addRealTimeProduct(product);
         
         // Update progress bar when design is complete
         this.updateProgressBar(100);
+    }
+
+    // Helper method to extract product images from designData
+    extractProductImages(designData) {
+        // If designData.images is already an array, use it
+        if (Array.isArray(designData.images) && designData.images.length > 0) {
+            return designData.images;
+        }
+        
+        // If designData has individual image fields
+        const images = [];
+        if (designData.image1) images.push(designData.image1);
+        if (designData.image2) images.push(designData.image2);
+        if (designData.image3) images.push(designData.image3);
+        if (designData.image4) images.push(designData.image4);
+        
+        // If no images found, use a placeholder or log warning
+        if (images.length === 0) {
+            console.warn('No images found in designData:', designData);
+            // You might want to add placeholder images here
+        }
+        
+        return images;
     }
 
     handleImageUpdate(update) {
