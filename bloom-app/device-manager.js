@@ -2,7 +2,7 @@
 class DeviceManager {
     constructor() {
     }
-    async updateCustomerDevice(deviceId) {
+    async updateCustomerDevice(deviceId,deviceDisplay) {
         const token = getSession()?.id_token; 
         if (!token) {
             console.log('User not signed in, skipping device update');
@@ -18,7 +18,7 @@ class DeviceManager {
                 },
                 body: JSON.stringify({ 
                     device_id: deviceId,
-                    device_display: document.getElementById('selectedDevice').textContent,
+                    device_display: deviceDisplay,
                     action: 'updateDevice'
                 })
             });
