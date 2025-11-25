@@ -43,7 +43,7 @@ class ProductCarousel {
 
         const carouselData = {
             currentIndex: 0,
-            images: this.generateProductImages(productId),
+            images: this.getProductImagesFromLocalStorage(productId),
             isAnimating: false,
             touchStartX: 0,
             touchEndX: 0
@@ -52,6 +52,17 @@ class ProductCarousel {
         this.carousels.set(productId, carouselData);
         this.createCarouselHTML(productCard, productId, carouselData.images);
         this.attachEventListeners(productCard, productId);
+    }
+    getProductImagesFromLocalStorage(productId) {
+        const designs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCT_DESIGNS) || '[]');
+        const product = designs.find(d => d.designId === productId);
+    
+        if (product && Array.isArray(product.images) && product.images.length > 0) {
+            return product.images;  // Use real images
+        }
+    
+        // Fallback: use placeholder images
+        return this.generateProductImages(productId);
     }
 
     getProductId(productCard) {
