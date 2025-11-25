@@ -9,6 +9,54 @@ class StudioManager {
         // Delay setup to ensure DOM is ready
         setTimeout(() => this.setupEventListeners(), 100);
     }
+    // Method for RealTimeUpdates to add products
+    addRealTimeProduct(product) {
+        console.log('Adding real-time product:', product);
+        
+        // Add to localStorage
+        const existingDesigns = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCT_DESIGNS) || '[]');
+        const updatedDesigns = [...existingDesigns, product];
+        localStorage.setItem(STORAGE_KEYS.PRODUCT_DESIGNS, JSON.stringify(updatedDesigns));
+        
+        // Update UI
+        if (this.currentStep === 3) {
+            this.renderProductList(); // Refresh product list
+        } else {
+            this.finishProcessing(); // Move to product display step
+        }
+    }
+
+    // Method for RealTimeUpdates to show progress images
+    displayRealTimeProgress(imageUrl, stage, description) {
+        const previewContainer = document.getElementById('progress-image-preview');
+        if (!previewContainer) return;
+        
+        let imageCard = document.getElementById(`progress-image-${stage}`);
+        
+        if (!imageCard) {
+            imageCard = document.createElement('div');
+            imageCard.id = `progress-image-${stage}`;
+            imageCard.className = 'bg-white p-3 rounded-lg shadow-sm border border-gray-200';
+            previewContainer.appendChild(imageCard);
+        }
+        
+        imageCard.innerHTML = `
+            <div class="mb-2">
+                <img src="${imageUrl}" 
+                    alt="${description}"
+                    class="w-full h-32 object-cover rounded-md"
+                    onerror="this.style.display='none'">
+            </div>
+            <p class="text-xs text-gray-600 text-center">${description}</p>
+        `;
+        
+        // Update progress message
+        document.getElementById('progress-message').innerText = description;
+        
+        // Add update animation
+        imageCard.classList.add('image-update');
+        setTimeout(() => imageCard.classList.remove('image-update'), 500);
+    }
 
     setupEventListeners() {
         console.log('Setting up studio event listeners'); // Debug
@@ -251,7 +299,6 @@ class StudioManager {
     }
 
     processImages() {
-        // Check if files are selected
         const files = [
             document.getElementById('photo-upload-1').files[0],
             document.getElementById('photo-upload-2').files[0],
@@ -263,27 +310,28 @@ class StudioManager {
             return;
         }
 
+        // Show processing UI
         document.getElementById('upload-area').style.display = 'none';
         document.getElementById('processing-progress').style.display = 'block';
         document.getElementById('progress-bar').style.width = '0%';
         document.getElementById('progress-message').innerText = 'Starting image analysis...';
 
-        // Create image preview container if it doesn't exist
         this.createImagePreviewContainer();
 
-        // Show start over button
         const startOverBtn = document.getElementById('start-over-button');
         if (startOverBtn) {
             startOverBtn.style.display = 'block';
         }
 
+        // Start real-time WebSocket connection
+        this.realTimeUpdates.initialize();
+        
+        // Upload files - this triggers server processing
         this.uploadManager.uploadFiles(files);
         
-        // Show consent modal
         this.showConsentModal();
-
-        // Simulate progress with image updates
-        this.simulateProgressWithImages();
+        
+        // REMOVE: this.simulateProgressWithImages() - No more dummy images!
     }
 
     createImagePreviewContainer() {
@@ -493,13 +541,22 @@ class StudioManager {
     }
 
     finishProcessing() {
-        localStorage.setItem(STORAGE_KEYS.PRODUCT_DESIGNS, JSON.stringify(MOCK_DESIGNS));
+        // Check if we have real products from WebSocket
+        const designs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCT_DESIGNS) || '[]');
+        
+        if (designs.length === 0) {
+            // Fallback to mock designs if no real products yet
+            localStorage.setItem(STORAGE_KEYS.PRODUCT_DESIGNS, JSON.stringify(MOCK_DESIGNS));
+        }
+        
+        document.getElementById('processing-progress').style.display = 'none';
         document.getElementById('product-list-area').style.display = 'block';
         this.currentStep = 3;
         this.updateStepIndicator(3);
         
         this.renderProductList();
     }
+
 
     renderProductList() {
         const productListDiv = document.getElementById('mockup-products');
