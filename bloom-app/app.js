@@ -4,8 +4,9 @@ class Application {
     constructor() {
         this.authManager = new AuthManager();
         this.cartManager = new CartManager();
+        this.deviceManager = new DeviceManager()
         this.promoManager = new PromoManager(this.cartManager);
-        this.studioManager = new StudioManager(this.cartManager);
+        this.studioManager = new StudioManager(this.cartManager,this.deviceManager);
         this.navigationManager = new NavigationManager();
         this.uiManager = new UIManager(this.authManager, this.cartManager);
         
