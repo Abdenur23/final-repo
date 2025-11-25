@@ -1,8 +1,6 @@
 //device-manager.js
 class DeviceManager {
     constructor() {
-        this.selectedFiles = [];
-        this.initializeEventListeners();
     }
     async updateCustomerDevice(deviceId) {
         const token = getSession()?.id_token; 
