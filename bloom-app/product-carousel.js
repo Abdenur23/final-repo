@@ -118,7 +118,7 @@ class ProductCarousel {
                                  alt="Product view ${index + 1}"
                                  class="w-full h-full object-cover loading-image"
                                  onload="this.classList.remove('loading-image')"
-                                 onerror="this.handleImageError(this, '${productId}', ${index})">
+                                 onerror="productCarousel.handleImageError(this, '${productId}', ${index})">
                         </div>
                     `).join('')}
                 </div>
