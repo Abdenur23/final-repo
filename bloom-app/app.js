@@ -6,8 +6,8 @@ class Application {
         this.cartManager = new CartManager();
         this.deviceManager = new DeviceManager()
         this.promoManager = new PromoManager(this.cartManager);
+        this.uploadManager = new UploadManager();
         this.studioManager = new StudioManager(this.cartManager,this.deviceManager,this.uploadManager);
-        this.uploadManager = new UploadManager(this.studioManager);
         this.navigationManager = new NavigationManager();
         this.uiManager = new UIManager(this.authManager, this.cartManager);
         
