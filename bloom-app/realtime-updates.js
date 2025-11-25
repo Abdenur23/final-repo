@@ -72,9 +72,10 @@ class RealTimeUpdates {
         // Convert to product format and send to StudioManager
         const product = {
             designId: designId,
-            name: designData.name || `Bloom Design ${designId}`,
-            price: designData.price || 49.99,
-            images: designData.images || [] // Should contain 4 product view images
+            name: designData.paletteName || `Bloom Design ${designId}`,
+            price: designData.originalPrice || 49.99,
+            device_id": designData.device_id,
+            images: designData.imageUrls || [] // Should contain 4 product view images
         };
         
         // Add product to StudioManager
