@@ -60,16 +60,29 @@ class ProductCarousel {
                `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     }
 
+    // generateProductImages(productId) {
+    //     // Use Picsum Photos for reliable placeholder images
+    //     // These are guaranteed to work and provide portrait-oriented images
+    //     const imageUrls = [];
+        
+    //     for (let i = 0; i < 4; i++) {
+    //         // Picsum provides reliable placeholder images
+    //         // Using different image IDs for variety
+    //         const imageId = 100 + i * 10 + Math.floor(Math.random() * 10);
+    //         const imageUrl = `https://picsum.photos/id/${imageId}/600/800`;
+    //         imageUrls.push(imageUrl);
+    //     }
+
+    //     return imageUrls;
+    // }
     generateProductImages(productId) {
-        // Get actual product images from stored designs
         const designs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCT_DESIGNS) || '[]');
         const product = designs.find(d => d.designId === productId);
         
-        if (product && product.images && product.images.length > 0) {
-            return product.images;
+        if (product && product.imageUrls && typeof product.imageUrls === 'object') {
+            return Object.values(product.imageUrls);
         }
         
-        // Fallback to placeholder images if no product images found
         return this.generateFallbackImages();
     }
 
