@@ -74,7 +74,7 @@ class RealTimeUpdates {
             designId: designId,
             name: designData.paletteName || `Bloom Design ${designId}`,
             price: designData.originalPrice || 49.99,
-            device_id": designData.device_id,
+            device_id: designData.device_id,
             images: designData.imageUrls || [] // Should contain 4 product view images
         };
         
