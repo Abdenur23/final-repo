@@ -54,10 +54,25 @@ class ProductCarousel {
         this.attachEventListeners(productCard, productId);
     }
 
+    // getProductId(productCard) {
+    //     return productCard.dataset.designId || 
+    //            productCard.id || 
+    //            `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // }
     getProductId(productCard) {
-        return productCard.dataset.designId || 
-               productCard.id || 
-               `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        // First try to get the actual design ID from data attribute
+        const designId = productCard.dataset.designId;
+        if (designId) return designId;
+        
+        // If no data attribute, try to find it in the button's onclick handler
+        const button = productCard.querySelector('button[onclick*="designId"]');
+        if (button) {
+            const match = button.getAttribute('onclick').match(/designId.*?['"]([^'"]+)['"]/);
+            if (match) return match[1];
+        }
+        
+        // Last resort fallback
+        return productCard.id || `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     }
 
     // generateProductImages(productId) {
@@ -76,16 +91,10 @@ class ProductCarousel {
     //     return imageUrls;
     // }
     generateProductImages(productId) {
-        const designs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCT_DESIGNS) || '[]');
+        const designs = JSON.parse(localStorage.getItem('productDesigns') || '[]');
         const product = designs.find(d => d.designId === productId);
-        
-        console.log('Looking for product:', productId, 'Found:', product); // Debug
-        
-        if (product && product.imageUrls) {
-            const images = Object.values(product.imageUrls);
-            console.log('Extracted images:', images); // Debug
-            return images;
-        }
+        return product?.imageUrls ? Object.values(product.imageUrls) : [];
+    }
         
         return [];
     }
