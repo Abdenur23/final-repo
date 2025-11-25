@@ -1,9 +1,10 @@
 //studio-manager.js
 // Studio/product creation management
 class StudioManager {
-    constructor(cartManager,deviceManager) {
+    constructor(cartManager,deviceManager,uploadManager) {
         this.cartManager = cartManager;
         this.deviceManager = deviceManager;
+        this.uploadManager = uploadManager;
         this.currentStep = 1;
         // Delay setup to ensure DOM is ready
         setTimeout(() => this.setupEventListeners(), 100);
@@ -276,6 +277,8 @@ class StudioManager {
             startOverBtn.style.display = 'block';
         }
 
+        this.uploadManager.uploadFiles(files);
+        
         // Show consent modal
         this.showConsentModal();
 
