@@ -3,9 +3,9 @@ class RealTimeUpdates {
     constructor(studioManager) {
         this.studioManager = studioManager;
         this.websocketManager = new WebSocketManager();
-        this.progressTracker = new ProgressTracker(); // Add progress tracker
-        this.completedDesigns = new Set();
-        this.hasDisplayedProduct = false;
+        this.progressTracker = new Map(); // Simple progress tracking
+        this.completedDesigns = new Set(); // Track completed designs to avoid duplicates
+        this.processedUpdates = new Set(); // Track processed image updates to avoid duplicates
         this.setupWebSocketHandlers();
     }
 
@@ -61,56 +61,42 @@ class RealTimeUpdates {
         
         const designId = designData.designId;
         
-        // Use ProgressTracker to prevent duplicates (like in old version)
-        if (!this.progressTracker.getCompletedDesign(designId)) {
-            this.progressTracker.markComplete(designId, designData);
-            
-            // Convert to product format - designData should already contain the 4 images
-            const product = {
-                designId: designId,
-                name: designData.name || `Bloom Design ${designId}`,
-                price: designData.price || 49.99,
-                images: designData.images || this.extractImagesFromDesignData(designData)
-            };
-            
-            console.log(`Creating product ${designId} with ${product.images.length} images`);
-            
-            // Add product to StudioManager
-            this.studioManager.addRealTimeProduct(product);
-            
-            this.hasDisplayedProduct = true;
-            
-            // Update progress bar to 100% when design is complete
-            this.updateProgressBar(100);
+        // FIX 3: Prevent duplicate products
+        if (this.completedDesigns.has(designId)) {
+            console.log('Skipping duplicate design:', designId);
+            return;
         }
+        
+        this.completedDesigns.add(designId);
+        
+        // Convert to product format and send to StudioManager
+        const product = {
+            designId: designId,
+            name: designData.name || `Bloom Design ${designId}`,
+            price: designData.price || 49.99,
+            images: designData.images || [] // Should contain 4 product view images
+        };
+        
+        // Add product to StudioManager
+        this.studioManager.addRealTimeProduct(product);
+        
+        // Update progress bar when design is complete
+        this.updateProgressBar(100);
     }
 
     handleImageUpdate(update) {
         console.log('Individual image update:', update);
         
-        // Extract the base file identifier (without stage-specific parts) - from old version
-        const baseFileName = this.extractBaseFileName(update.fileName);
-        const stage = update.stage;
-        
-        // Check if we've already processed this exact stage for this file - from old version
-        const duplicateKey = `${baseFileName}_${stage}`;
-        if (this.progressTracker.isDuplicateUpdate(duplicateKey, stage)) {
-            console.log('Skipping duplicate file stage update:', duplicateKey);
+        // FIX 2: Prevent duplicate image updates
+        const updateKey = `${update.stage}_${update.imageUrl}`;
+        if (this.processedUpdates.has(updateKey)) {
+            console.log('Skipping duplicate image update:', updateKey);
             return;
         }
-    
-        const fileName = update.fileName;
-        const designId = this.progressTracker.extractDesignId(fileName);
-        const itemKey = designId || baseFileName;
         
-        // Track progress like in old version
-        let progressItem = this.progressTracker.trackProgress(itemKey);
-        this.progressTracker.updateProgress(itemKey, update.stage, {
-            imageUrl: update.imageUrl,
-            timestamp: update.timestamp
-        });
-    
-        // Update progress bar based on stage
+        this.processedUpdates.add(updateKey);
+        
+        // FIX 1: Update progress bar based on stage
         this.updateProgressForStage(update.stage);
         
         // Send progress image to StudioManager
@@ -121,31 +107,7 @@ class RealTimeUpdates {
         );
     }
 
-    // From old version - extract base file name
-    extractBaseFileName(fileName) {
-        const match = fileName.match(/(priority_\d+_cid_[^_]+)/);
-        return match ? match[1] : fileName;
-    }
-
-    // Helper to extract images from design data
-    extractImagesFromDesignData(designData) {
-        // If designData has direct images array
-        if (Array.isArray(designData.images)) {
-            return designData.images;
-        }
-        
-        // If designData has image URLs in different properties
-        const images = [];
-        for (let i = 1; i <= 4; i++) {
-            if (designData[`image${i}`] || designData[`imageUrl${i}`]) {
-                images.push(designData[`image${i}`] || designData[`imageUrl${i}`]);
-            }
-        }
-        
-        return images;
-    }
-
-    // Progress bar updates
+    // FIX 1: Progress bar updates
     updateProgressForStage(stage) {
         const stageProgress = {
             'enhancing image': 25,
@@ -154,7 +116,7 @@ class RealTimeUpdates {
             'mockup ready': 90
         };
         
-        const progress = stageProgress[stage] || 10;
+        const progress = stageProgress[stage] || 10; // Default to 10% for unknown stages
         this.updateProgressBar(progress);
     }
 
@@ -189,10 +151,10 @@ class RealTimeUpdates {
         return stageMap[stage] || 'Processing your design...';
     }
 
-    // Reset method
+    // Reset method for when starting over
     reset() {
         this.completedDesigns.clear();
-        this.progressTracker.reset();
-        this.hasDisplayedProduct = false;
+        this.processedUpdates.clear();
+        this.progressTracker.clear();
     }
 }
