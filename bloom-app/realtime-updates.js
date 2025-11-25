@@ -83,11 +83,10 @@ class RealTimeUpdates {
 
     getFriendlyStageName(stage) {
         const stageMap = {
-            'analyzing': 'Analyzing your photos...',
-            'feature-detection': 'Detecting facial features...',
-            'composition': 'Generating composition...',
-            'color-grading': 'Applying artistic filters...',
-            'rendering': 'Rendering 3D mockups...'
+            'enhancing image': '🧪 Enhancing your image',
+            'preparing wallpaper and case': '🧩 Preparing wallpaper and case',
+            'producing design': '🎨 Generating your phone case design',
+            'mockup ready': '✅ Your design is ready'
         };
         return stageMap[stage] || 'Processing your design...';
     }
