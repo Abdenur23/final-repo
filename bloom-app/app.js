@@ -9,6 +9,8 @@ class Application {
         this.uploadManager = new UploadManager();
         this.studioManager = new StudioManager(this.cartManager,this.deviceManager,this.uploadManager);
         this.realTimeUpdates =  new RealTimeUpdates(this.studioManager)
+        // Pass realTimeUpdates to studioManager
+        this.studioManager.setRealTimeUpdates(this.realTimeUpdates);
         this.navigationManager = new NavigationManager();
         this.uiManager = new UIManager(this.authManager, this.cartManager);
         
