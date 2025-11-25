@@ -1,6 +1,6 @@
 //realtime-updates.js
 class RealTimeUpdates {
-    constructor(studioManager) {
+    constructor(studioManager, uploadManager) {
         this.studioManager = studioManager;
         this.websocketManager = new WebSocketManager();
         this.setupWebSocketHandlers();
@@ -29,7 +29,7 @@ class RealTimeUpdates {
     }
 
     authenticateWebSocket() {
-        const session = getSession();
+        const session = getSession(); // Fixed: remove 'this.'
         if (session?.access_token) {
             this.websocketManager.authenticate(session.access_token);
         }
@@ -56,23 +56,25 @@ class RealTimeUpdates {
     handleDesignReady(designData) {
         console.log('Complete design ready:', designData);
         
-        // Convert the design data to product format and add to StudioManager
+        // Convert to product format and send to StudioManager
         const product = {
             designId: designData.designId,
-            name: `Bloom Design ${designData.designId}`,
-            price: 49.99,
+            name: designData.name || `Bloom Design ${designData.designId}`,
+            price: designData.price || 49.99,
             images: designData.images || [] // Should contain 4 product view images
         };
         
-        // Add the product to StudioManager for display
-        this.studioManager.addProduct(product);
+        // Add product to StudioManager
+        this.studioManager.addRealTimeProduct(product);
+        
+        
     }
 
     handleImageUpdate(update) {
         console.log('Individual image update:', update);
         
-        // Update progress UI in StudioManager with real image
-        this.studioManager.displayServerImage(
+        // Send progress image to StudioManager
+        this.studioManager.displayRealTimeProgress(
             update.imageUrl, 
             update.stage, 
             this.getFriendlyStageName(update.stage)
@@ -81,10 +83,11 @@ class RealTimeUpdates {
 
     getFriendlyStageName(stage) {
         const stageMap = {
-            'enhancing image': '🧪 Enhancing your image',
-            'preparing wallpaper and case': '🧩 Preparing wallpaper and case',
-            'producing design': '🎨 Generating your phone case design',
-            'mockup ready': '✅ Your design is ready'
+            'analyzing': 'Analyzing your photos...',
+            'feature-detection': 'Detecting facial features...',
+            'composition': 'Generating composition...',
+            'color-grading': 'Applying artistic filters...',
+            'rendering': 'Rendering 3D mockups...'
         };
         return stageMap[stage] || 'Processing your design...';
     }
