@@ -1,7 +1,6 @@
 //upload-manager.js
 class UploadManager {
-    constructor(studioManager) {
-        this.studioManager = studioManager;
+    constructor() {
         this.completedDesignsCount = 0;
     }
 
