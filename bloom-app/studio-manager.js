@@ -88,7 +88,7 @@ class StudioManager {
         }
         
         // Enable button only if manufacturer is selected, device is selected AND the box is checked
-        this.deviceManager.updateCustomerDevice(dropdown.value);
+        this.deviceManager.updateCustomerDevice(dropdown.value,selectedText);
         const isReady = manufacturerSelected && dropdown.value && ackBox.checked;
         proceedButton.disabled = !isReady;
     }
