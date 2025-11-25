@@ -54,25 +54,10 @@ class ProductCarousel {
         this.attachEventListeners(productCard, productId);
     }
 
-    // getProductId(productCard) {
-    //     return productCard.dataset.designId || 
-    //            productCard.id || 
-    //            `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    // }
     getProductId(productCard) {
-        // First try to get the actual design ID from data attribute
-        const designId = productCard.dataset.designId;
-        if (designId) return designId;
-        
-        // If no data attribute, try to find it in the button's onclick handler
-        const button = productCard.querySelector('button[onclick*="designId"]');
-        if (button) {
-            const match = button.getAttribute('onclick').match(/designId.*?['"]([^'"]+)['"]/);
-            if (match) return match[1];
-        }
-        
-        // Last resort fallback
-        return productCard.id || `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        return productCard.dataset.designId || 
+               productCard.id || 
+               `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     }
 
     generateProductImages(productId) {
@@ -90,7 +75,6 @@ class ProductCarousel {
 
         return imageUrls;
     }
-    
 
     createCarouselHTML(productCard, productId, images) {
         let imageContainer = productCard.querySelector('.product-image-container');
