@@ -91,7 +91,8 @@ class RealTimeUpdates {
             images: designData.imageUrls ? Object.values(designData.imageUrls) : []
         };
 
-        
+        // Add product to StudioManager
+        this.studioManager.addRealTimeProduct(product);
         // Update progress bar when design is complete
         this.updateProgressBar(100);
     }
