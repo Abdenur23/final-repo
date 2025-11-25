@@ -85,10 +85,11 @@ class StudioManager {
 
         if (selectedDeviceText) {
             selectedDeviceText.innerText = selectedText === 'Choose your phone model...' ? 'None Selected' : selectedText;
+            this.deviceManager.updateCustomerDevice(dropdown.value,selectedDeviceText);
         }
         
         // Enable button only if manufacturer is selected, device is selected AND the box is checked
-        this.deviceManager.updateCustomerDevice(dropdown.value,selectedText);
+        
         const isReady = manufacturerSelected && dropdown.value && ackBox.checked;
         proceedButton.disabled = !isReady;
     }
