@@ -70,16 +70,27 @@ class RealTimeUpdates {
         this.completedDesigns.add(designId);
         
         // Convert to product format and send to StudioManager
+        // const product = {
+        //     designId: designId,
+        //     name: designData.paletteName || `Bloom Design ${designId}`,
+        //     price: designData.originalPrice || 49.99,
+        //     device_id: designData.device_id,
+        //     images: designData.imageUrls || [] // Should contain 4 product view images
+        // };
+        
+        // // Add product to StudioManager
+        // this.studioManager.addRealTimeProduct(product);
+
+
+
         const product = {
             designId: designId,
             name: designData.paletteName || `Bloom Design ${designId}`,
-            price: designData.originalPrice || 49.99,
+            price: parseFloat(designData.originalPrice) || 49.99,
             device_id: designData.device_id,
-            images: designData.imageUrls || [] // Should contain 4 product view images
+            images: designData.imageUrls ? Object.values(designData.imageUrls) : []
         };
-        
-        // Add product to StudioManager
-        this.studioManager.addRealTimeProduct(product);
+
         
         // Update progress bar when design is complete
         this.updateProgressBar(100);
