@@ -39,18 +39,24 @@ class ProductCarousel {
     initializeProductCard(productCard) {
         const productId = this.getProductId(productCard);
         
+        // Don't reinitialize if already exists
         if (this.carousels.has(productId)) return;
 
+        // Get product data from localStorage or product card data attributes
+        const productData = this.getProductData(productId);
+        const images = this.getProductImages(productData, productId);
+        
         const carouselData = {
             currentIndex: 0,
-            images: this.generateProductImages(productId),
+            images: images,
             isAnimating: false,
             touchStartX: 0,
-            touchEndX: 0
+            touchEndX: 0,
+            productId: productId
         };
 
         this.carousels.set(productId, carouselData);
-        this.createCarouselHTML(productCard, productId, carouselData.images);
+        this.createCarouselHTML(productCard, productId, images);
         this.attachEventListeners(productCard, productId);
     }
 
@@ -60,20 +66,51 @@ class ProductCarousel {
                `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     }
 
-    generateProductImages(productId) {
-        // Use Picsum Photos for reliable placeholder images
-        // These are guaranteed to work and provide portrait-oriented images
-        const imageUrls = [];
-        
-        for (let i = 0; i < 4; i++) {
-            // Picsum provides reliable placeholder images
-            // Using different image IDs for variety
-            const imageId = 100 + i * 10 + Math.floor(Math.random() * 10);
-            const imageUrl = `https://picsum.photos/id/${imageId}/600/800`;
-            imageUrls.push(imageUrl);
+    getProductData(productId) {
+        // Try to find product data from localStorage
+        try {
+            const designs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCT_DESIGNS) || '[]');
+            return designs.find(design => design.designId === productId) || null;
+        } catch (error) {
+            console.error('Error parsing product designs:', error);
+            return null;
         }
+    }
 
-        return imageUrls;
+    getProductImages(productData, productId) {
+        // If we have product data with images, use those
+        if (productData && productData.images && productData.images.length > 0) {
+            console.log(`Using actual product images for ${productId}:`, productData.images);
+            return productData.images;
+        }
+        
+        // Fallback: Try to get images from data attributes
+        const productCard = this.findProductCard(productId);
+        if (productCard && productCard.dataset.images) {
+            try {
+                const images = JSON.parse(productCard.dataset.images);
+                if (images && images.length > 0) {
+                    return images;
+                }
+            } catch (error) {
+                console.error('Error parsing images from data attribute:', error);
+            }
+        }
+        
+        // Final fallback: Use placeholder images (should rarely happen)
+        console.warn(`No product images found for ${productId}, using fallback images`);
+        return this.generateFallbackImages(productId);
+    }
+
+    generateFallbackImages(productId) {
+        // Use reliable placeholder images as final fallback
+        const fallbackUrls = [
+            'https://picsum.photos/id/237/600/800', // Dog
+            'https://picsum.photos/id/238/600/800', // City
+            'https://picsum.photos/id/239/600/800', // Mountains
+            'https://picsum.photos/id/240/600/800'  // Beach
+        ];
+        return fallbackUrls;
     }
 
     createCarouselHTML(productCard, productId, images) {
@@ -153,14 +190,25 @@ class ProductCarousel {
     }
 
     handleImageError(imgElement, productId, index) {
-        console.log(`Image failed to load for product ${productId}, index ${index}`);
+        console.warn(`Image failed to load for product ${productId}, index ${index}`);
         
-        // Fallback to a reliable placeholder service
+        // Try to get the product data and use a different image from the same product
+        const carouselData = this.carousels.get(productId);
+        if (carouselData && carouselData.images && carouselData.images.length > 0) {
+            // Try next image in sequence (circular)
+            const nextIndex = (index + 1) % carouselData.images.length;
+            if (nextIndex !== index) {
+                imgElement.src = carouselData.images[nextIndex];
+                return;
+            }
+        }
+        
+        // Final fallback to reliable placeholder
         const fallbackUrls = [
-            'https://picsum.photos/id/237/600/800', // Dog
-            'https://picsum.photos/id/238/600/800', // City
-            'https://picsum.photos/id/239/600/800', // Mountains
-            'https://picsum.photos/id/240/600/800'  // Beach
+            'https://picsum.photos/id/237/600/800',
+            'https://picsum.photos/id/238/600/800',
+            'https://picsum.photos/id/239/600/800',
+            'https://picsum.photos/id/240/600/800'
         ];
         
         imgElement.src = fallbackUrls[index % fallbackUrls.length];
@@ -280,10 +328,24 @@ class ProductCarousel {
     }
 
     findProductCard(productId) {
-        return document.querySelector(`[data-design-id="${productId}"]`) ||
-               document.getElementById(productId) ||
-               document.querySelector(`.product-card`) ||
-               document.querySelector(`[class*="product"][class*="${productId}"]`);
+        // First try by designId data attribute
+        const byDesignId = document.querySelector(`[data-design-id="${productId}"]`);
+        if (byDesignId) return byDesignId;
+        
+        // Then try by ID
+        const byId = document.getElementById(productId);
+        if (byId) return byId;
+        
+        // Then try to find any product card that might contain this product
+        const productCards = document.querySelectorAll('.product-card');
+        for (let card of productCards) {
+            const cardProductId = this.getProductId(card);
+            if (cardProductId === productId) {
+                return card;
+            }
+        }
+        
+        return null;
     }
 
     // Public method to refresh carousels
@@ -291,28 +353,12 @@ class ProductCarousel {
         this.initializeExistingProducts();
     }
 
-    // Method to manually add carousel to a specific element
-    addCarouselToElement(element, images = null) {
-        const productId = `manual-${Date.now()}`;
-        const carouselData = {
-            currentIndex: 0,
-            images: images || this.generateProductImages(productId),
-            isAnimating: false,
-            touchStartX: 0,
-            touchEndX: 0
-        };
-
-        this.carousels.set(productId, carouselData);
-        this.createCarouselHTML(element, productId, carouselData.images);
-        this.attachEventListeners(element, productId);
-
-        return productId;
-    }
-
     // Method to update images for a specific product
     updateProductImages(productId, newImages) {
-        const carouselData = this.carousels.get(productId);
+        let carouselData = this.carousels.get(productId);
+        
         if (carouselData) {
+            // Update existing carousel
             carouselData.images = newImages;
             carouselData.currentIndex = 0;
             
@@ -320,6 +366,57 @@ class ProductCarousel {
             if (productCard) {
                 this.createCarouselHTML(productCard, productId, newImages);
                 this.attachEventListeners(productCard, productId);
+            }
+        } else {
+            // Create new carousel if it doesn't exist
+            carouselData = {
+                currentIndex: 0,
+                images: newImages,
+                isAnimating: false,
+                touchStartX: 0,
+                touchEndX: 0,
+                productId: productId
+            };
+            this.carousels.set(productId, carouselData);
+            
+            const productCard = this.findProductCard(productId);
+            if (productCard) {
+                this.createCarouselHTML(productCard, productId, newImages);
+                this.attachEventListeners(productCard, productId);
+            }
+        }
+    }
+
+    // Method to handle new products being added dynamically
+    handleNewProduct(productData) {
+        if (!productData || !productData.designId) {
+            console.error('Invalid product data:', productData);
+            return;
+        }
+
+        console.log('Handling new product in carousel:', productData.designId, productData.images);
+        
+        // Update or create carousel for this product
+        this.updateProductImages(productData.designId, productData.images || []);
+        
+        // If the product card doesn't exist yet, it will be initialized when it's added to DOM
+        // via the MutationObserver
+    }
+
+    // Clean up carousels for removed products
+    cleanupCarousels() {
+        const existingProductIds = new Set();
+        const productCards = document.querySelectorAll('.product-card');
+        
+        productCards.forEach(card => {
+            const productId = this.getProductId(card);
+            existingProductIds.add(productId);
+        });
+
+        // Remove carousels for products that no longer exist in DOM
+        for (let productId of this.carousels.keys()) {
+            if (!existingProductIds.has(productId)) {
+                this.carousels.delete(productId);
             }
         }
     }
@@ -331,6 +428,13 @@ let productCarousel = null;
 function initializeProductCarousels() {
     if (!productCarousel) {
         productCarousel = new ProductCarousel();
+        
+        // Add global method for other components to notify about new products
+        window.updateProductCarousel = function(productData) {
+            if (productCarousel) {
+                productCarousel.handleNewProduct(productData);
+            }
+        };
     }
     return productCarousel;
 }
