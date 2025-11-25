@@ -79,11 +79,15 @@ class ProductCarousel {
         const designs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCT_DESIGNS) || '[]');
         const product = designs.find(d => d.designId === productId);
         
-        if (product && product.imageUrls && typeof product.imageUrls === 'object') {
-            return Object.values(product.imageUrls);
+        console.log('Looking for product:', productId, 'Found:', product); // Debug
+        
+        if (product && product.imageUrls) {
+            const images = Object.values(product.imageUrls);
+            console.log('Extracted images:', images); // Debug
+            return images;
         }
         
-        return this.generateFallbackImages();
+        return [];
     }
 
     createCarouselHTML(productCard, productId, images) {
