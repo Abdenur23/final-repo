@@ -1,8 +1,9 @@
 //studio-manager.js
 // Studio/product creation management
 class StudioManager {
-    constructor(cartManager) {
+    constructor(cartManager,deviceManager) {
         this.cartManager = cartManager;
+        this.deviceManager = deviceManager;
         this.currentStep = 1;
         // Delay setup to ensure DOM is ready
         setTimeout(() => this.setupEventListeners(), 100);
@@ -21,6 +22,7 @@ class StudioManager {
         const deviceDropdown = document.getElementById('device-dropdown');
         if (deviceDropdown) {
             deviceDropdown.addEventListener('change', this.updateDeviceDisplay.bind(this));
+            
         }
         
         // Acknowledgement checkbox
@@ -86,6 +88,7 @@ class StudioManager {
         }
         
         // Enable button only if manufacturer is selected, device is selected AND the box is checked
+        this.deviceManager.updateCustomerDevice(dropdown.value);
         const isReady = manufacturerSelected && dropdown.value && ackBox.checked;
         proceedButton.disabled = !isReady;
     }
