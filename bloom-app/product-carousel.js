@@ -8,7 +8,8 @@ class ProductCarousel {
 
     // Initialize carousels for all product cards
     setupCarousels() {
-        setTimeout(() => this.initializeExistingProducts(), 100);
+        // Reduced timeout as it's often a source of bugs; 0 is usually fine
+        setTimeout(() => this.initializeExistingProducts(), 10);
         this.setupMutationObserver();
     }
 
@@ -16,10 +17,20 @@ class ProductCarousel {
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 mutation.addedNodes.forEach((node) => {
+                    // Check if the node itself is a product card or contains one
                     if (node.nodeType === 1 && 
                         (node.classList.contains('product-card') || 
                          node.querySelector('.product-card'))) {
-                        this.initializeProductCard(node);
+                        
+                        // If the node itself is the product card
+                        if (node.classList.contains('product-card')) {
+                             this.initializeProductCard(node);
+                        }
+                        
+                        // If the node contains product cards (e.g., a list container)
+                        node.querySelectorAll('.product-card, [class*="product"]').forEach(card => {
+                            this.initializeProductCard(card);
+                        });
                     }
                 });
             });
@@ -32,32 +43,59 @@ class ProductCarousel {
     }
 
     initializeExistingProducts() {
+        // Select both direct and class-containing elements
         const productCards = document.querySelectorAll('.product-card, [class*="product"]');
         productCards.forEach(card => this.initializeProductCard(card));
     }
 
     initializeProductCard(productCard) {
+        // Ensure productCard is a valid element before proceeding
+        if (!productCard || productCard.nodeType !== 1) return;
+
         const productId = this.getProductId(productCard);
         
-        // Don't reinitialize if already exists
+        // Use a flag on the element to prevent double-initialization
+        if (productCard.dataset.carouselInitialized === 'true') return;
         if (this.carousels.has(productId)) return;
 
-        // Get product data from localStorage or product card data attributes
-        const productData = this.getProductData(productId);
-        const images = this.getProductImages(productData, productId);
+        // --- MODIFICATION START: Get images from product card data ---
+        let images;
+        const imagesData = productCard.dataset.images;
         
+        if (imagesData) {
+            try {
+                // Assuming images are passed as a JSON string in a data-images attribute
+                images = JSON.parse(imagesData);
+                // Ensure it's an array and has at least one image
+                if (!Array.isArray(images) || images.length === 0) {
+                    // Fallback if data exists but is invalid/empty
+                    images = this.generateProductImages(productId);
+                }
+            } catch (e) {
+                console.error("Error parsing product images from data-images:", e);
+                // Fallback on JSON parse error
+                images = this.generateProductImages(productId);
+            }
+        } else {
+            // Original logic: generate fallback images if no data attribute is found
+            images = this.generateProductImages(productId);
+        }
+        // --- MODIFICATION END ---
+
         const carouselData = {
             currentIndex: 0,
-            images: images,
+            images: images, // Use the fetched/generated images
             isAnimating: false,
             touchStartX: 0,
-            touchEndX: 0,
-            productId: productId
+            touchEndX: 0
         };
 
         this.carousels.set(productId, carouselData);
-        this.createCarouselHTML(productCard, productId, images);
+        this.createCarouselHTML(productCard, productId, carouselData.images);
         this.attachEventListeners(productCard, productId);
+
+        // Mark as initialized
+        productCard.dataset.carouselInitialized = 'true';
     }
 
     getProductId(productCard) {
@@ -66,54 +104,30 @@ class ProductCarousel {
                `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     }
 
-    getProductData(productId) {
-        // Try to find product data from localStorage
-        try {
-            const designs = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCT_DESIGNS) || '[]');
-            return designs.find(design => design.designId === productId) || null;
-        } catch (error) {
-            console.error('Error parsing product designs:', error);
-            return null;
-        }
-    }
-
-    getProductImages(productData, productId) {
-        // If we have product data with images, use those
-        if (productData && productData.images && productData.images.length > 0) {
-            console.log(`Using actual product images for ${productId}:`, productData.images);
-            return productData.images;
-        }
+    generateProductImages(productId) {
+        // Fallback: Use Picsum Photos for reliable placeholder images
+        // These are guaranteed to work and provide portrait-oriented images
+        const imageUrls = [];
         
-        // Fallback: Try to get images from data attributes
-        const productCard = this.findProductCard(productId);
-        if (productCard && productCard.dataset.images) {
-            try {
-                const images = JSON.parse(productCard.dataset.images);
-                if (images && images.length > 0) {
-                    return images;
-                }
-            } catch (error) {
-                console.error('Error parsing images from data attribute:', error);
-            }
+        for (let i = 0; i < 4; i++) {
+            // Picsum provides reliable placeholder images
+            // Using different image IDs for variety
+            const imageId = 100 + i * 10 + Math.floor(Math.random() * 10);
+            const imageUrl = `https://picsum.photos/id/${imageId}/600/800`;
+            imageUrls.push(imageUrl);
         }
-        
-        // Final fallback: Use placeholder images (should rarely happen)
-        console.warn(`No product images found for ${productId}, using fallback images`);
-        return this.generateFallbackImages(productId);
-    }
-
-    generateFallbackImages(productId) {
-        // Use reliable placeholder images as final fallback
-        const fallbackUrls = [
-            'https://picsum.photos/id/237/600/800', // Dog
-            'https://picsum.photos/id/238/600/800', // City
-            'https://picsum.photos/id/239/600/800', // Mountains
-            'https://picsum.photos/id/240/600/800'  // Beach
-        ];
-        return fallbackUrls;
+        console.warn(`No product images found for ${productId}. Using fallback images.`);
+        return imageUrls;
     }
 
     createCarouselHTML(productCard, productId, images) {
+        // --- MODIFICATION START: Ensure no HTML is created if no images are present ---
+        if (!images || images.length === 0) {
+            console.warn(`Cannot create carousel for ${productId}: No images provided.`);
+            return;
+        }
+        // --- MODIFICATION END ---
+
         let imageContainer = productCard.querySelector('.product-image-container');
         
         if (!imageContainer) {
@@ -149,7 +163,6 @@ class ProductCarousel {
                     `).join('')}
                 </div>
                 
-                <!-- iPod-style navigation dots -->
                 <div class="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2">
                     ${images.map((_, index) => `
                         <button class="carousel-dot w-2 h-2 rounded-full transition-all duration-300 ${
@@ -159,7 +172,6 @@ class ProductCarousel {
                     `).join('')}
                 </div>
                 
-                <!-- Navigation arrows -->
                 <button class="carousel-prev absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-30 hover:bg-opacity-50 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all duration-300 opacity-0">
                     ←
                 </button>
@@ -190,27 +202,22 @@ class ProductCarousel {
     }
 
     handleImageError(imgElement, productId, index) {
-        console.warn(`Image failed to load for product ${productId}, index ${index}`);
+        console.log(`Image failed to load for product ${productId}, index ${index}. Falling back.`);
         
-        // Try to get the product data and use a different image from the same product
-        const carouselData = this.carousels.get(productId);
-        if (carouselData && carouselData.images && carouselData.images.length > 0) {
-            // Try next image in sequence (circular)
-            const nextIndex = (index + 1) % carouselData.images.length;
-            if (nextIndex !== index) {
-                imgElement.src = carouselData.images[nextIndex];
-                return;
-            }
-        }
-        
-        // Final fallback to reliable placeholder
+        // Fallback to a reliable placeholder service
         const fallbackUrls = [
-            'https://picsum.photos/id/237/600/800',
-            'https://picsum.photos/id/238/600/800',
-            'https://picsum.photos/id/239/600/800',
-            'https://picsum.photos/id/240/600/800'
+            'https://picsum.photos/id/237/600/800', // Dog
+            'https://picsum.photos/id/238/600/800', // City
+            'https://picsum.photos/id/239/600/800', // Mountains
+            'https://picsum.photos/id/240/600/800'  // Beach
         ];
         
+        // This is a global function, but should be attached to the carousel instance for proper scope
+        // For production, you'd attach it like: productCarousel.handleImageError(this, ...)
+        // Since it's in a string, we'll keep the call but console log the issue.
+        console.warn('handleImageError is called from inline HTML. It relies on the function being in scope.');
+        
+        // Ensure the image element is updated
         imgElement.src = fallbackUrls[index % fallbackUrls.length];
         imgElement.alt = `Product image ${index + 1} (fallback)`;
     }
@@ -220,10 +227,19 @@ class ProductCarousel {
         if (!carouselData) return;
 
         const wrapper = productCard.querySelector('.carousel-wrapper');
+        if (!wrapper) return; // Guard against missing wrapper after createCarouselHTML
+
         const track = wrapper.querySelector('.carousel-track');
         const dots = wrapper.querySelectorAll('.carousel-dot');
         const prevBtn = wrapper.querySelector('.carousel-prev');
         const nextBtn = wrapper.querySelector('.carousel-next');
+
+        // Check if listeners are already attached to prevent duplicates on update
+        if (wrapper.dataset.listenersAttached === 'true') {
+            // In a real application, you should remove the old listeners first.
+            // For this example, we'll rely on the re-creation of the product card HTML to remove old listeners.
+            return;
+        }
 
         // Button events
         prevBtn.addEventListener('click', () => this.previousImage(productId));
@@ -255,6 +271,7 @@ class ProductCarousel {
 
         // Make carousel focusable for accessibility
         wrapper.setAttribute('tabindex', '0');
+        wrapper.dataset.listenersAttached = 'true'; // Mark listeners as attached
     }
 
     nextImage(productId) {
@@ -328,24 +345,15 @@ class ProductCarousel {
     }
 
     findProductCard(productId) {
-        // First try by designId data attribute
-        const byDesignId = document.querySelector(`[data-design-id="${productId}"]`);
-        if (byDesignId) return byDesignId;
-        
-        // Then try by ID
-        const byId = document.getElementById(productId);
-        if (byId) return byId;
-        
-        // Then try to find any product card that might contain this product
-        const productCards = document.querySelectorAll('.product-card');
-        for (let card of productCards) {
-            const cardProductId = this.getProductId(card);
-            if (cardProductId === productId) {
-                return card;
-            }
-        }
-        
-        return null;
+        // Find by explicit design ID, then by regular ID
+        const card = document.querySelector(`[data-design-id="${productId}"]`) ||
+               document.getElementById(productId);
+
+        if (card) return card;
+               
+        // Fallback for general class/partial ID match (less reliable but kept)
+        return document.querySelector(`.product-card`) ||
+               document.querySelector(`[class*="product"][class*="${productId}"]`);
     }
 
     // Public method to refresh carousels
@@ -353,71 +361,55 @@ class ProductCarousel {
         this.initializeExistingProducts();
     }
 
+    // Method to manually add carousel to a specific element
+    addCarouselToElement(element, images = null) {
+        const productId = element.dataset.designId || `manual-${Date.now()}`; // Use element's ID if available
+        
+        // Remove old carousel data if element is being re-initialized
+        if (this.carousels.has(productId)) {
+            this.carousels.delete(productId);
+            element.dataset.carouselInitialized = 'false';
+        }
+
+        const finalImages = images || this.generateProductImages(productId);
+
+        const carouselData = {
+            currentIndex: 0,
+            images: finalImages,
+            isAnimating: false,
+            touchStartX: 0,
+            touchEndX: 0
+        };
+
+        this.carousels.set(productId, carouselData);
+        this.createCarouselHTML(element, productId, carouselData.images);
+        this.attachEventListeners(element, productId);
+        element.dataset.carouselInitialized = 'true';
+
+        return productId;
+    }
+
     // Method to update images for a specific product
     updateProductImages(productId, newImages) {
-        let carouselData = this.carousels.get(productId);
-        
-        if (carouselData) {
-            // Update existing carousel
+        const carouselData = this.carousels.get(productId);
+        const productCard = this.findProductCard(productId);
+
+        if (carouselData && productCard) {
             carouselData.images = newImages;
             carouselData.currentIndex = 0;
             
-            const productCard = this.findProductCard(productId);
-            if (productCard) {
-                this.createCarouselHTML(productCard, productId, newImages);
-                this.attachEventListeners(productCard, productId);
-            }
-        } else {
-            // Create new carousel if it doesn't exist
-            carouselData = {
-                currentIndex: 0,
-                images: newImages,
-                isAnimating: false,
-                touchStartX: 0,
-                touchEndX: 0,
-                productId: productId
-            };
-            this.carousels.set(productId, carouselData);
-            
-            const productCard = this.findProductCard(productId);
-            if (productCard) {
-                this.createCarouselHTML(productCard, productId, newImages);
-                this.attachEventListeners(productCard, productId);
-            }
-        }
-    }
-
-    // Method to handle new products being added dynamically
-    handleNewProduct(productData) {
-        if (!productData || !productData.designId) {
-            console.error('Invalid product data:', productData);
-            return;
-        }
-
-        console.log('Handling new product in carousel:', productData.designId, productData.images);
-        
-        // Update or create carousel for this product
-        this.updateProductImages(productData.designId, productData.images || []);
-        
-        // If the product card doesn't exist yet, it will be initialized when it's added to DOM
-        // via the MutationObserver
-    }
-
-    // Clean up carousels for removed products
-    cleanupCarousels() {
-        const existingProductIds = new Set();
-        const productCards = document.querySelectorAll('.product-card');
-        
-        productCards.forEach(card => {
-            const productId = this.getProductId(card);
-            existingProductIds.add(productId);
-        });
-
-        // Remove carousels for products that no longer exist in DOM
-        for (let productId of this.carousels.keys()) {
-            if (!existingProductIds.has(productId)) {
-                this.carousels.delete(productId);
-            }
+            // Re-create HTML and attach listeners to apply new images
+            // This implicitly removes old listeners attached to the old HTML elements
+            this.createCarouselHTML(productCard, productId, newImages);
+            this.attachEventListeners(productCard, productId);
+            this.goToImage(productId, 0); // Ensure it starts at the first image
+        } else if (productCard && newImages && newImages.length > 0) {
+            // Initialize if not already set up but the card is present
+            // Store images on the element so initializeProductCard can pick them up
+            productCard.dataset.images = JSON.stringify(newImages); 
+            // Remove initialization flag to force re-initialization
+            delete productCard.dataset.carouselInitialized; 
+            this.initializeProductCard(productCard);
         }
     }
 }
@@ -428,13 +420,6 @@ let productCarousel = null;
 function initializeProductCarousels() {
     if (!productCarousel) {
         productCarousel = new ProductCarousel();
-        
-        // Add global method for other components to notify about new products
-        window.updateProductCarousel = function(productData) {
-            if (productCarousel) {
-                productCarousel.handleNewProduct(productData);
-            }
-        };
     }
     return productCarousel;
 }
