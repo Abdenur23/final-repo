@@ -1,4 +1,5 @@
 // product-carousel.js
+// product-carousel.js - UPDATED
 class ProductCarousel {
     constructor() {
         this.carousels = new Map();
@@ -24,18 +25,15 @@ class ProductCarousel {
         const updateCarousel = () => {
             track.style.transform = `translateX(-${currentSlide * 100}%)`;
             
-            // Update active states
             slides.forEach((slide, index) => {
                 slide.classList.toggle('active', index === currentSlide);
             });
             
-            // Update dots
             dots.forEach((dot, index) => {
                 dot.classList.toggle('active', index === currentSlide);
             });
         };
         
-        // Navigation event handlers
         const goToPrev = () => {
             currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
             updateCarousel();
@@ -46,7 +44,6 @@ class ProductCarousel {
             updateCarousel();
         };
         
-        // Event listeners
         if (prevBtn) {
             prevBtn.addEventListener('click', goToPrev);
         }
@@ -55,7 +52,6 @@ class ProductCarousel {
             nextBtn.addEventListener('click', goToNext);
         }
         
-        // Dot navigation
         dots.forEach((dot, index) => {
             dot.addEventListener('click', () => {
                 currentSlide = index;
@@ -63,10 +59,8 @@ class ProductCarousel {
             });
         });
         
-        // Touch/swipe support
         this.setupTouchEvents(carouselElement, goToPrev, goToNext);
         
-        // Store carousel state
         this.carousels.set(carouselElement, {
             currentSlide,
             totalSlides,
@@ -75,7 +69,6 @@ class ProductCarousel {
             goToNext
         });
         
-        // Initial update
         updateCarousel();
     }
 
@@ -88,7 +81,6 @@ class ProductCarousel {
             startX = e.touches[0].clientX;
             currentX = startX;
             isDragging = true;
-            carouselElement.style.cursor = 'grabbing';
         });
         
         carouselElement.addEventListener('touchmove', (e) => {
@@ -104,14 +96,13 @@ class ProductCarousel {
             
             if (Math.abs(diff) > swipeThreshold) {
                 if (diff > 0) {
-                    goToNext(); // Swipe left - next
+                    goToNext();
                 } else {
-                    goToPrev(); // Swipe right - previous
+                    goToPrev();
                 }
             }
             
             isDragging = false;
-            carouselElement.style.cursor = 'grab';
         });
         
         // Mouse events for desktop
@@ -119,7 +110,6 @@ class ProductCarousel {
             startX = e.clientX;
             currentX = startX;
             isDragging = true;
-            carouselElement.style.cursor = 'grabbing';
         });
         
         carouselElement.addEventListener('mousemove', (e) => {
@@ -142,17 +132,13 @@ class ProductCarousel {
             }
             
             isDragging = false;
-            carouselElement.style.cursor = 'grab';
         });
         
         carouselElement.addEventListener('mouseleave', () => {
             if (isDragging) {
                 isDragging = false;
-                carouselElement.style.cursor = 'grab';
             }
         });
-        
-        carouselElement.style.cursor = 'grab';
     }
 
     initializeAllCarousels() {
