@@ -5,6 +5,7 @@ class StudioManager {
         this.deviceManager = deviceManager;
         this.uploadManager = uploadManager;
         this.productCarousel = new ProductCarousel();
+        this.consentManager = new ConsentManager(this);
         this.currentStep = 1;
         
         setTimeout(() => this.setupEventListeners(), 100);
@@ -236,7 +237,11 @@ class StudioManager {
         }
         
         this.uploadManager.uploadFiles(files);
-        this.showConsentModal();
+        
+        // Show consent modal after starting processing
+        setTimeout(() => {
+            this.consentManager.showConsentModal();
+        }, 500);
     }
 
     // Progress and processing methods
@@ -323,48 +328,48 @@ class StudioManager {
         
         if (images.length === 0) {
             return `
-                <div class="product-image-container bg-gray-100 h-96 mb-3 rounded-lg flex items-center justify-center">
+                <div class="product-image-container bg-gray-100 rounded-lg mb-3 flex items-center justify-center aspect-[3/4]">
                     <p class="text-gray-500">No images available</p>
                 </div>
             `;
         }
 
         return `
-            <div class="product-carousel relative bg-gray-100 rounded-lg mb-3 overflow-hidden">
-                <div class="carousel-track flex h-96 transition-transform duration-500 ease-out">
-                    ${images.map((imageUrl, index) => `
-                        <div class="carousel-slide flex-shrink-0 w-full h-full ${index === 0 ? 'active' : ''}">
-                            <div class="w-full h-full flex items-center justify-center p-4">
+            <div class="product-carousel-wrapper bg-gray-50 rounded-lg mb-3 p-4">
+                <div class="product-carousel relative bg-white rounded-lg overflow-hidden mx-auto max-w-xs">
+                    <div class="carousel-track flex transition-transform duration-500 ease-out aspect-[3/4]">
+                        ${images.map((imageUrl, index) => `
+                            <div class="carousel-slide flex-shrink-0 w-full h-full flex items-center justify-center p-2 ${index === 0 ? 'active' : ''}">
                                 <img src="${imageUrl}" 
                                      alt="${product.name} - View ${index + 1}"
                                      class="max-w-full max-h-full object-contain"
                                      onerror="this.style.display='none'; this.nextElementSibling?.style.display='flex';">
-                                <div class="w-full h-full flex items-center justify-center bg-gray-200 hidden">
-                                    <p class="text-gray-500">Image failed to load</p>
+                                <div class="w-full h-full flex items-center justify-center bg-gray-100 hidden">
+                                    <p class="text-gray-500 text-sm">Image loading failed</p>
                                 </div>
                             </div>
-                        </div>
-                    `).join('')}
-                </div>
-                
-                ${images.length > 1 ? `
-                    <button class="carousel-prev absolute left-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-3 shadow-lg transition-all duration-200">
-                        <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                    </button>
-                    <button class="carousel-next absolute right-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-3 shadow-lg transition-all duration-200">
-                        <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </button>
-                    
-                    <div class="carousel-dots absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                        ${images.map((_, index) => `
-                            <button class="carousel-dot w-3 h-3 rounded-full bg-white bg-opacity-50 transition-all duration-200 ${index === 0 ? 'active bg-opacity-100' : ''}"></button>
                         `).join('')}
                     </div>
-                ` : ''}
+                    
+                    ${images.length > 1 ? `
+                        <button class="carousel-prev absolute left-1 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full p-2 shadow-lg transition-all duration-200 border border-gray-200">
+                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <button class="carousel-next absolute right-1 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full p-2 shadow-lg transition-all duration-200 border border-gray-200">
+                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                        
+                        <div class="carousel-dots absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                            ${images.map((_, index) => `
+                                <button class="carousel-dot w-2 h-2 rounded-full bg-gray-300 transition-all duration-200 ${index === 0 ? 'active bg-gray-600' : ''}"></button>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
             </div>
         `;
     }
