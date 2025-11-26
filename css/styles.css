@@ -334,3 +334,63 @@ color: var(--color-magenta);
     outline: 2px solid var(--color-magenta);
     outline-offset: 2px;
 }
+/* Add to your existing CSS */
+.product-carousel {
+    aspect-ratio: 3/4; /* Better for portrait images */
+}
+
+.carousel-slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+}
+
+.carousel-slide img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Changed from cover to contain */
+}
+
+/* Fix navigation arrow positioning */
+.carousel-prev,
+.carousel-next {
+    z-index: 10;
+    transform: translateY(-50%);
+}
+
+.carousel-prev:hover,
+.carousel-next:hover {
+    transform: translateY(-50%) scale(1.1);
+}
+
+/* Active states for better UX */
+.carousel-dot.active {
+    transform: scale(1.3);
+    background-color: white !important;
+}
+
+.carousel-slide.active {
+    z-index: 1;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .product-carousel {
+        height: 80vw; /* Responsive height */
+        max-height: 400px;
+    }
+    
+    .carousel-slide img {
+        max-height: 95%; /* Allow some padding */
+    }
+}
+
+/* Desktop optimizations */
+@media (min-width: 769px) {
+    .product-carousel {
+        height: 384px; /* Fixed height for consistency */
+    }
+}
