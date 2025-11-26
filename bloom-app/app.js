@@ -11,7 +11,6 @@ class Application {
         this.navigationManager = new NavigationManager();
         this.uiManager = new UIManager(this.authManager, this.cartManager);
         this.consentManager = this.studioManager.consentManager; // Reference to consent manager
-        this.checkoutManager = new CheckoutManager(this.cartManager, this.promoManager);
         
         // Pass realTimeUpdates to studioManager
         this.studioManager.setRealTimeUpdates(this.realTimeUpdates);
