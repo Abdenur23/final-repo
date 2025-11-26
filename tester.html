@@ -44,49 +44,36 @@
     <!-- Cart Modal -->
     <div id="cart-modal" class="cart-modal">
         <div class="cart-modal-content">
-            <button class="cart-modal-close" onclick="window.app.uiManager.closeCartModal()">&times;</button>
+            <button class="cart-modal-close" onclick="window.app.closeCartModal()">&times;</button>
             
             <h2 class="poetic-title text-3xl mb-4">Your Bloom Cart</h2>
             <div class="text-center italic mb-8">
                 <p>"Every flower began as light. Your bloom is ready to take shape."</p>
             </div>
     
-            <!-- Cart Items Container - Updated for new structure -->
-            <div id="cart-items-container" class="mb-6">
-                <div id="cart-items" class="space-y-4 max-h-96 overflow-y-auto pr-2">
-                    <!-- Cart items will be dynamically inserted here -->
-                </div>
-                
-                <div id="empty-cart-message" class="text-center p-8 border border-gray-200 rounded-lg hidden">
-                    Your cart is empty. <a href="#" onclick="window.app.uiManager.closeCartModal(); window.app.navigationManager.navigateTo('studio')" class="text-magenta font-semibold">Begin the bloom</a>.
+            <div id="cart-items-container" class="space-y-4 mb-6">
+                <div id="empty-cart-message" class="text-center p-8 border border-gray-200 rounded-lg">
+                    Your cart is empty. <a href="#" onclick="window.app.closeCartModal(); window.app.navigateTo('studio')" class="text-magenta font-semibold">Begin the bloom</a>.
                 </div>
             </div>
     
-            <!-- Cart Summary Section - Updated for gift wrapping and discounts -->
-            <div id="cart-summary" class="border-t border-gray-300 pt-4 space-y-4">
-                <!-- Summary will be dynamically inserted here -->
-            </div>
-    
-            <!-- Promo Section - Updated structure -->
-            <div id="promo-section" class="section-background p-4 mt-6 rounded-lg">
-                <h4 class="font-semibold mb-3 text-gray-800">Have a Promo Code?</h4>
-                <div class="promo-container">
-                    <!-- Promo input will be dynamically managed by CheckoutManager -->
-                </div>
-            </div>
-    
-            <!-- Checkout Button -->
-            <div class="border-t border-gray-300 pt-4 mt-4">
-                <button onclick="window.app.uiManager.showCheckout()" 
-                        id="checkout-button" 
-                        class="w-full cta-magenta py-3 rounded-lg font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled>
+            <div class="flex justify-between items-center border-t border-gray-300 pt-4">
+                <h3 class="text-xl font-bold">Total: <span id="cart-total-display" class="gold-highlight">$0.00</span></h3>
+                <button onclick="window.app.closeCartModal(); window.app.navigateTo('checkout')" id="checkout-button" class="cta-magenta px-6 py-2 rounded-md font-semibold" disabled>
                     Proceed to Checkout
                 </button>
             </div>
+    
+            <div id="promo-section" class="section-background p-4 mt-6">
+                <h4 class="font-semibold mb-2">Have a Promo Code?</h4>
+                <div class="flex gap-2">
+                    <input type="text" id="promo-input" placeholder="Enter code" class="input-style flex-grow">
+                    <button onclick="window.app.promoManager.applyPromoCode(document.getElementById('promo-input').value)" class="cta-gold px-4 py-2 rounded-md font-semibold">Apply</button>
+                </div>
+                <p id="promo-message" class="text-sm mt-2 text-green-700"></p>
+            </div>
         </div>
     </div>
-
     <div class="container">
         <header class="header flex justify-between items-center pb-4 mb-6">
             <img src="logo.png" alt="Bloom" class="h-12 w-auto">
