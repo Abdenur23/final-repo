@@ -14,7 +14,12 @@ const STORAGE_KEYS = {
     USER_UPLOADS: 'userUploads',
     ACTIVE_PROMO: 'activePromoDiscount',
     PRODUCT_DESIGNS: 'currentProductDesigns',
-    USER_CONSENT: 'userConsent'
+    USER_CONSENT: 'userConsent',
+    CART_ITEMS: 'bloom_cart_items',
+    GIFT_WRAPPING: 'bloom_gift_wrapping',
+    ACTIVE_PROMO_CODE: 'bloom_active_promo_code',
+    ACTIVE_PROMO_DISCOUNT: 'bloom_active_promo_discount',
+    USER_SESSION: 'bloom_user_session'
 };
 
 const MOCK_DESIGNS = [
