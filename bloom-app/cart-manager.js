@@ -1,97 +1,79 @@
-//cart-manager.js
-// Shopping cart management
+// cart-manager.js
 class CartManager {
     constructor() {
-        this.promoDiscount = 0;
-    }
-
-    updateCartBadge() {
-        const cart = this.getCart();
-        const badge = document.getElementById('cart-badge');
-        const count = cart.length;
-        
-        if (count > 0) {
-            badge.style.display = 'flex';
-            badge.textContent = count > 9 ? '9+' : count.toString();
-        } else {
-            badge.style.display = 'none';
-        }
+        this.cart = JSON.parse(localStorage.getItem(STORAGE_KEYS.CART_ITEMS) || '[]');
+        this.giftWrappingEnabled = JSON.parse(localStorage.getItem(STORAGE_KEYS.GIFT_WRAPPING) || 'false');
+        this.giftWrappingPrice = 20.00;
+        this.loadSavedCart();
     }
 
     addToCart(product) {
-        let cart = this.getCart();
-        const exists = cart.some(item => item.designId === product.designId);
-        
-        if (exists) {
-            console.warn(`Product with designId ${product.designId} already in cart.`);
-            return false;
-        }
+        // Use opt-turn_014 as thumbnail if available
+        const thumbnail = product.imageUrls?.['opt-turn_014'] || 
+                         product.imageUrls?.['opt-turn_001'] || 
+                         product.imageUrls?.['opt-turn_006'] || 
+                         product.images?.[0] || 
+                         '/images/placeholder.jpg';
 
-        cart.push({
-            designId: product.designId,
-            name: product.name,
-            price: product.price,
-            images: product.images,
-            device: product.device
-        });
-        this.saveCart(cart);
-        this.updateCartBadge();
-        
-        if (window.app) {
-            window.app.renderCurrentPage();
-        }
-        this.refreshCartModal();
-        
-        console.log(`Added ${product.name} to cart.`);
-        return true;
+        const cartItem = {
+            ...product,
+            thumbnail: thumbnail,
+            addedAt: new Date().toISOString()
+        };
+
+        this.cart.push(cartItem);
+        this.saveCart();
+        this.updateCartDisplay();
     }
 
     removeFromCart(designId) {
-        let cart = this.getCart();
-        cart = cart.filter(item => item.designId !== designId);
-        this.saveCart(cart);
-        this.updateCartBadge();
-        this.refreshCartModal();
-        
-        if (window.app) {
-            window.app.renderCurrentPage();
-        }
-        
-        console.log(`Removed designId ${designId} from cart.`);
-    }
-    // ADD THIS METHOD to refresh cart modal
-    refreshCartModal() {
-        // Check if cart modal is currently open
-        const cartModal = document.getElementById('cart-modal');
-        if (cartModal && cartModal.style.display === 'flex') {
-            // Re-render the cart content
-            if (window.app && window.app.uiManager) {
-                window.app.uiManager.renderCart();
-            }
-        }
-    }
-    getCart() {
-        const cart = localStorage.getItem(STORAGE_KEYS.SHOPPING_CART);
-        return cart ? JSON.parse(cart) : [];
+        this.cart = this.cart.filter(item => item.designId !== designId);
+        this.saveCart();
+        this.updateCartDisplay();
     }
 
-    saveCart(cart) {
-        localStorage.setItem(STORAGE_KEYS.SHOPPING_CART, JSON.stringify(cart));
+    getCart() {
+        return this.cart;
     }
 
     getCartTotal() {
-        const cart = this.getCart();
-        const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
-        const finalTotal = subtotal * (1 - this.promoDiscount);
+        const subtotal = this.cart.reduce((sum, item) => sum + item.price, 0);
+        const giftWrappingCost = this.giftWrappingEnabled ? this.giftWrappingPrice : 0;
         return {
-            subtotal: subtotal.toFixed(2),
-            discount: (subtotal * this.promoDiscount).toFixed(2),
-            total: finalTotal.toFixed(2)
+            subtotal: subtotal,
+            giftWrapping: giftWrappingCost,
+            total: subtotal + giftWrappingCost
         };
     }
 
+    toggleGiftWrapping(enabled) {
+        this.giftWrappingEnabled = enabled;
+        localStorage.setItem(STORAGE_KEYS.GIFT_WRAPPING, JSON.stringify(enabled));
+        this.updateCartDisplay();
+    }
+
+    saveCart() {
+        localStorage.setItem(STORAGE_KEYS.CART_ITEMS, JSON.stringify(this.cart));
+    }
+
+    loadSavedCart() {
+        const savedGiftWrapping = localStorage.getItem(STORAGE_KEYS.GIFT_WRAPPING);
+        if (savedGiftWrapping !== null) {
+            this.giftWrappingEnabled = JSON.parse(savedGiftWrapping);
+        }
+    }
+
+    updateCartDisplay() {
+        if (window.app && window.app.uiManager) {
+            window.app.uiManager.updateCartDisplay();
+        }
+    }
+
     clearCart() {
-        this.saveCart([]);
-        this.updateCartBadge();
+        this.cart = [];
+        this.giftWrappingEnabled = false;
+        localStorage.removeItem(STORAGE_KEYS.CART_ITEMS);
+        localStorage.removeItem(STORAGE_KEYS.GIFT_WRAPPING);
+        this.updateCartDisplay();
     }
 }
