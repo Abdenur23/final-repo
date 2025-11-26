@@ -394,3 +394,90 @@ color: var(--color-magenta);
         height: 384px; /* Fixed height for consistency */
     }
 }
+/* Add to your existing CSS */
+.product-card {
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+}
+
+.product-carousel-wrapper {
+    margin: 0 -1rem; /* Expand to card edges */
+}
+
+.product-carousel {
+    margin: 0 auto;
+    max-width: 280px; /* Better for portrait images */
+}
+
+/* Fix mobile navigation */
+@media (max-width: 768px) {
+    .product-carousel {
+        max-width: 240px;
+    }
+    
+    .carousel-prev,
+    .carousel-next {
+        width: 32px;
+        height: 32px;
+        padding: 6px;
+    }
+    
+    .carousel-prev {
+        left: 4px;
+    }
+    
+    .carousel-next {
+        right: 4px;
+    }
+    
+    .carousel-dots {
+        bottom: 8px;
+    }
+    
+    .carousel-dot {
+        width: 6px;
+        height: 6px;
+    }
+}
+
+/* Desktop improvements */
+@media (min-width: 769px) {
+    .product-carousel {
+        max-width: 300px;
+    }
+}
+
+/* Ensure proper aspect ratio for portrait images */
+.aspect-\[3\/4\] {
+    aspect-ratio: 3/4;
+}
+
+/* Better card layout */
+.product-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Legal compliance note: Pre-checked consent is generally acceptable if:
+   - The user can easily uncheck it
+   - The language is clear about what they're consenting to
+   - It's not buried in fine print
+   - The default reflects typical user preference
+*/
+
+/* Enhanced modal styling for better UX */
+#consent-modal {
+    backdrop-filter: blur(4px);
+}
+
+#consent-modal .bg-white {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+/* Focus states for accessibility */
+#email-consent:focus {
+    outline: 2px solid var(--color-magenta);
+    outline-offset: 2px;
+}
