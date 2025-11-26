@@ -574,7 +574,7 @@ class StudioManager {
         const cart = this.cartManager.getCart();
         const deviceSelection = JSON.parse(localStorage.getItem(STORAGE_KEYS.DEVICE_SELECTION) || '{}');
         const selectedDevice = deviceSelection.label || 'Not Set';
-        
+    
         if (designs.length === 0) {
             productListDiv.innerHTML = '<p class="text-center">No blooms generated yet.</p>';
             return;
@@ -585,36 +585,92 @@ class StudioManager {
             const buttonText = isInCart ? 'In Cart (Remove)' : 'Add to Cart';
             const buttonClass = isInCart ? 'bg-red-500 hover:bg-red-600' : 'cta-magenta';
     
+            // ---- Extract 4 images in order ----
+            const urls = product.imageUrls || {};
+            const ordered = [
+                urls['opt-turn_006'],
+                urls['opt-turn_001'],
+                urls['opt-turn_014'],
+                urls['opt-turn_010']
+            ].filter(Boolean);
+    
+            // fallback placeholders
+            if (ordered.length === 0) {
+                ordered.push(
+                    'https://picsum.photos/id/237/600/800',
+                    'https://picsum.photos/id/238/600/800',
+                    'https://picsum.photos/id/239/600/800',
+                    'https://picsum.photos/id/240/600/800'
+                );
+            }
+    
             return `
-            <div class="product-card p-4 border border-gray-200 rounded-lg shadow-sm"
-                 data-design-id="${product.designId}"
-                 data-product="${escapeHtml(JSON.stringify(product))}">
-                <h4 class="text-xl font-semibold mb-2">${product.name}</h4>
-                <p class="text-sm text-gray-600 mb-2">For: <span class="font-medium">${selectedDevice}</span></p>
-        
-                <!-- Carousel inserted here -->
-                <div class="product-image-container bg-gray-100 h-64 mb-3 rounded-md"></div>
-        
-                <p class="font-bold text-lg mb-3 gold-highlight">$${product.price.toFixed(2)}</p>
-                <button onclick="window.app.studioManager.handleCartAction('${product.designId}')"
-                        class="w-full px-4 py-2 text-white font-semibold rounded-md ${buttonClass}">
-                    ${buttonText}
-                </button>
-                <p class="text-xs text-gray-500 mt-2 text-center">Swipe or use arrows to view all 4 images</p>
-            </div>
-        `;
+                <div class="product-card p-4 border border-gray-200 rounded-lg shadow-sm" data-design-id="${product.designId}">
+                    <h4 class="text-xl font-semibold mb-2">${product.name}</h4>
+                    <p class="text-sm text-gray-600 mb-2">For: <span class="font-medium">${selectedDevice}</span></p>
+    
+                    <!-- Simple 4-image navigator -->
+                    <div class="img-nav relative bg-gray-100 rounded-md overflow-hidden h-64 mb-3">
+                        <div class="flex h-full">
+                            ${ordered.map((url, i) => `
+                                <img src="${url}" alt="View ${i+1}"
+                                     class="w-full h-full object-cover flex-shrink-0"
+                                     style="display:${i===0?'block':'none'}" data-idx="${i}">
+                            `).join('')}
+                        </div>
+                        <button class="nav-prev absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-40 hover:bg-opacity-60 text-white w-8 h-8 rounded-full text-xs">&lt;</button>
+                        <button class="nav-next absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-40 hover:bg-opacity-60 text-white w-8 h-8 rounded-full text-xs">&gt;</button>
+                        <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1">
+                            ${ordered.map((_, i) => `
+                                <div class="dot w-1.5 h-1.5 rounded-full ${i===0?'bg-white':'bg-white bg-opacity-50'}"></div>
+                            `).join('')}
+                        </div>
+                    </div>
+    
+                    <p class="font-bold text-lg mb-3 gold-highlight">$${product.price.toFixed(2)}</p>
+                    <button onclick="window.app.studioManager.handleCartAction('${product.designId}')"
+                            class="w-full px-4 py-2 text-white font-semibold rounded-md ${buttonClass}">
+                        ${buttonText}
+                    </button>
+                    <p class="text-xs text-gray-500 mt-2 text-center">Tap arrows to view all 4 images</p>
+                </div>
+            `;
         }).join('');
     
-        // Initialize carousels after rendering
-        if (window.productCarousel) {
-            window.productCarousel.refreshCarousels();
-        }
-    }
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+        // ---- Attach navigation after render ----
+        this.attachImageNav();
+    },
+    attachImageNav() {
+        document.querySelectorAll('.img-nav').forEach(nav => {
+            const imgs = nav.querySelectorAll('img');
+            const prev = nav.querySelector('.nav-prev');
+            const next = nav.querySelector('.nav-next');
+            const dots = nav.querySelectorAll('.dot');
+            let idx = 0;
+    
+            const show = (i) => {
+                imgs.forEach((im, n) => im.style.display = n === i ? 'block' : 'none');
+                dots.forEach((d, n) => {
+                    d.classList.toggle('bg-white', n === i);
+                    d.classList.toggle('bg-opacity-50', n !== i);
+                });
+                idx = i;
+            };
+    
+            prev.onclick = () => show((idx - 1 + imgs.length) % imgs.length);
+            next.onclick = () => show((idx + 1) % imgs.length);
+            dots.forEach((d, i) => d.onclick = () => show(i));
+    
+            // swipe
+            let startX = 0;
+            nav.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+            nav.addEventListener('touchend', e => {
+                const endX = e.changedTouches[0].clientX;
+                if (startX - endX > 50) next.click();
+                if (endX - startX > 50) prev.click();
+            });
+        });
+    },
     handleCartAction(designId) {
         const cart = this.cartManager.getCart();
         const isInCart = cart.some(item => item.designId === designId);
