@@ -586,21 +586,23 @@ class StudioManager {
             const buttonClass = isInCart ? 'bg-red-500 hover:bg-red-600' : 'cta-magenta';
     
             return `
-                <div class="product-card p-4 border border-gray-200 rounded-lg shadow-sm" data-design-id="${product.designId}">
-                    <h4 class="text-xl font-semibold mb-2">${product.name}</h4>
-                    <p class="text-sm text-gray-600 mb-2">For: <span class="font-medium">${selectedDevice}</span></p>
-                    
-                    <!-- Carousel will be automatically inserted here by product-carousel.js -->
-                    <div class="product-image-container bg-gray-100 h-64 mb-3 rounded-md"></div>
-                    
-                    <p class="font-bold text-lg mb-3 gold-highlight">$${product.price.toFixed(2)}</p>
-                    <button onclick="window.app.studioManager.handleCartAction('${product.designId}')" 
+            <div class="product-card p-4 border border-gray-200 rounded-lg shadow-sm"
+                 data-design-id="${product.designId}"
+                 data-product="${escapeHtml(JSON.stringify(product))}">
+                <h4 class="text-xl font-semibold mb-2">${product.name}</h4>
+                <p class="text-sm text-gray-600 mb-2">For: <span class="font-medium">${selectedDevice}</span></p>
+        
+                <!-- Carousel inserted here -->
+                <div class="product-image-container bg-gray-100 h-64 mb-3 rounded-md"></div>
+        
+                <p class="font-bold text-lg mb-3 gold-highlight">$${product.price.toFixed(2)}</p>
+                <button onclick="window.app.studioManager.handleCartAction('${product.designId}')"
                         class="w-full px-4 py-2 text-white font-semibold rounded-md ${buttonClass}">
-                        ${buttonText}
-                    </button>
-                    <p class="text-xs text-gray-500 mt-2 text-center">Swipe or use arrows to view all 4 images</p>
-                </div>
-            `;
+                    ${buttonText}
+                </button>
+                <p class="text-xs text-gray-500 mt-2 text-center">Swipe or use arrows to view all 4 images</p>
+            </div>
+        `;
         }).join('');
     
         // Initialize carousels after rendering
@@ -608,7 +610,11 @@ class StudioManager {
             window.productCarousel.refreshCarousels();
         }
     }
-
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
     handleCartAction(designId) {
         const cart = this.cartManager.getCart();
         const isInCart = cart.some(item => item.designId === designId);
