@@ -731,3 +731,4 @@ class StudioManager {
         console.log('Started over with new images');
     }
 }
+window.StudioManager = StudioManager;
