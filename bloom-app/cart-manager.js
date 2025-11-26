@@ -15,13 +15,13 @@ class CartManager {
             console.warn(`Product with designId ${product.designId} already in cart.`);
             return false;
         }
-
+        console.log('Product:', product);
         const thumbnail = product.imageUrls?.['opt-turn_014'] ||
                          product.imageUrls?.['opt-turn_001'] ||
                          product.imageUrls?.['opt-turn_006'] ||
                          product.images?.[0] ||
                          '/images/placeholder.jpg';
-
+        console.log('Thumbnail URL:', thumbnail);
         const cartItem = {
             designId: product.designId,
             name: product.name,
