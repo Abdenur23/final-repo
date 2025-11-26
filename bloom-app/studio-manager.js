@@ -565,7 +565,6 @@ class StudioManager {
         this.renderProductList();
     }
 
-
     renderProductList() {
         const productListDiv = document.getElementById('mockup-products');
         if (!productListDiv) return;
@@ -584,14 +583,17 @@ class StudioManager {
             const isInCart = cart.some(item => item.designId === product.designId);
             const buttonText = isInCart ? 'In Cart (Remove)' : 'Add to Cart';
             const buttonClass = isInCart ? 'bg-red-500 hover:bg-red-600' : 'cta-magenta';
+
+            // Generate carousel HTML directly
+            const carouselHTML = this.generateProductCarousel(product);
     
             return `
                 <div class="product-card p-4 border border-gray-200 rounded-lg shadow-sm" data-design-id="${product.designId}">
                     <h4 class="text-xl font-semibold mb-2">${product.name}</h4>
                     <p class="text-sm text-gray-600 mb-2">For: <span class="font-medium">${selectedDevice}</span></p>
                     
-                    <!-- Carousel will be automatically inserted here by product-carousel.js -->
-                    <div class="product-image-container bg-gray-100 h-64 mb-3 rounded-md"></div>
+                    <!-- Embedded Carousel -->
+                    ${carouselHTML}
                     
                     <p class="font-bold text-lg mb-3 gold-highlight">$${product.price.toFixed(2)}</p>
                     <button onclick="window.app.studioManager.handleCartAction('${product.designId}')" 
@@ -604,9 +606,157 @@ class StudioManager {
         }).join('');
     
         // Initialize carousels after rendering
-        if (window.productCarousel) {
-            window.productCarousel.refreshCarousels();
+        this.initializeAllCarousels();
+    }
+
+    generateProductCarousel(product) {
+        // Get image URLs from the product object
+        // Based on your server response, imageUrls is an object with prefixes as keys
+        const imageUrls = product.imageUrls || {};
+        
+        // Extract the image URLs in the order you want them displayed
+        const imageKeys = ['opt-turn_006', 'opt-turn_001', 'opt-turn_014', 'opt-turn_010'];
+        const images = imageKeys.map(key => imageUrls[key]).filter(url => url);
+        
+        // If no images found, use a placeholder
+        if (images.length === 0) {
+            return `
+                <div class="product-image-container bg-gray-100 h-64 mb-3 rounded-md flex items-center justify-center">
+                    <p class="text-gray-500">No images available</p>
+                </div>
+            `;
         }
+
+        // Generate carousel HTML
+        return `
+            <div class="product-carousel relative bg-gray-100 h-64 mb-3 rounded-md overflow-hidden">
+                <div class="carousel-track flex h-full transition-transform duration-300 ease-in-out">
+                    ${images.map((imageUrl, index) => `
+                        <div class="carousel-slide flex-shrink-0 w-full h-full ${index === 0 ? 'active' : ''}">
+                            <img src="${imageUrl}" 
+                                 alt="${product.name} - View ${index + 1}"
+                                 class="w-full h-full object-cover"
+                                 onerror="this.style.display='none'; this.nextElementSibling?.style.display='flex';">
+                            <div class="w-full h-full flex items-center justify-center bg-gray-200 hidden">
+                                <p class="text-gray-500">Image failed to load</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <!-- Navigation Arrows -->
+                ${images.length > 1 ? `
+                    <button class="carousel-prev absolute left-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-70 hover:bg-opacity-90 rounded-full p-2 shadow-md transition-opacity">
+                        <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <button class="carousel-next absolute right-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-70 hover:bg-opacity-90 rounded-full p-2 shadow-md transition-opacity">
+                        <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                ` : ''}
+                
+                <!-- Dots Indicator -->
+                ${images.length > 1 ? `
+                    <div class="carousel-dots absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                        ${images.map((_, index) => `
+                            <button class="carousel-dot w-2 h-2 rounded-full bg-white bg-opacity-50 ${index === 0 ? 'bg-opacity-100' : ''}"></button>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    initializeAllCarousels() {
+        const carousels = document.querySelectorAll('.product-carousel');
+        
+        carousels.forEach(carousel => {
+            this.initializeCarousel(carousel);
+        });
+    }
+
+    initializeCarousel(carousel) {
+        const track = carousel.querySelector('.carousel-track');
+        const slides = carousel.querySelectorAll('.carousel-slide');
+        const prevBtn = carousel.querySelector('.carousel-prev');
+        const nextBtn = carousel.querySelector('.carousel-next');
+        const dots = carousel.querySelectorAll('.carousel-dot');
+        
+        let currentSlide = 0;
+        const totalSlides = slides.length;
+        
+        if (totalSlides <= 1) {
+            // Hide navigation if only one slide
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            if (dots.length > 0) dots[0].parentElement.style.display = 'none';
+            return;
+        }
+        
+        const updateCarousel = () => {
+            track.style.transform = `translateX(-${currentSlide * 100}%)`;
+            
+            // Update dots
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('bg-opacity-100', index === currentSlide);
+                dot.classList.toggle('bg-opacity-50', index !== currentSlide);
+            });
+        };
+        
+        // Previous button event
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+                updateCarousel();
+            });
+        }
+        
+        // Next button event
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                currentSlide = (currentSlide + 1) % totalSlides;
+                updateCarousel();
+            });
+        }
+        
+        // Dot navigation
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                currentSlide = index;
+                updateCarousel();
+            });
+        });
+        
+        // Touch/swipe support
+        let startX = 0;
+        let endX = 0;
+        
+        carousel.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+        });
+        
+        carousel.addEventListener('touchmove', (e) => {
+            endX = e.touches[0].clientX;
+        });
+        
+        carousel.addEventListener('touchend', () => {
+            const diff = startX - endX;
+            const swipeThreshold = 50;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // Swipe left - next
+                    currentSlide = (currentSlide + 1) % totalSlides;
+                } else {
+                    // Swipe right - previous
+                    currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+                }
+                updateCarousel();
+            }
+        });
     }
 
     handleCartAction(designId) {
@@ -628,6 +778,9 @@ class StudioManager {
                 model: deviceSelection.model
             });
         }
+        
+        // Refresh the product list to update button states
+        this.renderProductList();
     }
 
     startOver() {
