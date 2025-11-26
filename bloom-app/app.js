@@ -1,18 +1,18 @@
 //app.js
-// Main application orchestrator
 class Application {
     constructor() {
         this.authManager = new AuthManager();
         this.cartManager = new CartManager();
-        this.deviceManager = new DeviceManager()
+        this.deviceManager = new DeviceManager();
         this.promoManager = new PromoManager(this.cartManager);
         this.uploadManager = new UploadManager();
-        this.studioManager = new StudioManager(this.cartManager,this.deviceManager,this.uploadManager);
-        this.realTimeUpdates =  new RealTimeUpdates(this.studioManager)
-        // Pass realTimeUpdates to studioManager
-        this.studioManager.setRealTimeUpdates(this.realTimeUpdates);
+        this.studioManager = new StudioManager(this.cartManager, this.deviceManager, this.uploadManager);
+        this.realTimeUpdates = new RealTimeUpdates(this.studioManager);
         this.navigationManager = new NavigationManager();
         this.uiManager = new UIManager(this.authManager, this.cartManager);
+        
+        // Pass realTimeUpdates to studioManager
+        this.studioManager.setRealTimeUpdates(this.realTimeUpdates);
         
         // Set up global references
         window.app = this;
