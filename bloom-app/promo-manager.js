@@ -9,12 +9,12 @@ class PromoManager {
         const normalizedCode = code.toUpperCase().trim();
         
         try {
-            const token = getSession()?.id_token;
+            const token = window.app?.authManager?.getSession()?.id_token;
             if (!token) {
                 this.showMessage('Please sign in to apply promo codes', 'error');
                 return;
             }
-
+    
             const response = await fetch(`${CONFIG.API_BASE_URL}/upload`, {
                 method: 'POST',
                 headers: { 
@@ -26,7 +26,7 @@ class PromoManager {
                     promo_code: normalizedCode
                 })
             });
-
+    
             console.log('Promo validation response status:', response.status);
             
             if (response.ok) {
@@ -44,6 +44,11 @@ class PromoManager {
                     }));
                     
                     this.showMessage(`Success! ${normalizedCode} applied. ${result.discount_percentage}% discount active.`, 'success');
+                    
+                    // Force UI refresh to show updated prices
+                    if (window.app?.uiManager) {
+                        window.app.uiManager.renderCart();
+                    }
                 } else {
                     this.clearPromo();
                     this.showMessage(`Error: Code '${normalizedCode}' is invalid or expired.`, 'error');
@@ -56,10 +61,6 @@ class PromoManager {
             console.error('Promo validation error:', error);
             this.clearPromo();
             this.showMessage('Network error validating promo', 'error');
-        }
-        
-        if (window.app) {
-            window.app.renderCurrentPage();
         }
     }
 
