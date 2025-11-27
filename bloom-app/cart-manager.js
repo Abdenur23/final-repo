@@ -3,11 +3,15 @@ class CartManager {
     constructor() {
         this.promoDiscount = 0; // 0 to 1 (e.g., 0.1 = 10% off)
         this.giftWrappingEnabled = JSON.parse(localStorage.getItem(STORAGE_KEYS.GIFT_WRAPPING) || 'false');
-        this.giftWrappingPrice = 20.00;
+        this.giftWrappingPrice = 30.00;
         this.cart = this.getCart(); // Load from storage initially
         this.loadSavedCart(); // Ensure gift wrapping is synced
     }
-
+    toggleGiftWrapping(enabled) {
+        this.giftWrappingEnabled = enabled;
+        this.saveCart();
+        this.updateCartDisplay();
+    }
     // === CORE CART OPERATIONS ===
     addToCart(product) {
         const exists = this.cart.some(item => item.designId === product.designId);
@@ -109,7 +113,7 @@ class CartManager {
         const giftWrappingCost = this.giftWrappingEnabled ? this.giftWrappingPrice : 0;
         const discountAmount = subtotal * this.promoDiscount;
         const finalTotal = subtotal + giftWrappingCost - discountAmount;
-
+    
         return {
             subtotal: subtotal.toFixed(2),
             discount: discountAmount.toFixed(2),
