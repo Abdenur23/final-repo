@@ -5,6 +5,7 @@ class Application {
         this.cartManager = new CartManager();
         this.deviceManager = new DeviceManager();
         this.promoManager = new PromoManager(this.cartManager);
+        this.checkoutManager = new CheckoutManager(this.cartManager, this.promoManager, this.authManager);
         this.uploadManager = new UploadManager();
         this.studioManager = new StudioManager(this.cartManager, this.deviceManager, this.uploadManager);
         this.realTimeUpdates = new RealTimeUpdates(this.studioManager);
