@@ -27,8 +27,10 @@ class CartManager {
         this.saveCart();
         this.updateCartDisplay();
         
-        // Sync with checkout if open
-        this.syncWithCheckout();
+        // Update gift wrapping section
+        if (window.app?.uiManager?.updateGiftWrappingSection) {
+            window.app.uiManager.updateGiftWrappingSection();
+        }
         
         console.log('Added gift wrapping to cart');
         return true;
@@ -42,8 +44,10 @@ class CartManager {
             this.saveCart();
             this.updateCartDisplay();
             
-            // Sync with checkout if open
-            this.syncWithCheckout();
+            // Update gift wrapping section
+            if (window.app?.uiManager?.updateGiftWrappingSection) {
+                window.app.uiManager.updateGiftWrappingSection();
+            }
             
             console.log('Removed gift wrapping from cart');
         }
@@ -82,9 +86,6 @@ class CartManager {
         this.updateCartBadge();
         this.refreshCartModal();
 
-        // Sync with checkout if open
-        this.syncWithCheckout();
-
         if (window.app) {
             window.app.renderCurrentPage();
         }
@@ -98,9 +99,6 @@ class CartManager {
         this.saveCart();
         this.updateCartBadge();
         this.refreshCartModal();
-
-        // Sync with checkout if open
-        this.syncWithCheckout();
 
         if (window.app) {
             window.app.renderCurrentPage();
@@ -122,18 +120,6 @@ class CartManager {
 
     loadSavedCart() {
         // Already loaded in constructor; this is for future use
-    }
-
-    // === SYNC WITH CHECKOUT ===
-    syncWithCheckout() {
-        // Check if checkout page is currently visible
-        const checkoutPage = document.getElementById('checkout-page');
-        const isCheckoutVisible = checkoutPage && checkoutPage.style.display !== 'none';
-        
-        if (isCheckoutVisible && window.app?.checkoutManager) {
-            console.log('Syncing cart changes with checkout page...');
-            window.app.checkoutManager.renderCheckout();
-        }
     }
 
     // === UI UPDATES ===
@@ -164,9 +150,6 @@ class CartManager {
         if (window.app && window.app.uiManager) {
             window.app.uiManager.updateCartDisplay?.();
         }
-        
-        // Always sync with checkout when cart display updates
-        this.syncWithCheckout();
     }
 
     // === PRICING & TOTALS ===
@@ -180,12 +163,6 @@ class CartManager {
             discount: discountAmount.toFixed(2),
             total: finalTotal.toFixed(2)
         };
-    }
-
-    // === PROMO SYNC ===
-    setPromoDiscount(discount) {
-        this.promoDiscount = discount;
-        this.updateCartDisplay(); // This will trigger syncWithCheckout
     }
 
     // === GIFT WRAPPING ===
@@ -203,8 +180,5 @@ class CartManager {
         localStorage.removeItem(STORAGE_KEYS.GIFT_WRAPPING);
         this.updateCartBadge();
         this.refreshCartModal();
-        
-        // Sync with checkout if open
-        this.syncWithCheckout();
     }
-}
+}v
