@@ -56,14 +56,16 @@
                     Your cart is empty. <a href="#" onclick="window.app.closeCartModal(); window.app.navigateTo('studio')" class="text-magenta font-semibold">Begin the bloom</a>.
                 </div>
             </div>
-    
-            <div class="flex justify-between items-center border-t border-gray-300 pt-4">
-                <h3 class="text-xl font-bold">Total: <span id="cart-total-display" class="gold-highlight">$0.00</span></h3>
-                <button onclick="window.app.closeCartModal(); window.app.navigateTo('checkout')" id="checkout-button" class="cta-magenta px-6 py-2 rounded-md font-semibold" disabled>
-                    Proceed to Checkout
-                </button>
+
+            <!-- Gift Wrapping Section -->
+            <div class="section-background p-4 mb-4">
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" id="gift-wrapping" onchange="window.app.cartManager.toggleGiftWrapping(this.checked)">
+                    <span class="font-semibold">Add Gift Wrapping & Note - $30</span>
+                </label>
+                <p class="text-sm text-gray-600 mt-1">We'll beautifully wrap your bloom and use recipient's address for shipping</p>
             </div>
-    
+
             <div id="promo-section" class="section-background p-4 mt-6">
                 <h4 class="font-semibold mb-2">Have a Promo Code?</h4>
                 <div class="flex gap-2">
@@ -72,6 +74,14 @@
                 </div>
                 <p id="promo-message" class="text-sm mt-2 text-green-700"></p>
             </div>
+            
+            <div class="flex justify-between items-center border-t border-gray-300 pt-4">
+                <h3 class="text-xl font-bold">Total: <span id="cart-total-display" class="gold-highlight">$0.00</span></h3>
+                <button onclick="window.app.closeCartModal(); window.app.navigateTo('checkout')" id="checkout-button" class="cta-magenta px-6 py-2 rounded-md font-semibold" disabled>
+                    Proceed to Checkout
+                </button>
+            </div>
+    
         </div>
     </div>
     <div class="container">
