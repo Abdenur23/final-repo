@@ -55,18 +55,18 @@ class PromoManager {
                     
                     return true;
                 } else {
-                    this.clearPromo();
+                    this.clearPromoData();
                     this.showMessage(`Error: Code '${normalizedCode}' is invalid or expired.`, 'error');
                     return false;
                 }
             } else {
-                this.clearPromo();
+                this.clearPromoData();
                 this.showMessage('Error validating promo code', 'error');
                 return false;
             }
         } catch (error) {
             console.error('Promo validation error:', error);
-            this.clearPromo();
+            this.clearPromoData();
             this.showMessage('Network error validating promo', 'error');
             return false;
         }
@@ -101,5 +101,11 @@ class PromoManager {
         this.activePromoCode = null;
         this.cartManager.promoDiscount = 0;
         localStorage.removeItem(STORAGE_KEYS.ACTIVE_PROMO);
+
+        // Sync with checkout
+        if (window.app?.checkoutManager) {
+            window.app.checkoutManager.renderCheckout();
+        }
     }
+    
 }
