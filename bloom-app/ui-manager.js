@@ -98,6 +98,7 @@ class UIManager {
         container.innerHTML = cart.map(item => `
             <div class="flex items-center p-4 border border-gray-100 rounded-lg shadow-sm">
                 <div class="w-16 h-16 bg-gray-100 mr-4 flex-shrink-0 rounded-md flex items-center justify-center">
+                    <img src="${item.thumbnail}" class="w-full h-full object-cover rounded-md" alt="${item.name}">
                     <span class="text-gray-400 text-xs">${item.name}</span>
                 </div>
                 <div class="flex-grow">
