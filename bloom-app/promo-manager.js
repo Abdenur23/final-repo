@@ -9,7 +9,7 @@ class PromoManager {
         const normalizedCode = code.toUpperCase().trim();
         
         try {
-            const token = window.app?.authManager?.getSession()?.accessToken;
+            const token = getSession()?.id_token;
             if (!token) {
                 this.showMessage('Please sign in to apply promo codes', 'error');
                 return;
