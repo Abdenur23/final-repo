@@ -88,7 +88,8 @@ class RealTimeUpdates {
             name: designData.paletteName || `Bloom Design ${designId}`,
             price: parseFloat(designData.originalPrice) || 49.99,
             device_id: designData.device_id,
-            imageUrls: designData.imageUrls || {}   // <-- keep object
+            imageUrls: designData.imageUrls || {},
+            product_type: designData.product_type
         };
 
         // Add product to StudioManager
