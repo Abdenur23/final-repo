@@ -290,7 +290,7 @@ class CheckoutManager {
                     }
                     <div>
                         <p class="font-medium">${item.name}</p>
-                        ${item.device ? `<p class="text-sm text-gray-500">${item.device}</p>` : ''}
+                        ${item.product_type || item.device ? `<p class="text-xs text-gray-400 italic">${item.product_type ? item.product_type : ''} ${item.device ? `for ${item.device}` : ''}</p>` : ''}
                     </div>
                 </div>
                 <span class="font-semibold">$${item.price.toFixed(2)}</span>
