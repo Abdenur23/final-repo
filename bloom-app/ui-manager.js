@@ -67,6 +67,42 @@ class UIManager {
         }
     }
 
+    updateGiftWrappingSection() {
+        const section = document.getElementById('gift-wrapping-section');
+        if (!section) return;
+        
+        const hasGiftWrapping = this.cartManager.hasGiftWrapping();
+        
+        if (hasGiftWrapping) {
+            section.innerHTML = `
+                <div class="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🎁</span>
+                        <div>
+                            <p class="font-semibold">Gift Wrapping & Personal Note - $30</p>
+                            <p class="text-sm text-gray-600">We'll use recipient's address for shipping</p>
+                        </div>
+                    </div>
+                    <button onclick="window.app.cartManager.removeGiftWrapping()" class="text-red-500 hover:text-red-700 text-sm">
+                        Remove
+                    </button>
+                </div>
+            `;
+        } else {
+            section.innerHTML = `
+                <button onclick="window.app.cartManager.addGiftWrapping()" class="w-full text-left p-4 border-2 border-dashed border-gold rounded-lg hover:bg-gold/10 transition-all duration-200">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🎁</span>
+                        <div>
+                            <p class="font-semibold">Add Gift Wrapping & Personal Note - $30</p>
+                            <p class="text-sm text-gray-600">We'll beautifully wrap your bloom and use recipient's address for shipping</p>
+                        </div>
+                    </div>
+                </button>
+            `;
+        }
+    }
+
     renderCart() {
         const cart = this.cartManager.getCart();
         const container = document.getElementById('cart-items-container');
