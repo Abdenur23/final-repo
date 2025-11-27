@@ -96,13 +96,13 @@ class UIManager {
         }
     
         container.innerHTML = cart.map(item => `
-            <div class="flex items-center p-4 border border-gray-100 rounded-lg shadow-sm">
-                <div class="w-16 h-16 bg-gray-100 mr-4 flex-shrink-0 rounded-md">
-                    <img src="${item.thumbnail}" class="w-full h-full object-contain rounded-md" alt="${item.name}">
+            <div class="flex items-center p-4 border border-gray-100 rounded-lg shadow-sm ${item.isGiftWrapping ? 'bg-green-50 border-green-200' : ''}">
+                <div class="w-16 h-16 ${item.isGiftWrapping ? 'bg-green-100 text-2xl flex items-center justify-center' : 'bg-gray-100'} mr-4 flex-shrink-0 rounded-md">
+                    ${item.isGiftWrapping ? item.thumbnail : `<img src="${item.thumbnail}" class="w-full h-full object-contain rounded-md" alt="${item.name}">`}
                 </div>
                 <div class="flex-grow">
                     <h4 class="font-semibold">${item.name}</h4>
-                    <p class="text-sm text-gray-500">Device: ${item.device}</p>
+                    ${item.device ? `<p class="text-sm text-gray-500">Device: ${item.device}</p>` : ''}
                     <p class="text-sm gold-highlight">$${item.price.toFixed(2)}</p>
                 </div>
                 <button onclick="window.app.cartManager.removeFromCart('${item.designId}')" class="text-sm text-red-500 hover:text-red-700 ml-4">
