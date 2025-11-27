@@ -2,7 +2,6 @@
 class RealTimeUpdates {
     constructor(studioManager) {
         this.studioManager = studioManager;
-        this.websocketManager = new WebSocketManager();
         this.progressTracker = new Map(); // Simple progress tracking
         this.completedDesigns = new Set(); // Track completed designs to avoid duplicates
         this.processedUpdates = new Set(); // Track processed image updates to avoid duplicates
