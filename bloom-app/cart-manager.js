@@ -76,6 +76,7 @@ class CartManager {
             name: product.name,
             price: product.price,
             images: product.images,
+            product_type: product.product_type,
             device: product.device,
             thumbnail: thumbnail,
             addedAt: new Date().toISOString()
