@@ -130,7 +130,9 @@ class UIManager {
             </div>`;
             return;
         }
-    
+        
+        this.updateGiftWrappingSection();
+        
         container.innerHTML = cart.map(item => `
             <div class="flex items-center p-4 border border-gray-100 rounded-lg shadow-sm ${item.isGiftWrapping ? 'bg-green-50 border-green-200' : ''}">
                 <div class="w-16 h-16 ${item.isGiftWrapping ? 'bg-green-100 text-2xl flex items-center justify-center' : 'bg-gray-100'} mr-4 flex-shrink-0 rounded-md">
