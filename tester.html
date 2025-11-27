@@ -81,7 +81,7 @@
             
             <div class="flex justify-between items-center border-t border-gray-300 pt-4">
                 <h3 class="text-xl font-bold">Total: <span id="cart-total-display" class="gold-highlight">$0.00</span></h3>
-                <button onclick="window.app.closeCartModal(); window.app.navigateTo('checkout')" id="checkout-button" class="cta-magenta px-6 py-2 rounded-md font-semibold" disabled>
+                <button onclick="window.app.closeCartModal(); window.app.navigateTo('checkout'); window.app.checkoutManager.renderCheckout();" id="checkout-button" class="cta-magenta px-6 py-2 rounded-md font-semibold" disabled>
                     Proceed to Checkout
                 </button>
             </div>
