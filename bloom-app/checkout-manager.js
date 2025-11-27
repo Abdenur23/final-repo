@@ -4,6 +4,8 @@ class CheckoutManager {
         this.cartManager = cartManager;
         this.promoManager = promoManager;
         this.authManager = authManager;
+        this.stripeCheckout = new StripeCheckout(this);
+
         this.shippingCost = 8.90;
         this.taxRates = {
             'CA': 0.0825, // 8.25%
@@ -430,59 +432,67 @@ class CheckoutManager {
         errors.forEach(error => error.remove());
     }
 
-    async placeOrder() {
-        // Clear previous errors
-        this.clearErrors();
+    // async placeOrder() {
+    //     // Clear previous errors
+    //     this.clearErrors();
         
-        if (!this.validateForm()) {
-            return;
-        }
+    //     if (!this.validateForm()) {
+    //         return;
+    //     }
 
-        const userInfo = this.authManager.getUserInfo();
-        if (!userInfo) {
-            this.showError('Please sign in to place an order');
-            return;
-        }
+    //     const userInfo = this.authManager.getUserInfo();
+    //     if (!userInfo) {
+    //         this.showError('Please sign in to place an order');
+    //         return;
+    //     }
 
-        // Button State Management
-        const placeOrderBtn = document.querySelector('button[onclick*="placeOrder"]');
-        let originalText = 'Place Your Order';
-        if (placeOrderBtn) {
-             originalText = placeOrderBtn.textContent;
-             placeOrderBtn.textContent = 'Processing...';
-             placeOrderBtn.disabled = true;
-        }
+    //     // Button State Management
+    //     const placeOrderBtn = document.querySelector('button[onclick*="placeOrder"]');
+    //     let originalText = 'Place Your Order';
+    //     if (placeOrderBtn) {
+    //          originalText = placeOrderBtn.textContent;
+    //          placeOrderBtn.textContent = 'Processing...';
+    //          placeOrderBtn.disabled = true;
+    //     }
 
-        try {
-            // Get form data
-            const orderData = this.collectOrderData();
+    //     try {
+    //         // Get form data
+    //         const orderData = this.collectOrderData();
             
-            // Here you would integrate with your order API
-            console.log('Placing order:', orderData);
+    //         // Here you would integrate with your order API
+    //         console.log('Placing order:', orderData);
             
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 2000));
+    //         // Simulate API call
+    //         await new Promise(resolve => setTimeout(resolve, 2000));
             
-            // Show success message
-            this.showSuccess('Order placed successfully!');
-            this.cartManager.clearCart();
-            this.promoManager.clearPromoData();
+    //         // Show success message
+    //         this.showSuccess('Order placed successfully!');
+    //         this.cartManager.clearCart();
+    //         this.promoManager.clearPromoData();
             
-            // Clear saved form data
-            this.clearSavedFormData();
+    //         // Clear saved form data
+    //         this.clearSavedFormData();
             
-            window.app.navigateTo('homepage');
+    //         window.app.navigateTo('homepage');
             
-        } catch (error) {
-            console.error('Order placement error:', error);
-            this.showError('Failed to place order. Please try again.');
+    //     } catch (error) {
+    //         console.error('Order placement error:', error);
+    //         this.showError('Failed to place order. Please try again.');
             
-            // Re-enable button on failure
-            if (placeOrderBtn) {
-                 placeOrderBtn.textContent = originalText;
-                 placeOrderBtn.disabled = false;
-            }
-        }
+    //         // Re-enable button on failure
+    //         if (placeOrderBtn) {
+    //              placeOrderBtn.textContent = originalText;
+    //              placeOrderBtn.disabled = false;
+    //         }
+    //     }
+    // }
+    async placeOrder() {
+        await this.stripeCheckout.processCheckout();
+    }
+    
+    // Add new method:
+    handleCheckoutReturn() {
+        return this.stripeCheckout?.handleCheckoutReturn();
     }
 
     clearSavedFormData() {
