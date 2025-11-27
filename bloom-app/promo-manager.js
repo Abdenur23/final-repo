@@ -1,4 +1,4 @@
-// promo-manager.js
+//promo-manager.js
 class PromoManager {
     constructor(cartManager) {
         this.cartManager = cartManager;
@@ -14,7 +14,7 @@ class PromoManager {
                 this.showMessage('Please sign in to apply promo codes', 'error');
                 return false;
             }
-
+    
             const response = await fetch(`${CONFIG.API_BASE_URL}/upload`, {
                 method: 'POST',
                 headers: { 
@@ -26,7 +26,7 @@ class PromoManager {
                     promo_code: normalizedCode
                 })
             });
-
+    
             console.log('Promo validation response status:', response.status);
             
             if (response.ok) {
@@ -36,7 +36,7 @@ class PromoManager {
                 if (result.valid === true) {
                     const newDiscount = (result.discount_percentage || 0) / 100;
                     this.activePromoCode = normalizedCode;
-                    this.cartManager.setPromoDiscount(newDiscount); // Use the new sync method
+                    this.cartManager.promoDiscount = newDiscount;
                     
                     localStorage.setItem(STORAGE_KEYS.ACTIVE_PROMO, JSON.stringify({
                         code: normalizedCode,
@@ -45,7 +45,10 @@ class PromoManager {
                     
                     this.showMessage(`Success! ${normalizedCode} applied. ${result.discount_percentage}% discount active.`, 'success');
                     
-                    // Force sync with checkout
+                    // Force UI refresh to show updated prices
+                    if (window.app?.uiManager) {
+                        window.app.uiManager.renderCart();
+                    }
                     if (window.app?.checkoutManager) {
                         window.app.checkoutManager.renderCheckout();
                     }
@@ -70,13 +73,9 @@ class PromoManager {
     }
 
     showMessage(message, type) {
-        // Try checkout message first, then cart message
-        const checkoutMessage = document.getElementById('checkout-promo-message');
-        const cartMessage = document.getElementById('promo-message');
-        
-        const messageElement = checkoutMessage || cartMessage;
+        const messageElement = document.getElementById('promo-message');
         if (messageElement) {
-            messageElement.textContent = message;
+            messageElement.innerText = message;
             messageElement.className = 'text-sm mt-2 ' + (type === 'success' ? 'text-green-700' : 'text-red-700');
         }
     }
@@ -87,12 +86,12 @@ class PromoManager {
             try {
                 const promoData = JSON.parse(saved);
                 this.activePromoCode = promoData.code;
-                this.cartManager.setPromoDiscount(promoData.discount);
+                this.cartManager.promoDiscount = promoData.discount;
             } catch (e) {
                 // Fallback for old format
                 const savedDiscount = parseFloat(saved);
                 if (!isNaN(savedDiscount)) {
-                    this.cartManager.setPromoDiscount(savedDiscount);
+                    this.cartManager.promoDiscount = savedDiscount;
                 }
             }
         }
@@ -100,12 +99,7 @@ class PromoManager {
 
     clearPromoData() {
         this.activePromoCode = null;
-        this.cartManager.setPromoDiscount(0);
+        this.cartManager.promoDiscount = 0;
         localStorage.removeItem(STORAGE_KEYS.ACTIVE_PROMO);
-        
-        // Sync with checkout
-        if (window.app?.checkoutManager) {
-            window.app.checkoutManager.renderCheckout();
-        }
     }
 }
