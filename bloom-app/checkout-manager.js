@@ -49,6 +49,66 @@ class CheckoutManager {
                 this.applyPromoFromCheckout();
             }
         });
+
+        // Save form data as user types
+        document.addEventListener('input', (e) => {
+            this.saveFormData();
+        });
+        
+        document.addEventListener('change', (e) => {
+            this.saveFormData();
+        });
+    }
+
+    saveFormData() {
+        // Save shipping address
+        const shippingFields = ['full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'];
+        shippingFields.forEach(field => {
+            const element = document.getElementById(`shipping-${field}`);
+            if (element) {
+                localStorage.setItem(`checkout_shipping_${field}`, element.value);
+            }
+        });
+        
+        // Save billing address only if different from shipping
+        const sameAsShipping = document.getElementById('same-as-shipping');
+        if (!sameAsShipping?.checked) {
+            const billingFields = ['full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'];
+            billingFields.forEach(field => {
+                const element = document.getElementById(`billing-${field}`);
+                if (element) {
+                    localStorage.setItem(`checkout_billing_${field}`, element.value);
+                }
+            });
+        } else {
+            // Clear saved billing data if using same as shipping
+            const billingFields = ['full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'];
+            billingFields.forEach(field => {
+                localStorage.removeItem(`checkout_billing_${field}`);
+            });
+        }
+    }
+
+    loadSavedAddresses() {
+        // Load shipping address
+        const shippingFields = ['full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'];
+        shippingFields.forEach(field => {
+            const savedValue = localStorage.getItem(`checkout_shipping_${field}`);
+            const element = document.getElementById(`shipping-${field}`);
+            if (element && savedValue) {
+                element.value = savedValue;
+            }
+        });
+        
+        // Load billing address if separate
+        const billingFields = ['full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'];
+        billingFields.forEach(field => {
+            const savedValue = localStorage.getItem(`checkout_billing_${field}`);
+            const element = document.getElementById(`billing-${field}`);
+            if (element && savedValue) {
+                element.value = savedValue;
+            }
+        });
     }
 
     applyPromoFromCheckout() {
@@ -187,10 +247,27 @@ class CheckoutManager {
 
     renderCheckout() {
         this.renderOrderItems();
+        this.initializeBillingAddress();
         this.updateTaxAndTotals();
         this.togglePromoSection();
-        this.initializeBillingAddress();
         this.updatePromoDisplay();
+    }
+
+    initializeBillingAddress() {
+        const sameAsShipping = document.getElementById('same-as-shipping');
+        
+        // Load saved addresses from localStorage if they exist
+        this.loadSavedAddresses();
+        
+        if (sameAsShipping) {
+            // Check if we have separate billing address saved
+            const hasSeparateBilling = localStorage.getItem('checkout_billing_full-name');
+            sameAsShipping.checked = !hasSeparateBilling;
+            this.toggleBillingAddress(!hasSeparateBilling);
+        }
+        
+        // Update totals after loading addresses
+        this.updateTaxAndTotals();
     }
 
     renderOrderItems() {
@@ -236,7 +313,10 @@ class CheckoutManager {
     togglePromoSection() {
         const promoSection = document.querySelector('#checkout-page .section-background:has(#checkout-promo-input)');
         if (promoSection) {
-            promoSection.style.display = this.promoManager.activePromoCode ? 'none' : 'block';
+            // Check if there's an active promo code with valid discount
+            const hasActivePromo = this.promoManager.activePromoCode && 
+                                  this.cartManager.promoDiscount > 0;
+            promoSection.style.display = hasActivePromo ? 'none' : 'block';
         }
     }
 
@@ -245,14 +325,6 @@ class CheckoutManager {
         if (promoMessage && this.promoManager.activePromoCode) {
             promoMessage.textContent = `Promo ${this.promoManager.activePromoCode} applied: ${this.cartManager.promoDiscount * 100}% off`;
             promoMessage.className = 'text-sm mt-2 text-green-700';
-        }
-    }
-
-    initializeBillingAddress() {
-        const sameAsShipping = document.getElementById('same-as-shipping');
-        if (sameAsShipping) {
-            sameAsShipping.checked = true;
-            this.toggleBillingAddress(true);
         }
     }
 
@@ -395,6 +467,10 @@ class CheckoutManager {
             this.showSuccess('Order placed successfully!');
             this.cartManager.clearCart();
             this.promoManager.clearPromoData();
+            
+            // Clear saved form data
+            this.clearSavedFormData();
+            
             window.app.navigateTo('homepage');
             
         } catch (error) {
@@ -407,6 +483,14 @@ class CheckoutManager {
                  placeOrderBtn.disabled = false;
             }
         }
+    }
+
+    clearSavedFormData() {
+        const fields = ['full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'];
+        fields.forEach(field => {
+            localStorage.removeItem(`checkout_shipping_${field}`);
+            localStorage.removeItem(`checkout_billing_${field}`);
+        });
     }
 
     collectOrderData() {
