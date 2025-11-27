@@ -12,7 +12,7 @@ class PromoManager {
             const token = window.app?.authManager?.getSession()?.id_token;
             if (!token) {
                 this.showMessage('Please sign in to apply promo codes', 'error');
-                return;
+                return false;
             }
     
             const response = await fetch(`${CONFIG.API_BASE_URL}/upload`, {
@@ -49,18 +49,26 @@ class PromoManager {
                     if (window.app?.uiManager) {
                         window.app.uiManager.renderCart();
                     }
+                    if (window.app?.checkoutManager) {
+                        window.app.checkoutManager.renderCheckout();
+                    }
+                    
+                    return true;
                 } else {
                     this.clearPromo();
                     this.showMessage(`Error: Code '${normalizedCode}' is invalid or expired.`, 'error');
+                    return false;
                 }
             } else {
                 this.clearPromo();
                 this.showMessage('Error validating promo code', 'error');
+                return false;
             }
         } catch (error) {
             console.error('Promo validation error:', error);
             this.clearPromo();
             this.showMessage('Network error validating promo', 'error');
+            return false;
         }
     }
 
