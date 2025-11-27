@@ -200,8 +200,32 @@
             
                         <div id="upload-area" class="section-background p-6 mb-6">
                             <h3 class="text-xl font-semibold mb-3">2. Upload Your Reflections (3 Images)</h3>
+                        
+                            <div id="blonde-photo-guide" class="mb-6" style="display: block;"> 
+                                <p class="text-sm italic text-gray-600 mb-3 text-center">
+                                    “For our **blonde muses**… light dances differently on your features.
+                                    To let your golden hair bloom with clarity, try placing the hair **mostly to one side** in your selfies.”
+                                </p>
+                        
+                                <div class="grid grid-cols-2 gap-6 items-start max-w-sm mx-auto">
+                                    
+                                    <div class="relative text-center">
+                                        <img src="none-optimal-image-min.png" class="rounded-lg border-2 border-red-500 shadow-lg w-full h-auto">
+                                        <span class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full font-bold shadow">✕</span>
+                                        <p class="text-xs text-gray-600 mt-2">Too dim / soft / unclear</p>
+                                    </div>
+                        
+                                    <div class="relative text-center">
+                                        <img src="optimal-image-min.png" class="rounded-lg border-2 border-gold shadow-lg w-full h-auto">
+                                        <span class="absolute top-2 left-2 bg-gold text-white text-xs px-2 py-1 rounded-full font-bold shadow">✓</span>
+                                        <p class="text-xs text-gray-600 mt-2">Clear, bright, detailed — perfect bloom light</p>
+                                    </div>
+                        
+                                </div>
+                            </div>
                             
-                            <!-- Multi-file Upload -->
+                            <hr class="my-4 border-gray-200">
+                        
                             <div class="mb-4">
                                 <label class="block text-sm font-medium mb-2">Upload all 3 images at once:</label>
                                 <input type="file" id="multi-photo-upload" accept="image/*" multiple class="input-style block w-full mb-2">
@@ -222,43 +246,6 @@
                             
                             <button onclick="window.app.studioManager.processImages()" class="cta-gold px-6 py-2 rounded-md font-semibold w-full">Watch your reflection grow</button>
                         </div>
-
-
-                        <!-- Image Quality Guide -->
-                        <div class="mt-6 p-4 bg-blush-end border border-magenta/30 rounded-xl">
-                            <p class="text-sm mb-4 italic text-gray-700">
-                                A small whisper from our studio: if your hair is blonde or light-colored, the bloom responds even more beautifully to images with gentle depth and soft contrast. Here’s a quick guide:
-                            </p>
-                        
-                            <div class="grid grid-cols-2 gap-4 items-center text-center">
-                                <!-- Non-optimal example -->
-                                <div>
-                                    <div class="relative">
-                                        <img src="none-optimal-image-min.png" class="rounded-lg border border-gray-300 shadow-sm mx-auto">
-                                        <span class="absolute top-2 left-2 bg-magenta text-white text-xs px-2 py-1 rounded-full shadow">
-                                            ❌ Non-optimal
-                                        </span>
-                                    </div>
-                                    <p class="text-xs text-gray-600 mt-2">
-                                        Flat lighting or low contrast makes the bloom shy.
-                                    </p>
-                                </div>
-                        
-                                <!-- Optimal example -->
-                                <div>
-                                    <div class="relative">
-                                        <img src="optimal-image-min.png" class="rounded-lg border border-green-500 shadow-sm mx-auto">
-                                        <span class="absolute top-2 left-2 bg-gold text-white text-xs px-2 py-1 rounded-full shadow">
-                                            ✔️ Best Results
-                                        </span>
-                                    </div>
-                                    <p class="text-xs text-gray-600 mt-2">
-                                        Soft shadows, gentle depth, and a clear outline help your flowers bloom brighter.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
                         
                         <div id="processing-progress" class="section-background p-6 mb-6" style="display: none;">
                             <h3 class="text-xl font-semibold mb-3">Processing Your Bloom...</h3>
