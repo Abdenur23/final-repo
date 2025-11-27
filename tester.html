@@ -254,31 +254,51 @@
                     <div class="space-y-6">
                         <!-- Shipping Address -->
                         <div class="section-background p-6">
-                            <h3 class="text-xl font-semibold mb-4">Shipping Address</h3>
-                            <div class="grid grid-cols-1 gap-4">
-                                <input type="text" placeholder="Full Name" class="input-style">
-                                <input type="text" placeholder="Street Address" class="input-style">
-                                <input type="text" placeholder="Apartment, Suite, etc. (Optional)" class="input-style">
+                            <h3 class="text-xl font-semibold mb-4" id="shipping-address-title">Shipping Address</h3>
+                            <div class="grid grid-cols-1 gap-4" id="shipping-address-fields">
+                                <input type="text" id="shipping-full-name" placeholder="Full Name" class="input-style" required>
+                                <input type="text" id="shipping-street-address" placeholder="Street Address" class="input-style" required>
+                                <input type="text" id="shipping-address-2" placeholder="Apartment, Suite, etc. (Optional)" class="input-style">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <input type="text" placeholder="City" class="input-style">
-                                    <select class="input-style">
+                                    <input type="text" id="shipping-city" placeholder="City" class="input-style" required>
+                                    <select id="shipping-state" class="input-style" required>
                                         <option value="">State</option>
                                         <option value="CA">California</option>
+                                        <option value="NY">New York</option>
+                                        <option value="TX">Texas</option>
+                                        <option value="FL">Florida</option>
+                                        <!-- Add more states as needed -->
                                     </select>
                                 </div>
-                                <input type="text" placeholder="ZIP Code" class="input-style">
+                                <input type="text" id="shipping-zip-code" placeholder="ZIP Code" class="input-style" required>
                             </div>
                         </div>
-            
-                        <!-- Billing Address (with same as shipping toggle) -->
+                        
+                        <!-- Update your billing address section -->
                         <div class="section-background p-6">
                             <h3 class="text-xl font-semibold mb-4">Billing Address</h3>
                             <div class="flex items-center mb-4">
-                                <input type="checkbox" id="same-as-shipping" class="mr-2 accent-magenta">
+                                <input type="checkbox" id="same-as-shipping" class="mr-2 accent-magenta" checked>
                                 <label for="same-as-shipping">Same as shipping address</label>
                             </div>
-                            <div id="billing-address-fields">
-                                <!-- Billing fields would go here -->
+                            <div id="billing-address-fields" style="display: none;">
+                                <div class="grid grid-cols-1 gap-4">
+                                    <input type="text" id="billing-full-name" placeholder="Full Name" class="input-style">
+                                    <input type="text" id="billing-street-address" placeholder="Street Address" class="input-style">
+                                    <input type="text" id="billing-address-2" placeholder="Apartment, Suite, etc. (Optional)" class="input-style">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="text" id="billing-city" placeholder="City" class="input-style">
+                                        <select id="billing-state" class="input-style">
+                                            <option value="">State</option>
+                                            <option value="CA">California</option>
+                                            <option value="NY">New York</option>
+                                            <option value="TX">Texas</option>
+                                            <option value="FL">Florida</option>
+                                            <!-- Add more states as needed -->
+                                        </select>
+                                    </div>
+                                    <input type="text" id="billing-zip-code" placeholder="ZIP Code" class="input-style">
+                                </div>
                             </div>
                         </div>
             
@@ -355,6 +375,7 @@
     <script src="bloom-app/device-manager.js"></script>
     <script src="bloom-app/cart-manager.js"></script>
     <script src="bloom-app/promo-manager.js"></script>
+    <script src="bloom-app/checkout-manager.js"></script>
     
     <script src="bloom-app/realtime-updates.js"></script>
     <script src="bloom-app/websocket-manager.js"></script>
