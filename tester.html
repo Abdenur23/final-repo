@@ -222,7 +222,44 @@
                             
                             <button onclick="window.app.studioManager.processImages()" class="cta-gold px-6 py-2 rounded-md font-semibold w-full">Watch your reflection grow</button>
                         </div>
-            
+
+
+                        <!-- Image Quality Guide -->
+                        <div class="mt-6 p-4 bg-blush-end border border-magenta/30 rounded-xl">
+                            <p class="text-sm mb-4 italic text-gray-700">
+                                A small whisper from our studio: if your hair is blonde or light-colored, the bloom responds even more beautifully to images with gentle depth and soft contrast. Here’s a quick guide:
+                            </p>
+                        
+                            <div class="grid grid-cols-2 gap-4 items-center text-center">
+                                <!-- Non-optimal example -->
+                                <div>
+                                    <div class="relative">
+                                        <img src="none-optimal-image-min.png" class="rounded-lg border border-gray-300 shadow-sm mx-auto">
+                                        <span class="absolute top-2 left-2 bg-magenta text-white text-xs px-2 py-1 rounded-full shadow">
+                                            ❌ Non-optimal
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-gray-600 mt-2">
+                                        Flat lighting or low contrast makes the bloom shy.
+                                    </p>
+                                </div>
+                        
+                                <!-- Optimal example -->
+                                <div>
+                                    <div class="relative">
+                                        <img src="optimal-image-min.png" class="rounded-lg border border-green-500 shadow-sm mx-auto">
+                                        <span class="absolute top-2 left-2 bg-gold text-white text-xs px-2 py-1 rounded-full shadow">
+                                            ✔️ Best Results
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-gray-600 mt-2">
+                                        Soft shadows, gentle depth, and a clear outline help your flowers bloom brighter.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        
                         <div id="processing-progress" class="section-background p-6 mb-6" style="display: none;">
                             <h3 class="text-xl font-semibold mb-3">Processing Your Bloom...</h3>
                             <p class="text-sm text-gray-600 mb-4">Creating your unique artwork. This typically takes 3-4 minutes.</p>
