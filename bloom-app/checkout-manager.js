@@ -1,5 +1,4 @@
 // checkout-manager.js
-// checkout-manager.js
 class CheckoutManager {
     constructor(cartManager, promoManager, authManager) {
         this.cartManager = cartManager;
@@ -62,9 +61,53 @@ class CheckoutManager {
         }
     }
 
+    toggleBillingAddress(sameAsShipping) {
+        const billingFields = document.getElementById('billing-address-fields');
+        if (!billingFields) return;
+
+        if (sameAsShipping) {
+            billingFields.style.display = 'none';
+            this.syncBillingAddress();
+        } else {
+            billingFields.style.display = 'block';
+        }
+        this.updateTaxAndTotals();
+    }
+
+    syncBillingAddressIfEnabled() {
+        const sameAsShipping = document.getElementById('same-as-shipping');
+        if (sameAsShipping?.checked) {
+            this.syncBillingAddress();
+        }
+    }
+
+    syncBillingAddress() {
+        const shippingFields = [
+            'full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'
+        ];
+
+        shippingFields.forEach(field => {
+            const shippingValue = document.getElementById(`shipping-${field}`)?.value;
+            const billingField = document.getElementById(`billing-${field}`);
+            if (billingField && shippingValue !== undefined) {
+                billingField.value = shippingValue;
+            }
+        });
+        this.updateTaxAndTotals();
+    }
+
+    getTaxRate(state) {
+        return this.taxRates[state] || 0;
+    }
+
+    calculateTax(subtotal, state) {
+        const taxRate = this.getTaxRate(state);
+        return subtotal * taxRate;
+    }
+
     getCartTotal() {
         const subtotal = this.cartManager.cart.reduce((sum, item) => sum + item.price, 0);
-        const discountAmount = subtotal * this.cartManager.promoDiscount;
+        const discountAmount = subtotal * (this.cartManager.promoDiscount || 0);
         const finalSubtotal = subtotal - discountAmount;
 
         return {
@@ -108,7 +151,7 @@ class CheckoutManager {
         });
 
         // Hide/show tax line
-        const taxElement = document.getElementById('checkout-tax').closest('div');
+        const taxElement = document.getElementById('checkout-tax')?.closest('div');
         if (taxElement) {
             taxElement.style.display = totals.showTax ? 'flex' : 'none';
         }
@@ -123,17 +166,19 @@ class CheckoutManager {
         if (totals.showDiscount) {
             if (!discountElement) {
                 // Create discount element if it doesn't exist
-                const shippingElement = document.getElementById('checkout-shipping').closest('div');
+                const shippingElement = document.getElementById('checkout-shipping')?.closest('div');
+                if (!shippingElement) return;
+
                 discountElement = document.createElement('div');
                 discountElement.id = 'checkout-discount';
                 discountElement.className = 'flex justify-between text-green-600';
-                discountElement.innerHTML = `<span>Discount</span><span>-$${totals.discount}</span>`;
-                shippingElement.parentNode.insertBefore(discountElement, shippingElement.nextSibling);
-            } else {
-                // Update existing discount element
-                discountElement.innerHTML = `<span>Discount</span><span>-$${totals.discount}</span>`;
-                discountElement.style.display = 'flex';
+                
+                // Insert the new discount element before the shipping element
+                shippingElement.parentNode.insertBefore(discountElement, shippingElement); 
             }
+            // Update existing discount element
+            discountElement.innerHTML = `<span>Discount</span><span>-$${totals.discount}</span>`;
+            discountElement.style.display = 'flex';
         } else if (discountElement) {
             // Hide discount element if no discount
             discountElement.style.display = 'none';
@@ -148,6 +193,53 @@ class CheckoutManager {
         this.updatePromoDisplay();
     }
 
+    renderOrderItems() {
+        const container = document.getElementById('checkout-items');
+        if (!container) return;
+
+        const cart = this.cartManager.getCart();
+        
+        if (cart.length === 0) {
+            container.innerHTML = '<p class="text-gray-500">Your cart is empty</p>';
+            return;
+        }
+
+        container.innerHTML = cart.map(item => `
+            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                <div class="flex items-center gap-3">
+                    ${item.isGiftWrapping ? 
+                        '<span class="text-xl">🎁</span>' : 
+                        `<img src="${item.thumbnail}" class="w-12 h-12 object-cover rounded" alt="${item.name}">`
+                    }
+                    <div>
+                        <p class="font-medium">${item.name}</p>
+                        ${item.device ? `<p class="text-sm text-gray-500">${item.device}</p>` : ''}
+                    </div>
+                </div>
+                <span class="font-semibold">$${item.price.toFixed(2)}</span>
+            </div>
+        `).join('');
+
+        // Update shipping address label if gift wrapping exists
+        this.updateShippingLabel();
+    }
+
+    updateShippingLabel() {
+        const hasGiftWrapping = this.cartManager.hasGiftWrapping();
+        const shippingTitle = document.querySelector('#shipping-address h3');
+        
+        if (shippingTitle && hasGiftWrapping) {
+            shippingTitle.textContent = 'Gift Recipient Address';
+        }
+    }
+
+    togglePromoSection() {
+        const promoSection = document.querySelector('#checkout-page .section-background:has(#checkout-promo-input)');
+        if (promoSection) {
+            promoSection.style.display = this.promoManager.activePromoCode ? 'none' : 'block';
+        }
+    }
+
     updatePromoDisplay() {
         const promoMessage = document.getElementById('checkout-promo-message');
         if (promoMessage && this.promoManager.activePromoCode) {
@@ -156,10 +248,11 @@ class CheckoutManager {
         }
     }
 
-    togglePromoSection() {
-        const promoSection = document.querySelector('#checkout-page .section-background:has(#checkout-promo-input)');
-        if (promoSection) {
-            promoSection.style.display = this.promoManager.activePromoCode ? 'none' : 'block';
+    initializeBillingAddress() {
+        const sameAsShipping = document.getElementById('same-as-shipping');
+        if (sameAsShipping) {
+            sameAsShipping.checked = true;
+            this.toggleBillingAddress(true);
         }
     }
 
@@ -185,7 +278,7 @@ class CheckoutManager {
         // Validate ZIP code format
         const zipCode = document.getElementById('shipping-zip-code').value;
         if (!/^\d{5}(-\d{4})?$/.test(zipCode)) {
-            this.showError('Please enter a valid ZIP code');
+            this.showError('Please enter a valid shipping ZIP code (e.g., 90210 or 90210-0000)');
             document.getElementById('shipping-zip-code').focus();
             return false;
         }
@@ -213,7 +306,7 @@ class CheckoutManager {
             // Validate billing ZIP code format
             const billingZipCode = document.getElementById('billing-zip-code').value;
             if (!/^\d{5}(-\d{4})?$/.test(billingZipCode)) {
-                this.showError('Please enter a valid billing ZIP code');
+                this.showError('Please enter a valid billing ZIP code (e.g., 90210 or 90210-0000)');
                 document.getElementById('billing-zip-code').focus();
                 return false;
             }
@@ -234,7 +327,7 @@ class CheckoutManager {
         
         // Create error message element
         const errorDiv = document.createElement('div');
-        errorDiv.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4';
+        errorDiv.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 error-message-temp';
         errorDiv.innerHTML = `
             <div class="flex items-center">
                 <span class="text-red-500 mr-2">⚠</span>
@@ -244,6 +337,11 @@ class CheckoutManager {
         
         // Insert error at the top of checkout page
         const checkoutPage = document.getElementById('checkout-page');
+        if (!checkoutPage) {
+            alert(message); // Fallback if checkout-page element is missing
+            return;
+        }
+        
         const firstChild = checkoutPage.firstElementChild;
         checkoutPage.insertBefore(errorDiv, firstChild);
         
@@ -256,7 +354,7 @@ class CheckoutManager {
     }
 
     clearErrors() {
-        const errors = document.querySelectorAll('#checkout-page .bg-red-50');
+        const errors = document.querySelectorAll('#checkout-page .error-message-temp');
         errors.forEach(error => error.remove());
     }
 
@@ -274,13 +372,16 @@ class CheckoutManager {
             return;
         }
 
-        try {
-            // Disable place order button to prevent multiple submissions
-            const placeOrderBtn = document.querySelector('button[onclick*="placeOrder"]');
-            const originalText = placeOrderBtn.textContent;
-            placeOrderBtn.textContent = 'Processing...';
-            placeOrderBtn.disabled = true;
+        // Button State Management
+        const placeOrderBtn = document.querySelector('button[onclick*="placeOrder"]');
+        let originalText = 'Place Your Order';
+        if (placeOrderBtn) {
+             originalText = placeOrderBtn.textContent;
+             placeOrderBtn.textContent = 'Processing...';
+             placeOrderBtn.disabled = true;
+        }
 
+        try {
             // Get form data
             const orderData = this.collectOrderData();
             
@@ -300,10 +401,11 @@ class CheckoutManager {
             console.error('Order placement error:', error);
             this.showError('Failed to place order. Please try again.');
             
-            // Re-enable button
-            const placeOrderBtn = document.querySelector('button[onclick*="placeOrder"]');
-            placeOrderBtn.textContent = 'Place Your Order';
-            placeOrderBtn.disabled = false;
+            // Re-enable button on failure
+            if (placeOrderBtn) {
+                 placeOrderBtn.textContent = originalText;
+                 placeOrderBtn.disabled = false;
+            }
         }
     }
 
@@ -312,11 +414,15 @@ class CheckoutManager {
         const billingAddress = document.getElementById('same-as-shipping')?.checked ? 
             shippingAddress : this.collectAddressData('billing');
 
+        const cartTotals = this.getCartTotal();
+
         return {
             items: this.cartManager.getCart(),
-            totals: this.cartManager.getCartTotal(),
+            subtotal: parseFloat(cartTotals.subtotal),
+            discount: parseFloat(cartTotals.discount),
+            finalSubtotal: parseFloat(cartTotals.finalSubtotal),
             shippingCost: this.shippingCost,
-            tax: this.calculateTax(parseFloat(this.cartManager.getCartTotal().subtotal), billingAddress.state),
+            tax: this.calculateTax(parseFloat(cartTotals.finalSubtotal), billingAddress.state),
             shippingAddress,
             billingAddress,
             promoCode: this.promoManager.activePromoCode,
