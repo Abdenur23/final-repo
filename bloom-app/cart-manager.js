@@ -30,6 +30,7 @@ class CartManager {
         // Update gift wrapping section
         if (window.app?.uiManager?.updateGiftWrappingSection) {
             window.app.uiManager.updateGiftWrappingSection();
+            window.app.checkoutManager.renderCheckout();
         }
         
         console.log('Added gift wrapping to cart');
@@ -47,6 +48,7 @@ class CartManager {
             // Update gift wrapping section
             if (window.app?.uiManager?.updateGiftWrappingSection) {
                 window.app.uiManager.updateGiftWrappingSection();
+                window.app.checkoutManager.renderCheckout();
             }
             
             console.log('Removed gift wrapping from cart');
@@ -89,6 +91,7 @@ class CartManager {
 
         if (window.app) {
             window.app.renderCurrentPage();
+            window.app.checkoutManager.renderCheckout();
         }
 
         console.log(`Added ${product.name} to cart.`);
@@ -103,6 +106,7 @@ class CartManager {
 
         if (window.app) {
             window.app.renderCurrentPage();
+            window.app.checkoutManager.renderCheckout();
         }
 
         console.log(`Removed designId ${designId} from cart.`);
