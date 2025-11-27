@@ -7,11 +7,44 @@ class CartManager {
         this.cart = this.getCart(); // Load from storage initially
         this.loadSavedCart(); // Ensure gift wrapping is synced
     }
-    toggleGiftWrapping(enabled) {
-        this.giftWrappingEnabled = enabled;
+    
+    addGiftWrapping() {
+        if (this.hasGiftWrapping()) {
+            console.log('Gift wrapping already in cart');
+            return false;
+        }
+        
+        const giftItem = {
+            designId: 'gift-wrapping',
+            name: 'Gift Wrapping & Personal Note',
+            price: this.giftWrappingPrice,
+            thumbnail: '🎁',
+            isGiftWrapping: true,
+            addedAt: new Date().toISOString()
+        };
+        
+        this.cart.push(giftItem);
         this.saveCart();
         this.updateCartDisplay();
+        console.log('Added gift wrapping to cart');
+        return true;
     }
+    
+    removeGiftWrapping() {
+        const initialLength = this.cart.length;
+        this.cart = this.cart.filter(item => !item.isGiftWrapping);
+        
+        if (this.cart.length < initialLength) {
+            this.saveCart();
+            this.updateCartDisplay();
+            console.log('Removed gift wrapping from cart');
+        }
+    }
+    
+    hasGiftWrapping() {
+        return this.cart.some(item => item.isGiftWrapping);
+    }
+    
     // === CORE CART OPERATIONS ===
     addToCart(product) {
         const exists = this.cart.some(item => item.designId === product.designId);
