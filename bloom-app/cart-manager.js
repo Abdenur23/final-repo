@@ -181,4 +181,4 @@ class CartManager {
         this.updateCartBadge();
         this.refreshCartModal();
     }
-}v
+}
