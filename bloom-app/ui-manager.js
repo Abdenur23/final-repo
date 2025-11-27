@@ -140,9 +140,19 @@ class UIManager {
                 </div>
                 <div class="flex-grow">
                     <h4 class="font-semibold">${item.name}</h4>
-                    ${item.device ? `<p class="text-sm text-gray-500">Device: ${item.device}</p>` : ''}
+                
+                    ${
+                        item.product_type || item.device
+                        ? `<p class="text-xs text-gray-400 tracking-wide italic">
+                                ${item.product_type ? item.product_type : ''} 
+                                ${item.device ? `for ${item.device}` : ''}
+                           </p>`
+                        : ''
+                    }
+                
                     <p class="text-sm gold-highlight">$${item.price.toFixed(2)}</p>
                 </div>
+
                 <button onclick="window.app.cartManager.removeFromCart('${item.designId}')" class="text-sm text-red-500 hover:text-red-700 ml-4">
                     Remove
                 </button>
