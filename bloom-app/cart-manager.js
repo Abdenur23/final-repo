@@ -143,14 +143,12 @@ class CartManager {
     // === PRICING & TOTALS ===
     getCartTotal() {
         const subtotal = this.cart.reduce((sum, item) => sum + item.price, 0);
-        const giftWrappingCost = this.giftWrappingEnabled ? this.giftWrappingPrice : 0;
         const discountAmount = subtotal * this.promoDiscount;
-        const finalTotal = subtotal + giftWrappingCost - discountAmount;
+        const finalTotal = subtotal - discountAmount;
     
         return {
             subtotal: subtotal.toFixed(2),
             discount: discountAmount.toFixed(2),
-            giftWrapping: giftWrappingCost.toFixed(2),
             total: finalTotal.toFixed(2)
         };
     }
