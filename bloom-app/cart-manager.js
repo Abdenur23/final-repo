@@ -26,6 +26,12 @@ class CartManager {
         this.cart.push(giftItem);
         this.saveCart();
         this.updateCartDisplay();
+        
+        // Update gift wrapping section
+        if (window.app?.uiManager?.updateGiftWrappingSection) {
+            window.app.uiManager.updateGiftWrappingSection();
+        }
+        
         console.log('Added gift wrapping to cart');
         return true;
     }
@@ -37,6 +43,12 @@ class CartManager {
         if (this.cart.length < initialLength) {
             this.saveCart();
             this.updateCartDisplay();
+            
+            // Update gift wrapping section
+            if (window.app?.uiManager?.updateGiftWrappingSection) {
+                window.app.uiManager.updateGiftWrappingSection();
+            }
+            
             console.log('Removed gift wrapping from cart');
         }
     }
