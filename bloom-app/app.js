@@ -1,7 +1,7 @@
 //app.js
 class Application {
     constructor() {
-        this.authManager = new AuthManager();
+       this.authManager = new AuthManager();
         this.cartManager = new CartManager();
         this.deviceManager = new DeviceManager();
         this.promoManager = new PromoManager(this.cartManager);
@@ -11,7 +11,10 @@ class Application {
         this.realTimeUpdates = new RealTimeUpdates(this.studioManager);
         this.navigationManager = new NavigationManager();
         this.uiManager = new UIManager(this.authManager, this.cartManager);
-        this.consentManager = this.studioManager.consentManager;
+        this.consentManager = this.studioManager.consentManager; // Reference to consent manager
+        
+        // Pass realTimeUpdates to studioManager
+        this.studioManager.setRealTimeUpdates(this.realTimeUpdates);
         
         // Set up global references
         window.app = this;
@@ -20,9 +23,8 @@ class Application {
         window.getSession = () => this.authManager.getSession();
         window.isAuthenticated = () => this.authManager.isAuthenticated();
         window.getUserInfo = () => this.authManager.getUserInfo();
-        window.placeOrder = () => this.checkoutManager.placeOrder(); // Update this reference
     }
-    
+
     async initialize() {
         try {
             // Load saved promo if any
