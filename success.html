@@ -182,6 +182,40 @@
     }
 
     document.addEventListener('DOMContentLoaded', initializeSuccessPage);
+
+    // In success.html
+async function checkOrderStatus() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('session_id');
+    
+    if (!orderId) return;
+    
+    try {
+        // Call your backend to get session details and update status
+        const response = await fetch('https://qohagpc75m.execute-api.us-east-1.amazonaws.com/prod/prod', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + getSession()?.id_token
+            },
+            body: JSON.stringify({
+                action: 'getSessionDetails',
+                session_id: orderId  // This should be the Stripe session ID, not order ID
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Order status:', data.order_status);
+            // Update UI based on status
+        }
+    } catch (error) {
+        console.error('Error checking order status:', error);
+    }
+}
+
+// Call this when page loads
+checkOrderStatus();
 </script>
 </body>
 </html>
