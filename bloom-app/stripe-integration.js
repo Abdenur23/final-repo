@@ -36,19 +36,16 @@ class StripeIntegration {
         return headers;
     }
 
-    async createCheckoutSession(orderData) {
+    async createCheckoutSession(orderData, token) {
         try {
-            console.log('Creating checkout session with data:', {
-                user_email: orderData.user_email,
-                item_count: orderData.items.length,
-                promo_code: orderData.promoCode
-            });
-
-            const headers = await this.getAuthHeaders();
+            console.log('Creating checkout session with token');
             
             const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
                 method: 'POST',
-                headers: headers,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
                 body: JSON.stringify({
                     action: 'createCheckoutSession',
                     user_email: orderData.user_email,
@@ -58,7 +55,7 @@ class StripeIntegration {
                     shipping_address: orderData.shippingAddress
                 })
             });
-
+    
             console.log('API Response status:', response.status);
             
             if (!response.ok) {
@@ -71,16 +68,16 @@ class StripeIntegration {
                 }
                 throw new Error(errorMessage);
             }
-
+    
             const data = await response.json();
             console.log('Checkout session created:', data);
             
             if (data.error) {
                 throw new Error(data.error);
             }
-
+    
             return data;
-
+    
         } catch (error) {
             console.error('Error creating checkout session:', error);
             throw error;
@@ -88,32 +85,31 @@ class StripeIntegration {
     }
 
     async processCheckout() {
+        console.log('processing checkout...');
+        
         if (!this.checkoutManager.validateForm()) {
             return;
         }
-
+        console.log('form validation passed');
+        
         const userInfo = this.checkoutManager.authManager.getUserInfo();
         if (!userInfo) {
             this.checkoutManager.showError('Please sign in to place an order');
             return;
         }
-
-        // Ensure user has a valid session
-        try {
-            const session = await this.checkoutManager.authManager.getSession();
-            if (!session || !session.idToken) {
-                this.checkoutManager.showError('Your session has expired. Please sign in again.');
-                return;
-            }
-        } catch (error) {
-            console.error('Error checking session:', error);
-            this.checkoutManager.showError('Authentication error. Please sign in again.');
+        console.log('user info found:', userInfo.email);
+    
+        // Get token directly
+        const token = getSession()?.id_token;
+        if (!token) {
+            this.checkoutManager.showError('Your session has expired. Please sign in again.');
             return;
         }
-
+        console.log('token found');
+    
         const orderData = this.checkoutManager.collectOrderData();
         orderData.user_email = userInfo.email;
-
+    
         const placeOrderBtn = document.querySelector('button[onclick*="placeOrder"]');
         const originalText = placeOrderBtn?.textContent || 'Place Your Order';
         
@@ -121,9 +117,9 @@ class StripeIntegration {
             placeOrderBtn.textContent = 'Processing...';
             placeOrderBtn.disabled = true;
         }
-
+    
         try {
-            const sessionData = await this.createCheckoutSession(orderData);
+            const sessionData = await this.createCheckoutSession(orderData, token);
             
             if (!this.stripe) {
                 this.initializeStripe();
@@ -131,16 +127,16 @@ class StripeIntegration {
                     throw new Error('Stripe not initialized. Please refresh the page.');
                 }
             }
-
+    
             console.log('Redirecting to Stripe checkout...');
             const { error } = await this.stripe.redirectToCheckout({
                 sessionId: sessionData.session_id
             });
-
+    
             if (error) {
                 throw error;
             }
-
+    
         } catch (error) {
             console.error('Checkout error:', error);
             
@@ -165,29 +161,35 @@ class StripeIntegration {
 
     async getSessionStatus(sessionId) {
         try {
-            const headers = await this.getAuthHeaders();
-            
+            const token = getSession()?.id_token;
+            if (!token) {
+                throw new Error('No authentication token');
+            }
+    
             const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
                 method: 'POST',
-                headers: headers,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
                 body: JSON.stringify({
                     action: 'getSessionDetails',
                     session_id: sessionId
                 })
             });
-
+    
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-
+    
             const data = await response.json();
             
             if (data.error) {
                 throw new Error(data.error);
             }
-
+    
             return data;
-
+    
         } catch (error) {
             console.error('Error getting session status:', error);
             throw error;
