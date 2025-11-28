@@ -5,6 +5,7 @@ class CheckoutManager {
         this.promoManager = promoManager;
         this.authManager = authManager;
         this.shippingCost = 8.90;
+        this.stripeIntegration = new StripeIntegration(this);
         this.taxRates = {
             'CA': 0.0825, // 8.25%
             'NY': 0.08875, // 8.875%
