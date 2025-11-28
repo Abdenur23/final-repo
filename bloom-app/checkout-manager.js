@@ -5,53 +5,50 @@ class CheckoutManager {
         this.promoManager = promoManager;
         this.authManager = authManager;
         this.shippingCost = 8.90;
-        this.stripeIntegration = new StripeIntegration(this);
         this.taxRates = {
-            'CA': 0.0825, // 8.25%
-            'NY': 0.08875, // 8.875%
-            'TX': 0.0825, // 8.25%
-            'FL': 0.07, // 7%
-            'IL': 0.1025, // 10.25%
-            'PA': 0.06, // 6%
-            'OH': 0.075, // 7.5%
-            'GA': 0.07, // 7%
-            'NC': 0.06975, // 6.975%
-            'MI': 0.06 // 6%
-            // Other states will default to 0%
+            'CA': 0.0825,
+            'NY': 0.08875,
+            'TX': 0.0825,
+            'FL': 0.07,
+            'IL': 0.1025,
+            'PA': 0.06,
+            'OH': 0.075,
+            'GA': 0.07,
+            'NC': 0.06975,
+            'MI': 0.06
         };
+        
+        // Initialize Stripe integration
+        this.stripeIntegration = new StripeIntegration(this);
+        
         this.initializeEventListeners();
     }
 
     initializeEventListeners() {
-        // Same as shipping checkbox
         document.addEventListener('change', (e) => {
             if (e.target.id === 'same-as-shipping') {
                 this.toggleBillingAddress(e.target.checked);
             }
         });
 
-        // Shipping address changes
         document.addEventListener('input', (e) => {
             if (e.target.closest('#shipping-address-fields')) {
                 this.syncBillingAddressIfEnabled();
             }
         });
 
-        // Billing state change for tax calculation
         document.addEventListener('change', (e) => {
             if (e.target.id === 'billing-state') {
                 this.updateTaxAndTotals();
             }
         });
 
-        // Promo code application from checkout
         document.addEventListener('click', (e) => {
             if (e.target.closest('#checkout-promo-apply')) {
                 this.applyPromoFromCheckout();
             }
         });
 
-        // Save form data as user types
         document.addEventListener('input', (e) => {
             this.saveFormData();
         });
@@ -62,7 +59,6 @@ class CheckoutManager {
     }
 
     saveFormData() {
-        // Save shipping address
         const shippingFields = ['full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'];
         shippingFields.forEach(field => {
             const element = document.getElementById(`shipping-${field}`);
@@ -71,7 +67,6 @@ class CheckoutManager {
             }
         });
         
-        // Save billing address only if different from shipping
         const sameAsShipping = document.getElementById('same-as-shipping');
         if (!sameAsShipping?.checked) {
             const billingFields = ['full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'];
@@ -82,7 +77,6 @@ class CheckoutManager {
                 }
             });
         } else {
-            // Clear saved billing data if using same as shipping
             const billingFields = ['full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'];
             billingFields.forEach(field => {
                 localStorage.removeItem(`checkout_billing_${field}`);
@@ -91,7 +85,6 @@ class CheckoutManager {
     }
 
     loadSavedAddresses() {
-        // Load shipping address
         const shippingFields = ['full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'];
         shippingFields.forEach(field => {
             const savedValue = localStorage.getItem(`checkout_shipping_${field}`);
@@ -101,7 +94,6 @@ class CheckoutManager {
             }
         });
         
-        // Load billing address if separate
         const billingFields = ['full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'];
         billingFields.forEach(field => {
             const savedValue = localStorage.getItem(`checkout_billing_${field}`);
@@ -116,7 +108,6 @@ class CheckoutManager {
         const promoInput = document.getElementById('checkout-promo-input');
         if (promoInput && promoInput.value) {
             this.promoManager.applyPromoCode(promoInput.value).then(() => {
-                // Refresh checkout display after promo application
                 this.renderCheckout();
             });
         }
@@ -185,7 +176,6 @@ class CheckoutManager {
         const tax = this.calculateTax(subtotal, billingState);
         const finalTotal = subtotal + this.shippingCost + tax;
 
-        // Update display
         this.updateSummaryDisplay({
             subtotal: cartTotals.subtotal,
             discount: cartTotals.discount,
@@ -211,13 +201,11 @@ class CheckoutManager {
             if (element) element.textContent = value;
         });
 
-        // Hide/show tax line
         const taxElement = document.getElementById('checkout-tax')?.closest('div');
         if (taxElement) {
             taxElement.style.display = totals.showTax ? 'flex' : 'none';
         }
 
-        // Add/update discount line
         this.updateDiscountDisplay(totals);
     }
 
@@ -226,22 +214,17 @@ class CheckoutManager {
         
         if (totals.showDiscount) {
             if (!discountElement) {
-                // Create discount element if it doesn't exist
                 const shippingElement = document.getElementById('checkout-shipping')?.closest('div');
                 if (!shippingElement) return;
 
                 discountElement = document.createElement('div');
                 discountElement.id = 'checkout-discount';
                 discountElement.className = 'flex justify-between text-green-600';
-                
-                // Insert the new discount element before the shipping element
                 shippingElement.parentNode.insertBefore(discountElement, shippingElement); 
             }
-            // Update existing discount element
             discountElement.innerHTML = `<span>Discount</span><span>-$${totals.discount}</span>`;
             discountElement.style.display = 'flex';
         } else if (discountElement) {
-            // Hide discount element if no discount
             discountElement.style.display = 'none';
         }
     }
@@ -257,17 +240,14 @@ class CheckoutManager {
     initializeBillingAddress() {
         const sameAsShipping = document.getElementById('same-as-shipping');
         
-        // Load saved addresses from localStorage if they exist
         this.loadSavedAddresses();
         
         if (sameAsShipping) {
-            // Check if we have separate billing address saved
             const hasSeparateBilling = localStorage.getItem('checkout_billing_full-name');
             sameAsShipping.checked = !hasSeparateBilling;
             this.toggleBillingAddress(!hasSeparateBilling);
         }
         
-        // Update totals after loading addresses
         this.updateTaxAndTotals();
     }
 
@@ -298,7 +278,6 @@ class CheckoutManager {
             </div>
         `).join('');
 
-        // Update shipping address label if gift wrapping exists
         this.updateShippingLabel();
     }
 
@@ -314,7 +293,6 @@ class CheckoutManager {
     togglePromoSection() {
         const promoSection = document.querySelector('#checkout-page .section-background:has(#checkout-promo-input)');
         if (promoSection) {
-            // Check if there's an active promo code with valid discount
             const hasActivePromo = this.promoManager.activePromoCode && 
                                   this.cartManager.promoDiscount > 0;
             promoSection.style.display = hasActivePromo ? 'none' : 'block';
@@ -330,7 +308,6 @@ class CheckoutManager {
     }
 
     validateForm() {
-        // Validate shipping address
         const shippingFields = [
             { id: 'shipping-full-name', name: 'Full Name' },
             { id: 'shipping-street-address', name: 'Street Address' },
@@ -348,7 +325,6 @@ class CheckoutManager {
             }
         }
 
-        // Validate ZIP code format
         const zipCode = document.getElementById('shipping-zip-code').value;
         if (!/^\d{5}(-\d{4})?$/.test(zipCode)) {
             this.showError('Please enter a valid shipping ZIP code (e.g., 90210 or 90210-0000)');
@@ -356,7 +332,6 @@ class CheckoutManager {
             return false;
         }
 
-        // Validate billing address if different from shipping
         const sameAsShipping = document.getElementById('same-as-shipping');
         if (!sameAsShipping?.checked) {
             const billingFields = [
@@ -376,7 +351,6 @@ class CheckoutManager {
                 }
             }
 
-            // Validate billing ZIP code format
             const billingZipCode = document.getElementById('billing-zip-code').value;
             if (!/^\d{5}(-\d{4})?$/.test(billingZipCode)) {
                 this.showError('Please enter a valid billing ZIP code (e.g., 90210 or 90210-0000)');
@@ -385,7 +359,6 @@ class CheckoutManager {
             }
         }
 
-        // Validate cart has items
         if (this.cartManager.getCart().length === 0) {
             this.showError('Your cart is empty. Please add items before checking out.');
             return false;
@@ -395,10 +368,8 @@ class CheckoutManager {
     }
 
     showError(message) {
-        // Remove any existing error messages
         this.clearErrors();
         
-        // Create error message element
         const errorDiv = document.createElement('div');
         errorDiv.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 error-message-temp';
         errorDiv.innerHTML = `
@@ -408,17 +379,15 @@ class CheckoutManager {
             </div>
         `;
         
-        // Insert error at the top of checkout page
         const checkoutPage = document.getElementById('checkout-page');
         if (!checkoutPage) {
-            alert(message); // Fallback if checkout-page element is missing
+            alert(message);
             return;
         }
         
         const firstChild = checkoutPage.firstElementChild;
         checkoutPage.insertBefore(errorDiv, firstChild);
         
-        // Auto-remove after 5 seconds
         setTimeout(() => {
             if (errorDiv.parentNode) {
                 errorDiv.remove();
@@ -432,66 +401,13 @@ class CheckoutManager {
     }
 
     async placeOrder() {
-        // Clear previous errors
         this.clearErrors();
         
         if (!this.validateForm()) {
             return;
         }
 
-        const userInfo = this.authManager.getUserInfo();
-        if (!userInfo) {
-            this.showError('Please sign in to place an order');
-            return;
-        }
-
-        // Button State Management
-        const placeOrderBtn = document.querySelector('button[onclick*="placeOrder"]');
-        let originalText = 'Place Your Order';
-        if (placeOrderBtn) {
-             originalText = placeOrderBtn.textContent;
-             placeOrderBtn.textContent = 'Processing...';
-             placeOrderBtn.disabled = true;
-        }
-
-        try {
-            // Get form data
-            const orderData = this.collectOrderData();
-            
-            // Here you would integrate with your order API
-            console.log('Placing order:', orderData);
-            
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // Show success message
-            this.showSuccess('Order placed successfully!');
-            this.cartManager.clearCart();
-            this.promoManager.clearPromoData();
-            
-            // Clear saved form data
-            this.clearSavedFormData();
-            
-            window.app.navigateTo('homepage');
-            
-        } catch (error) {
-            console.error('Order placement error:', error);
-            this.showError('Failed to place order. Please try again.');
-            
-            // Re-enable button on failure
-            if (placeOrderBtn) {
-                 placeOrderBtn.textContent = originalText;
-                 placeOrderBtn.disabled = false;
-            }
-        }
-    }
-
-    clearSavedFormData() {
-        const fields = ['full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'];
-        fields.forEach(field => {
-            localStorage.removeItem(`checkout_shipping_${field}`);
-            localStorage.removeItem(`checkout_billing_${field}`);
-        });
+        await this.stripeIntegration.processCheckout();
     }
 
     collectOrderData() {
@@ -508,10 +424,21 @@ class CheckoutManager {
             finalSubtotal: parseFloat(cartTotals.finalSubtotal),
             shippingCost: this.shippingCost,
             tax: this.calculateTax(parseFloat(cartTotals.finalSubtotal), billingAddress.state),
-            shippingAddress,
-            billingAddress,
+            shippingAddress: this.formatAddressForAPI(shippingAddress),
+            billingAddress: this.formatAddressForAPI(billingAddress),
             promoCode: this.promoManager.activePromoCode,
             giftWrapping: this.cartManager.hasGiftWrapping()
+        };
+    }
+
+    formatAddressForAPI(address) {
+        return {
+            fullName: address.fullName,
+            streetAddress: address.streetAddress,
+            address2: address.address2,
+            city: address.city,
+            state: address.state,
+            zipCode: address.zipCode
         };
     }
 
@@ -526,8 +453,15 @@ class CheckoutManager {
         };
     }
 
+    clearSavedFormData() {
+        const fields = ['full-name', 'street-address', 'address-2', 'city', 'state', 'zip-code'];
+        fields.forEach(field => {
+            localStorage.removeItem(`checkout_shipping_${field}`);
+            localStorage.removeItem(`checkout_billing_${field}`);
+        });
+    }
+
     showSuccess(message) {
-        // Simple success display - you might want to enhance this
         alert(message);
     }
 }
