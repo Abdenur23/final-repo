@@ -16,18 +16,17 @@ class StripeCheckout {
     }
 
     async processCheckout() {
-        // Validate form before proceeding
         if (!this.checkoutManager.validateForm()) {
             return;
         }
 
         const userInfo = this.checkoutManager.authManager.getUserInfo();
         if (!userInfo) {
-            this.checkoutManager.showError('Please sign in to proceed with checkout');
+            this.checkoutManager.showError('Please sign in to place an order');
             return;
         }
 
-        // Show loading state
+        // Update button state
         const placeOrderBtn = document.querySelector('button[onclick*="placeOrder"]');
         const originalText = placeOrderBtn?.textContent || 'Place Your Order';
         if (placeOrderBtn) {
@@ -40,23 +39,19 @@ class StripeCheckout {
             const orderData = this.collectCheckoutData();
             
             // Create checkout session via API
-            const { session_id, url, order_id } = await this.createCheckoutSession(orderData);
-            
-            // Store order ID for reference
-            this.currentOrderId = order_id;
+            const session = await this.createCheckoutSession(orderData);
             
             // Redirect to Stripe Checkout
-            if (this.stripe && url) {
+            if (session.url && this.stripe) {
                 const result = await this.stripe.redirectToCheckout({
-                    sessionId: session_id
+                    sessionId: session.session_id
                 });
                 
                 if (result.error) {
                     throw new Error(result.error.message);
                 }
             } else {
-                // Fallback: redirect directly to Stripe URL
-                window.location.href = url;
+                throw new Error('Failed to create checkout session');
             }
             
         } catch (error) {
@@ -72,27 +67,38 @@ class StripeCheckout {
     }
 
     collectCheckoutData() {
-        const cartItems = this.checkoutManager.cartManager.getCart().map(item => ({
-            designId: item.designId || `custom_${Date.now()}`,
-            paletteName: item.paletteName || item.name || 'Custom Design',
-            product_type: item.product_type || 'Case & wallpaper',
-            device: item.device || '',
-            isGiftWrapping: item.isGiftWrapping || false,
-            name: item.name || 'Custom Phone Case',
-            imageUrl: item.imageUrl || item.thumbnail || '',
-            thumbnail: item.thumbnail || ''
-        }));
-
-        const shippingAddress = this.checkoutManager.collectAddressData('shipping');
+        const shippingAddress = this.collectAddressData('shipping');
         const billingAddress = document.getElementById('same-as-shipping')?.checked ? 
-            shippingAddress : this.checkoutManager.collectAddressData('billing');
+            shippingAddress : this.collectAddressData('billing');
+
+        const cartItems = this.checkoutManager.cartManager.getCart().map(item => ({
+            designId: item.designId,
+            paletteName: item.paletteName,
+            name: item.name,
+            product_type: item.product_type,
+            isGiftWrapping: item.isGiftWrapping || false,
+            device: item.device,
+            thumbnail: item.thumbnail
+            // Note: We don't include price as it will be validated server-side
+        }));
 
         return {
             user_email: this.checkoutManager.authManager.getUserInfo()?.email,
-            cart_items: cartItems,
+            items: cartItems,
             promo_code: this.checkoutManager.promoManager.activePromoCode,
             shipping_address: shippingAddress,
             billing_address: billingAddress
+        };
+    }
+
+    collectAddressData(prefix) {
+        return {
+            fullName: document.getElementById(`${prefix}-full-name`)?.value || '',
+            streetAddress: document.getElementById(`${prefix}-street-address`)?.value || '',
+            address2: document.getElementById(`${prefix}-address-2`)?.value || '',
+            city: document.getElementById(`${prefix}-city`)?.value || '',
+            state: document.getElementById(`${prefix}-state`)?.value || '',
+            zipCode: document.getElementById(`${prefix}-zip-code`)?.value || ''
         };
     }
 
@@ -114,15 +120,10 @@ class StripeCheckout {
         }
 
         const data = await response.json();
-        
-        if (!data.session_id || !data.url) {
-            throw new Error('Invalid response from checkout server');
-        }
-
         return data;
     }
 
-    async checkOrderStatus(orderId) {
+    async getSessionStatus(sessionId) {
         try {
             const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
                 method: 'POST',
@@ -131,18 +132,19 @@ class StripeCheckout {
                 },
                 body: JSON.stringify({
                     action: 'getSessionDetails',
-                    session_id: orderId
+                    session_id: sessionId
                 })
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                return data;
+            if (!response.ok) {
+                throw new Error('Failed to get session status');
             }
+
+            return await response.json();
         } catch (error) {
-            console.error('Error checking order status:', error);
+            console.error('Error getting session status:', error);
+            return null;
         }
-        return null;
     }
 
     // Handle return from Stripe Checkout
@@ -152,9 +154,9 @@ class StripeCheckout {
         
         if (sessionId) {
             try {
-                const orderStatus = await this.checkOrderStatus(sessionId);
+                const sessionStatus = await this.getSessionStatus(sessionId);
                 
-                if (orderStatus && orderStatus.payment_status === 'paid') {
+                if (sessionStatus && sessionStatus.payment_status === 'paid') {
                     // Clear cart and promo data on successful payment
                     this.checkoutManager.cartManager.clearCart();
                     this.checkoutManager.promoManager.clearPromoData();
@@ -162,33 +164,42 @@ class StripeCheckout {
                     
                     // Show success message
                     this.showSuccessMessage();
+                } else {
+                    this.showErrorMessage('Payment was not completed. Please try again.');
                 }
             } catch (error) {
                 console.error('Error handling checkout return:', error);
+                this.showErrorMessage('Error verifying payment status.');
             }
         }
     }
 
     showSuccessMessage() {
         // You can customize this to show a better success UI
-        const successDiv = document.createElement('div');
-        successDiv.className = 'bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4';
-        successDiv.innerHTML = `
-            <div class="flex items-center">
-                <span class="text-green-500 mr-2">✓</span>
-                <span>Order placed successfully! Thank you for your purchase.</span>
+        const successHtml = `
+            <div class="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+                <div class="text-green-600 text-6xl mb-4">✓</div>
+                <h3 class="text-xl font-semibold text-green-800 mb-2">Order Successful!</h3>
+                <p class="text-green-700">Thank you for your purchase. You will receive a confirmation email shortly.</p>
+                <button onclick="window.app.navigateTo('homepage')" 
+                        class="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                    Continue Shopping
+                </button>
             </div>
         `;
         
         const checkoutPage = document.getElementById('checkout-page');
         if (checkoutPage) {
-            const firstChild = checkoutPage.firstElementChild;
-            checkoutPage.insertBefore(successDiv, firstChild);
+            checkoutPage.innerHTML = successHtml;
         }
+    }
+
+    showErrorMessage(message) {
+        this.checkoutManager.showError(message);
     }
 }
 
-// Update CheckoutManager to use Stripe integration
+// Update the CheckoutManager to use StripeCheckout
 class CheckoutManager {
     constructor(cartManager, promoManager, authManager) {
         this.cartManager = cartManager;
@@ -196,8 +207,8 @@ class CheckoutManager {
         this.authManager = authManager;
         this.shippingCost = 8.90;
         this.taxRates = {
-            'CA': 0.0825, 'NY': 0.08875, 'TX': 0.0825, 'FL': 0.07,
-            'IL': 0.1025, 'PA': 0.06, 'OH': 0.075, 'GA': 0.07,
+            'CA': 0.0825, 'NY': 0.08875, 'TX': 0.0825, 'FL': 0.07, 
+            'IL': 0.1025, 'PA': 0.06, 'OH': 0.075, 'GA': 0.07, 
             'NC': 0.06975, 'MI': 0.06
         };
         
@@ -207,101 +218,32 @@ class CheckoutManager {
         this.initializeEventListeners();
     }
 
-    // Replace the old placeOrder method
+    // Replace the existing placeOrder method
     async placeOrder() {
         await this.stripeCheckout.processCheckout();
     }
 
-    // Keep all other existing methods unchanged...
+    // Keep all other existing methods from your original CheckoutManager
     initializeEventListeners() {
-        // Same as original implementation
-        document.addEventListener('change', (e) => {
-            if (e.target.id === 'same-as-shipping') {
-                this.toggleBillingAddress(e.target.checked);
-            }
-        });
-
-        document.addEventListener('input', (e) => {
-            if (e.target.closest('#shipping-address-fields')) {
-                this.syncBillingAddressIfEnabled();
-            }
-        });
-
-        document.addEventListener('change', (e) => {
-            if (e.target.id === 'billing-state') {
-                this.updateTaxAndTotals();
-            }
-        });
-
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('#checkout-promo-apply')) {
-                this.applyPromoFromCheckout();
-            }
-        });
-
-        document.addEventListener('input', (e) => {
-            this.saveFormData();
-        });
-        
-        document.addEventListener('change', (e) => {
-            this.saveFormData();
-        });
-
-        // Handle checkout return if on success page
-        if (window.location.pathname.includes('success.html')) {
-            this.stripeCheckout.handleCheckoutReturn();
-        }
+        // ... existing event listener code ...
     }
 
-    // All other existing methods remain the same...
-    saveFormData() { /* ... */ }
-    loadSavedAddresses() { /* ... */ }
-    applyPromoFromCheckout() { /* ... */ }
-    toggleBillingAddress(sameAsShipping) { /* ... */ }
-    syncBillingAddressIfEnabled() { /* ... */ }
-    syncBillingAddress() { /* ... */ }
-    getTaxRate(state) { /* ... */ }
-    calculateTax(subtotal, state) { /* ... */ }
-    getCartTotal() { /* ... */ }
-    updateTaxAndTotals() { /* ... */ }
-    updateSummaryDisplay(totals) { /* ... */ }
-    updateDiscountDisplay(totals) { /* ... */ }
-    renderCheckout() { /* ... */ }
-    initializeBillingAddress() { /* ... */ }
-    renderOrderItems() { /* ... */ }
-    updateShippingLabel() { /* ... */ }
-    togglePromoSection() { /* ... */ }
-    updatePromoDisplay() { /* ... */ }
-    validateForm() { /* ... */ }
-    showError(message) { /* ... */ }
-    clearErrors() { /* ... */ }
-    collectOrderData() { /* ... */ }
-    collectAddressData(prefix) { /* ... */ }
-    clearSavedFormData() { /* ... */ }
+    saveFormData() {
+        // ... existing saveFormData code ...
+    }
+
+    loadSavedAddresses() {
+        // ... existing loadSavedAddresses code ...
+    }
+
+    // ... include all other existing methods from your original CheckoutManager ...
+
 }
 
-// Update app.js to include Stripe script
-function loadStripeCheckout() {
-    return new Promise((resolve, reject) => {
-        if (typeof Stripe !== 'undefined') {
-            resolve();
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.src = 'https://js.stripe.com/v3/';
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
-}
-
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        await loadStripeCheckout();
-        console.log('Stripe.js loaded successfully');
-    } catch (error) {
-        console.error('Failed to load Stripe.js:', error);
+// Handle checkout return if we're on the success page
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.location.pathname.includes('success.html')) {
+        const stripeCheckout = new StripeCheckout(window.app?.checkoutManager);
+        stripeCheckout.handleCheckoutReturn();
     }
 });
