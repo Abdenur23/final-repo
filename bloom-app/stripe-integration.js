@@ -195,4 +195,41 @@ class StripeIntegration {
             throw error;
         }
     }
+
+    async getOrderDetails(orderId) {
+        try {
+            const token = getSession()?.id_token;
+            if (!token) {
+                throw new Error('No authentication token');
+            }
+    
+            const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    action: 'getOrderDetails',
+                    order_id: orderId
+                })
+            });
+    
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+    
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+    
+            return data;
+    
+        } catch (error) {
+            console.error('Error getting order details:', error);
+            throw error;
+        }
+    }
 }
