@@ -18,7 +18,7 @@ class CartManager {
             designId: 'gift-wrapping',
             name: 'Gift Wrapping & Personal Note',
             price: this.giftWrappingPrice,
-            product_type: 'gift-wrapping',
+            product_type: 'Gift wrapping',
             thumbnail: '🎁',
             isGiftWrapping: true,
             addedAt: new Date().toISOString()
