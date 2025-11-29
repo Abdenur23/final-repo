@@ -49,8 +49,7 @@ class StripeIntegration {
                 body: JSON.stringify({
                     action: 'createCheckoutSession',
                     user_email: orderData.user_email,
-                    // cart_items: orderData.items,
-                    items: orderData.items,
+                    cart_items: orderData.items,
                     promo_code: orderData.promoCode,
                     billing_address: orderData.billingAddress,
                     shipping_address: orderData.shippingAddress
