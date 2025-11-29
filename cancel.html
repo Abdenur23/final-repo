@@ -1,33 +1,242 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Payment Cancelled - TheWeer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloom - Order Cancelled</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* --- Dreamlike Elegance Theme --- */
+        :root {
+            --color-magenta: #E6007E;
+            --color-gold: #D4AF37;
+            --color-charcoal: #2E2E2E;
+            --color-blush-start: #FFD0E6;
+            --color-blush-end: #FFF7FB;
+            --color-gray-300: #d1d5db;
+            --color-gray-600: #4b5563;
+        }
+        
+        .bg-magenta { background-color: var(--color-magenta); }
+        .bg-gold { background-color: var(--color-gold); }
+        .bg-gray-300 { background-color: var(--color-gray-300); }
+        .text-white { color: white; }
+        .text-gray-600 { color: var(--color-gray-600); }
+        .border-magenta { border-color: var(--color-magenta); }
+        .border-gold { border-color: var(--color-gold); }
+        .border-gray-300 { border-color: var(--color-gray-300); }
+        .text-magenta { color: var(--color-magenta); }
+        .text-gold { color: var(--color-gold); }
+        .font-semibold { font-weight: 600; }
+
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Manrope:wght@400;600&display=swap');
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Manrope', sans-serif;
+            background-color: var(--color-blush-end);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: var(--color-charcoal);
+        }
+        .container {
+            width: 100%;
+            max-width: 960px;
+            background: white;
+            padding: 32px;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+        .header {
+            border-bottom: 1px solid var(--color-blush-start);
+        }
+        h1, h2, h3, .poetic-title {
+            font-family: 'Cormorant Garamond', serif;
+            letter-spacing: 0.05em;
+        }
+        .poetic-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-bottom: 1.5rem;
             text-align: center;
-            padding: 50px;
-            max-width: 500px;
-            margin: 0 auto;
         }
-        .icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
-        .btn {
-            background: #007bff;
+        .cta-magenta {
+            background-color: var(--color-magenta);
             color: white;
-            padding: 12px 24px;
-            border-radius: 6px;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 20px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .cta-magenta:hover {
+            background-color: #C00063; 
+            box-shadow: 0 4px 10px rgba(230, 0, 126, 0.4);
+        }
+        .cta-gold {
+            background-color: var(--color-gold);
+            color: var(--color-charcoal);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .cta-gold:hover {
+            background-color: #C09A34;
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.4);
+        }
+        .section-background {
+            background: linear-gradient(135deg, var(--color-blush-start) 0%, var(--color-blush-end) 100%);
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .gold-highlight {
+            color: var(--color-gold);
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
-    <h1>Payment Cancelled</h1>
-    <p>Your order was not completed. No charges were made.</p>
-    <a href="/" class="btn">Return to Home</a>
+    <div class="container">
+        <header class="header flex justify-between items-center pb-4 mb-6">
+            <img src="logo.png" alt="Bloom" class="h-12 w-auto">
+        </header>
+
+        <main class="text-center">
+            <!-- Cancelled Icon -->
+            <div class="mb-8">
+                <div class="w-32 h-32 bg-red-100 rounded-full flex items-center justify-center mx-auto border-4 border-red-200">
+                    <svg class="w-16 h-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Main Message -->
+            <h1 class="poetic-title text-4xl mb-6">Order Cancelled</h1>
+            
+            <div class="text-center italic mb-8">
+                <p class="text-xl text-gray-600 mb-4">"Sometimes the most beautiful blooms need more time to grow."</p>
+                <p class="text-lg">Your order was not completed.</p>
+            </div>
+
+            <!-- Information Section -->
+            <div class="section-background max-w-2xl mx-auto mb-8">
+                <h3 class="text-2xl font-semibold mb-4">What Happened?</h3>
+                
+                <div class="text-left space-y-4 mb-6">
+                    <p class="text-gray-600">
+                        The checkout process was interrupted or cancelled. This could be because:
+                    </p>
+                    
+                    <ul class="list-disc list-inside space-y-2 text-gray-600 ml-4">
+                        <li>You decided to cancel the payment</li>
+                        <li>There was a technical issue</li>
+                        <li>You needed to update your information</li>
+                        <li>The session timed out</li>
+                    </ul>
+                    
+                    <p class="text-sm text-gray-500 mt-4">
+                        Don't worry — your bloom designs are still saved and waiting for you.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto">
+                <div class="section-background p-6">
+                    <div class="text-3xl mb-3">🔄</div>
+                    <h4 class="font-semibold mb-2">Try Again</h4>
+                    <p class="text-sm text-gray-600">Return to checkout with your saved items.</p>
+                </div>
+                
+                <div class="section-background p-6">
+                    <div class="text-3xl mb-3">🎨</div>
+                    <h4 class="font-semibold mb-2">Edit Your Bloom</h4>
+                    <p class="text-sm text-gray-600">Make changes to your design before ordering.</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+                <button onclick="returnToCheckout()" class="cta-magenta px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl">
+                    Return to Checkout
+                </button>
+                <button onclick="returnToStudio()" class="cta-gold px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl">
+                    Back to Studio
+                </button>
+            </div>
+
+            <!-- Support Message -->
+            <div class="section-background max-w-2xl mx-auto">
+                <h3 class="text-xl font-semibold mb-3">Need Help?</h3>
+                <p class="text-gray-600 mb-2">
+                    If you encountered any issues during checkout, we're here to help.
+                </p>
+                <a href="mailto:support@goldengateblooms.com" class="text-magenta font-semibold hover:underline">
+                    Contact Support →
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <footer class="w-full max-w-960px mt-12 py-8 border-t border-gray-200">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Contact -->
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Contact</h3>
+                    <p class="text-sm text-gray-600">Having trouble with your order?</p>
+                    <a href="mailto:support@goldengateblooms.com" class="text-sm text-magenta hover:underline">support@goldengateblooms.com</a>
+                </div>
+
+                <!-- Legal Links -->
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Legal</h3>
+                    <div class="space-y-2">
+                        <a href="/privacy-policy" class="block text-sm text-gray-600 hover:text-magenta transition-colors">Privacy Policy</a>
+                        <a href="/terms-of-service" class="block text-sm text-gray-600 hover:text-magenta transition-colors">Terms of Service</a>
+                    </div>
+                </div>
+                
+                <!-- Company Info -->
+                <div>
+                    <h3 class="font-bold text-lg mb-4">GOLDEN GATE BLOOMS LLC</h3>
+                    <address class="not-italic text-sm text-gray-600">
+                        <p>3400 COTTAGE WAY</p>
+                        <p>STE G2</p>
+                        <p>SACRAMENTO, CA 95825</p>
+                    </address>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-200 mt-8 pt-6 text-center">
+                <p class="text-sm text-gray-500">&copy; 2025 Golden Gate Blooms LLC. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Action functions
+        function returnToCheckout() {
+            window.location.href = 'index.html?page=checkout';
+        }
+
+        function returnToStudio() {
+            window.location.href = 'index.html?page=studio';
+        }
+
+        // Check if there are any specific error messages in URL
+        function checkForErrorMessages() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            
+            if (error) {
+                console.log('Payment error:', error);
+                // You could display specific error messages based on the error code
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            checkForErrorMessages();
+        });
+    </script>
 </body>
 </html>
