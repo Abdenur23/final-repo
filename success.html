@@ -133,7 +133,6 @@
             
             <div class="text-center italic mb-8">
                 <p class="text-xl text-gray-600 mb-4">"Your reflection has blossomed into art."</p>
-                <p class="text-lg">Your unique bloom is now being crafted with care.</p>
             </div>
 
             <!-- Order Details -->
@@ -161,7 +160,8 @@
 
                 <div class="border-t pt-4">
                     <p class="text-sm text-gray-600 mb-4">
-                        You'll receive a confirmation email shortly with tracking information and updates on your order.
+                        <!-- You'll receive a confirmation email shortly with tracking information and updates on your order. -->
+                        You'll receive email updates on your order.
                     </p>
                 </div>
             </div>
@@ -171,14 +171,16 @@
                 <div class="section-background p-6">
                     <div class="text-3xl mb-3">📦</div>
                     <h4 class="font-semibold mb-2">Production</h4>
-                    <p class="text-sm text-gray-600">Your custom bloom begins production within 24 hours.</p>
+                    <p class="text-sm text-gray-600">Your custom bloom begins production very soon.</p>
                 </div>
-                
+                <!--
                 <div class="section-background p-6">
                     <div class="text-3xl mb-3">🚚</div>
                     <h4 class="font-semibold mb-2">Shipping</h4>
                     <p class="text-sm text-gray-600">Expect delivery in 5-7 business days after production.</p>
                 </div>
+                -->
+
                 
                 <div class="section-background p-6">
                     <div class="text-3xl mb-3">💌</div>
@@ -189,17 +191,23 @@
 
             <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                <button onclick="createAnotherBloom()" class="cta-magenta px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl">
+                <button onclick="window.location.href='https://www.theweer.com/case.html'" 
+                        class="cta-magenta px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl">
                     Create Another Bloom
                 </button>
-                <button onclick="viewOrderStatus()" class="cta-gold px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl">
+                
+                <!--
+                <button onclick="viewOrderStatus()" 
+                        class="cta-gold px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl">
                     Track Your Order
                 </button>
+                -->
+
             </div>
 
             <!-- Thank You Message -->
             <div class="section-background max-w-2xl mx-auto">
-                <h3 class="text-xl font-semibold mb-3">Thank You for Choosing Bloom</h3>
+                <h3 class="text-xl font-semibold mb-3">Thank You for Choosing TheWeer.com</h3>
                 <p class="text-gray-600 mb-2">
                     Your support helps us continue creating magical, personalized art for our community.
                 </p>
@@ -245,7 +253,11 @@
             </div>
         </div>
     </footer>
-
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="bloom-app/config.js"></script>
+    <script src="bloom-app/auth-manager.js"></script>
+    <script src="bloom-app/stripe-integration.js"></script>
+    <script src="bloom-app/app.js"></script>
     <script>
         // Get order details from URL parameters
         function getUrlParams() {
@@ -257,20 +269,21 @@
         }
 
         // Load order details
-        function loadOrderDetails() {
+        async function loadOrderDetails() {
             const params = getUrlParams();
             
             if (params.order_id) {
-                document.getElementById('order-id').textContent = params.order_id;
-            }
-            
-            if (params.session_id) {
-                // In a real implementation, you'd fetch order details from your backend
-                // For now, we'll simulate loading
-                setTimeout(() => {
-                    document.getElementById('customer-email').textContent = 'abdenur838@gmail.com';
-                    document.getElementById('order-total').textContent = '$232.00';
-                }, 1000);
+                try {
+                    const orderData = await window.app.checkoutManager.stripeIntegration.getOrderDetails(params.order_id);
+                    document.getElementById('order-id').textContent = orderData.order_id;
+                    document.getElementById('customer-email').textContent = orderData.customer_email;
+                    document.getElementById('order-total').textContent = `$${orderData.amount_total}`;
+                } catch (error) {
+                    console.error('Failed to load order details:', error);
+                    document.getElementById('order-id').textContent = params.order_id;
+                    document.getElementById('customer-email').textContent = 'Unable to load';
+                    document.getElementById('order-total').textContent = 'Unable to load';
+                }
             }
         }
 
