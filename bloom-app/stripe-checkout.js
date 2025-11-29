@@ -71,20 +71,21 @@ class StripeCheckout {
         const shippingAddress = this.collectAddressData('shipping');
         const billingAddress = document.getElementById('same-as-shipping')?.checked ? 
             shippingAddress : this.collectAddressData('billing');
-    
+
         const cartItems = this.checkoutManager.cartManager.getCart().map(item => ({
             designId: item.designId,
             paletteName: item.paletteName,
             name: item.name,
-            product_type: item.isGiftWrapping ? "Gift Wrapping" : item.product_type,
+            product_type: item.product_type,
             isGiftWrapping: item.isGiftWrapping || false,
             device: item.device,
             thumbnail: item.thumbnail
+            // Note: We don't include price as it will be validated server-side
         }));
-    
+
         return {
             user_email: this.checkoutManager.authManager.getUserInfo()?.email,
-            items: cartItems, // Make sure this is 'items' not 'cart_items'
+            items: cartItems,  // This matches the lambda expectation
             promo_code: this.checkoutManager.promoManager.activePromoCode,
             shipping_address: shippingAddress,
             billing_address: billingAddress
