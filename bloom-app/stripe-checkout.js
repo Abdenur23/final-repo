@@ -66,6 +66,7 @@ class StripeCheckout {
         }
     }
 
+    // In your collectCheckoutData method, ensure you're using the right field names
     collectCheckoutData() {
         const shippingAddress = this.collectAddressData('shipping');
         const billingAddress = document.getElementById('same-as-shipping')?.checked ? 
@@ -75,7 +76,7 @@ class StripeCheckout {
             designId: item.designId,
             paletteName: item.paletteName,
             name: item.name,
-            product_type: item.isGiftWrapping ? "Gift Wrapping" : item.product_type, // Ensure product_type is set
+            product_type: item.isGiftWrapping ? "Gift Wrapping" : item.product_type,
             isGiftWrapping: item.isGiftWrapping || false,
             device: item.device,
             thumbnail: item.thumbnail
@@ -83,7 +84,7 @@ class StripeCheckout {
     
         return {
             user_email: this.checkoutManager.authManager.getUserInfo()?.email,
-            items: cartItems, // Note: using 'items' instead of 'cart_items'
+            items: cartItems, // Make sure this is 'items' not 'cart_items'
             promo_code: this.checkoutManager.promoManager.activePromoCode,
             shipping_address: shippingAddress,
             billing_address: billingAddress
