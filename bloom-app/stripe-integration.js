@@ -12,74 +12,105 @@ class StripeIntegration {
             console.log('✅ Stripe initialized successfully');
         } else {
             console.warn('Stripe.js not loaded yet or publishable key missing');
-            // Retry initialization after a short delay
             setTimeout(() => this.initializeStripe(), 100);
         }
     }
 
-    async getAuthHeaders() {
-        const headers = {
-            'Content-Type': 'application/json',
-        };
-        
-        // Add Cognito token if available
-        try {
-            const session = await this.checkoutManager.authManager.getSession();
-            if (session && session.idToken) {
-                headers['Authorization'] = `Bearer ${session.idToken.jwtToken}`;
-                console.log('✅ Added Bearer token to request');
-            } else {
-                console.warn('No session or idToken available');
-            }
-        } catch (error) {
-            console.warn('Could not get auth token:', error);
+    // Helper method to safely handle string values
+    safeString(value) {
+        if (value === null || value === undefined) {
+            return '';
         }
-        
-        return headers;
+        return String(value).trim();
+    }
+
+    // Helper method to safely handle object values
+    safeObject(obj) {
+        if (!obj || typeof obj !== 'object') {
+            return {};
+        }
+        return obj;
     }
 
     async createCheckoutSession(orderData, token) {
         try {
             console.log('🛒 Creating checkout session with order data:', orderData);
             
-            // Transform cart items to ensure proper structure for the lambda
-            const transformedItems = orderData.items.map(item => {
-                if (item.isGiftWrapping) {
+            // Safely transform cart items with null checking
+            const transformedItems = (orderData.items || []).map(item => {
+                const safeItem = this.safeObject(item);
+                
+                if (safeItem.isGiftWrapping) {
                     // Ensure gift items have proper product_type
                     return {
-                        designId: item.designId,
-                        name: item.name,
+                        designId: this.safeString(safeItem.designId),
+                        name: this.safeString(safeItem.name || 'Gift Wrapping'),
                         product_type: "Gift Wrapping",
                         isGiftWrapping: true,
-                        device: item.device || 'gift',
-                        thumbnail: item.thumbnail,
-                        price: item.price
+                        device: this.safeString(safeItem.device || 'gift'),
+                        thumbnail: this.safeString(safeItem.thumbnail),
+                        price: safeItem.price || 0
                     };
                 } else {
-                    // Regular products
+                    // Regular products with null checking
                     return {
-                        designId: item.designId,
-                        paletteName: item.paletteName,
-                        name: item.name,
-                        product_type: item.product_type,
+                        designId: this.safeString(safeItem.designId),
+                        paletteName: this.safeString(safeItem.paletteName),
+                        name: this.safeString(safeItem.name || 'Custom Product'),
+                        product_type: this.safeString(safeItem.product_type),
                         isGiftWrapping: false,
-                        device: item.device,
-                        thumbnail: item.thumbnail,
-                        price: item.price
+                        device: this.safeString(safeItem.device),
+                        thumbnail: this.safeString(safeItem.thumbnail),
+                        price: safeItem.price || 0
                     };
                 }
             });
 
+            // Safely handle addresses with null checking
+            const safeBillingAddress = this.safeObject(orderData.billingAddress);
+            const safeShippingAddress = this.safeObject(orderData.shippingAddress);
+
             const requestBody = {
                 action: 'createCheckoutSession',
-                user_email: orderData.user_email,
-                items: transformedItems, // Use 'items' instead of 'cart_items' to match lambda
-                promo_code: orderData.promoCode,
-                billing_address: orderData.billingAddress,
-                shipping_address: orderData.shippingAddress
+                user_email: this.safeString(orderData.user_email),
+                items: transformedItems,
+                promo_code: this.safeString(orderData.promoCode),
+                billing_address: {
+                    fullName: this.safeString(safeBillingAddress.fullName),
+                    streetAddress: this.safeString(safeBillingAddress.streetAddress),
+                    address2: this.safeString(safeBillingAddress.address2),
+                    city: this.safeString(safeBillingAddress.city),
+                    state: this.safeString(safeBillingAddress.state),
+                    zipCode: this.safeString(safeBillingAddress.zipCode)
+                },
+                shipping_address: {
+                    fullName: this.safeString(safeShippingAddress.fullName),
+                    streetAddress: this.safeString(safeShippingAddress.streetAddress),
+                    address2: this.safeString(safeShippingAddress.address2),
+                    city: this.safeString(safeShippingAddress.city),
+                    state: this.safeString(safeShippingAddress.state),
+                    zipCode: this.safeString(safeShippingAddress.zipCode)
+                }
             };
 
             console.log('📦 Sending to lambda:', requestBody);
+
+            // Validate critical fields before sending
+            if (!requestBody.user_email) {
+                throw new Error('User email is required');
+            }
+
+            if (!requestBody.items || requestBody.items.length === 0) {
+                throw new Error('Cart cannot be empty');
+            }
+
+            // Validate that all items have required fields
+            for (let i = 0; i < requestBody.items.length; i++) {
+                const item = requestBody.items[i];
+                if (!item.product_type) {
+                    throw new Error(`Item ${i + 1} is missing product type`);
+                }
+            }
 
             const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
                 method: 'POST',
@@ -98,6 +129,13 @@ class StripeIntegration {
                     const errorData = await response.json();
                     errorMessage = errorData.error || errorMessage;
                     console.error('❌ API Error details:', errorData);
+                    
+                    // Provide more specific error messages for common issues
+                    if (errorData.error && errorData.error.includes("'NoneType'")) {
+                        errorMessage = 'Server error: Missing required information. Please check your form data and try again.';
+                    } else if (errorData.error && errorData.error.includes("product_type")) {
+                        errorMessage = 'One or more products in your cart are missing required information. Please refresh the page and try again.';
+                    }
                 } catch (e) {
                     console.error('❌ Failed to parse error response:', e);
                     errorMessage = response.statusText || errorMessage;
@@ -110,6 +148,10 @@ class StripeIntegration {
             
             if (data.error) {
                 throw new Error(data.error);
+            }
+
+            if (!data.session_id && !data.sessionId) {
+                throw new Error('No session ID returned from server');
             }
     
             return data;
@@ -132,7 +174,7 @@ class StripeIntegration {
         
         // Check user authentication
         const userInfo = this.checkoutManager.authManager.getUserInfo();
-        if (!userInfo) {
+        if (!userInfo || !userInfo.email) {
             this.checkoutManager.showError('Please sign in to place an order');
             return;
         }
@@ -154,10 +196,21 @@ class StripeIntegration {
         }
         console.log('✅ Authentication token obtained');
     
-        // Collect order data
-        const orderData = this.checkoutManager.collectOrderData();
-        orderData.user_email = userInfo.email;
-        console.log('✅ Order data collected');
+        // Collect order data with validation
+        let orderData;
+        try {
+            orderData = this.checkoutManager.collectOrderData();
+            if (!orderData) {
+                throw new Error('Failed to collect order data');
+            }
+            // Add user email to order data
+            orderData.user_email = userInfo.email;
+            console.log('✅ Order data collected:', orderData);
+        } catch (error) {
+            console.error('❌ Error collecting order data:', error);
+            this.checkoutManager.showError('Failed to collect order information. Please refresh and try again.');
+            return;
+        }
 
         // Update UI - disable button
         const placeOrderBtn = document.querySelector('button[onclick*="placeOrder"]');
@@ -173,7 +226,7 @@ class StripeIntegration {
             if (!this.stripe) {
                 this.initializeStripe();
                 // Wait a bit for initialization
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise(resolve => setTimeout(resolve, 200));
                 if (!this.stripe) {
                     throw new Error('Stripe not initialized. Please refresh the page.');
                 }
@@ -182,10 +235,6 @@ class StripeIntegration {
             // Create checkout session
             const sessionData = await this.createCheckoutSession(orderData, token);
             
-            if (!sessionData.session_id && !sessionData.sessionId) {
-                throw new Error('No session ID returned from server');
-            }
-
             const sessionId = sessionData.session_id || sessionData.sessionId;
             console.log('🔄 Redirecting to Stripe checkout with session:', sessionId);
     
@@ -213,12 +262,16 @@ class StripeIntegration {
                 userMessage = 'Network error. Please check your connection and try again.';
             } else if (error.message.includes('Invalid promo code')) {
                 userMessage = 'The promo code you entered is invalid or has expired.';
-            } else if (error.message.includes('Product type') && error.message.includes('not found')) {
+            } else if (error.message.includes('product_type') || error.message.includes('product type')) {
                 userMessage = 'There was an issue with one of the products in your cart. Please remove it and try again.';
-            } else if (error.message.includes('Missing product_type')) {
-                userMessage = 'Some items in your cart are missing required information. Please refresh the page and try again.';
+            } else if (error.message.includes('NoneType') || error.message.includes('Missing required')) {
+                userMessage = 'Some required information is missing. Please check your form and try again.';
             } else if (error.message.includes('Stripe not initialized')) {
                 userMessage = 'Payment system not ready. Please refresh the page and try again.';
+            } else if (error.message.includes('Cart cannot be empty')) {
+                userMessage = 'Your cart is empty. Please add items before checking out.';
+            } else if (error.message.includes('User email is required')) {
+                userMessage = 'Please sign in to place an order.';
             }
             
             this.checkoutManager.showError(userMessage);
@@ -248,7 +301,7 @@ class StripeIntegration {
                 },
                 body: JSON.stringify({
                     action: 'getSessionDetails',
-                    session_id: sessionId
+                    session_id: this.safeString(sessionId)
                 })
             });
     
