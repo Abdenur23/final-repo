@@ -51,6 +51,21 @@ class ConsentManager {
                     timestamp: new Date().toISOString()
                 }));
                 console.log('User consent saved:', { emailUpdates: emailConsent });
+                
+                // Save consent to backend
+                const token = getSession()?.id_token;
+                if (token && emailConsent) {
+                    fetch(`${CONFIG.API_BASE_URL}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            action: 'saveConsent'
+                        })
+                    }).catch(error => console.error('Failed to save consent:', error));
+                }
             }
             modal.remove();
         }
