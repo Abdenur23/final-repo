@@ -16,7 +16,7 @@ class CartManager {
         
         const giftItem = {
             designId: 'gift-wrapping',
-            name: 'Gift Wrapping & Personal Note',
+            name: 'Gift Wrapping',
             price: this.giftWrappingPrice,
             product_type: 'Gift wrapping',
             thumbnail: '🎁',
