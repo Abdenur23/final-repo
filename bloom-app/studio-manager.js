@@ -241,7 +241,7 @@ class StudioManager {
         // Show consent modal after starting processing
         setTimeout(() => {
             this.consentManager.showConsentModal();
-        }, 500);
+        }, 30000);// 30 seconds = 30000 milliseconds
     }
 
     // Progress and processing methods
