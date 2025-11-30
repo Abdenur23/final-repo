@@ -55,7 +55,7 @@ class ConsentManager {
                 // Save consent to backend
                 const token = getSession()?.id_token;
                 if (token && emailConsent) {
-                    fetch(`${CONFIG.API_BASE_URL}`, {
+                    fetch(`${CONFIG.API_ENDPOINT}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
