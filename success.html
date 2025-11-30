@@ -253,76 +253,7 @@
             </div>
         </div>
     </footer>
-        <script src="bloom-app/config.js"></script>
         <script>
-            console.log('🎉 Success page loading...');
-            
-            // Minimal standalone script for success page
-            async function getOrderDetails(orderId) {
-                console.log('📦 Fetching order details for:', orderId);
-                try {
-                    console.log('🌐 Making API request to:', CONFIG.CHECKOUT_API_ENDPOINT);
-                    
-                    const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            action: 'getOrderDetails',
-                            order_id: orderId
-                        })
-                    });
-        
-                    console.log('📡 API Response status:', response.status);
-                    
-                    if (!response.ok) {
-                        console.error('❌ API request failed with status:', response.status);
-                        throw new Error(`HTTP ${response.status}: Failed to fetch order details`);
-                    }
-                    
-                    const data = await response.json();
-                    console.log('✅ Order data received:', data);
-                    return data;
-                    
-                } catch (error) {
-                    console.error('❌ Error fetching order details:', error);
-                    return null;
-                }
-            }
-        
-            async function loadOrderDetails() {
-                console.log('🔍 Loading order details from URL...');
-                const urlParams = new URLSearchParams(window.location.search);
-                const orderId = urlParams.get('order_id');
-                
-                console.log('📋 URL Parameters found:', { orderId });
-                
-                if (orderId) {
-                    console.log('🆔 Setting order ID:', orderId);
-                    document.getElementById('order-id').textContent = orderId;
-                    
-                    console.log('⏳ Fetching order data from server...');
-                    const orderData = await getOrderDetails(orderId);
-                    
-                    if (orderData) {
-                        console.log('✅ Displaying order data:', {
-                            email: orderData.customer_email,
-                            total: orderData.amount_total
-                        });
-                        document.getElementById('customer-email').textContent = orderData.customer_email;
-                        document.getElementById('order-total').textContent = `$${orderData.amount_total}`;
-                        console.log('🎊 Order details displayed successfully!');
-                    } else {
-                        console.warn('⚠️ Could not load order data, showing fallback');
-                        document.getElementById('customer-email').textContent = 'Unable to load';
-                        document.getElementById('order-total').textContent = 'Unable to load';
-                    }
-                } else {
-                    console.error('❌ No order_id found in URL parameters');
-                }
-            }
-        
             // Create confetti effect
             function createConfetti() {
                 console.log('🎊 Launching confetti celebration!');
@@ -344,10 +275,7 @@
         
             // Initialize page
             document.addEventListener('DOMContentLoaded', function() {
-                console.log('🚀 DOM loaded, initializing success page...');
-                loadOrderDetails();
                 createConfetti();
-                console.log('🎉 Success page fully initialized!');
             });
         
             // Log any errors that occur during page load
