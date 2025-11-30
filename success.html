@@ -253,71 +253,51 @@
             </div>
         </div>
     </footer>
-    <script src="https://js.stripe.com/v3/"></script>
     <script src="bloom-app/config.js"></script>
-    <script src="bloom-app/auth-manager.js"></script>
-    <script src="bloom-app/stripe-integration.js"></script>
-    <script src="bloom-app/app.js"></script>
     <script>
-        // Get order details from URL parameters
-        function getUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return {
-                session_id: urlParams.get('session_id'),
-                order_id: urlParams.get('order_id')
-            };
+        // Minimal standalone script for success page
+        async function getOrderDetails(orderId) {
+            try {
+                const response = await fetch(CONFIG.CHECKOUT_API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'getOrderDetails',
+                        order_id: orderId
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch order details');
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error:', error);
+                return null;
+            }
         }
 
-        // Load order details
         async function loadOrderDetails() {
-            const params = getUrlParams();
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('order_id');
             
-            if (params.order_id) {
-                try {
-                    const orderData = await window.app.checkoutManager.stripeIntegration.getOrderDetails(params.order_id);
-                    document.getElementById('order-id').textContent = orderData.order_id;
+            if (orderId) {
+                document.getElementById('order-id').textContent = orderId;
+                
+                const orderData = await getOrderDetails(orderId);
+                if (orderData) {
                     document.getElementById('customer-email').textContent = orderData.customer_email;
                     document.getElementById('order-total').textContent = `$${orderData.amount_total}`;
-                } catch (error) {
-                    console.error('Failed to load order details:', error);
-                    document.getElementById('order-id').textContent = params.order_id;
+                } else {
                     document.getElementById('customer-email').textContent = 'Unable to load';
                     document.getElementById('order-total').textContent = 'Unable to load';
                 }
             }
         }
 
-        // Create confetti effect
-        function createConfetti() {
-            const colors = ['#E6007E', '#D4AF37', '#FFD0E6', '#2E2E2E'];
-            for (let i = 0; i < 50; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.animationDelay = Math.random() * 2 + 's';
-                document.body.appendChild(confetti);
-                
-                setTimeout(() => {
-                    confetti.remove();
-                }, 3000);
-            }
-        }
-
-        // Action functions
-        function createAnotherBloom() {
-            window.location.href = 'index.html?page=studio';
-        }
-
-        function viewOrderStatus() {
-            const params = getUrlParams();
-            if (params.order_id) {
-                // In a real implementation, this would go to an order tracking page
-                alert(`Order ${params.order_id} tracking will be available soon!`);
-            }
-        }
-
-        // Initialize page
+        // Your existing confetti and other functions remain
         document.addEventListener('DOMContentLoaded', function() {
             loadOrderDetails();
             createConfetti();
