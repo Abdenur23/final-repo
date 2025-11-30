@@ -323,7 +323,9 @@ class StudioManager {
 
     generateProductCarousel(product) {
         const imageUrls = product.imageUrls || {};
-        const imageKeys = ['opt-turn_006', 'opt-turn_001', 'opt-turn_014', 'opt-turn_010'];
+        // const imageKeys = ['opt-turn_006', 'opt-turn_001', 'opt-turn_014', 'opt-turn_010'];
+        const imageKeys = ['opt-turn_006', 'opt-turn_001', 'opt-turn_010'];
+        
         const images = imageKeys.map(key => imageUrls[key]).filter(url => url);
         
         if (images.length === 0) {
