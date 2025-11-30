@@ -15,13 +15,13 @@ class ConsentManager {
             <div id="consent-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg p-6 max-w-md mx-4">
                     <h3 class="text-xl font-semibold mb-4">Your Bloom is Coming to Life!</h3>
-                    <p class="mb-4 text-gray-700">We're transforming your photos into magical artwork. Your unique bloom will be ready in just 3-4 minutes!</p>
+                    <p class="mb-4 text-gray-700">We're creating your artwork now. Ready in 3-4 minutes!</p>
                     
                     <div class="mb-4">
                         <label class="flex items-start space-x-2">
                             <input type="checkbox" id="email-consent" class="mt-1 accent-magenta" checked>
                             <span class="text-sm text-gray-600">
-                                Yes! Please email my design when ready and send me exclusive new blooms and special offers.
+                                Email my design + future blooms & offers
                             </span>
                         </label>
                     </div>
@@ -31,7 +31,7 @@ class ConsentManager {
                             No thanks
                         </button>
                         <button onclick="window.app.consentManager.closeConsentModal(true)" class="cta-magenta px-4 py-2 rounded-md font-semibold">
-                            Create My Bloom!
+                            Create Bloom!
                         </button>
                     </div>
                 </div>
