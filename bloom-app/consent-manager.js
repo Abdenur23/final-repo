@@ -14,24 +14,24 @@ class ConsentManager {
         const modalHTML = `
             <div id="consent-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg p-6 max-w-md mx-4">
-                    <h3 class="text-xl font-semibold mb-4">Creating Your Unique Bloom</h3>
-                    <p class="mb-4 text-gray-700">We're crafting your personalized artwork from your photos. This magical process typically takes 3-4 minutes to create your perfect bloom.</p>
+                    <h3 class="text-xl font-semibold mb-4">Your Bloom is Coming to Life!</h3>
+                    <p class="mb-4 text-gray-700">We're transforming your photos into magical artwork. Your unique bloom will be ready in just 3-4 minutes!</p>
                     
                     <div class="mb-4">
                         <label class="flex items-start space-x-2">
                             <input type="checkbox" id="email-consent" class="mt-1 accent-magenta" checked>
                             <span class="text-sm text-gray-600">
-                                Yes, I'd love to receive my design via email if it takes longer, plus future exclusive blooms and promotions.
+                                Yes! Please email my design when ready and send me exclusive new blooms and special offers.
                             </span>
                         </label>
                     </div>
                     
                     <div class="flex justify-end space-x-3">
                         <button onclick="window.app.consentManager.closeConsentModal(false)" class="px-4 py-2 text-gray-600 hover:text-gray-800">
-                            Skip
+                            No thanks
                         </button>
                         <button onclick="window.app.consentManager.closeConsentModal(true)" class="cta-magenta px-4 py-2 rounded-md font-semibold">
-                            Continue to Create
+                            Create My Bloom!
                         </button>
                     </div>
                 </div>
