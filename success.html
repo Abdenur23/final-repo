@@ -308,13 +308,8 @@
     </div>
   </div>
 </div>
-<script>
-// Configuration
-const CONFIG = {
-    API_ENDPOINT: 'https://qohagpc75m.execute-api.us-east-1.amazonaws.com/prod/prod' // Your actual endpoint
-};
-
-// Gift Note Handler
+    <script>
+// Gift Note Handler - Follows same pattern as StripeCheckout
 class GiftNoteHandler {
     constructor() {
         this.modal = document.getElementById('giftNoteModal');
@@ -328,31 +323,35 @@ class GiftNoteHandler {
         this.orderId = urlParams.get('order_id');
         
         if (!this.orderId) {
-            console.error('No order ID found in URL');
+            console.log('No order ID found');
             return;
         }
+        
+        // Use the same endpoint as StripeCheckout
+        this.API_ENDPOINT = CONFIG.CHECKOUT_API_ENDPOINT;
         
         this.init();
     }
     
     async init() {
-        // First, check if this order needs a gift note
-        const needsGiftNote = await this.checkIfOrderNeedsGiftNote();
+        // Check if this order has gift wrapping
+        const hasGiftWrapping = await this.checkOrderHasGiftWrapping();
         
-        if (needsGiftNote) {
-            // Show modal after a short delay
-            setTimeout(() => this.showModal(), 800);
+        if (hasGiftWrapping) {
+            // Show modal after short delay
+            setTimeout(() => this.showModal(), 1000);
         } else {
-            // No gift note needed, proceed with celebration
+            // No gift wrapping, proceed with celebration
             this.startCelebration();
         }
         
         this.setupEventListeners();
     }
     
-    async checkIfOrderNeedsGiftNote() {
+    async checkOrderHasGiftWrapping() {
         try {
-            const response = await fetch(CONFIG.API_ENDPOINT, {
+            // Call getOrderDetails to check if order has gift wrapping
+            const response = await fetch(this.API_ENDPOINT, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -364,26 +363,25 @@ class GiftNoteHandler {
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to get order details');
             }
             
             const data = await response.json();
             
-            // Check if order has gift wrapping AND doesn't have a note yet
-            return data.has_gift_wrapping && !data.gift_note;
+            // Return true only if order has gift wrapping
+            return data.has_gift_wrapping === true;
             
         } catch (error) {
-            console.error('Error checking order details:', error);
-            // If we can't check, assume it might need a note
-            return true;
+            console.error('Error checking order:', error);
+            // If we can't check, assume no gift wrapping to avoid false positives
+            return false;
         }
     }
     
     showModal() {
         this.modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
-        
-        // Focus on textarea
         setTimeout(() => this.textarea.focus(), 100);
     }
     
@@ -397,15 +395,7 @@ class GiftNoteHandler {
         this.textarea.addEventListener('input', () => {
             const length = this.textarea.value.length;
             this.charCount.textContent = `${length}/500`;
-            
-            // Change color when approaching limit
-            if (length > 450) {
-                this.charCount.className = 'text-xs text-red-500';
-            } else if (length > 400) {
-                this.charCount.className = 'text-xs text-yellow-500';
-            } else {
-                this.charCount.className = 'text-xs text-gray-500';
-            }
+            this.charCount.className = `text-xs ${length > 450 ? 'text-red-500' : 'text-gray-500'}`;
         });
         
         // Submit button
@@ -419,10 +409,11 @@ class GiftNoteHandler {
             this.startCelebration();
         });
         
-        // Handle Enter key (but not in textarea)
+        // Escape key
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && e.ctrlKey && this.modal.style.display === 'block') {
-                this.saveGiftNote();
+            if (e.key === 'Escape' && this.modal.style.display === 'block') {
+                this.hideModal();
+                this.startCelebration();
             }
         });
     }
@@ -430,19 +421,14 @@ class GiftNoteHandler {
     async saveGiftNote() {
         const note = this.textarea.value.trim();
         
-        // Validate length
-        if (note.length > 500) {
-            alert('Note cannot exceed 500 characters');
-            return;
-        }
-        
         // Show loading state
         const originalText = this.submitBtn.textContent;
         this.submitBtn.textContent = 'Saving...';
         this.submitBtn.disabled = true;
         
         try {
-            const response = await fetch(CONFIG.API_ENDPOINT, {
+            // Save the gift note
+            const response = await fetch(this.API_ENDPOINT, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -462,9 +448,11 @@ class GiftNoteHandler {
             const result = await response.json();
             
             // Show success feedback
-            this.showSuccessFeedback();
+            this.submitBtn.textContent = '✓ Saved!';
+            this.submitBtn.className = 'flex-1 px-4 py-3 text-sm font-medium text-white bg-green-500 rounded-lg transition-colors';
+            this.submitBtn.disabled = true;
             
-            // Wait a moment for user to see success, then proceed
+            // Close modal and celebrate after a moment
             setTimeout(() => {
                 this.hideModal();
                 this.startCelebration();
@@ -473,54 +461,39 @@ class GiftNoteHandler {
         } catch (error) {
             console.error('Error saving gift note:', error);
             
-            // Show error but allow user to continue
-            alert(`Unable to save note: ${error.message}. You can continue without saving.`);
+            // Show error but still allow them to continue
+            alert(`Note: ${error.message}. You can continue without saving the note.`);
             
-            // Reset button
+            // Reset button and continue
             this.submitBtn.textContent = originalText;
             this.submitBtn.disabled = false;
-            
-            // Still allow them to continue
             this.hideModal();
             this.startCelebration();
         }
     }
     
-    showSuccessFeedback() {
-        // Change button to show success
-        this.submitBtn.textContent = '✓ Saved!';
-        this.submitBtn.className = 'flex-1 px-4 py-3 text-sm font-medium text-white bg-green-500 rounded-lg transition-colors';
-        this.submitBtn.disabled = true;
-    }
-    
     startCelebration() {
-        // Start your existing confetti animation
+        // Trigger confetti celebration
         if (typeof createConfetti === 'function') {
             createConfetti();
-        }
-        
-        // You can add additional celebration effects here
-        this.animateSuccessElements();
-    }
-    
-    animateSuccessElements() {
-        // Animate the success icon on the page
-        const successIcon = document.querySelector('.success-animation');
-        if (successIcon) {
-            successIcon.style.animation = 'bloom 1s ease-out';
         }
     }
 }
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize gift note handler
-    window.giftNoteHandler = new GiftNoteHandler();
-    
-    // Your existing confetti initialization
-    if (typeof createConfetti === 'function') {
-        createConfetti();
-    }
+    // Wait for CONFIG to be available (same as StripeCheckout does)
+    setTimeout(() => {
+        if (window.CONFIG && window.CONFIG.CHECKOUT_API_ENDPOINT) {
+            new GiftNoteHandler();
+        } else {
+            console.log('CONFIG not available, skipping gift note handler');
+            // Still trigger celebration
+            if (typeof createConfetti === 'function') {
+                createConfetti();
+            }
+        }
+    }, 500);
 });
 </script>
 </body>
