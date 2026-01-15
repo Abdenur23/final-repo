@@ -485,7 +485,7 @@ class GiftNoteHandler {
 document.addEventListener('DOMContentLoaded', () => {
     // Wait for CONFIG to be available (same as StripeCheckout does)
     setTimeout(() => {
-        if (window.CONFIG && window.CONFIG.CHECKOUT_API_ENDPOINT) {
+        if (CONFIG && CONFIG.CHECKOUT_API_ENDPOINT) {
             new GiftNoteHandler();
         } else {
             console.log('CONFIG not available, skipping gift note handler');
