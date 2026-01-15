@@ -52,7 +52,8 @@ class StripeIntegration {
                     cart_items: orderData.items,
                     promo_code: orderData.promoCode,
                     billing_address: orderData.billingAddress,
-                    shipping_address: orderData.shippingAddress
+                    shipping_address: orderData.shippingAddress,
+                    gift_note: orderData.giftNote
                 })
             });
     
