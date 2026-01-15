@@ -448,7 +448,13 @@ class CheckoutManager {
         if (!this.validateForm()) {
             return;
         }
-
+    
+        // Save gift note before processing ← ADD THIS CODE BLOCK
+        const giftNoteInput = document.getElementById('gift-note-input');
+        if (giftNoteInput) {
+            localStorage.setItem('gift_wrapping_note', giftNoteInput.value.trim());
+        }
+    
         await this.stripeIntegration.processCheckout();
     }
 
