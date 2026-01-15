@@ -341,35 +341,126 @@ class CheckoutManager {
     
         if (!hasGiftWrapping) return;
     
-        // Create simple input section
+        // Create prominent input section
         const giftNoteSection = document.createElement('div');
         giftNoteSection.id = 'gift-note-section';
-        giftNoteSection.className = 'section-background p-6 mt-6';
+        giftNoteSection.className = 'section-background p-6 border-2 border-gold';
         giftNoteSection.innerHTML = `
-            <h3 class="text-xl font-semibold mb-2">Gift Message</h3>
-            <p class="text-sm text-gray-600 mb-3">Add a personal note to go with your gift wrapping</p>
+            <div class="flex items-start gap-3 mb-3">
+                <span class="text-2xl">🎁</span>
+                <div>
+                    <h3 class="text-xl font-semibold text-gold">Personal Gift Message</h3>
+                    <p class="text-sm text-gray-600 mt-1">Add a special note to accompany your gift wrapping</p>
+                </div>
+            </div>
             <textarea 
                 id="gift-note-input" 
-                placeholder="Write your personal message here..."
-                class="input-style w-full h-32"
+                placeholder="Write your heartfelt message here..."
+                class="input-style w-full h-32 p-4 border border-gold/30 focus:border-gold"
+                maxlength="500"
             ></textarea>
+            <div class="flex justify-between items-center mt-2">
+                <span id="gift-note-char-count" class="text-xs text-gray-500">0/500 characters</span>
+                <span class="text-xs text-gray-400">Optional</span>
+            </div>
         `;
     
-        // Insert it in the left column (forms side)
-        const leftColumn = document.querySelector('#checkout-page .lg\\:grid-cols-2 > div:first-child');
-        if (leftColumn) {
-            // Insert after billing address section
-            const billingSection = leftColumn.querySelector('.section-background:has(#same-as-shipping)');
-            if (billingSection) {
-                billingSection.parentNode.insertBefore(giftNoteSection, billingSection.nextSibling);
+        // Insert in the RIGHT COLUMN (order summary side) - ABOVE the promo code section
+        const rightColumn = document.querySelector('#checkout-page .lg\\:grid-cols-2 > div:last-child');
+        if (rightColumn) {
+            const promoSection = rightColumn.querySelector('.section-background:has(#checkout-promo-input)');
+            if (promoSection) {
+                // Insert gift note section ABOVE promo code
+                promoSection.parentNode.insertBefore(giftNoteSection, promoSection);
+            } else {
+                // Insert at the top of right column if promo section not found
+                rightColumn.insertBefore(giftNoteSection, rightColumn.firstChild);
             }
         }
     
         // Load saved note if exists
         const savedNote = localStorage.getItem('gift_wrapping_note');
         if (savedNote) {
-            document.getElementById('gift-note-input').value = savedNote;
+            const giftNoteInput = document.getElementById('gift-note-input');
+            giftNoteInput.value = savedNote;
+            this.updateGiftNoteCharCount();
         }
+    
+        // Add event listener for character count
+        const giftNoteInput = document.getElementById('gift-note-input');
+        if (giftNoteInput) {
+            giftNoteInput.addEventListener('input', () => {
+                this.updateGiftNoteCharCount();
+            });
+        }
+    }
+    
+    // Keep the updateGiftNoteCharCount method as is
+    updateGiftNoteCharCount() {
+        const giftNoteInput = document.getElementById('gift-note-input');
+        const charCount = document.getElementById('gift-note-char-count');
+        
+        if (giftNoteInput && charCount) {
+            const currentLength = giftNoteInput.value.length;
+            charCount.textContent = `${currentLength}/500 characters`;
+        }
+    }
+    
+    // Add this helper method
+    updateGiftNoteCharCount() {
+        const giftNoteInput = document.getElementById('gift-note-input');
+        const charCount = document.getElementById('gift-note-char-count');
+        
+        if (giftNoteInput && charCount) {
+            const currentLength = giftNoteInput.value.length;
+            charCount.textContent = `${currentLength}/500 characters`;
+            
+            // Visual feedback
+            if (currentLength > 450) {
+                charCount.classList.add('text-red-500');
+                charCount.classList.remove('text-gray-500');
+            } else {
+                charCount.classList.remove('text-red-500');
+                charCount.classList.add('text-gray-500');
+            }
+        }
+    }
+    
+    // Add this method for event listeners
+    initializeGiftNoteListeners() {
+        const giftNoteInput = document.getElementById('gift-note-input');
+        const previewButton = document.getElementById('preview-note');
+        const previewBox = document.getElementById('gift-note-preview');
+        const previewText = document.getElementById('preview-text');
+        
+        if (!giftNoteInput || !previewButton) return;
+    
+        // Character count update
+        giftNoteInput.addEventListener('input', () => {
+            this.updateGiftNoteCharCount();
+            
+            // Auto-save to localStorage as user types
+            setTimeout(() => {
+                localStorage.setItem('gift_wrapping_note', giftNoteInput.value.trim());
+            }, 500);
+        });
+    
+        // Preview functionality
+        previewButton.addEventListener('click', () => {
+            const note = giftNoteInput.value.trim();
+            if (note) {
+                previewText.textContent = note;
+                previewBox.classList.remove('hidden');
+            } else {
+                previewText.textContent = "No note added yet.";
+                previewBox.classList.remove('hidden');
+            }
+        });
+    
+        // Auto-save on blur
+        giftNoteInput.addEventListener('blur', () => {
+            localStorage.setItem('gift_wrapping_note', giftNoteInput.value.trim());
+        });
     }
     
     togglePromoSection() {
