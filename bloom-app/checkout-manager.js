@@ -341,40 +341,49 @@ class CheckoutManager {
     
         if (!hasGiftWrapping) return;
     
-        // Create prominent input section
+        // Create gift note section with the same styling as the gift wrapping button
         const giftNoteSection = document.createElement('div');
         giftNoteSection.id = 'gift-note-section';
-        giftNoteSection.className = 'section-background p-6 border-2 border-gold';
+        giftNoteSection.className = 'section-background p-4 mb-4';
         giftNoteSection.innerHTML = `
-            <div class="flex items-start gap-3 mb-3">
-                <span class="text-2xl">🎁</span>
-                <div>
-                    <h3 class="text-xl font-semibold text-gold">Personal Gift Message</h3>
-                    <p class="text-sm text-gray-600 mt-1">Add a special note to accompany your gift wrapping</p>
+            <div class="w-full text-left p-4 border-2 border-dashed border-gold rounded-lg">
+                <div class="flex items-start gap-3 mb-3">
+                    <span class="text-2xl">📝</span>
+                    <div class="flex-1">
+                        <p class="font-semibold">Add a Personal Gift Message</p>
+                        <p class="text-sm text-gray-600 mt-1">Write a heartfelt note to accompany your beautifully wrapped gift</p>
+                    </div>
                 </div>
-            </div>
-            <textarea 
-                id="gift-note-input" 
-                placeholder="Write your heartfelt message here..."
-                class="input-style w-full h-32 p-4 border border-gold/30 focus:border-gold"
-                maxlength="500"
-            ></textarea>
-            <div class="flex justify-between items-center mt-2">
-                <span id="gift-note-char-count" class="text-xs text-gray-500">0/500 characters</span>
-                <span class="text-xs text-gray-400">Optional</span>
+                
+                <textarea 
+                    id="gift-note-input" 
+                    placeholder="For example: 'Happy Birthday! Wishing you all the best on your special day.'"
+                    class="input-style w-full h-32 mt-3 p-3 resize-none border border-gray-300 rounded focus:border-gold focus:ring-1 focus:ring-gold"
+                    maxlength="500"
+                ></textarea>
+                
+                <div class="flex justify-between items-center mt-2">
+                    <span id="gift-note-char-count" class="text-xs text-gray-500">0/500 characters</span>
+                    <span class="text-xs text-gray-400 italic">Optional</span>
+                </div>
+                
+                <div id="gift-note-saved" class="mt-3 text-green-600 text-sm text-center hidden">
+                    ✓ Gift note saved
+                </div>
             </div>
         `;
     
-        // Insert in the RIGHT COLUMN (order summary side) - ABOVE the promo code section
-        const rightColumn = document.querySelector('#checkout-page .lg\\:grid-cols-2 > div:last-child');
-        if (rightColumn) {
-            const promoSection = rightColumn.querySelector('.section-background:has(#checkout-promo-input)');
-            if (promoSection) {
-                // Insert gift note section ABOVE promo code
-                promoSection.parentNode.insertBefore(giftNoteSection, promoSection);
+        // Insert it in the LEFT COLUMN (forms side) - right after billing address
+        const leftColumn = document.querySelector('#checkout-page .lg\\:grid-cols-2 > div:first-child');
+        if (leftColumn) {
+            // Find the billing address section
+            const billingSection = leftColumn.querySelector('.section-background:has(#same-as-shipping)');
+            if (billingSection) {
+                // Insert gift note right after billing address
+                billingSection.parentNode.insertBefore(giftNoteSection, billingSection.nextSibling);
             } else {
-                // Insert at the top of right column if promo section not found
-                rightColumn.insertBefore(giftNoteSection, rightColumn.firstChild);
+                // Fallback: insert at the end of left column
+                leftColumn.appendChild(giftNoteSection);
             }
         }
     
@@ -386,16 +395,11 @@ class CheckoutManager {
             this.updateGiftNoteCharCount();
         }
     
-        // Add event listener for character count
-        const giftNoteInput = document.getElementById('gift-note-input');
-        if (giftNoteInput) {
-            giftNoteInput.addEventListener('input', () => {
-                this.updateGiftNoteCharCount();
-            });
-        }
+        // Add event listeners
+        this.initializeGiftNoteListeners();
     }
     
-    // Keep the updateGiftNoteCharCount method as is
+    // Keep the helper methods as before but simplified
     updateGiftNoteCharCount() {
         const giftNoteInput = document.getElementById('gift-note-input');
         const charCount = document.getElementById('gift-note-char-count');
@@ -406,24 +410,30 @@ class CheckoutManager {
         }
     }
     
-    // Add this helper method
-    updateGiftNoteCharCount() {
+    initializeGiftNoteListeners() {
         const giftNoteInput = document.getElementById('gift-note-input');
-        const charCount = document.getElementById('gift-note-char-count');
         
-        if (giftNoteInput && charCount) {
-            const currentLength = giftNoteInput.value.length;
-            charCount.textContent = `${currentLength}/500 characters`;
+        if (!giftNoteInput) return;
+    
+        // Character count update
+        giftNoteInput.addEventListener('input', () => {
+            this.updateGiftNoteCharCount();
             
-            // Visual feedback
-            if (currentLength > 450) {
-                charCount.classList.add('text-red-500');
-                charCount.classList.remove('text-gray-500');
-            } else {
-                charCount.classList.remove('text-red-500');
-                charCount.classList.add('text-gray-500');
+            // Auto-save to localStorage
+            localStorage.setItem('gift_wrapping_note', giftNoteInput.value.trim());
+            
+            // Show saved confirmation briefly
+            const savedMessage = document.getElementById('gift-note-saved');
+            if (giftNoteInput.value.trim()) {
+                savedMessage.classList.remove('hidden');
+                setTimeout(() => savedMessage.classList.add('hidden'), 2000);
             }
-        }
+        });
+    
+        // Auto-save on blur
+        giftNoteInput.addEventListener('blur', () => {
+            localStorage.setItem('gift_wrapping_note', giftNoteInput.value.trim());
+        });
     }
     
     // Add this method for event listeners
