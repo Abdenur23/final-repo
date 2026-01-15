@@ -276,6 +276,7 @@ class CheckoutManager {
         this.updateTaxAndTotals();
         this.togglePromoSection();
         this.updatePromoDisplay();
+        this.renderGiftNoteInput(); // ← ADD THIS LINE
     }
 
     initializeBillingAddress() {
@@ -451,6 +452,42 @@ class CheckoutManager {
         await this.stripeIntegration.processCheckout();
     }
 
+    renderGiftNoteInput() {
+        const hasGiftWrapping = this.cartManager.hasGiftWrapping();
+        
+        // Remove existing if present
+        const existingGiftNote = document.getElementById('gift-note-section');
+        if (existingGiftNote) existingGiftNote.remove();
+    
+        if (!hasGiftWrapping) return;
+    
+        // Find where to insert it - after shipping address
+        const shippingSection = document.querySelector('.section-background:has(#shipping-address-fields)');
+        if (!shippingSection) return;
+    
+        // Create simple input section
+        const giftNoteSection = document.createElement('div');
+        giftNoteSection.id = 'gift-note-section';
+        giftNoteSection.className = 'section-background p-6 mt-6';
+        giftNoteSection.innerHTML = `
+            <h3 class="text-xl font-semibold mb-2">Gift Message</h3>
+            <textarea 
+                id="gift-note-input" 
+                placeholder="Add a personal note for your gift..."
+                class="input-style w-full h-24"
+            ></textarea>
+        `;
+    
+        // Insert it
+        shippingSection.parentNode.insertBefore(giftNoteSection, shippingSection.nextSibling);
+    
+        // Load saved note if exists
+        const savedNote = localStorage.getItem('gift_wrapping_note');
+        if (savedNote) {
+            document.getElementById('gift-note-input').value = savedNote;
+        }
+    }
+
     collectOrderData() {
         const shippingAddress = this.collectAddressData('shipping');
         const billingAddress = document.getElementById('same-as-shipping')?.checked ? 
@@ -468,7 +505,8 @@ class CheckoutManager {
             shippingAddress: this.formatAddressForAPI(shippingAddress),
             billingAddress: this.formatAddressForAPI(billingAddress),
             promoCode: this.promoManager.activePromoCode,
-            giftWrapping: this.cartManager.hasGiftWrapping()
+            giftWrapping: this.cartManager.hasGiftWrapping(),
+            giftNote: document.getElementById('gift-note-input')?.value || '' // ← ADD THIS LINE
         };
     }
 
