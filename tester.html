@@ -102,7 +102,7 @@
             </div>
 
         <main id="app-main-content">
-            <section id="home" style="display: block;">
+            <section id="home">
                 <div class="poetic-title text-4xl md:text-5xl mb-6">Your reflection is waiting to bloom.</div>
                 
                 <div class="text-center mb-12">
@@ -111,57 +111,69 @@
                     </p>
                     
                     <div class="max-w-2xl mx-auto mb-10">
-                        <p class="text-lg mb-4">
-                            Your selfie becomes ethereal floral art that flows between your wallpaper and your phone case.
+                        <p class="text-lg mb-6">
+                            Upload your selfies and watch them transform into ethereal floral art that flows 
+                            seamlessly between your wallpaper and your phone case.
                         </p>
-                        <p class="text-lg italic">
-                            Each bloom is grown from your light.
+                        <p class="text-lg">
+                            Each bloom is uniquely grown from your light, capturing your essence in a 
+                            living portrait that moves with you.
                         </p>
                     </div>
                     
-                    <button onclick="window.app.navigateTo('studio')" 
-                            class="cta-magenta px-12 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
-                        Begin the bloom
-                    </button>
-                </div>
-                
-                <!-- Simple visual flow -->
-                <div class="section-background p-6 mb-12 rounded-2xl">
-                    <div class="flex flex-col md:flex-row items-center justify-center gap-8">
-                        <div class="text-center">
-                            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-blush-start flex items-center justify-center">
-                                <span class="text-3xl">📸</span>
-                            </div>
-                            <p class="font-medium">Your selfies</p>
-                        </div>
-                        
-                        <div class="text-center text-2xl text-magenta">→</div>
-                        
-                        <div class="text-center">
-                            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-blush-start flex items-center justify-center">
-                                <span class="text-3xl">🌺</span>
-                            </div>
-                            <p class="font-medium">Flowing petals</p>
-                        </div>
-                        
-                        <div class="text-center text-2xl text-magenta">→</div>
-                        
-                        <div class="text-center">
-                            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-blush-start flex items-center justify-center">
-                                <span class="text-3xl">📱</span>
-                            </div>
-                            <p class="font-medium">Your bloom</p>
-                        </div>
+                    <div class="flex flex-col items-center gap-4">
+                        <button onclick="window.app.navigateTo('studio')" 
+                                class="cta-magenta px-10 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                            Begin Your Bloom →
+                        </button>
+                        <p class="text-sm text-gray-500 mt-2">No sign-up required to start creating</p>
                     </div>
                 </div>
                 
-                <!-- Manifesto -->
-                <div class="section-background p-8 rounded-2xl">
-                    <div class="max-w-xl mx-auto space-y-4 mb-8">
-                        <p class="text-center italic text-lg">You are not pixels or paper.</p>
-                        <p class="text-center italic text-lg">You are motion and bloom.</p>
-                        <p class="text-center italic text-lg">The flowers you wear are grown from your light.</p>
-                        <p class="text-center italic text-lg mb-6">From your reflection, to your phone, to your hand.</p>
+                <!-- Visual Preview Section -->
+                <div class="section-background p-8 mb-12 rounded-2xl">
+                    <h3 class="text-2xl font-semibold mb-6 text-center">Watch the Transformation</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="text-center">
+                            <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-pink-200 to-purple-200 flex items-center justify-center">
+                                <span class="text-3xl">📸</span>
+                            </div>
+                            <h4 class="font-semibold mb-2">1. Upload Your Selfies</h4>
+                            <p class="text-sm text-gray-600">Share 3 photos of yourself</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-yellow-200 to-orange-200 flex items-center justify-center">
+                                <span class="text-3xl">🌺</span>
+                            </div>
+                            <h4 class="font-semibold mb-2">2. Watch the Magic</h4>
+                            <p class="text-sm text-gray-600">AI transforms you into floral art</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-200 to-teal-200 flex items-center justify-center">
+                                <span class="text-3xl">📱</span>
+                            </div>
+                            <h4 class="font-semibold mb-2">3. Wear Your Bloom</h4>
+                            <p class="text-sm text-gray-600">Get your custom phone case & wallpaper</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button onclick="window.app.navigateTo('studio')" 
+                                class="cta-gold px-8 py-3 font-semibold rounded-full hover:shadow-lg transition-all">
+                            See It in Action
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Manifesto Section -->
+                <div class="section-background mt-12 p-8 rounded-2xl">
+                    <h3 class="text-2xl mb-6 font-semibold text-center">Manifesto</h3>
+                    
+                    <div class="max-w-xl mx-auto space-y-4 mb-6">
+                        <p class="text-center italic text-lg mb-2">You are not pixels or paper.</p>
+                        <p class="text-center italic text-lg mb-2">You are motion and bloom.</p>
+                        <p class="text-center italic text-lg mb-2">The flowers you wear are grown from your light.</p>
+                        <p class="text-center italic text-lg mb-4">From your reflection, to your phone, to your hand.</p>
                     </div>
                     
                     <p class="text-center font-bold text-xl mb-8">
@@ -171,7 +183,21 @@
                     <div class="text-center">
                         <button onclick="window.app.navigateTo('studio')" 
                                 class="cta-magenta px-10 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl">
-                            See your portrait
+                            Create Your Portrait →
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- FAQ Preview -->
+                <div class="mt-16 p-6 border-t border-gray-200">
+                    <h4 class="text-center font-semibold mb-6">Curious to see how it works?</h4>
+                    <div class="text-center">
+                        <button onclick="window.app.navigateTo('studio')" 
+                                class="text-magenta font-semibold hover:underline flex items-center justify-center gap-2 mx-auto">
+                            Visit the Studio 
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                            </svg>
                         </button>
                     </div>
                 </div>
