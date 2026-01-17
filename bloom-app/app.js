@@ -95,7 +95,7 @@ class Application {
         const currentPage = this.navigationManager.getCurrentPage();
         
         // Hide all main sections first
-        const sections = ['home', 'studio-page', 'checkout-page'];
+        const sections = ['home-page', 'studio-page', 'checkout-page'];
         sections.forEach(section => {
             const element = document.getElementById(section);
             if (element) {
