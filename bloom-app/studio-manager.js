@@ -89,7 +89,7 @@ class StudioManager {
             startOverBtn.addEventListener('click', this.startOver.bind(this));
         }
         
-        this.updateStepIndicator(0);
+        this.updateStepIndicator(1);
     }
 
     // Device selection methods
