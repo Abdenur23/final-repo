@@ -82,7 +82,9 @@ const CONFIG = {
 
     // Stripe Configuration
     // STRIPE_PUBLISHABLE_KEY: 'pk_test_51SMYv7DBeWU7VJzLNGNEY9wllekcfhQZaMndBcGbvbK5zA7gROVkeWX5lAd8By9QCXVqAinfe5TkHlURcml7Eky700lHbTzbU1', // Replace with your actual key
-    STRIPE_PUBLISHABLE_KEY: 'pk_test_51SMby0Fb362b9JoXQyxZtvkpUWu6RZqKoF54NhYAmoII8gFIdwr26J4P0CwlGSwoNdIp33htkO8UDSePKp9JzxsM001lWVSAdF',
+    
+    //STRIPE_PUBLISHABLE_KEY: 'pk_test_51SMby0Fb362b9JoXQyxZtvkpUWu6RZqKoF54NhYAmoII8gFIdwr26J4P0CwlGSwoNdIp33htkO8UDSePKp9JzxsM001lWVSAdF',
+    STRIPE_PUBLISHABLE_KEY: 'pk_live_51Sp04fRFu2AXaWNOTuWw9N1NGUmk7xvs2hCS6srINtPuYpXQy2CTZvyZKyeAQEqiqxGwKTuSTUSCifuf8kAv2zwY00ZsS1a6De'
     CHECKOUT_API_ENDPOINT: 'https://qohagpc75m.execute-api.us-east-1.amazonaws.com/prod/prod',
 
     
