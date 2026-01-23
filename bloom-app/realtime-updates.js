@@ -122,13 +122,13 @@ class RealTimeUpdates {
 
     // FIX 1: Progress bar updates
     updateProgressForStage(stage) {
-        const normalizedStage = stage.toLowerCase();
-        console.log('stage is :', stage);
+        //const normalizedStage = stage.toLowerCase();
+        //console.log('stage is :', stage);
         const stageProgress = {
-            'enhancing image': 25,
-            'preparing wallpaper and case': 50,
-            'producing design': 75,
-            'mockup ready': 90
+            'Enhancing image': 25,
+            'Producing design': 50,
+            'Preparing wallpaper and case': 75,
+            'Mockup ready': 90
         };
         
         const progress = stageProgress[stage] || 40; // Default to 10% for unknown stages
