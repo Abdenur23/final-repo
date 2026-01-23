@@ -312,7 +312,7 @@ class StudioManager {
                         class="w-full px-4 py-2 text-white font-semibold rounded-md ${buttonClass}">
                         ${buttonText}
                     </button>
-                    <p class="text-xs text-gray-500 mt-2 text-center">Swipe or use arrows to view all 4 images</p>
+                    <p class="text-xs text-gray-500 mt-2 text-center">Swipe or use arrows to view all images</p>
                 </div>
             `;
         }).join('');
