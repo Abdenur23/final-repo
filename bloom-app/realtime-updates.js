@@ -11,6 +11,7 @@ class RealTimeUpdates {
 
     initialize() {
         this.setupWebSocket();
+        this.reset()
     }
 
     setupWebSocket() {
