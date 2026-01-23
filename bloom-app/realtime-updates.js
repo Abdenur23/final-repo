@@ -123,6 +123,7 @@ class RealTimeUpdates {
 
     // FIX 1: Progress bar updates
     updateProgressForStage(stage) {
+        const normalizedStage = stage.toLowerCase();
         const stageProgress = {
             'enhancing image': 25,
             'preparing wallpaper and case': 50,
