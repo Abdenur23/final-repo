@@ -131,7 +131,7 @@ class RealTimeUpdates {
             'mockup ready': 90
         };
         
-        const progress = stageProgress[stage] || 10; // Default to 10% for unknown stages
+        const progress = stageProgress[stage] || 40; // Default to 10% for unknown stages
         this.updateProgressBar(progress);
     }
 
