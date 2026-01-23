@@ -50,7 +50,7 @@ class RealTimeUpdates {
             this.handleDesignReady(data);
             return;
         }
-        
+        console.log('log before image update')
         if (data.type === 'image_update') {
             this.handleImageUpdate(data);
         }
