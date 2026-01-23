@@ -50,7 +50,6 @@ class RealTimeUpdates {
             this.handleDesignReady(data);
             return;
         }
-        console.log('log before image update')
         if (data.type === 'image_update') {
             this.handleImageUpdate(data);
         }
@@ -124,7 +123,7 @@ class RealTimeUpdates {
     // FIX 1: Progress bar updates
     updateProgressForStage(stage) {
         const normalizedStage = stage.toLowerCase();
-        console.log(stage)
+        console.log('stage is :', stage);
         const stageProgress = {
             'enhancing image': 25,
             'preparing wallpaper and case': 50,
