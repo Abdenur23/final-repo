@@ -6,30 +6,11 @@ class WebSocketManager {
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.messageHandlers = new Map();
-
-        this.inactivityTimer = null;
-    }
-
-    resetInactivityTimer() {
-        // Clear any existing timer
-        if (this.inactivityTimer) {
-            clearTimeout(this.inactivityTimer);
-        }
-        
-        // Set new 20-minute timer
-        this.inactivityTimer = setTimeout(() => {
-            console.log('20 minutes of inactivity - stopping reconnection');
-            this.maxReconnectAttempts = 0; // Stop future reconnections
-            if (this.socket) {
-                this.socket.close();
-            }
-        }, 20 * 60 * 1000); // 20 minutes
     }
 
     initialize(url) {
         this.url = url;
         this.setupWebSocket();
-        this.resetInactivityTimer(); 
     }
 
     setupWebSocket() {
@@ -47,7 +28,6 @@ class WebSocketManager {
             console.log('WebSocket connected');
             this.isConnected = true;
             this.reconnectAttempts = 0;
-            this.resetInactivityTimer();
             this.trigger('connected');
         };
 
@@ -99,7 +79,6 @@ class WebSocketManager {
     }
 
     send(data) {
-        this.resetInactivityTimer();
         if (this.isConnected && this.socket) {
             this.socket.send(JSON.stringify(data));
         } else {
