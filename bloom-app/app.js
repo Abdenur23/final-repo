@@ -23,6 +23,9 @@ class Application {
         window.getSession = () => this.authManager.getSession();
         window.isAuthenticated = () => this.authManager.isAuthenticated();
         window.getUserInfo = () => this.authManager.getUserInfo();
+
+        // Add inactivity timer variable
+        this.inactivityTimer = null;
     }
 
     async initialize() {
@@ -32,6 +35,9 @@ class Application {
             
             // Initialize authentication FIRST
             await this.authManager.initialize();
+            
+            // Start inactivity timer
+            this.startInactivityTimer();
             
             // Initialize cart badge
             this.cartManager.updateCartBadge();
@@ -55,9 +61,17 @@ class Application {
     setupEventListeners() {
         // Floating cart click event - FIXED: Use event delegation
         document.addEventListener('click', (e) => {
+            // Reset inactivity timer on any click
+            this.resetInactivityTimer();
+            
             if (e.target.closest('#floating-cart')) {
                 this.openCartModal();
             }
+        });
+
+        // Add keydown listener for keyboard activity
+        document.addEventListener('keydown', () => {
+            this.resetInactivityTimer();
         });
         
         // Cart modal close event
@@ -69,6 +83,24 @@ class Application {
                 }
             });
         }
+    }
+
+    // Add inactivity timer methods
+    startInactivityTimer() {
+        // Clear existing timer
+        if (this.inactivityTimer) {
+            clearTimeout(this.inactivityTimer);
+        }
+        
+        // Set new 5-minute timer
+        this.inactivityTimer = setTimeout(() => {
+            console.log('⏰ 5 minutes of inactivity - auto-signing out');
+            this.authManager.signout();
+        }, 5 * 60 * 1000); // 5 minutes
+    }
+
+    resetInactivityTimer() {
+        this.startInactivityTimer();
     }
 
     openCartModal() {
