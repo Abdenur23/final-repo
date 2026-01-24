@@ -94,9 +94,9 @@ class Application {
         
         // Set new 5-minute timer
         this.inactivityTimer = setTimeout(() => {
-            console.log('⏰ 5 minutes of inactivity - auto-signing out');
+            console.log('⏰ 60 minutes of inactivity - auto-signing out');
             this.authManager.signout();
-        }, 5 * 60 * 1000); // 5 minutes
+        }, 60 * 60 * 1000); // 60 minutes
     }
 
     resetInactivityTimer() {
