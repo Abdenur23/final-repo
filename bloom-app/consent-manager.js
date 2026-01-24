@@ -31,7 +31,7 @@ class ConsentManager {
                             No thanks
                         </button>
                         <button onclick="window.app.consentManager.closeConsentModal(true)" class="cta-magenta px-4 py-2 rounded-md font-semibold">
-                            Create Bloom!
+                            Agree to Bloom
                         </button>
                     </div>
                 </div>
