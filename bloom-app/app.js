@@ -31,7 +31,6 @@ class Application {
     async initialize() {
         try {
 
-            localStorage.removeItem(STORAGE_KEYS.PRODUCT_DESIGNS);
             // Load saved promo if any
             this.promoManager.loadSavedPromo();
             
