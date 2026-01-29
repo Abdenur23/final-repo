@@ -60,6 +60,14 @@ class StudioManager {
 
     setupEventListeners() {
         console.log('Setting up studio event listeners');
+
+        const appleRadio = document.querySelector('input[name="device-manufacturer"][value="apple"]');
+        if (appleRadio) {
+            // Set it as checked
+            appleRadio.checked = true;
+            // Trigger the change event
+            this.handleManufacturerChange({ target: appleRadio });
+        }
         
         // Device selection events
         const manufacturerRadios = document.querySelectorAll('input[name="device-manufacturer"]');
