@@ -16,18 +16,49 @@ class StudioManager {
     }
 
     // Real-time update methods
+    // addRealTimeProduct(product) {
+    //     console.log('Adding real-time product:', product);
+        
+    //     const existingDesigns = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCT_DESIGNS) || '[]');
+    //     const updatedDesigns = [...existingDesigns, product];
+    //     localStorage.setItem(STORAGE_KEYS.PRODUCT_DESIGNS, JSON.stringify(updatedDesigns));
+        
+    //     if (this.currentStep === 3) {
+    //         this.renderProductList();
+    //     } else {
+    //         this.finishProcessing();
+    //     }
+    // }
     addRealTimeProduct(product) {
-        console.log('Adding real-time product:', product);
+        console.log('=== ADD REAL TIME PRODUCT CALLED ===');
+        console.log('Product designId:', product.designId);
+        console.log('Product name:', product.name);
         
         const existingDesigns = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCT_DESIGNS) || '[]');
+        console.log('Existing designs in localStorage:', existingDesigns.length);
+        console.log('Existing design IDs:', existingDesigns.map(d => d.designId));
+        
+        // ADD THIS DUPLICATE CHECK
+        const alreadyExists = existingDesigns.some(design => design.designId === product.designId);
+        if (alreadyExists) {
+            console.log('❌ PRODUCT ALREADY IN LOCALSTORAGE, SKIPPING:', product.designId);
+            console.log('=== END ADD REAL TIME PRODUCT (SKIPPED) ===');
+            return;
+        }
+        
+        console.log('✅ Adding new product to localStorage');
         const updatedDesigns = [...existingDesigns, product];
         localStorage.setItem(STORAGE_KEYS.PRODUCT_DESIGNS, JSON.stringify(updatedDesigns));
         
         if (this.currentStep === 3) {
+            console.log('Rendering updated product list');
             this.renderProductList();
         } else {
+            console.log('Finishing processing');
             this.finishProcessing();
         }
+        
+        console.log('=== END ADD REAL TIME PRODUCT ===');
     }
 
     displayRealTimeProgress(imageUrl, stage, description) {
