@@ -438,6 +438,7 @@ class StudioManager {
     }
 
     startOver() {
+        localStorage.removeItem(STORAGE_KEYS.PRODUCT_DESIGNS);
         const fileInputs = [
             document.getElementById('photo-upload-1'),
             document.getElementById('photo-upload-2'),
