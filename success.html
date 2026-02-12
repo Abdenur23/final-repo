@@ -124,7 +124,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.0/jspdf.plugin.autotable.min.js"></script>
     
-    <!-- Core Config and Auth -->
+    <!-- Core Config and Auth - LOAD ONCE -->
     <script src="bloom-app/config.js"></script>
     <script src="bloom-app/auth-manager.js"></script>
 </head>
@@ -151,7 +151,7 @@
                 <p class="text-xl text-gray-600 mb-4">"Your reflection has blossomed into art."</p>
             </div>
 
-            <!-- Order Details Section (Populated by JavaScript) -->
+            <!-- Order Details Section -->
             <div id="order-details-section" class="section-background max-w-2xl mx-auto mb-8" style="display: none;">
                 <h3 class="text-2xl font-semibold mb-4">Order Confirmation</h3>
                 <div class="text-left space-y-3 mb-6">
@@ -203,8 +203,6 @@
                         class="cta-magenta px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl">
                     Create Another Bloom
                 </button>
-                
-                <!-- Download Receipt button will be dynamically added here -->
             </div>
 
             <!-- Thank You Message -->
@@ -256,13 +254,6 @@
         </div>
     </footer>
 
-    <!-- Core Config and Auth - LOAD IN CORRECT ORDER -->
-    <script src="bloom-app/config.js"></script>
-    <script src="bloom-app/auth-manager.js"></script>
-    
-    <!-- PDF Generation Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.0/jspdf.plugin.autotable.min.js"></script>
     <script>
         // --- Confetti Animation ---
         function createConfetti() {
@@ -275,41 +266,25 @@
                 confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
                 confetti.style.animationDelay = Math.random() * 2 + 's';
                 document.body.appendChild(confetti);
-                
-                setTimeout(() => {
-                    confetti.remove();
-                }, 3000);
+                setTimeout(() => confetti.remove(), 3000);
             }
         }
 
-        // --- Order Manager Class (Handles all order-related API calls) ---
+        // --- Order Manager ---
         class OrderManager {
             constructor() {
-                this.apiEndpoint = CONFIG?.ORDERS_API_ENDPOINT || 'https://x9a46lous3.execute-api.us-east-1.amazonaws.com/prod/prod';
+                this.apiEndpoint = 'https://x9a46lous3.execute-api.us-east-1.amazonaws.com/prod/prod';
             }
 
             async getAuthToken() {
                 try {
-                    // Method 1: Use cognitoConfig from config.js (global)
                     if (typeof cognitoConfig !== 'undefined' && cognitoConfig.clientId) {
                         const clientId = cognitoConfig.clientId;
                         const lastAuthUser = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
                         if (lastAuthUser) {
-                            const idToken = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.${lastAuthUser}.idToken`);
-                            if (idToken) return idToken;
+                            return localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.${lastAuthUser}.idToken`);
                         }
                     }
-                    
-                    // Method 2: Try CONFIG from config.js
-                    if (typeof CONFIG !== 'undefined' && CONFIG.COGNITO?.CLIENT_ID) {
-                        const clientId = CONFIG.COGNITO.CLIENT_ID;
-                        const lastAuthUser = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
-                        if (lastAuthUser) {
-                            const idToken = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.${lastAuthUser}.idToken`);
-                            if (idToken) return idToken;
-                        }
-                    }
-                    
                     return null;
                 } catch (error) {
                     console.error('Failed to get auth token:', error);
@@ -319,9 +294,7 @@
 
             async fetchOrderDetails(orderId) {
                 const token = await this.getAuthToken();
-                if (!token) {
-                    throw new Error('Please sign in to view your order details');
-                }
+                if (!token) throw new Error('Please sign in to view your order details');
 
                 const response = await fetch(this.apiEndpoint, {
                     method: 'POST',
@@ -344,18 +317,10 @@
                 return data.order;
             }
 
-            // --- FUTURE METHODS PLACEHOLDER ---
-            // async trackShipment(orderId) { ... }
-            // async requestReturn(orderId) { ... }
-            // async getOrderHistory() { ... }
-            // ---------------------------------
-
             formatDate(dateString) {
                 if (!dateString) return 'N/A';
                 return new Date(dateString).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
+                    year: 'numeric', month: 'long', day: 'numeric'
                 });
             }
 
@@ -363,159 +328,121 @@
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
                 
-                // Header
                 doc.setFontSize(24);
                 doc.setTextColor(230, 0, 126);
                 doc.text('BLOOM', 105, 20, { align: 'center' });
-                
                 doc.setFontSize(14);
                 doc.setTextColor(0, 0, 0);
                 doc.text('Order Confirmation', 105, 30, { align: 'center' });
                 
-                // Order Info
                 doc.setFontSize(10);
                 doc.text(`Order ID: ${order.order_id || 'N/A'}`, 14, 45);
                 doc.text(`Date: ${this.formatDate(order.created_at)}`, 14, 52);
                 doc.text(`Status: ${order.status || 'Confirmed'}`, 14, 59);
                 
-                // Customer Info
                 doc.setFontSize(12);
                 doc.setTextColor(230, 0, 126);
                 doc.text('Customer Information', 14, 75);
-                
                 doc.setFontSize(10);
                 doc.setTextColor(0, 0, 0);
                 doc.text(`Email: ${order.user_email || 'N/A'}`, 14, 85);
                 
-                // Shipping Address
                 doc.setFontSize(12);
                 doc.setTextColor(230, 0, 126);
                 doc.text('Shipping Address', 14, 105);
-                
                 doc.setFontSize(10);
                 doc.setTextColor(0, 0, 0);
+                
                 const ship = order.shipping_address || {};
                 const addressLines = [
-                    ship.fullName || '',
-                    ship.streetAddress || '',
-                    ship.address2 || '',
-                    `${ship.city || ''} ${ship.state || ''} ${ship.zipCode || ''}`.trim()
+                    ship.fullName, ship.streetAddress, ship.address2,
+                    `${ship.city || ''} ${ship.state || ''} ${ship.zipCode || ''}`
                 ].filter(Boolean);
                 
                 let yPos = 115;
-                addressLines.forEach(line => {
-                    doc.text(line, 14, yPos);
-                    yPos += 7;
-                });
+                addressLines.forEach(line => { doc.text(line, 14, yPos); yPos += 7; });
                 
-                // Order Summary Table
                 doc.setFontSize(12);
                 doc.setTextColor(230, 0, 126);
                 doc.text('Order Summary', 14, yPos + 15);
                 
-                const tableData = [
-                    ['Subtotal', `$${(order.subtotal || 0).toFixed(2)}`],
-                    ['Discount', `-$${(order.discount_amount || 0).toFixed(2)}`],
-                    ['Shipping', `$${(order.shipping_cost || 8.90).toFixed(2)}`],
-                    ['Tax', `$${(order.tax_amount || 0).toFixed(2)}`]
-                ];
-                
                 doc.autoTable({
                     startY: yPos + 25,
                     head: [['Description', 'Amount']],
-                    body: tableData,
-                    theme: 'striped',
-                    headStyles: { fillColor: [230, 0, 126] },
+                    body: [
+                        ['Subtotal', `$${(order.subtotal || 0).toFixed(2)}`],
+                        ['Discount', `-$${(order.discount_amount || 0).toFixed(2)}`],
+                        ['Shipping', `$${(order.shipping_cost || 8.90).toFixed(2)}`],
+                        ['Tax', `$${(order.tax_amount || 0).toFixed(2)}`]
+                    ],
                     foot: [['Total', `$${(order.amount || 0).toFixed(2)}`]],
-                    footStyles: { fillColor: [212, 175, 55], textColor: [0, 0, 0], fontStyle: 'bold' }
+                    headStyles: { fillColor: [230, 0, 126] },
+                    footStyles: { fillColor: [212, 175, 55], textColor: [0, 0, 0], fontStyle: 'bold' },
+                    theme: 'striped'
                 });
                 
-                // Footer
                 const finalY = doc.lastAutoTable.finalY + 20;
                 doc.setFontSize(9);
                 doc.setTextColor(100, 100, 100);
                 doc.text('Thank you for choosing Golden Gate Blooms LLC', 105, finalY, { align: 'center' });
                 doc.text('3400 COTTAGE WAY, STE G2, SACRAMENTO, CA 95825', 105, finalY + 7, { align: 'center' });
                 
-                // Save PDF
                 doc.save(`Bloom_Order_${order.order_id || 'receipt'}.pdf`);
             }
 
             displayOrderDetails(order) {
-                // Update DOM elements
-                document.getElementById('order-id').textContent = order.order_id || 'N/A';
-                document.getElementById('customer-email').textContent = order.user_email || 'N/A';
+                document.getElementById('order-id').textContent = order.order_id;
+                document.getElementById('customer-email').textContent = order.user_email;
                 document.getElementById('order-total').textContent = `$${(order.amount || 0).toFixed(2)}`;
                 document.getElementById('order-status').textContent = order.status || 'Confirmed';
                 document.getElementById('order-date').textContent = this.formatDate(order.created_at);
-                
-                // Show the order details section
                 document.getElementById('order-details-section').style.display = 'block';
                 
-                // Add Download Receipt button if not already present
                 if (!document.getElementById('download-receipt-btn')) {
-                    const buttonContainer = document.getElementById('action-buttons');
-                    const receiptBtn = document.createElement('button');
-                    receiptBtn.id = 'download-receipt-btn';
-                    receiptBtn.className = 'cta-gold px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl';
-                    receiptBtn.innerHTML = '📄 Download Receipt';
-                    receiptBtn.onclick = () => this.generatePDF(order);
-                    buttonContainer.appendChild(receiptBtn);
+                    const btn = document.createElement('button');
+                    btn.id = 'download-receipt-btn';
+                    btn.className = 'cta-gold px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl';
+                    btn.innerHTML = '📄 Download Receipt';
+                    btn.onclick = () => this.generatePDF(order);
+                    document.getElementById('action-buttons').appendChild(btn);
                 }
             }
 
             displayError(message) {
-                const mainElement = document.querySelector('main');
                 const errorDiv = document.createElement('div');
-                errorDiv.className = 'error-message';
+                errorDiv.className = 'error-message max-w-2xl mx-auto mb-4';
                 errorDiv.innerHTML = `
                     <div class="flex items-center gap-3">
                         <span class="text-xl">⚠️</span>
                         <div class="text-left">
                             <p class="font-bold">Unable to load order details</p>
                             <p class="text-sm mt-1">${message}</p>
-                            <p class="text-sm mt-2">Please check your email for confirmation or contact support at <a href="mailto:bloom@theweer.com" class="underline">bloom@theweer.com</a></p>
+                            <p class="text-sm mt-2">Please check your email for confirmation or contact support.</p>
                         </div>
                     </div>
                 `;
-                
-                // Insert at the top of main content
-                const firstChild = mainElement.firstChild;
-                mainElement.insertBefore(errorDiv, firstChild);
+                document.querySelector('main').prepend(errorDiv);
             }
         }
 
         // --- Page Initialization ---
         document.addEventListener('DOMContentLoaded', async function() {
-            // Start confetti celebration
             createConfetti();
             
-            // Get order_id from URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            const orderId = urlParams.get('order_id');
-            
+            const orderId = new URLSearchParams(window.location.search).get('order_id');
             if (!orderId) {
-                console.warn('No order_id found in URL - displaying generic success page');
+                console.warn('No order_id found in URL');
                 return;
             }
-            
-            console.log(`🔍 Loading order details for: ${orderId}`);
             
             try {
                 const orderManager = new OrderManager();
                 const order = await orderManager.fetchOrderDetails(orderId);
                 orderManager.displayOrderDetails(order);
-                console.log('✅ Order details loaded successfully');
             } catch (error) {
-                console.error('❌ Failed to load order:', error);
-                const orderManager = new OrderManager();
-                orderManager.displayError(error.message);
+                console.error('Failed to load order:', error);
+                new OrderManager().displayError(error.message);
             }
-        });
-
-        // Global error logging
-        window.addEventListener('error', function(e) {
-            console.error('💥 Page error:', e.error || e.message);
         });
     </script>
 </body>
