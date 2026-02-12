@@ -256,6 +256,13 @@
         </div>
     </footer>
 
+    <!-- Core Config and Auth - LOAD IN CORRECT ORDER -->
+    <script src="bloom-app/config.js"></script>
+    <script src="bloom-app/auth-manager.js"></script>
+    
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.0/jspdf.plugin.autotable.min.js"></script>
     <script>
         // --- Confetti Animation ---
         function createConfetti() {
@@ -283,14 +290,26 @@
 
             async getAuthToken() {
                 try {
-                    // CONFIG is already loaded from the duplicate at bottom
-                    const clientId = CONFIG.COGNITO.CLIENT_ID;
-                    
-                    const lastAuthUser = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
-                    if (lastAuthUser) {
-                        const idToken = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.${lastAuthUser}.idToken`);
-                        return idToken || null;
+                    // Method 1: Use cognitoConfig from config.js (global)
+                    if (typeof cognitoConfig !== 'undefined' && cognitoConfig.clientId) {
+                        const clientId = cognitoConfig.clientId;
+                        const lastAuthUser = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
+                        if (lastAuthUser) {
+                            const idToken = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.${lastAuthUser}.idToken`);
+                            if (idToken) return idToken;
+                        }
                     }
+                    
+                    // Method 2: Try CONFIG from config.js
+                    if (typeof CONFIG !== 'undefined' && CONFIG.COGNITO?.CLIENT_ID) {
+                        const clientId = CONFIG.COGNITO.CLIENT_ID;
+                        const lastAuthUser = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
+                        if (lastAuthUser) {
+                            const idToken = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.${lastAuthUser}.idToken`);
+                            if (idToken) return idToken;
+                        }
+                    }
+                    
                     return null;
                 } catch (error) {
                     console.error('Failed to get auth token:', error);
