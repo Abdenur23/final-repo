@@ -210,7 +210,7 @@
     <div class="container">
         <header class="header flex justify-between items-center pb-4 mb-6 border-b border-gray-200">
             <img src="logo.png" alt="Bloom" class="h-12 w-auto">
-            <div id="auth-action" class="flex items-center gap-3"></div>
+            <div id="user-email-display" class="text-sm text-gray-600 auth-badge hidden"></div>
         </header>
 
         <main class="text-center">
@@ -355,7 +355,7 @@
                 <!-- Download Button -->
                 <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-6">
                     <button id="download-receipt-btn" 
-                            class="cta-gold px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 transform hover:scale-105">
+                            class="cta-gold px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
@@ -439,466 +439,42 @@
     </footer>
 
     <script>
-        // ============ IMPORT EXACT CONFIG FROM YOUR APP ============
-        const cognitoConfig = {
+        // ============ CONFIGURATION ============
+        const COGNITO_CONFIG = {
             clientId: '73lf1h32phkqeb9ahu6tqcl9av',
-            domain: 'auth.theweer.com',
-            redirectUri: window.location.origin + window.location.pathname,
-            tokenEndpoint: `https://auth.theweer.com/oauth2/token`
+            domain: 'auth.theweer.com'
         };
 
-        const CONFIG = {
-            API_BASE_URL: 'https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod',
-            ORDERS_API_ENDPOINT: 'https://x9a46lous3.execute-api.us-east-1.amazonaws.com/prod/prod'
-        };
+        const ORDERS_API_ENDPOINT = 'https://x9a46lous3.execute-api.us-east-1.amazonaws.com/prod/prod';
 
+        // ============ STORAGE KEYS ============
         const STORAGE_KEYS = {
-            COGNITO_SESSION: 'cognitoSession',
-            PKCE_VERIFIER: 'pkce_verifier'
+            COGNITO_SESSION: 'cognitoSession'
         };
-
-        // ============ EXACT AUTH MANAGER FROM YOUR APP ============
-        class AuthManager {
-            constructor() {
-                this.isInitialized = false;
-            }
-
-            base64urlencode(buffer) {
-                const bytes = new Uint8Array(buffer);
-                let binary = '';
-                for (let i = 0; i < bytes.byteLength; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-            }
-
-            async sha256(str) {
-                const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-                return this.base64urlencode(digest);
-            }
-
-            genRandom() { 
-                const arr = new Uint8Array(32); 
-                crypto.getRandomValues(arr); 
-                return this.base64urlencode(arr); 
-            }
-
-            saveSession(t) { 
-                localStorage.setItem(STORAGE_KEYS.COGNITO_SESSION, JSON.stringify(t)); 
-            }
-
-            getSession() {
-                const session = localStorage.getItem(STORAGE_KEYS.COGNITO_SESSION);
-                return session ? JSON.parse(session) : null;
-            }
-
-            clearSession() {
-                localStorage.removeItem(STORAGE_KEYS.COGNITO_SESSION);
-                localStorage.removeItem(STORAGE_KEYS.PKCE_VERIFIER);
-            }
-
-            isTokenExpired(token) {
-                if (!token) return true;
-                try {
-                    const payload = JSON.parse(atob(token.split('.')[1]));
-                    const exp = payload.exp * 1000;
-                    const now = Date.now();
-                    const bufferTime = 300000;
-                    return now >= (exp - bufferTime);
-                } catch (e) {
-                    console.error('Error checking token expiration:', e);
-                    return true;
-                }
-            }
-
-            async refreshSession() {
-                const session = this.getSession();
-                if (!session || !session.refresh_token) {
-                    this.clearSession();
-                    return false;
-                }
-                
-                const body = `grant_type=refresh_token&client_id=${cognitoConfig.clientId}&refresh_token=${session.refresh_token}`;
-
-                try {
-                    const res = await fetch(cognitoConfig.tokenEndpoint, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                        body
-                    });
-                    const tokens = await res.json();
-
-                    if(res.ok && tokens.id_token) {
-                        const newSession = {
-                            ...tokens,
-                            refresh_token: tokens.refresh_token || session.refresh_token 
-                        };
-                        this.saveSession(newSession);
-                        return true;
-                    } else {
-                        this.clearSession();
-                        return false;
-                    }
-                } catch (error) {
-                    console.error('Network or exchange error during refresh:', error);
-                    return false;
-                }
-            }
-
-            async isAuthenticated() {
-                const session = this.getSession();
-                if (!session || !session.id_token) return false;
-
-                if (this.isTokenExpired(session.id_token)) {
-                    console.log('Token expired, attempting refresh...');
-                    const refreshed = await this.refreshSession();
-                    return refreshed;
-                }
-                return true;
-            }
-
-            getUserInfo() {
-                const session = this.getSession();
-                if (session && session.id_token) {
-                    try {
-                        const payload = JSON.parse(atob(session.id_token.split('.')[1]));
-                        return { 
-                            email: payload.email, 
-                            sub: payload.sub, 
-                            displayName: payload.name || payload.given_name || payload.email || payload.sub 
-                        };
-                    } catch (e) {
-                        console.error('Error parsing token:', e);
-                    }
-                }
-                return null;
-            }
-
-            async signin() {
-                const verifier = this.genRandom();
-                localStorage.setItem(STORAGE_KEYS.PKCE_VERIFIER, verifier);
-                const challenge = await this.sha256(verifier);
-                
-                const url = `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code&client_id=${cognitoConfig.clientId}&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}&scope=email+openid+profile&code_challenge_method=S256&code_challenge=${challenge}`;
-                
-                window.location.href = url;
-            }
-
-            signout() {
-                this.clearSession();
-                window.location.href = `https://${cognitoConfig.domain}/logout?client_id=${cognitoConfig.clientId}&logout_uri=${encodeURIComponent(window.location.origin)}`;
-            }
-
-            async handleCodeExchange() {
-                const params = new URLSearchParams(window.location.search);
-                const code = params.get('code');
-                if(!code) return false;
-
-                const verifier = localStorage.getItem(STORAGE_KEYS.PKCE_VERIFIER);
-                if (!verifier) {
-                    window.history.replaceState({}, document.title, cognitoConfig.redirectUri);
-                    return false;
-                }
-
-                const body = `grant_type=authorization_code&client_id=${cognitoConfig.clientId}&code=${code}&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}&code_verifier=${verifier}`;
-
-                try {
-                    const res = await fetch(cognitoConfig.tokenEndpoint, {
-                        method:'POST',
-                        headers:{'Content-Type':'application/x-www-form-urlencoded'},
-                        body
-                    });
-                    const tokens = await res.json();
-
-                    if(res.ok && tokens.id_token) {
-                        this.saveSession(tokens);
-                        localStorage.removeItem(STORAGE_KEYS.PKCE_VERIFIER);
-                        window.history.replaceState({}, document.title, cognitoConfig.redirectUri);
-                        return true;
-                    }
-                    return false;
-                } catch (error) {
-                    console.error('Network or exchange error:', error);
-                    return false;
-                }
-            }
-
-            async initialize() {
-                await this.handleCodeExchange();
-                return await this.isAuthenticated();
-            }
-        }
-
-        // ============ INITIALIZE AUTH MANAGER ============
-        const authManager = new AuthManager();
-
-        // ============ API FUNCTIONS ============
-        async function fetchOrderDetails(orderId) {
-            const session = authManager.getSession();
-            
-            if (!session || !session.id_token) {
-                throw new Error('Please sign in to view your order details.');
-            }
-
-            if (authManager.isTokenExpired(session.id_token)) {
-                const refreshed = await authManager.refreshSession();
-                if (!refreshed) {
-                    throw new Error('Your session has expired. Please sign in again.');
-                }
-            }
-
-            const freshSession = authManager.getSession();
-            const token = freshSession.id_token;
-            
-            console.log('🔐 Fetching order with authentication');
-            
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            };
-            
-            try {
-                const response = await fetch(CONFIG.ORDERS_API_ENDPOINT, {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({
-                        action: 'getOrderDetails',
-                        order_id: orderId
-                    }),
-                    mode: 'cors',
-                    credentials: 'omit'
-                });
-
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        throw new Error('Your session has expired. Please sign in again.');
-                    } else if (response.status === 403) {
-                        throw new Error('This order belongs to a different account. Please sign in with the correct email address.');
-                    }
-                    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-                    throw new Error(error.error || `Failed to fetch order (${response.status})`);
-                }
-
-                const data = await response.json();
-                return data.order || data;
-                
-            } catch (error) {
-                console.error('API call failed:', error);
-                throw error;
-            }
-        }
-
-        // ============ UI FUNCTIONS ============
-        function updateAuthUI() {
-            const authContainer = document.getElementById('auth-action');
-            if (!authContainer) return;
-            
-            const userInfo = authManager.getUserInfo();
-            
-            if (userInfo) {
-                authContainer.innerHTML = `
-                    <span class="text-sm text-gray-600 auth-badge">${userInfo.email.split('@')[0]}</span>
-                    <button onclick="handleSignOut()" class="text-sm text-gray-600 hover:text-magenta transition-colors">
-                        Sign Out
-                    </button>
-                `;
-            } else {
-                authContainer.innerHTML = `
-                    <button onclick="handleSignIn()" class="cta-gold px-4 py-2 text-sm font-semibold rounded-full shadow-lg">
-                        Sign In
-                    </button>
-                `;
-            }
-        }
-
-        window.handleSignIn = async () => {
-            await authManager.signin();
-        };
-
-        window.handleSignOut = async () => {
-            authManager.signout();
-        };
-
-        function displayOrderDetails(order) {
-            document.getElementById('loading-state').style.display = 'none';
-            document.getElementById('order-details-section').style.display = 'block';
-            
-            // Populate basic data
-            document.getElementById('order-id').textContent = order.order_id || 'N/A';
-            document.getElementById('customer-email').textContent = order.user_email || 'N/A';
-            document.getElementById('order-total').textContent = formatCurrency(order.amount || 0);
-            document.getElementById('order-status').innerHTML = `
-                <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
-                ${order.status || 'Payment Confirmed'}
-            `;
-            document.getElementById('order-date').textContent = formatDate(order.created_at);
-            
-            // Show shipping address
-            if (order.shipping_address) {
-                document.getElementById('shipping-address-section').style.display = 'block';
-                const ship = order.shipping_address;
-                const addressHtml = `
-                    <strong>${ship.fullName || ''}</strong><br>
-                    ${ship.streetAddress || ''}${ship.address2 ? '<br>' + ship.address2 : ''}<br>
-                    ${ship.city || ''} ${ship.state || ''} ${ship.zipCode || ''}
-                `;
-                document.getElementById('shipping-address').innerHTML = addressHtml;
-            }
-            
-            // Show billing address
-            if (order.billing_address) {
-                document.getElementById('billing-address-section').style.display = 'block';
-                const bill = order.billing_address;
-                
-                const isSameAsShipping = JSON.stringify(order.billing_address) === JSON.stringify(order.shipping_address);
-                
-                const addressHtml = `
-                    <strong>${bill.fullName || ''}</strong><br>
-                    ${bill.streetAddress || ''}${bill.address2 ? '<br>' + bill.address2 : ''}<br>
-                    ${bill.city || ''} ${bill.state || ''} ${bill.zipCode || ''}
-                `;
-                document.getElementById('billing-address').innerHTML = addressHtml;
-                
-                if (isSameAsShipping) {
-                    document.getElementById('billing-same-as-shipping').style.display = 'block';
-                }
-            }
-            
-            // Show gift note
-            if (order.gift_wrapping && order.gift_note) {
-                document.getElementById('gift-note-section').style.display = 'block';
-                document.getElementById('gift-note').innerHTML = `"${order.gift_note}"`;
-            }
-            
-            // Populate order items
-            const itemsContainer = document.getElementById('order-items-list');
-            if (itemsContainer && order.items && Array.isArray(order.items)) {
-                itemsContainer.innerHTML = '';
-                
-                let calculatedSubtotal = 0;
-                
-                order.items.forEach(item => {
-                    if (!item.isGiftWrapping) {
-                        const price = parseFloat(item.original_price || item.final_price || item.price || 0);
-                        calculatedSubtotal += price;
-                        
-                        const itemDiv = document.createElement('div');
-                        itemDiv.className = 'order-item flex items-center gap-4';
-                        
-                        const productType = item.product_type || 'Phone Case';
-                        const thumbnailUrl = item.image_url || item.thumbnail;
-                        
-                        itemDiv.innerHTML = `
-                            <div class="flex-shrink-0">
-                                ${thumbnailUrl && thumbnailUrl.startsWith('http') 
-                                    ? `<img src="${thumbnailUrl}" alt="${productType}" class="product-thumbnail">`
-                                    : `<div class="product-thumbnail bg-gradient-to-br from-pink-200 to-purple-200 flex items-center justify-center text-2xl">
-                                        📱
-                                       </div>`
-                                }
-                            </div>
-                            <div class="flex-grow">
-                                <p class="font-medium">${productType}</p>
-                                <p class="text-xs text-gray-500">${item.device || 'Custom Device'}</p>
-                            </div>
-                            <span class="font-semibold">${formatCurrency(price)}</span>
-                        `;
-                        itemsContainer.appendChild(itemDiv);
-                    }
-                });
-                
-                if (order.gift_wrapping) {
-                    calculatedSubtotal += 30;
-                    const giftDiv = document.createElement('div');
-                    giftDiv.className = 'order-item flex items-center gap-4';
-                    giftDiv.innerHTML = `
-                        <div class="flex-shrink-0">
-                            <div class="gift-icon">🎁</div>
-                        </div>
-                        <div class="flex-grow">
-                            <p class="font-medium">Gift Wrapping</p>
-                            <p class="text-xs text-gray-500">Premium gift wrap</p>
-                        </div>
-                        <span class="font-semibold">$30.00</span>
-                    `;
-                    itemsContainer.appendChild(giftDiv);
-                }
-                
-                document.getElementById('order-subtotal').textContent = formatCurrency(calculatedSubtotal);
-            }
-            
-            // Update summary
-            const discount = parseFloat(order.discount_amount || 0);
-            const shipping = parseFloat(order.shipping_cost || 8.90);
-            const tax = parseFloat(order.tax_amount || 0);
-            const total = parseFloat(order.amount || 0);
-            
-            if (discount > 0) {
-                document.getElementById('discount-row').style.display = 'flex';
-                document.getElementById('order-discount').textContent = `-${formatCurrency(discount)}`;
-            }
-            
-            document.getElementById('order-shipping').textContent = formatCurrency(shipping);
-            document.getElementById('order-tax').textContent = formatCurrency(tax);
-            document.getElementById('order-total-summary').textContent = formatCurrency(total);
-            
-            // Setup PDF download button
-            const downloadBtn = document.getElementById('download-receipt-btn');
-            if (downloadBtn) {
-                const newBtn = downloadBtn.cloneNode(true);
-                downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
-                newBtn.onclick = () => generatePDF(order);
-            }
-        }
-
-        function displayError(message) {
-            document.getElementById('loading-state').style.display = 'none';
-            
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message max-w-2xl mx-auto mb-8';
-            
-            const isAuthError = message.toLowerCase().includes('sign in') || 
-                               message.toLowerCase().includes('session') ||
-                               message.toLowerCase().includes('expired');
-            
-            const isWrongAccountError = message.toLowerCase().includes('different account') ||
-                                       message.toLowerCase().includes('belongs to');
-            
-            errorDiv.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <span class="text-xl">⚠️</span>
-                    <div class="text-left">
-                        <p class="font-bold">${isWrongAccountError ? 'Wrong Account' : 'Unable to load order details'}</p>
-                        <p class="text-sm mt-1">${message}</p>
-                        <div class="mt-3 flex gap-3">
-                            ${isAuthError ? 
-                                `<button onclick="handleSignIn()" 
-                                        class="text-sm px-4 py-2 bg-magenta text-white rounded-full hover:bg-opacity-90">
-                                    Sign In
-                                </button>` : 
-                                ''
-                            }
-                            ${isWrongAccountError ? 
-                                `<button onclick="handleSignOut()"
-                                        class="text-sm px-4 py-2 bg-gold text-charcoal rounded-full hover:bg-opacity-90">
-                                    Sign Out & Try Again
-                                </button>` : 
-                                ''
-                            }
-                            <a href="mailto:bloom@theweer.com" 
-                               class="text-sm px-4 py-2 border border-magenta text-magenta rounded-full hover:bg-magenta hover:text-white transition-all">
-                                Contact Support
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            const mainElement = document.querySelector('main');
-            mainElement.insertBefore(errorDiv, mainElement.firstChild.nextSibling);
-        }
 
         // ============ HELPER FUNCTIONS ============
+        function getAuthToken() {
+            try {
+                // Try main app session format first
+                const session = localStorage.getItem(STORAGE_KEYS.COGNITO_SESSION);
+                if (session) {
+                    const sessionData = JSON.parse(session);
+                    return sessionData.id_token || null;
+                }
+                
+                // Fallback to Cognito format
+                const clientId = COGNITO_CONFIG.clientId;
+                const lastAuthUser = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
+                if (lastAuthUser) {
+                    return localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.${lastAuthUser}.idToken`);
+                }
+                return null;
+            } catch (error) {
+                console.error('Failed to get auth token:', error);
+                return null;
+            }
+        }
+
         function formatDate(dateString) {
             if (!dateString) return 'N/A';
             try {
@@ -939,17 +515,17 @@
             const MAGENTA = [230, 0, 126];
             const GOLD = [212, 175, 55];
             const CHARCOAL = [46, 46, 46];
-            const BLUSH = [255, 240, 245];
             
             try {
-                // Header
-                doc.setFillColor(...BLUSH);
-                doc.rect(0, 0, doc.internal.pageSize.width, 45, 'F');
+                // Header with logo (if available)
+                doc.setFillColor(255, 240, 245);
+                doc.rect(0, 0, doc.internal.pageSize.width, 40, 'F');
                 
                 doc.setDrawColor(...MAGENTA);
                 doc.setLineWidth(0.5);
-                doc.line(14, 40, doc.internal.pageSize.width - 14, 40);
+                doc.line(14, 35, doc.internal.pageSize.width - 14, 35);
                 
+                // Title
                 doc.setFontSize(28);
                 doc.setTextColor(...MAGENTA);
                 doc.setFont('helvetica', 'bold');
@@ -958,34 +534,33 @@
                 doc.setFontSize(12);
                 doc.setTextColor(...CHARCOAL);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Order Confirmation & Receipt', 105, 48, { align: 'center' });
+                doc.text('Order Confirmation & Receipt', 105, 45, { align: 'center' });
                 
-                // Order Info
+                // Order Information
                 doc.setFillColor(255, 255, 255);
-                doc.roundedRect(14, 58, doc.internal.pageSize.width - 28, 40, 3, 3, 'F');
+                doc.roundedRect(14, 55, doc.internal.pageSize.width - 28, 40, 3, 3, 'F');
                 doc.setDrawColor(...MAGENTA);
-                doc.roundedRect(14, 58, doc.internal.pageSize.width - 28, 40, 3, 3, 'S');
+                doc.roundedRect(14, 55, doc.internal.pageSize.width - 28, 40, 3, 3, 'S');
                 
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(...CHARCOAL);
-                doc.text('ORDER DETAILS', 20, 68);
+                doc.text('ORDER DETAILS', 20, 65);
                 
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(100, 100, 100);
-                
-                doc.text(`Order ID: ${order.order_id || 'N/A'}`, 20, 78);
-                doc.text(`Date: ${formatDate(order.created_at)}`, 20, 86);
-                doc.text(`Status: ${order.status || 'Confirmed'}`, 20, 94);
+                doc.text(`Order ID: ${order.order_id || 'N/A'}`, 20, 75);
+                doc.text(`Date: ${formatDate(order.created_at)}`, 20, 82);
+                doc.text(`Status: ${order.status || 'Confirmed'}`, 20, 89);
                 
                 if (order.user_email) {
-                    doc.text(`Email: ${order.user_email}`, doc.internal.pageSize.width - 20, 78, { align: 'right' });
+                    doc.text(`Email: ${order.user_email}`, doc.internal.pageSize.width - 20, 75, { align: 'right' });
                 }
-                doc.text(`Total: ${formatCurrency(order.amount || 0)}`, doc.internal.pageSize.width - 20, 86, { align: 'right' });
                 
-                // Addresses
-                let yPos = 115;
+                // Two-column address layout
+                let yPos = 110;
                 
+                // Shipping Address
                 if (order.shipping_address) {
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(...MAGENTA);
@@ -993,7 +568,7 @@
                     
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(...CHARCOAL);
-                    const ship = order.shipping_address;
+                    const ship = order.shipping_address || {};
                     const shipLines = [
                         ship.fullName || '',
                         ship.streetAddress || '',
@@ -1007,6 +582,7 @@
                         shipY += 6;
                     });
                     
+                    // Billing Address
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(...MAGENTA);
                     doc.text('Billing Address', doc.internal.pageSize.width / 2 + 7, yPos);
@@ -1016,6 +592,7 @@
                     
                     let billY = yPos + 7;
                     
+                    // Check if billing is same as shipping
                     if (order.billing_address) {
                         const bill = order.billing_address;
                         const billLines = [
@@ -1025,14 +602,10 @@
                             `${bill.city || ''} ${bill.state || ''} ${bill.zipCode || ''}`.trim()
                         ].filter(Boolean);
                         
-                        if (billLines.length > 0) {
-                            billLines.forEach(line => {
-                                doc.text(line, doc.internal.pageSize.width / 2 + 7, billY);
-                                billY += 6;
-                            });
-                        } else {
-                            doc.text('Same as shipping address', doc.internal.pageSize.width / 2 + 7, billY);
-                        }
+                        billLines.forEach(line => {
+                            doc.text(line, doc.internal.pageSize.width / 2 + 7, billY);
+                            billY += 6;
+                        });
                     } else {
                         doc.text('Same as shipping address', doc.internal.pageSize.width / 2 + 7, billY);
                     }
@@ -1043,7 +616,7 @@
                 // Gift Note
                 if (order.gift_wrapping && order.gift_note) {
                     doc.setFillColor(255, 240, 245);
-                    doc.roundedRect(14, yPos, doc.internal.pageSize.width - 28, 22, 2, 2, 'F');
+                    doc.roundedRect(14, yPos, doc.internal.pageSize.width - 28, 20, 2, 2, 'F');
                     
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(...GOLD);
@@ -1052,43 +625,46 @@
                     doc.setFont('helvetica', 'italic');
                     doc.setTextColor(...CHARCOAL);
                     doc.setFontSize(9);
-                    const giftNote = order.gift_note.length > 70 
-                        ? order.gift_note.substring(0, 70) + '...' 
+                    const giftNote = order.gift_note.length > 80 
+                        ? order.gift_note.substring(0, 80) + '...' 
                         : order.gift_note;
-                    doc.text(`"${giftNote}"`, 20, yPos + 16);
+                    doc.text(`"${giftNote}"`, 20, yPos + 15);
                     
-                    yPos += 32;
+                    yPos += 30;
                 } else {
                     yPos += 10;
                 }
                 
-                // Items Table
+                // Order Items Table
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(...MAGENTA);
-                doc.setFontSize(12);
-                doc.text('Items Ordered', 14, yPos);
+                doc.setFontSize(11);
+                doc.text('Order Summary', 14, yPos);
                 
                 const tableData = [];
                 let subtotal = 0;
                 
+                // Add items with thumbnails represented as icons
                 if (order.items && Array.isArray(order.items)) {
                     order.items.forEach(item => {
                         if (!item.isGiftWrapping) {
                             const price = parseFloat(item.original_price || item.final_price || item.price || 0);
                             subtotal += price;
                             
-                            const productType = item.product_type || 'Phone Case';
-                            const device = item.device || 'Custom Device';
+                            // Determine item name and details
+                            const itemName = item.palette_name || item.name || 'Phone Case';
+                            const itemDetails = item.device || 'Custom Device';
                             
                             tableData.push([
-                                productType,
-                                device,
+                                itemName,
+                                itemDetails,
                                 `$${price.toFixed(2)}`
                             ]);
                         }
                     });
                 }
                 
+                // Add gift wrapping as item
                 if (order.gift_wrapping) {
                     subtotal += 30;
                     tableData.push([
@@ -1098,14 +674,16 @@
                     ]);
                 }
                 
+                // Calculate totals
                 const discount = parseFloat(order.discount_amount || 0);
                 const shipping = parseFloat(order.shipping_cost || 8.90);
                 const tax = parseFloat(order.tax_amount || 0);
                 const total = parseFloat(order.amount || (subtotal - discount + shipping + tax));
                 
+                // Generate table
                 doc.autoTable({
                     startY: yPos + 8,
-                    head: [['Product', 'Details', 'Price']],
+                    head: [['Item', 'Details', 'Price']],
                     body: tableData,
                     foot: [
                         ['Subtotal', '', `$${subtotal.toFixed(2)}`],
@@ -1119,13 +697,12 @@
                         fillColor: MAGENTA,
                         textColor: [255, 255, 255],
                         fontStyle: 'bold',
-                        halign: 'left',
-                        fontSize: 10
+                        halign: 'left'
                     },
                     footStyles: [
-                        { fillColor: [255, 255, 255], textColor: CHARCOAL, fontStyle: 'bold', halign: 'left', fontSize: 9 },
-                        { fillColor: [255, 255, 255], textColor: CHARCOAL, fontStyle: 'bold', halign: 'left', fontSize: 9 },
-                        { fillColor: [255, 255, 255], textColor: CHARCOAL, fontStyle: 'bold', halign: 'right', fontSize: 9 }
+                        { fillColor: [255, 255, 255], textColor: CHARCOAL, fontStyle: 'bold', halign: 'left' },
+                        { fillColor: [255, 255, 255], textColor: CHARCOAL, fontStyle: 'bold', halign: 'left' },
+                        { fillColor: [255, 255, 255], textColor: CHARCOAL, fontStyle: 'bold', halign: 'right' }
                     ],
                     columnStyles: {
                         0: { cellWidth: 70 },
@@ -1133,35 +710,290 @@
                         2: { cellWidth: 30, halign: 'right' }
                     },
                     margin: { left: 14, right: 14 },
-                    styles: { fontSize: 9, cellPadding: 4 },
-                    alternateRowStyles: { fillColor: [255, 240, 245] }
+                    styles: { fontSize: 9, cellPadding: 3 }
                 });
                 
+                // Thank You Message
                 const finalY = doc.lastAutoTable.finalY + 15;
                 
                 doc.setFillColor(...GOLD);
-                doc.roundedRect(14, finalY, doc.internal.pageSize.width - 28, 22, 3, 3, 'F');
+                doc.roundedRect(14, finalY, doc.internal.pageSize.width - 28, 20, 3, 3, 'F');
                 
                 doc.setFontSize(11);
                 doc.setTextColor(255, 255, 255);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Thank You for Your Bloom!', 105, finalY + 9, { align: 'center' });
+                doc.text('Thank You for Your Bloom!', 105, finalY + 8, { align: 'center' });
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Your custom art will bloom soon.', 105, finalY + 16, { align: 'center' });
+                doc.text('Your custom art will bloom soon.', 105, finalY + 15, { align: 'center' });
                 
+                // Footer
                 const footerY = doc.internal.pageSize.height - 15;
                 doc.setFontSize(8);
                 doc.setTextColor(150, 150, 150);
                 doc.text('GOLDEN GATE BLOOMS LLC • 3400 COTTAGE WAY, STE G2 • SACRAMENTO, CA 95825', 105, footerY, { align: 'center' });
                 
+                // Save PDF
                 doc.save(`Bloom_Receipt_${order.order_id || 'order'}.pdf`);
                 showToast('Receipt downloaded successfully');
                 
             } catch (error) {
                 console.error('PDF generation error:', error);
-                showToast('Error generating PDF. Please try again.', 'error');
+                generateSimplePDF(order);
             }
+        }
+
+        function generateSimplePDF(order) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(22);
+            doc.setTextColor(230, 0, 126);
+            doc.text('BLOOM', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Order Receipt', 105, 30, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.text(`Order ID: ${order.order_id || 'N/A'}`, 14, 50);
+            doc.text(`Date: ${formatDate(order.created_at)}`, 14, 60);
+            doc.text(`Email: ${order.user_email || 'N/A'}`, 14, 70);
+            doc.text(`Total: ${formatCurrency(order.amount || 0)}`, 14, 80);
+            
+            doc.save(`Bloom_Receipt_${order.order_id || 'order'}.pdf`);
+            showToast('Receipt downloaded successfully');
+        }
+
+        // ============ API FUNCTIONS ============
+        async function fetchOrderDetails(orderId) {
+            const token = getAuthToken();
+            
+            console.log(`Fetching order details for: ${orderId}`);
+            console.log(`Authentication status: ${token ? 'Authenticated' : 'Guest'}`);
+            
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            try {
+                const response = await fetch(ORDERS_API_ENDPOINT, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({
+                        action: 'getOrderDetails',
+                        order_id: orderId
+                    }),
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('This order belongs to a different account. Please sign in with the correct email.');
+                    }
+                    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    throw new Error(error.error || `Failed to fetch order (${response.status})`);
+                }
+
+                const data = await response.json();
+                return data.order || data;
+                
+            } catch (error) {
+                console.error('API call failed:', error);
+                throw error;
+            }
+        }
+
+        // ============ UI FUNCTIONS ============
+        function displayOrderDetails(order) {
+            // Hide loading, show order details
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('order-details-section').style.display = 'block';
+            
+            // Show user email in header if authenticated and matches
+            const token = getAuthToken();
+            if (token && order.user_email) {
+                const userEmailDisplay = document.getElementById('user-email-display');
+                userEmailDisplay.textContent = `${order.user_email.split('@')[0]}`;
+                userEmailDisplay.classList.remove('hidden');
+            }
+            
+            // Populate basic data
+            document.getElementById('order-id').textContent = order.order_id || 'N/A';
+            document.getElementById('customer-email').textContent = order.user_email || 'N/A';
+            document.getElementById('order-total').textContent = formatCurrency(order.amount || 0);
+            document.getElementById('order-status').innerHTML = `
+                <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                ${order.status || 'Payment Confirmed'}
+            `;
+            document.getElementById('order-date').textContent = formatDate(order.created_at);
+            
+            // Show shipping address
+            if (order.shipping_address) {
+                document.getElementById('shipping-address-section').style.display = 'block';
+                const ship = order.shipping_address;
+                const addressHtml = `
+                    <strong>${ship.fullName || ''}</strong><br>
+                    ${ship.streetAddress || ''}${ship.address2 ? '<br>' + ship.address2 : ''}<br>
+                    ${ship.city || ''} ${ship.state || ''} ${ship.zipCode || ''}
+                `;
+                document.getElementById('shipping-address').innerHTML = addressHtml;
+            }
+            
+            // Show billing address
+            if (order.billing_address) {
+                document.getElementById('billing-address-section').style.display = 'block';
+                const bill = order.billing_address;
+                
+                // Check if billing matches shipping
+                const isSameAsShipping = JSON.stringify(order.billing_address) === JSON.stringify(order.shipping_address);
+                
+                if (isSameAsShipping) {
+                    document.getElementById('billing-address').innerHTML = `
+                        <strong>${bill.fullName || ''}</strong><br>
+                        ${bill.streetAddress || ''}${bill.address2 ? '<br>' + bill.address2 : ''}<br>
+                        ${bill.city || ''} ${bill.state || ''} ${bill.zipCode || ''}
+                    `;
+                    document.getElementById('billing-same-as-shipping').style.display = 'block';
+                } else {
+                    document.getElementById('billing-address').innerHTML = `
+                        <strong>${bill.fullName || ''}</strong><br>
+                        ${bill.streetAddress || ''}${bill.address2 ? '<br>' + bill.address2 : ''}<br>
+                        ${bill.city || ''} ${bill.state || ''} ${bill.zipCode || ''}
+                    `;
+                }
+            }
+            
+            // Show gift note
+            if (order.gift_wrapping && order.gift_note) {
+                document.getElementById('gift-note-section').style.display = 'block';
+                document.getElementById('gift-note').innerHTML = `"${order.gift_note}"`;
+            }
+            
+            // Populate order items with thumbnails
+            const itemsContainer = document.getElementById('order-items-list');
+            if (itemsContainer && order.items && Array.isArray(order.items)) {
+                itemsContainer.innerHTML = '';
+                
+                // Calculate subtotal from items
+                let calculatedSubtotal = 0;
+                
+                order.items.forEach(item => {
+                    if (!item.isGiftWrapping) {
+                        const price = parseFloat(item.original_price || item.final_price || item.price || 0);
+                        calculatedSubtotal += price;
+                        
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'order-item flex items-center gap-4';
+                        
+                        // Use thumbnail if available, otherwise show placeholder
+                        const thumbnailUrl = item.image_url || item.thumbnail;
+                        
+                        itemDiv.innerHTML = `
+                            <div class="flex-shrink-0">
+                                ${thumbnailUrl && thumbnailUrl.startsWith('http') 
+                                    ? `<img src="${thumbnailUrl}" alt="${item.palette_name || 'Product'}" class="product-thumbnail">`
+                                    : `<div class="product-thumbnail bg-gradient-to-br from-pink-200 to-purple-200 flex items-center justify-center text-2xl">
+                                        🌸
+                                       </div>`
+                                }
+                            </div>
+                            <div class="flex-grow">
+                                <p class="font-medium">${item.palette_name || item.name || 'Phone Case'}</p>
+                                <p class="text-xs text-gray-500">${item.device || 'Custom Device'}</p>
+                                ${item.product_type ? `<p class="text-xs text-gray-400">${item.product_type}</p>` : ''}
+                            </div>
+                            <span class="font-semibold">${formatCurrency(price)}</span>
+                        `;
+                        itemsContainer.appendChild(itemDiv);
+                    }
+                });
+                
+                // Add gift wrapping as item
+                if (order.gift_wrapping) {
+                    calculatedSubtotal += 30;
+                    const giftDiv = document.createElement('div');
+                    giftDiv.className = 'order-item flex items-center gap-4';
+                    giftDiv.innerHTML = `
+                        <div class="flex-shrink-0">
+                            <div class="gift-icon">🎁</div>
+                        </div>
+                        <div class="flex-grow">
+                            <p class="font-medium">Gift Wrapping</p>
+                            <p class="text-xs text-gray-500">Premium gift wrap</p>
+                        </div>
+                        <span class="font-semibold">$30.00</span>
+                    `;
+                    itemsContainer.appendChild(giftDiv);
+                }
+                
+                // Update subtotal display with calculated value
+                document.getElementById('order-subtotal').textContent = formatCurrency(calculatedSubtotal);
+            }
+            
+            // Get discount
+            const discount = parseFloat(order.discount_amount || 0);
+            const shipping = parseFloat(order.shipping_cost || 8.90);
+            const tax = parseFloat(order.tax_amount || 0);
+            const total = parseFloat(order.amount || 0);
+            
+            // Update summary with stored values
+            if (discount > 0) {
+                document.getElementById('discount-row').style.display = 'flex';
+                document.getElementById('order-discount').textContent = `-${formatCurrency(discount)}`;
+            }
+            
+            document.getElementById('order-shipping').textContent = formatCurrency(shipping);
+            document.getElementById('order-tax').textContent = formatCurrency(tax);
+            document.getElementById('order-total-summary').textContent = formatCurrency(total);
+            
+            // Setup PDF download button
+            const downloadBtn = document.getElementById('download-receipt-btn');
+            if (downloadBtn) {
+                downloadBtn.onclick = () => generatePDF(order);
+            }
+        }
+
+        function displayError(message) {
+            document.getElementById('loading-state').style.display = 'none';
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message max-w-2xl mx-auto mb-8';
+            
+            const isAuthError = message.toLowerCase().includes('unauthorized') || 
+                               message.toLowerCase().includes('different account') ||
+                               message.toLowerCase().includes('sign in');
+            
+            errorDiv.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">⚠️</span>
+                    <div class="text-left">
+                        <p class="font-bold">Unable to load order details</p>
+                        <p class="text-sm mt-1">${message}</p>
+                        <div class="mt-3 flex gap-3">
+                            ${isAuthError ? 
+                                `<button onclick="window.location.reload()" 
+                                        class="text-sm px-4 py-2 bg-magenta text-white rounded-full hover:bg-opacity-90">
+                                    Try Again
+                                </button>` : 
+                                ''
+                            }
+                            <a href="mailto:bloom@theweer.com" 
+                               class="text-sm px-4 py-2 border border-magenta text-magenta rounded-full hover:bg-magenta hover:text-white transition-all">
+                                Contact Support
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const mainElement = document.querySelector('main');
+            mainElement.insertBefore(errorDiv, mainElement.firstChild.nextSibling);
         }
 
         // ============ CONFETTI ============
@@ -1177,6 +1009,7 @@
                     confetti.style.width = Math.random() * 10 + 5 + 'px';
                     confetti.style.height = confetti.style.width;
                     document.body.appendChild(confetti);
+                    
                     setTimeout(() => confetti.remove(), 3000);
                 }, i * 20);
             }
@@ -1187,10 +1020,6 @@
             console.log('🚀 Success page initializing...');
             
             createConfetti();
-            
-            // Initialize auth and update UI
-            await authManager.initialize();
-            updateAuthUI();
             
             const urlParams = new URLSearchParams(window.location.search);
             const orderId = urlParams.get('order_id');
@@ -1216,13 +1045,6 @@
             
             console.log(`🔍 Loading order details for: ${orderId}`);
             
-            // Check if authenticated
-            const isAuth = await authManager.isAuthenticated();
-            if (!isAuth) {
-                displayError('Please sign in to view your order details.');
-                return;
-            }
-            
             try {
                 const order = await fetchOrderDetails(orderId);
                 displayOrderDetails(order);
@@ -1231,6 +1053,10 @@
                 console.error('❌ Failed to load order:', error);
                 displayError(error.message);
             }
+        });
+
+        window.addEventListener('error', function(e) {
+            console.error('💥 Page error:', e.error || e.message);
         });
     </script>
 </body>
