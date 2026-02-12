@@ -282,27 +282,15 @@
             }
 
             async getAuthToken() {
-                // Try multiple ways to get the token, just like the main app
                 try {
-                    // Method 1: Check if we're in the main app context
-                    if (window.app && window.app.authManager) {
-                        const session = window.app.authManager.getSession();
-                        return session?.id_token || null;
-                    }
+                    // CONFIG is already loaded from the duplicate at bottom
+                    const clientId = CONFIG.COGNITO.CLIENT_ID;
                     
-                    // Method 2: Check for global getSession (from app.js)
-                    if (typeof window.getSession === 'function') {
-                        const session = window.getSession();
-                        return session?.id_token || null;
+                    const lastAuthUser = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
+                    if (lastAuthUser) {
+                        const idToken = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.${lastAuthUser}.idToken`);
+                        return idToken || null;
                     }
-                    
-                    // Method 3: Check localStorage directly (Cognito typically stores tokens here)
-                    const cognitoUser = JSON.parse(localStorage.getItem(`CognitoIdentityServiceProvider.${CONFIG.COGNITO.CLIENT_ID}.LastAuthUser`) || 'null');
-                    if (cognitoUser) {
-                        const idToken = localStorage.getItem(`CognitoIdentityServiceProvider.${CONFIG.COGNITO.CLIENT_ID}.${cognitoUser}.idToken`);
-                        if (idToken) return idToken;
-                    }
-                    
                     return null;
                 } catch (error) {
                     console.error('Failed to get auth token:', error);
