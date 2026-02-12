@@ -19,21 +19,16 @@
         
         .bg-magenta { background-color: var(--color-magenta); }
         .bg-gold { background-color: var(--color-gold); }
-        .bg-gray-300 { background-color: var(--color-gray-300); }
-        .text-white { color: white; }
-        .text-gray-600 { color: var(--color-gray-600); }
-        .border-magenta { border-color: var(--color-magenta); }
-        .border-gold { border-color: var(--color-gold); }
-        .border-gray-300 { border-color: var(--color-gray-300); }
         .text-magenta { color: var(--color-magenta); }
         .text-gold { color: var(--color-gold); }
-        .font-semibold { font-weight: 600; }
+        .border-magenta { border-color: var(--color-magenta); }
+        .border-gold { border-color: var(--color-gold); }
 
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Manrope:wght@400;600&display=swap');
         
         body {
             font-family: 'Manrope', sans-serif;
-            background-color: var(--color-blush-end);
+            background: linear-gradient(135deg, var(--color-blush-start) 0%, var(--color-blush-end) 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -41,6 +36,7 @@
             padding: 20px;
             color: var(--color-charcoal);
         }
+        
         .container {
             width: 100%;
             max-width: 960px;
@@ -49,13 +45,12 @@
             border-radius: 18px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
         }
-        .header {
-            border-bottom: 1px solid var(--color-blush-start);
-        }
+        
         h1, h2, h3, .poetic-title {
             font-family: 'Cormorant Garamond', serif;
             letter-spacing: 0.05em;
         }
+        
         .poetic-title {
             font-size: 2.5rem;
             font-weight: 600;
@@ -63,41 +58,51 @@
             margin-bottom: 1.5rem;
             text-align: center;
         }
+        
         .cta-magenta {
             background-color: var(--color-magenta);
             color: white;
-            transition: background-color 0.3s, box-shadow 0.3s;
+            transition: all 0.3s;
         }
         .cta-magenta:hover {
-            background-color: #C00063; 
+            background-color: #C00063;
             box-shadow: 0 4px 10px rgba(230, 0, 126, 0.4);
+            transform: translateY(-2px);
         }
+        
         .cta-gold {
             background-color: var(--color-gold);
             color: var(--color-charcoal);
-            transition: background-color 0.3s, box-shadow 0.3s;
+            transition: all 0.3s;
         }
         .cta-gold:hover {
             background-color: #C09A34;
             box-shadow: 0 4px 10px rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
         }
+        
         .section-background {
-            background: linear-gradient(135deg, var(--color-blush-start) 0%, var(--color-blush-end) 100%);
+            background: linear-gradient(135deg, rgba(255, 208, 230, 0.1) 0%, rgba(255, 247, 251, 0.1) 100%);
             padding: 20px;
             border-radius: 12px;
+            border: 1px solid rgba(230, 0, 126, 0.1);
         }
+        
         .gold-highlight {
             color: var(--color-gold);
             font-weight: 600;
         }
+        
         .success-animation {
             animation: bloom 1s ease-out;
         }
+        
         @keyframes bloom {
             0% { transform: scale(0.8); opacity: 0; }
             50% { transform: scale(1.1); }
             100% { transform: scale(1); opacity: 1; }
         }
+        
         .confetti {
             position: fixed;
             width: 10px;
@@ -105,11 +110,14 @@
             background: var(--color-magenta);
             opacity: 0;
             animation: confetti-fall 3s ease-in-out forwards;
+            pointer-events: none;
         }
+        
         @keyframes confetti-fall {
             0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
             100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
         }
+        
         .error-message {
             background-color: #fee2e2;
             border: 1px solid #ef4444;
@@ -118,6 +126,7 @@
             border-radius: 0.5rem;
             margin-bottom: 1rem;
         }
+        
         .loading-spinner {
             border: 3px solid rgba(230, 0, 126, 0.1);
             border-radius: 50%;
@@ -127,10 +136,12 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 1rem;
         }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
         .order-item {
             border-bottom: 1px solid rgba(230, 0, 126, 0.1);
             padding: 12px 0;
@@ -138,6 +149,7 @@
         .order-item:last-child {
             border-bottom: none;
         }
+        
         .toast {
             position: fixed;
             bottom: 20px;
@@ -150,15 +162,43 @@
             animation: slideIn 0.3s ease;
             z-index: 1000;
         }
+        
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        
         .auth-badge {
             background-color: rgba(212, 175, 55, 0.1);
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.75rem;
+        }
+        
+        .product-thumbnail {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid rgba(230, 0, 126, 0.2);
+        }
+        
+        .gift-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .address-box {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(230, 0, 126, 0.1);
         }
     </style>
     
@@ -168,7 +208,7 @@
 </head>
 <body>
     <div class="container">
-        <header class="header flex justify-between items-center pb-4 mb-6">
+        <header class="header flex justify-between items-center pb-4 mb-6 border-b border-gray-200">
             <img src="logo.png" alt="Bloom" class="h-12 w-auto">
             <div id="user-email-display" class="text-sm text-gray-600 auth-badge hidden"></div>
         </header>
@@ -191,139 +231,173 @@
             </div>
 
             <!-- Loading State -->
-            <div id="loading-state" class="section-background max-w-2xl mx-auto mb-8">
+            <div id="loading-state" class="section-background max-w-2xl mx-auto mb-8 p-8">
                 <div class="loading-spinner"></div>
                 <p class="text-gray-600">Loading your order details...</p>
             </div>
 
             <!-- Order Details Section -->
-            <div id="order-details-section" class="section-background max-w-2xl mx-auto mb-8" style="display: none;">
-                <h3 class="text-2xl font-semibold mb-4">Order Confirmation</h3>
-                
-                <!-- Order Header -->
-                <div class="text-left space-y-3 mb-6">
-                    <div class="flex justify-between">
-                        <span class="font-semibold">Order ID:</span>
-                        <span id="order-id" class="gold-highlight font-mono text-sm">Loading...</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="font-semibold">Email:</span>
-                        <span id="customer-email">Loading...</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="font-semibold">Total:</span>
-                        <span id="order-total" class="gold-highlight text-lg">Loading...</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="font-semibold">Status:</span>
-                        <span id="order-status" class="text-green-600 font-semibold flex items-center gap-1">
-                            <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
-                            Payment Confirmed
-                        </span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="font-semibold">Date:</span>
-                        <span id="order-date">Loading...</span>
+            <div id="order-details-section" class="max-w-3xl mx-auto mb-8" style="display: none;">
+                <!-- Order Header Card -->
+                <div class="section-background p-6 mb-6">
+                    <h3 class="text-2xl font-semibold mb-4 text-magenta">Order Confirmation</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                        <div>
+                            <div class="flex justify-between py-2 border-b border-gray-100">
+                                <span class="font-semibold text-gray-600">Order ID:</span>
+                                <span id="order-id" class="gold-highlight font-mono text-sm">Loading...</span>
+                            </div>
+                            <div class="flex justify-between py-2 border-b border-gray-100">
+                                <span class="font-semibold text-gray-600">Email:</span>
+                                <span id="customer-email">Loading...</span>
+                            </div>
+                            <div class="flex justify-between py-2 border-b border-gray-100">
+                                <span class="font-semibold text-gray-600">Date:</span>
+                                <span id="order-date">Loading...</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between py-2 border-b border-gray-100">
+                                <span class="font-semibold text-gray-600">Status:</span>
+                                <span id="order-status" class="text-green-600 font-semibold flex items-center gap-1">
+                                    <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                                    Payment Confirmed
+                                </span>
+                            </div>
+                            <div class="flex justify-between py-2 border-b border-gray-100">
+                                <span class="font-semibold text-gray-600">Total:</span>
+                                <span id="order-total" class="text-magenta font-bold text-lg">Loading...</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Shipping Address -->
-                <div id="shipping-address-section" class="mb-6 border-t border-gray-200 pt-4" style="display: none;">
-                    <h4 class="font-semibold text-left mb-3 text-magenta">Shipping Address</h4>
-                    <div id="shipping-address" class="text-left text-sm text-gray-600">
+                <!-- Two Column Address Layout -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Shipping Address -->
+                    <div id="shipping-address-section" class="section-background p-6" style="display: none;">
+                        <h4 class="font-semibold text-left mb-3 text-magenta flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                            Shipping Address
+                        </h4>
+                        <div id="shipping-address" class="text-left text-sm text-gray-600 address-box">
+                        </div>
+                    </div>
+
+                    <!-- Billing Address -->
+                    <div id="billing-address-section" class="section-background p-6" style="display: none;">
+                        <h4 class="font-semibold text-left mb-3 text-magenta flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                            </svg>
+                            Billing Address
+                        </h4>
+                        <div id="billing-address" class="text-left text-sm text-gray-600 address-box">
+                        </div>
+                        <div id="billing-same-as-shipping" class="text-left text-xs text-gray-500 mt-2 italic" style="display: none;">
+                            Same as shipping address
+                        </div>
                     </div>
                 </div>
 
                 <!-- Gift Note Section -->
-                <div id="gift-note-section" class="mb-6 border-t border-gray-200 pt-4" style="display: none;">
+                <div id="gift-note-section" class="section-background p-6 mb-6 border-2 border-gold" style="display: none;">
                     <h4 class="font-semibold text-left mb-3 text-gold flex items-center gap-2">
-                        <span>🎁</span> Gift Message
+                        <span class="text-2xl">🎁</span> Gift Message
                     </h4>
-                    <div id="gift-note" class="text-left text-sm italic bg-white/50 p-3 rounded-lg">
+                    <div id="gift-note" class="text-left text-base italic bg-white/50 p-4 rounded-lg border border-gold/30">
                     </div>
                 </div>
 
                 <!-- Items Ordered Section -->
-                <div id="order-items-section" class="mb-6 border-t border-gray-200 pt-4">
-                    <h4 class="font-semibold text-left mb-3 text-magenta">Items Ordered</h4>
-                    <div id="order-items-list" class="text-left">
+                <div id="order-items-section" class="section-background p-6 mb-6">
+                    <h4 class="font-semibold text-left mb-4 text-magenta flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                        Items Ordered
+                    </h4>
+                    <div id="order-items-list" class="text-left space-y-3">
                         <!-- Items will be populated here -->
                     </div>
                 </div>
 
                 <!-- Order Summary -->
-                <div id="order-summary-section" class="mb-6 border-t border-gray-200 pt-4">
-                    <h4 class="font-semibold text-left mb-3 text-magenta">Order Summary</h4>
+                <div id="order-summary-section" class="section-background p-6 mb-6">
+                    <h4 class="font-semibold text-left mb-4 text-magenta">Order Summary</h4>
                     <div class="text-left space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span>Subtotal</span>
-                            <span id="order-subtotal">$0.00</span>
+                        <div class="flex justify-between py-2">
+                            <span class="text-gray-600">Subtotal</span>
+                            <span id="order-subtotal" class="font-medium">$0.00</span>
                         </div>
-                        <div id="discount-row" class="flex justify-between text-green-600" style="display: none;">
+                        <div id="discount-row" class="flex justify-between py-2 text-green-600" style="display: none;">
                             <span>Discount</span>
                             <span id="order-discount">-$0.00</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span>Shipping</span>
-                            <span id="order-shipping">$8.90</span>
+                        <div class="flex justify-between py-2">
+                            <span class="text-gray-600">Shipping</span>
+                            <span id="order-shipping" class="font-medium">$8.90</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span>Tax</span>
-                            <span id="order-tax">$0.00</span>
+                        <div class="flex justify-between py-2">
+                            <span class="text-gray-600">Tax</span>
+                            <span id="order-tax" class="font-medium">$0.00</span>
                         </div>
-                        <div class="flex justify-between font-bold text-base border-t border-gray-200 pt-2 mt-2">
-                            <span>Total</span>
-                            <span id="order-total-summary" class="text-magenta">$0.00</span>
+                        <div class="flex justify-between py-3 border-t border-gray-200 mt-2">
+                            <span class="font-bold text-gray-800">Total</span>
+                            <span id="order-total-summary" class="font-bold text-magenta text-lg">$0.00</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Download Button -->
-                <div class="border-t border-gray-200 pt-6">
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-6">
                     <button id="download-receipt-btn" 
-                            class="cta-gold px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all w-full sm:w-auto flex items-center justify-center gap-3 mx-auto">
+                            class="cta-gold px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
                         Download Receipt (PDF)
                     </button>
-                    <p class="text-sm text-gray-600 mt-4">✨ A confirmation email has been sent to your inbox.</p>
+                    <p class="text-sm text-gray-600">✨ A confirmation email has been sent to your inbox.</p>
                 </div>
             </div>
 
             <!-- Next Steps -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto">
-                <div class="section-background p-6">
-                    <div class="text-3xl mb-3">📦</div>
-                    <h4 class="font-semibold mb-2">Production</h4>
+                <div class="section-background p-6 hover:shadow-lg transition-all">
+                    <div class="text-4xl mb-3">📦</div>
+                    <h4 class="font-semibold mb-2 text-magenta">Production</h4>
                     <p class="text-sm text-gray-600">Your custom bloom begins production very soon.</p>
                     <div class="mt-3 text-xs text-gray-500">
                         <span class="font-medium">Estimated:</span> 3-5 business days
                     </div>
                 </div>
                 
-                <div class="section-background p-6">
-                    <div class="text-3xl mb-3">💌</div>
-                    <h4 class="font-semibold mb-2">Updates</h4>
+                <div class="section-background p-6 hover:shadow-lg transition-all">
+                    <div class="text-4xl mb-3">💌</div>
+                    <h4 class="font-semibold mb-2 text-magenta">Updates</h4>
                     <p class="text-sm text-gray-600">We'll email you at every step of the journey.</p>
                 </div>
             </div>
 
             <!-- Action Buttons -->
-            <div id="action-buttons" class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
                 <a href="https://www.theweer.com/case.html" 
-                   class="cta-magenta px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all">
+                   class="cta-magenta px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
                     Create Another Bloom
                 </a>
                 <a href="https://www.theweer.com/track" 
-                   class="cta-gold px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all">
+                   class="cta-gold px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
                     Track Order
                 </a>
             </div>
 
             <!-- Thank You Message -->
-            <div class="section-background max-w-2xl mx-auto">
-                <h3 class="text-xl font-semibold mb-3">Thank You for Choosing TheWeer.com</h3>
+            <div class="section-background max-w-2xl mx-auto p-6 border border-gold/30">
+                <h3 class="text-xl font-semibold mb-3 text-magenta">Thank You for Choosing TheWeer.com</h3>
                 <p class="text-gray-600 mb-2">
                     Your support helps us continue creating magical, personalized art for our community.
                 </p>
@@ -368,9 +442,7 @@
         // ============ CONFIGURATION ============
         const COGNITO_CONFIG = {
             clientId: '73lf1h32phkqeb9ahu6tqcl9av',
-            domain: 'auth.theweer.com',
-            redirectUri: window.location.origin + window.location.pathname,
-            tokenEndpoint: `https://auth.theweer.com/oauth2/token`
+            domain: 'auth.theweer.com'
         };
 
         const ORDERS_API_ENDPOINT = 'https://x9a46lous3.execute-api.us-east-1.amazonaws.com/prod/prod';
@@ -440,13 +512,12 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Brand Colors
             const MAGENTA = [230, 0, 126];
             const GOLD = [212, 175, 55];
             const CHARCOAL = [46, 46, 46];
             
             try {
-                // Header with decorative line
+                // Header with logo (if available)
                 doc.setFillColor(255, 240, 245);
                 doc.rect(0, 0, doc.internal.pageSize.width, 40, 'F');
                 
@@ -465,15 +536,15 @@
                 doc.setFont('helvetica', 'normal');
                 doc.text('Order Confirmation & Receipt', 105, 45, { align: 'center' });
                 
-                // Order Information Box
+                // Order Information
                 doc.setFillColor(255, 255, 255);
                 doc.roundedRect(14, 55, doc.internal.pageSize.width - 28, 40, 3, 3, 'F');
                 doc.setDrawColor(...MAGENTA);
                 doc.roundedRect(14, 55, doc.internal.pageSize.width - 28, 40, 3, 3, 'S');
                 
-                doc.setTextColor(...CHARCOAL);
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
+                doc.setTextColor(...CHARCOAL);
                 doc.text('ORDER DETAILS', 20, 65);
                 
                 doc.setFont('helvetica', 'normal');
@@ -486,9 +557,10 @@
                     doc.text(`Email: ${order.user_email}`, doc.internal.pageSize.width - 20, 75, { align: 'right' });
                 }
                 
-                // Shipping Address
-                let yPos = 115;
+                // Two-column address layout
+                let yPos = 110;
                 
+                // Shipping Address
                 if (order.shipping_address) {
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(...MAGENTA);
@@ -497,23 +569,51 @@
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(...CHARCOAL);
                     const ship = order.shipping_address || {};
-                    const addressLines = [
+                    const shipLines = [
                         ship.fullName || '',
                         ship.streetAddress || '',
                         ship.address2 || '',
                         `${ship.city || ''} ${ship.state || ''} ${ship.zipCode || ''}`.trim()
                     ].filter(Boolean);
                     
-                    yPos += 7;
-                    addressLines.forEach(line => {
-                        doc.text(line, 14, yPos);
-                        yPos += 6;
+                    let shipY = yPos + 7;
+                    shipLines.forEach(line => {
+                        doc.text(line, 14, shipY);
+                        shipY += 6;
                     });
                     
-                    yPos += 10;
+                    // Billing Address
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(...MAGENTA);
+                    doc.text('Billing Address', doc.internal.pageSize.width / 2 + 7, yPos);
+                    
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(...CHARCOAL);
+                    
+                    let billY = yPos + 7;
+                    
+                    // Check if billing is same as shipping
+                    if (order.billing_address) {
+                        const bill = order.billing_address;
+                        const billLines = [
+                            bill.fullName || '',
+                            bill.streetAddress || '',
+                            bill.address2 || '',
+                            `${bill.city || ''} ${bill.state || ''} ${bill.zipCode || ''}`.trim()
+                        ].filter(Boolean);
+                        
+                        billLines.forEach(line => {
+                            doc.text(line, doc.internal.pageSize.width / 2 + 7, billY);
+                            billY += 6;
+                        });
+                    } else {
+                        doc.text('Same as shipping address', doc.internal.pageSize.width / 2 + 7, billY);
+                    }
+                    
+                    yPos = Math.max(shipY, billY) + 10;
                 }
                 
-                // Gift Note (if present)
+                // Gift Note
                 if (order.gift_wrapping && order.gift_note) {
                     doc.setFillColor(255, 240, 245);
                     doc.roundedRect(14, yPos, doc.internal.pageSize.width - 28, 20, 2, 2, 'F');
@@ -535,7 +635,7 @@
                     yPos += 10;
                 }
                 
-                // Order Items
+                // Order Items Table
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(...MAGENTA);
                 doc.setFontSize(11);
@@ -544,22 +644,27 @@
                 const tableData = [];
                 let subtotal = 0;
                 
-                // Add items
+                // Add items with thumbnails represented as icons
                 if (order.items && Array.isArray(order.items)) {
                     order.items.forEach(item => {
                         if (!item.isGiftWrapping) {
-                            const price = parseFloat(item.price) || 0;
+                            const price = parseFloat(item.original_price || item.final_price || item.price || 0);
                             subtotal += price;
+                            
+                            // Determine item name and details
+                            const itemName = item.palette_name || item.name || 'Phone Case';
+                            const itemDetails = item.device || 'Custom Device';
+                            
                             tableData.push([
-                                item.name || 'Phone Case',
-                                item.device || 'Custom Device',
+                                itemName,
+                                itemDetails,
                                 `$${price.toFixed(2)}`
                             ]);
                         }
                     });
                 }
                 
-                // Add gift wrapping
+                // Add gift wrapping as item
                 if (order.gift_wrapping) {
                     subtotal += 30;
                     tableData.push([
@@ -570,10 +675,10 @@
                 }
                 
                 // Calculate totals
-                const discount = parseFloat(order.discount_amount) || 0;
-                const shipping = parseFloat(order.shipping_cost) || 8.90;
-                const tax = parseFloat(order.tax_amount) || 0;
-                const total = parseFloat(order.amount) || (subtotal - discount + shipping + tax);
+                const discount = parseFloat(order.discount_amount || 0);
+                const shipping = parseFloat(order.shipping_cost || 8.90);
+                const tax = parseFloat(order.tax_amount || 0);
+                const total = parseFloat(order.amount || (subtotal - discount + shipping + tax));
                 
                 // Generate table
                 doc.autoTable({
@@ -671,7 +776,6 @@
                 'Content-Type': 'application/json'
             };
             
-            // Add Authorization header ONLY if we have a token
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
@@ -683,16 +787,22 @@
                     body: JSON.stringify({
                         action: 'getOrderDetails',
                         order_id: orderId
-                    })
+                    }),
+                    mode: 'cors',
+                    credentials: 'omit'
                 });
 
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('This order belongs to a different account. Please sign in with the correct email.');
+                    }
                     const error = await response.json().catch(() => ({ error: 'Unknown error' }));
                     throw new Error(error.error || `Failed to fetch order (${response.status})`);
                 }
 
                 const data = await response.json();
                 return data.order || data;
+                
             } catch (error) {
                 console.error('API call failed:', error);
                 throw error;
@@ -705,7 +815,7 @@
             document.getElementById('loading-state').style.display = 'none';
             document.getElementById('order-details-section').style.display = 'block';
             
-            // Show user email in header if authenticated
+            // Show user email in header if authenticated and matches
             const token = getAuthToken();
             if (token && order.user_email) {
                 const userEmailDisplay = document.getElementById('user-email-display');
@@ -723,47 +833,40 @@
             `;
             document.getElementById('order-date').textContent = formatDate(order.created_at);
             
-            // Calculate subtotal
-            let subtotal = 0;
-            if (order.items && Array.isArray(order.items)) {
-                order.items.forEach(item => {
-                    if (!item.isGiftWrapping) {
-                        subtotal += parseFloat(item.price) || 0;
-                    }
-                });
-            }
-            if (order.gift_wrapping) {
-                subtotal += 30;
-            }
-            
-            // Get discount
-            const discount = parseFloat(order.discount_amount) || 0;
-            const shipping = parseFloat(order.shipping_cost) || 8.90;
-            const tax = parseFloat(order.tax_amount) || 0;
-            const total = parseFloat(order.amount) || (subtotal - discount + shipping + tax);
-            
-            // Update summary
-            document.getElementById('order-subtotal').textContent = formatCurrency(subtotal);
-            
-            if (discount > 0) {
-                document.getElementById('discount-row').style.display = 'flex';
-                document.getElementById('order-discount').textContent = `-${formatCurrency(discount)}`;
-            }
-            
-            document.getElementById('order-shipping').textContent = formatCurrency(shipping);
-            document.getElementById('order-tax').textContent = formatCurrency(tax);
-            document.getElementById('order-total-summary').textContent = formatCurrency(total);
-            
             // Show shipping address
             if (order.shipping_address) {
                 document.getElementById('shipping-address-section').style.display = 'block';
                 const ship = order.shipping_address;
                 const addressHtml = `
-                    ${ship.fullName || ''}<br>
+                    <strong>${ship.fullName || ''}</strong><br>
                     ${ship.streetAddress || ''}${ship.address2 ? '<br>' + ship.address2 : ''}<br>
                     ${ship.city || ''} ${ship.state || ''} ${ship.zipCode || ''}
                 `;
                 document.getElementById('shipping-address').innerHTML = addressHtml;
+            }
+            
+            // Show billing address
+            if (order.billing_address) {
+                document.getElementById('billing-address-section').style.display = 'block';
+                const bill = order.billing_address;
+                
+                // Check if billing matches shipping
+                const isSameAsShipping = JSON.stringify(order.billing_address) === JSON.stringify(order.shipping_address);
+                
+                if (isSameAsShipping) {
+                    document.getElementById('billing-address').innerHTML = `
+                        <strong>${bill.fullName || ''}</strong><br>
+                        ${bill.streetAddress || ''}${bill.address2 ? '<br>' + bill.address2 : ''}<br>
+                        ${bill.city || ''} ${bill.state || ''} ${bill.zipCode || ''}
+                    `;
+                    document.getElementById('billing-same-as-shipping').style.display = 'block';
+                } else {
+                    document.getElementById('billing-address').innerHTML = `
+                        <strong>${bill.fullName || ''}</strong><br>
+                        ${bill.streetAddress || ''}${bill.address2 ? '<br>' + bill.address2 : ''}<br>
+                        ${bill.city || ''} ${bill.state || ''} ${bill.zipCode || ''}
+                    `;
+                }
             }
             
             // Show gift note
@@ -772,21 +875,40 @@
                 document.getElementById('gift-note').innerHTML = `"${order.gift_note}"`;
             }
             
-            // Populate order items
+            // Populate order items with thumbnails
             const itemsContainer = document.getElementById('order-items-list');
             if (itemsContainer && order.items && Array.isArray(order.items)) {
                 itemsContainer.innerHTML = '';
                 
+                // Calculate subtotal from items
+                let calculatedSubtotal = 0;
+                
                 order.items.forEach(item => {
                     if (!item.isGiftWrapping) {
+                        const price = parseFloat(item.original_price || item.final_price || item.price || 0);
+                        calculatedSubtotal += price;
+                        
                         const itemDiv = document.createElement('div');
-                        itemDiv.className = 'order-item flex justify-between items-center';
+                        itemDiv.className = 'order-item flex items-center gap-4';
+                        
+                        // Use thumbnail if available, otherwise show placeholder
+                        const thumbnailUrl = item.image_url || item.thumbnail;
+                        
                         itemDiv.innerHTML = `
-                            <div>
-                                <p class="font-medium">${item.name || 'Phone Case'}</p>
-                                <p class="text-xs text-gray-500">${item.device || 'Custom Device'}</p>
+                            <div class="flex-shrink-0">
+                                ${thumbnailUrl && thumbnailUrl.startsWith('http') 
+                                    ? `<img src="${thumbnailUrl}" alt="${item.palette_name || 'Product'}" class="product-thumbnail">`
+                                    : `<div class="product-thumbnail bg-gradient-to-br from-pink-200 to-purple-200 flex items-center justify-center text-2xl">
+                                        🌸
+                                       </div>`
+                                }
                             </div>
-                            <span class="font-semibold">${formatCurrency(item.price || 0)}</span>
+                            <div class="flex-grow">
+                                <p class="font-medium">${item.palette_name || item.name || 'Phone Case'}</p>
+                                <p class="text-xs text-gray-500">${item.device || 'Custom Device'}</p>
+                                ${item.product_type ? `<p class="text-xs text-gray-400">${item.product_type}</p>` : ''}
+                            </div>
+                            <span class="font-semibold">${formatCurrency(price)}</span>
                         `;
                         itemsContainer.appendChild(itemDiv);
                     }
@@ -794,20 +916,41 @@
                 
                 // Add gift wrapping as item
                 if (order.gift_wrapping) {
+                    calculatedSubtotal += 30;
                     const giftDiv = document.createElement('div');
-                    giftDiv.className = 'order-item flex justify-between items-center';
+                    giftDiv.className = 'order-item flex items-center gap-4';
                     giftDiv.innerHTML = `
-                        <div>
-                            <p class="font-medium flex items-center gap-2">
-                                <span>🎁</span> Gift Wrapping
-                            </p>
+                        <div class="flex-shrink-0">
+                            <div class="gift-icon">🎁</div>
+                        </div>
+                        <div class="flex-grow">
+                            <p class="font-medium">Gift Wrapping</p>
                             <p class="text-xs text-gray-500">Premium gift wrap</p>
                         </div>
                         <span class="font-semibold">$30.00</span>
                     `;
                     itemsContainer.appendChild(giftDiv);
                 }
+                
+                // Update subtotal display with calculated value
+                document.getElementById('order-subtotal').textContent = formatCurrency(calculatedSubtotal);
             }
+            
+            // Get discount
+            const discount = parseFloat(order.discount_amount || 0);
+            const shipping = parseFloat(order.shipping_cost || 8.90);
+            const tax = parseFloat(order.tax_amount || 0);
+            const total = parseFloat(order.amount || 0);
+            
+            // Update summary with stored values
+            if (discount > 0) {
+                document.getElementById('discount-row').style.display = 'flex';
+                document.getElementById('order-discount').textContent = `-${formatCurrency(discount)}`;
+            }
+            
+            document.getElementById('order-shipping').textContent = formatCurrency(shipping);
+            document.getElementById('order-tax').textContent = formatCurrency(tax);
+            document.getElementById('order-total-summary').textContent = formatCurrency(total);
             
             // Setup PDF download button
             const downloadBtn = document.getElementById('download-receipt-btn');
@@ -822,9 +965,9 @@
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-message max-w-2xl mx-auto mb-8';
             
-            // Check if it's an auth error
             const isAuthError = message.toLowerCase().includes('unauthorized') || 
-                               message.toLowerCase().includes('authenticat');
+                               message.toLowerCase().includes('different account') ||
+                               message.toLowerCase().includes('sign in');
             
             errorDiv.innerHTML = `
                 <div class="flex items-center gap-3">
@@ -876,10 +1019,8 @@
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🚀 Success page initializing...');
             
-            // Start confetti
             createConfetti();
             
-            // Get order_id from URL
             const urlParams = new URLSearchParams(window.location.search);
             const orderId = urlParams.get('order_id');
             
@@ -887,11 +1028,10 @@
                 console.warn('No order_id found in URL');
                 document.getElementById('loading-state').style.display = 'none';
                 
-                // Show generic success message
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'section-background max-w-2xl mx-auto mb-8 p-8';
-                errorDiv.innerHTML = `
-                    <h3 class="text-2xl font-semibold mb-4">Order Confirmed!</h3>
+                const genericDiv = document.createElement('div');
+                genericDiv.className = 'section-background max-w-2xl mx-auto mb-8 p-8';
+                genericDiv.innerHTML = `
+                    <h3 class="text-2xl font-semibold mb-4 text-magenta">Order Confirmed!</h3>
                     <p class="text-gray-600 mb-4">Thank you for your purchase. A confirmation email has been sent to your inbox.</p>
                     <a href="https://www.theweer.com/case.html" class="cta-magenta inline-block px-8 py-3 rounded-full">
                         Create Another Bloom
@@ -899,7 +1039,7 @@
                 `;
                 
                 const mainElement = document.querySelector('main');
-                mainElement.insertBefore(errorDiv, mainElement.firstChild.nextSibling);
+                mainElement.insertBefore(genericDiv, mainElement.firstChild.nextSibling);
                 return;
             }
             
@@ -915,7 +1055,6 @@
             }
         });
 
-        // Global error logging
         window.addEventListener('error', function(e) {
             console.error('💥 Page error:', e.error || e.message);
         });
