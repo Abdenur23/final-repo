@@ -78,6 +78,7 @@ const CONFIG = {
     API_BASE_URL: 'https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod',
     API_ENDPOINT: 'https://y4vn8tdr5g.execute-api.us-east-1.amazonaws.com/prod/upload',
     SHOPPING_CART_API_ENDPOINT: 'https://h35raa35sh.execute-api.us-east-1.amazonaws.com/prod/prod',
+    ORDERS_API_ENDPOINT: 'https://x9a46lous3.execute-api.us-east-1.amazonaws.com/prod/prod',
     
 
     // Stripe Configuration
