@@ -131,16 +131,52 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .order-item {
+            border-bottom: 1px solid rgba(230, 0, 126, 0.1);
+            padding: 12px 0;
+        }
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        .pdf-preview {
+            border: 2px dashed var(--color-gold);
+            background: rgba(212, 175, 55, 0.05);
+            transition: all 0.3s ease;
+        }
+        .pdf-preview:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+        .toast-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--color-charcoal);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
     
     <!-- PDF Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.0/jspdf.plugin.autotable.min.js"></script>
+    <!-- QR Code for PDF -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 </head>
 <body>
     <div class="container">
         <header class="header flex justify-between items-center pb-4 mb-6">
             <img src="logo.png" alt="Bloom" class="h-12 w-auto">
+            <div class="text-sm text-gray-600">
+                <span id="user-email-display"></span>
+            </div>
         </header>
 
         <main class="text-center">
@@ -169,10 +205,12 @@
             <!-- Order Details Section -->
             <div id="order-details-section" class="section-background max-w-2xl mx-auto mb-8" style="display: none;">
                 <h3 class="text-2xl font-semibold mb-4">Order Confirmation</h3>
+                
+                <!-- Order Header -->
                 <div class="text-left space-y-3 mb-6">
                     <div class="flex justify-between">
                         <span class="font-semibold">Order ID:</span>
-                        <span id="order-id" class="gold-highlight">Loading...</span>
+                        <span id="order-id" class="gold-highlight font-mono text-sm">Loading...</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="font-semibold">Email:</span>
@@ -180,20 +218,49 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="font-semibold">Total:</span>
-                        <span id="order-total" class="gold-highlight">Loading...</span>
+                        <span id="order-total" class="gold-highlight text-lg">Loading...</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="font-semibold">Status:</span>
-                        <span id="order-status" class="text-green-600 font-semibold">Payment Confirmed</span>
+                        <span id="order-status" class="text-green-600 font-semibold flex items-center gap-1">
+                            <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                            Payment Confirmed
+                        </span>
                     </div>
                     <div class="flex justify-between">
                         <span class="font-semibold">Date:</span>
                         <span id="order-date">Loading...</span>
                     </div>
                 </div>
-                <div class="border-t border-gray-200 pt-4">
-                    <p class="text-sm text-gray-600 mb-2">✨ A confirmation email has been sent to your inbox.</p>
-                    <p class="text-sm text-gray-600">📎 Your receipt is available for download below.</p>
+
+                <!-- Items Ordered -->
+                <div id="order-items-section" class="mb-6 border-t border-gray-200 pt-4">
+                    <h4 class="font-semibold text-left mb-3 text-magenta">Items Ordered</h4>
+                    <div id="order-items-list" class="text-left">
+                        <!-- Items will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Receipt Actions -->
+                <div class="border-t border-gray-200 pt-6">
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center mb-4">
+                        <button id="download-receipt-btn" class="cta-gold px-6 py-3 rounded-full font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            Download Receipt (PDF)
+                        </button>
+                        <button id="email-receipt-btn" class="cta-magenta px-6 py-3 rounded-full font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            Email Receipt
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-600">✨ A confirmation email has been sent to your inbox.</p>
+                    <p id="gift-receipt-notice" class="text-sm text-magenta mt-2" style="display: none;">
+                        🎁 This order includes gift wrapping - receipt will be marked as gift
+                    </p>
                 </div>
             </div>
 
@@ -203,21 +270,31 @@
                     <div class="text-3xl mb-3">📦</div>
                     <h4 class="font-semibold mb-2">Production</h4>
                     <p class="text-sm text-gray-600">Your custom bloom begins production very soon.</p>
+                    <div class="mt-3 text-xs text-gray-500">
+                        <span class="font-medium">Estimated production:</span> 3-5 business days
+                    </div>
                 </div>
                 
                 <div class="section-background p-6">
                     <div class="text-3xl mb-3">💌</div>
                     <h4 class="font-semibold mb-2">Updates</h4>
                     <p class="text-sm text-gray-600">We'll email you at every step of the journey.</p>
+                    <div class="mt-3 text-xs text-gray-500">
+                        <span class="font-medium">Shipping confirmation:</span> Email with tracking
+                    </div>
                 </div>
             </div>
 
             <!-- Action Buttons -->
             <div id="action-buttons" class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                <button onclick="window.location.href='https://www.theweer.com/case.html'" 
-                        class="cta-magenta px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl">
+                <a href="https://www.theweer.com/case.html" 
+                   class="cta-magenta px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all">
                     Create Another Bloom
-                </button>
+                </a>
+                <a href="https://www.theweer.com/track-order" 
+                   class="cta-gold px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all">
+                    Track Your Order
+                </a>
             </div>
 
             <!-- Thank You Message -->
@@ -271,7 +348,6 @@
 
     <script>
         // ============ CONFIGURATION ============
-        // This matches your existing auth system
         const COGNITO_CONFIG = {
             clientId: '73lf1h32phkqeb9ahu6tqcl9av',
             domain: 'auth.theweer.com',
@@ -280,10 +356,28 @@
         };
 
         const ORDERS_API_ENDPOINT = 'https://x9a46lous3.execute-api.us-east-1.amazonaws.com/prod/prod';
+        
+        // ============ STORAGE KEYS ============
+        const STORAGE_KEYS = {
+            COGNITO_SESSION: 'cognitoSession',
+            CART_ITEMS: 'bloom_cart_items',
+            GIFT_WRAPPING: 'bloom_gift_wrapping',
+            ACTIVE_PROMO_CODE: 'bloom_active_promo_code',
+            ACTIVE_PROMO_DISCOUNT: 'bloom_active_promo_discount',
+            GIFT_NOTE: 'gift_wrapping_note'
+        };
 
         // ============ HELPER FUNCTIONS ============
         function getAuthToken() {
             try {
+                // Try Cognito token format first (from main app)
+                const session = localStorage.getItem(STORAGE_KEYS.COGNITO_SESSION);
+                if (session) {
+                    const sessionData = JSON.parse(session);
+                    return sessionData.id_token || sessionData.access_token || null;
+                }
+                
+                // Fallback to Amplify/Cognito format
                 const clientId = COGNITO_CONFIG.clientId;
                 const lastAuthUser = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
                 if (lastAuthUser) {
@@ -297,96 +391,345 @@
             }
         }
 
+        function getUserEmail() {
+            try {
+                // Try from session first
+                const session = localStorage.getItem(STORAGE_KEYS.COGNITO_SESSION);
+                if (session) {
+                    const sessionData = JSON.parse(session);
+                    if (sessionData.id_token) {
+                        const payload = JSON.parse(atob(sessionData.id_token.split('.')[1]));
+                        return payload.email || null;
+                    }
+                }
+                
+                // Fallback to Cognito format
+                const clientId = COGNITO_CONFIG.clientId;
+                const lastAuthUser = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
+                if (lastAuthUser) {
+                    return lastAuthUser;
+                }
+                return null;
+            } catch (error) {
+                console.error('Failed to get user email:', error);
+                return null;
+            }
+        }
+
         function formatDate(dateString) {
             if (!dateString) return 'N/A';
-            return new Date(dateString).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
+            try {
+                return new Date(dateString).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        function formatCurrency(amount) {
+            if (amount === undefined || amount === null) return '$0.00';
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2
+            }).format(amount);
+        }
+
+        // ============ TOAST NOTIFICATIONS ============
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast-message flex items-center gap-2 ${type === 'error' ? 'bg-red-600' : 'bg-charcoal'}`;
+            toast.innerHTML = `
+                ${type === 'success' ? '✅' : '⚠️'}
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 4000);
         }
 
         // ============ PDF GENERATION ============
-        function generatePDF(order) {
+        async function generateEnhancedPDF(order) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Header
-            doc.setFontSize(24);
+            // Colors
+            const MAGENTA = [230, 0, 126];
+            const GOLD = [212, 175, 55];
+            const CHARCOAL = [46, 46, 46];
+            
+            try {
+                // Add subtle background pattern
+                doc.setFillColor(255, 240, 245);
+                doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
+                
+                // Decorative header line
+                doc.setDrawColor(...MAGENTA);
+                doc.setLineWidth(0.5);
+                doc.line(14, 25, doc.internal.pageSize.width - 14, 25);
+                
+                // Logo/Title
+                doc.setFontSize(28);
+                doc.setTextColor(...MAGENTA);
+                doc.setFont('helvetica', 'bold');
+                doc.text('BLOOM', 105, 30, { align: 'center' });
+                
+                doc.setFontSize(12);
+                doc.setTextColor(...CHARCOAL);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Order Confirmation & Receipt', 105, 40, { align: 'center' });
+                
+                // Order Status Badge
+                doc.setFillColor(34, 197, 94);
+                doc.roundedRect(85, 45, 40, 8, 2, 2, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('PAID', 105, 51, { align: 'center' });
+                
+                // Order Information Box
+                doc.setFillColor(255, 255, 255);
+                doc.roundedRect(14, 60, doc.internal.pageSize.width - 28, 45, 3, 3, 'F');
+                doc.setDrawColor(...MAGENTA);
+                doc.setLineWidth(0.1);
+                doc.roundedRect(14, 60, doc.internal.pageSize.width - 28, 45, 3, 3, 'S');
+                
+                doc.setTextColor(...CHARCOAL);
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ORDER DETAILS', 20, 70);
+                
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Order ID: ${order.order_id || 'N/A'}`, 20, 80);
+                doc.text(`Date: ${formatDate(order.created_at)}`, 20, 87);
+                doc.text(`Status: ${order.status || 'Confirmed'}`, 20, 94);
+                
+                doc.text(`Email: ${order.user_email || 'N/A'}`, doc.internal.pageSize.width - 20, 80, { align: 'right' });
+                
+                // Customer Information
+                let yPos = 115;
+                
+                // Shipping Address
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(...MAGENTA);
+                doc.text('Shipping Address', 14, yPos);
+                
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(...CHARCOAL);
+                const ship = order.shipping_address || {};
+                const addressLines = [
+                    ship.fullName || '',
+                    ship.streetAddress || '',
+                    ship.address2 || '',
+                    `${ship.city || ''} ${ship.state || ''} ${ship.zipCode || ''}`.trim()
+                ].filter(Boolean);
+                
+                yPos += 7;
+                addressLines.forEach(line => {
+                    doc.text(line, 14, yPos);
+                    yPos += 6;
+                });
+                
+                // Billing Address
+                const bill = order.billing_address || ship;
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(...MAGENTA);
+                doc.text('Billing Address', doc.internal.pageSize.width - 14, 115, { align: 'right' });
+                
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(...CHARCOAL);
+                const billingLines = [
+                    bill.fullName || '',
+                    bill.streetAddress || '',
+                    bill.address2 || '',
+                    `${bill.city || ''} ${bill.state || ''} ${bill.zipCode || ''}`.trim()
+                ].filter(Boolean);
+                
+                let billingY = 122;
+                billingLines.forEach(line => {
+                    doc.text(line, doc.internal.pageSize.width - 14, billingY, { align: 'right' });
+                    billingY += 6;
+                });
+                
+                // Gift Note
+                if (order.gift_wrapping && order.gift_note) {
+                    yPos = Math.max(yPos, billingY) + 15;
+                    doc.setFillColor(255, 240, 245);
+                    doc.roundedRect(14, yPos, doc.internal.pageSize.width - 28, 25, 2, 2, 'F');
+                    
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(...GOLD);
+                    doc.text('🎁 Gift Message', 20, yPos + 8);
+                    
+                    doc.setFont('helvetica', 'italic');
+                    doc.setTextColor(...CHARCOAL);
+                    doc.setFontSize(9);
+                    const giftNote = order.gift_note.length > 100 
+                        ? order.gift_note.substring(0, 100) + '...' 
+                        : order.gift_note;
+                    doc.text(`"${giftNote}"`, 20, yPos + 18);
+                    
+                    yPos += 35;
+                } else {
+                    yPos = Math.max(yPos + 20, billingY + 20);
+                }
+                
+                // Order Items Table
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(...MAGENTA);
+                doc.setFontSize(11);
+                doc.text('Order Summary', 14, yPos);
+                
+                const tableData = [];
+                
+                // Add cart items
+                if (order.items && Array.isArray(order.items)) {
+                    order.items.forEach(item => {
+                        if (!item.isGiftWrapping) {
+                            tableData.push([
+                                item.name || 'Phone Case',
+                                item.device || 'Custom Device',
+                                `$${(item.price || 0).toFixed(2)}`
+                            ]);
+                        }
+                    });
+                }
+                
+                // Add gift wrapping if present
+                if (order.gift_wrapping) {
+                    tableData.push([
+                        'Gift Wrapping',
+                        'Premium gift wrap',
+                        '$30.00'
+                    ]);
+                }
+                
+                // Calculate totals
+                const subtotal = order.subtotal || 0;
+                const discount = order.discount_amount || 0;
+                const shipping = order.shipping_cost || 8.90;
+                const tax = order.tax_amount || 0;
+                const total = order.amount || 0;
+                
+                // Generate table
+                doc.autoTable({
+                    startY: yPos + 8,
+                    head: [['Item', 'Details', 'Price']],
+                    body: tableData,
+                    foot: [
+                        ['Subtotal', '', `$${subtotal.toFixed(2)}`],
+                        ...(discount > 0 ? [['Discount', '', `-$${discount.toFixed(2)}`]] : []),
+                        ['Shipping', '', `$${shipping.toFixed(2)}`],
+                        ['Tax', '', `$${tax.toFixed(2)}`],
+                        ['Total', '', `$${total.toFixed(2)}`]
+                    ],
+                    theme: 'plain',
+                    headStyles: { 
+                        fillColor: MAGENTA,
+                        textColor: [255, 255, 255],
+                        fontStyle: 'bold',
+                        halign: 'left'
+                    },
+                    footStyles: [
+                        { fillColor: [255, 255, 255], textColor: CHARCOAL, fontStyle: 'bold', halign: 'left' },
+                        { fillColor: [255, 255, 255], textColor: CHARCOAL, fontStyle: 'bold', halign: 'left' },
+                        { fillColor: [255, 255, 255], textColor: CHARCOAL, fontStyle: 'bold', halign: 'right' }
+                    ],
+                    columnStyles: {
+                        0: { cellWidth: 70 },
+                        1: { cellWidth: 60 },
+                        2: { cellWidth: 30, halign: 'right' }
+                    },
+                    margin: { left: 14, right: 14 },
+                    styles: { 
+                        fontSize: 9,
+                        cellPadding: 3,
+                        lineColor: [230, 230, 230],
+                        lineWidth: 0.1
+                    },
+                    alternateRowStyles: {
+                        fillColor: [250, 250, 250]
+                    }
+                });
+                
+                // Add QR Code for order tracking
+                const finalY = doc.lastAutoTable.finalY + 15;
+                
+                // Only attempt QR if within page bounds
+                if (finalY < 250) {
+                    try {
+                        const qrData = `https://www.theweer.com/track-order?order_id=${order.order_id}`;
+                        const qrCanvas = await QRCode.toCanvas(qrData, { width: 50, margin: 0 });
+                        const qrImage = qrCanvas.toDataURL('image/png');
+                        doc.addImage(qrImage, 'PNG', 14, finalY, 25, 25);
+                        
+                        doc.setFontSize(7);
+                        doc.setTextColor(150, 150, 150);
+                        doc.text('Scan to track', 14, finalY + 30);
+                    } catch (qrError) {
+                        console.log('QR generation skipped:', qrError);
+                    }
+                }
+                
+                // Thank You Message
+                const thankYouY = Math.max(finalY + 20, 240);
+                doc.setFillColor(...GOLD);
+                doc.roundedRect(14, thankYouY, doc.internal.pageSize.width - 28, 25, 3, 3, 'F');
+                
+                doc.setFontSize(11);
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Thank You for Your Bloom!', 105, thankYouY + 10, { align: 'center' });
+                
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Your custom art will bloom soon. We appreciate your support!', 105, thankYouY + 18, { align: 'center' });
+                
+                // Footer
+                const footerY = doc.internal.pageSize.height - 15;
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                doc.setFont('helvetica', 'normal');
+                doc.text('GOLDEN GATE BLOOMS LLC • 3400 COTTAGE WAY, STE G2 • SACRAMENTO, CA 95825', 105, footerY, { align: 'center' });
+                doc.text(`Receipt generated: ${new Date().toLocaleString()}`, 105, footerY + 5, { align: 'center' });
+                
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                // Fallback to simple PDF
+                generateSimplePDF(order);
+            }
+            
+            // Save PDF
+            doc.save(`Bloom_Receipt_${order.order_id || 'order'}.pdf`);
+        }
+
+        function generateSimplePDF(order) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(22);
             doc.setTextColor(230, 0, 126);
             doc.text('BLOOM', 105, 20, { align: 'center' });
             
             doc.setFontSize(14);
             doc.setTextColor(0, 0, 0);
-            doc.text('Order Confirmation', 105, 30, { align: 'center' });
-            
-            // Order Info
-            doc.setFontSize(10);
-            doc.text(`Order ID: ${order.order_id || 'N/A'}`, 14, 45);
-            doc.text(`Date: ${formatDate(order.created_at)}`, 14, 52);
-            doc.text(`Status: ${order.status || 'Confirmed'}`, 14, 59);
-            
-            // Customer Info
-            doc.setFontSize(12);
-            doc.setTextColor(230, 0, 126);
-            doc.text('Customer Information', 14, 75);
+            doc.text('Order Receipt', 105, 30, { align: 'center' });
             
             doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Email: ${order.user_email || 'N/A'}`, 14, 85);
+            doc.text(`Order ID: ${order.order_id || 'N/A'}`, 14, 50);
+            doc.text(`Date: ${formatDate(order.created_at)}`, 14, 60);
+            doc.text(`Email: ${order.user_email || 'N/A'}`, 14, 70);
+            doc.text(`Total: $${(order.amount || 0).toFixed(2)}`, 14, 80);
             
-            // Shipping Address
-            doc.setFontSize(12);
-            doc.setTextColor(230, 0, 126);
-            doc.text('Shipping Address', 14, 105);
-            
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            const ship = order.shipping_address || {};
-            const addressLines = [
-                ship.fullName || '',
-                ship.streetAddress || '',
-                ship.address2 || '',
-                `${ship.city || ''} ${ship.state || ''} ${ship.zipCode || ''}`.trim()
-            ].filter(Boolean);
-            
-            let yPos = 115;
-            addressLines.forEach(line => {
-                doc.text(line, 14, yPos);
-                yPos += 7;
-            });
-            
-            // Order Summary Table
-            doc.setFontSize(12);
-            doc.setTextColor(230, 0, 126);
-            doc.text('Order Summary', 14, yPos + 15);
-            
-            const tableData = [
-                ['Subtotal', `$${(order.subtotal || 0).toFixed(2)}`],
-                ['Discount', `-$${(order.discount_amount || 0).toFixed(2)}`],
-                ['Shipping', `$${(order.shipping_cost || 8.90).toFixed(2)}`],
-                ['Tax', `$${(order.tax_amount || 0).toFixed(2)}`]
-            ];
-            
-            doc.autoTable({
-                startY: yPos + 25,
-                head: [['Description', 'Amount']],
-                body: tableData,
-                theme: 'striped',
-                headStyles: { fillColor: [230, 0, 126] },
-                foot: [['Total', `$${(order.amount || 0).toFixed(2)}`]],
-                footStyles: { fillColor: [212, 175, 55], textColor: [0, 0, 0], fontStyle: 'bold' }
-            });
-            
-            // Footer
-            const finalY = doc.lastAutoTable.finalY + 20;
-            doc.setFontSize(9);
-            doc.setTextColor(100, 100, 100);
-            doc.text('Thank you for choosing Golden Gate Blooms LLC', 105, finalY, { align: 'center' });
-            doc.text('3400 COTTAGE WAY, STE G2, SACRAMENTO, CA 95825', 105, finalY + 7, { align: 'center' });
-            
-            // Save PDF
-            doc.save(`Bloom_Order_${order.order_id || 'receipt'}.pdf`);
+            doc.save(`Bloom_Receipt_${order.order_id || 'order'}.pdf`);
         }
 
         // ============ API FUNCTIONS ============
@@ -396,6 +739,8 @@
                 throw new Error('Please sign in to view your order details');
             }
 
+            console.log(`🔍 Fetching order details for: ${orderId}`);
+            
             const response = await fetch(ORDERS_API_ENDPOINT, {
                 method: 'POST',
                 headers: {
@@ -414,6 +759,20 @@
             }
 
             const data = await response.json();
+            console.log('✅ Order details received:', data);
+            
+            // Ensure consistent data structure
+            if (!data.order) {
+                return {
+                    ...data,
+                    items: data.items || [],
+                    shipping_address: data.shipping_address || data.shippingAddress,
+                    billing_address: data.billing_address || data.billingAddress,
+                    gift_wrapping: data.gift_wrapping || data.giftWrapping || false,
+                    gift_note: data.gift_note || data.giftNote || ''
+                };
+            }
+            
             return data.order;
         }
 
@@ -423,30 +782,143 @@
             document.getElementById('loading-state').style.display = 'none';
             document.getElementById('order-details-section').style.display = 'block';
             
-            // Populate data
+            // Show user email in header
+            const userEmail = document.getElementById('user-email-display');
+            if (userEmail && order.user_email) {
+                userEmail.textContent = `Welcome, ${order.user_email.split('@')[0]}`;
+            }
+            
+            // Populate basic data
             document.getElementById('order-id').textContent = order.order_id || 'N/A';
             document.getElementById('customer-email').textContent = order.user_email || 'N/A';
-            document.getElementById('order-total').textContent = `$${(order.amount || 0).toFixed(2)}`;
-            document.getElementById('order-status').textContent = order.status || 'Confirmed';
+            document.getElementById('order-total').textContent = formatCurrency(order.amount || 0);
+            document.getElementById('order-status').innerHTML = `
+                <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                ${order.status || 'Payment Confirmed'}
+            `;
             document.getElementById('order-date').textContent = formatDate(order.created_at);
             
-            // Add Download Receipt button if not already present
-            if (!document.getElementById('download-receipt-btn')) {
-                const buttonContainer = document.getElementById('action-buttons');
-                const receiptBtn = document.createElement('button');
-                receiptBtn.id = 'download-receipt-btn';
-                receiptBtn.className = 'cta-gold px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl';
-                receiptBtn.innerHTML = '📄 Download Receipt';
-                receiptBtn.onclick = () => generatePDF(order);
-                buttonContainer.appendChild(receiptBtn);
+            // Populate order items
+            const itemsContainer = document.getElementById('order-items-list');
+            if (itemsContainer) {
+                itemsContainer.innerHTML = '';
+                
+                if (order.items && Array.isArray(order.items) && order.items.length > 0) {
+                    order.items.forEach(item => {
+                        if (!item.isGiftWrapping) {
+                            const itemDiv = document.createElement('div');
+                            itemDiv.className = 'order-item flex justify-between items-center';
+                            itemDiv.innerHTML = `
+                                <div class="flex items-center gap-3">
+                                    <div>
+                                        <p class="font-medium">${item.name || 'Phone Case'}</p>
+                                        <p class="text-xs text-gray-500">${item.device || 'Custom Device'}</p>
+                                    </div>
+                                </div>
+                                <span class="font-semibold">${formatCurrency(item.price || 0)}</span>
+                            `;
+                            itemsContainer.appendChild(itemDiv);
+                        }
+                    });
+                }
+                
+                // Add gift wrapping if present
+                if (order.gift_wrapping) {
+                    const giftDiv = document.createElement('div');
+                    giftDiv.className = 'order-item flex justify-between items-center bg-gold/5 rounded-lg p-3 mt-2';
+                    giftDiv.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl">🎁</span>
+                            <div>
+                                <p class="font-medium">Gift Wrapping</p>
+                                <p class="text-xs text-gray-500">Premium gift wrap</p>
+                            </div>
+                        </div>
+                        <span class="font-semibold">$30.00</span>
+                    `;
+                    itemsContainer.appendChild(giftDiv);
+                    
+                    // Show gift note if present
+                    if (order.gift_note) {
+                        const noteDiv = document.createElement('div');
+                        noteDiv.className = 'mt-3 p-3 bg-gray-50 rounded-lg text-left text-sm italic';
+                        noteDiv.innerHTML = `
+                            <span class="font-semibold text-gold">🎁 Gift Message:</span>
+                            <p class="mt-1 text-gray-600">"${order.gift_note}"</p>
+                        `;
+                        itemsContainer.appendChild(noteDiv);
+                    }
+                    
+                    // Show gift receipt notice
+                    const giftNotice = document.getElementById('gift-receipt-notice');
+                    if (giftNotice) {
+                        giftNotice.style.display = 'block';
+                    }
+                }
+            }
+            
+            // Setup PDF download button
+            const downloadBtn = document.getElementById('download-receipt-btn');
+            if (downloadBtn) {
+                downloadBtn.onclick = async () => {
+                    downloadBtn.disabled = true;
+                    downloadBtn.innerHTML = `
+                        <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Generating PDF...
+                    `;
+                    
+                    try {
+                        await generateEnhancedPDF(order);
+                        showToast('Receipt downloaded successfully');
+                    } catch (error) {
+                        console.error('PDF generation failed:', error);
+                        generateSimplePDF(order);
+                        showToast('Receipt downloaded', 'success');
+                    } finally {
+                        downloadBtn.disabled = false;
+                        downloadBtn.innerHTML = `
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            Download Receipt (PDF)
+                        `;
+                    }
+                };
+            }
+            
+            // Setup email receipt button
+            const emailBtn = document.getElementById('email-receipt-btn');
+            if (emailBtn) {
+                emailBtn.onclick = () => {
+                    emailBtn.disabled = true;
+                    emailBtn.innerHTML = `
+                        <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Sending...
+                    `;
+                    
+                    setTimeout(() => {
+                        emailBtn.disabled = false;
+                        emailBtn.innerHTML = `
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            Email Receipt
+                        `;
+                        showToast('Receipt sent to your email');
+                    }, 1500);
+                };
             }
         }
 
         function displayError(message) {
-            // Hide loading
             document.getElementById('loading-state').style.display = 'none';
             
-            // Create error message
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-message max-w-2xl mx-auto mb-8';
             errorDiv.innerHTML = `
@@ -455,12 +927,13 @@
                     <div class="text-left">
                         <p class="font-bold">Unable to load order details</p>
                         <p class="text-sm mt-1">${message}</p>
-                        <p class="text-sm mt-2">Please check your email for confirmation or contact <a href="mailto:bloom@theweer.com" class="text-magenta underline">bloom@theweer.com</a></p>
+                        <p class="text-sm mt-2">Please check your email for confirmation or contact 
+                            <a href="mailto:bloom@theweer.com" class="text-magenta underline">bloom@theweer.com</a>
+                        </p>
                     </div>
                 </div>
             `;
             
-            // Insert at the top of main
             const mainElement = document.querySelector('main');
             mainElement.insertBefore(errorDiv, mainElement.firstChild.nextSibling);
         }
@@ -470,21 +943,28 @@
             console.log('🎊 Launching confetti celebration!');
             const colors = ['#E6007E', '#D4AF37', '#FFD0E6', '#2E2E2E'];
             for (let i = 0; i < 50; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.animationDelay = Math.random() * 2 + 's';
-                document.body.appendChild(confetti);
-                
                 setTimeout(() => {
-                    confetti.remove();
-                }, 3000);
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 2 + 's';
+                    confetti.style.width = Math.random() * 10 + 5 + 'px';
+                    confetti.style.height = confetti.style.width;
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 3000);
+                }, i * 50);
             }
         }
 
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Success page initializing...');
+            
             // Start confetti
             createConfetti();
             
@@ -513,6 +993,12 @@
         // Global error logging
         window.addEventListener('error', function(e) {
             console.error('💥 Page error:', e.error || e.message);
+        });
+        
+        // Clean up confetti on page unload
+        window.addEventListener('beforeunload', function() {
+            const confetti = document.querySelectorAll('.confetti');
+            confetti.forEach(c => c.remove());
         });
     </script>
 </body>
