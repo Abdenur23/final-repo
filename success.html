@@ -776,21 +776,18 @@
                 'Content-Type': 'application/json'
             };
             
-            const body = {
-                action: 'getOrderDetails',
-                order_id: orderId
-            };
-            
-            // Add token to body instead of headers
             if (token) {
-                body.id_token = token;  // Send token in request body
+                headers['Authorization'] = `Bearer ${token}`;
             }
             
             try {
                 const response = await fetch(ORDERS_API_ENDPOINT, {
                     method: 'POST',
-                    headers: headers,  // No Authorization header
-                    body: JSON.stringify(body),
+                    headers: headers,
+                    body: JSON.stringify({
+                        action: 'getOrderDetails',
+                        order_id: orderId
+                    }),
                     mode: 'cors',
                     credentials: 'omit'
                 });
