@@ -138,15 +138,7 @@
         .order-item:last-child {
             border-bottom: none;
         }
-        .pdf-preview {
-            border: 2px dashed var(--color-gold);
-            background: rgba(212, 175, 55, 0.05);
-            transition: all 0.3s ease;
-        }
-        .pdf-preview:hover {
-            background: rgba(212, 175, 55, 0.1);
-        }
-        .toast-message {
+        .toast {
             position: fixed;
             bottom: 20px;
             right: 20px;
@@ -167,16 +159,12 @@
     <!-- PDF Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.0/jspdf.plugin.autotable.min.js"></script>
-    <!-- QR Code for PDF -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 </head>
 <body>
     <div class="container">
         <header class="header flex justify-between items-center pb-4 mb-6">
             <img src="logo.png" alt="Bloom" class="h-12 w-auto">
-            <div class="text-sm text-gray-600">
-                <span id="user-email-display"></span>
-            </div>
+            <div id="user-email-display" class="text-sm text-gray-600"></div>
         </header>
 
         <main class="text-center">
@@ -233,33 +221,26 @@
                     </div>
                 </div>
 
-                <!-- Items Ordered -->
-                <div id="order-items-section" class="mb-6 border-t border-gray-200 pt-4">
+                <!-- Items Ordered Section -->
+                <div id="order-items-section" class="mb-6 border-t border-gray-200 pt-4" style="display: none;">
                     <h4 class="font-semibold text-left mb-3 text-magenta">Items Ordered</h4>
                     <div id="order-items-list" class="text-left">
                         <!-- Items will be populated here -->
                     </div>
                 </div>
 
-                <!-- Receipt Actions -->
+                <!-- Download Button -->
                 <div class="border-t border-gray-200 pt-6">
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center mb-4">
-                        <button id="download-receipt-btn" class="cta-gold px-6 py-3 rounded-full font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                            </svg>
-                            Download Receipt (PDF)
-                        </button>
-                        <button id="email-receipt-btn" class="cta-magenta px-6 py-3 rounded-full font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                            </svg>
-                            Email Receipt
-                        </button>
-                    </div>
-                    <p class="text-sm text-gray-600">✨ A confirmation email has been sent to your inbox.</p>
+                    <button id="download-receipt-btn" 
+                            class="cta-gold px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all w-full sm:w-auto flex items-center justify-center gap-3 mx-auto">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Download Receipt (PDF)
+                    </button>
+                    <p class="text-sm text-gray-600 mt-4">✨ A confirmation email has been sent to your inbox.</p>
                     <p id="gift-receipt-notice" class="text-sm text-magenta mt-2" style="display: none;">
-                        🎁 This order includes gift wrapping - receipt will be marked as gift
+                        🎁 This order includes gift wrapping
                     </p>
                 </div>
             </div>
@@ -271,7 +252,7 @@
                     <h4 class="font-semibold mb-2">Production</h4>
                     <p class="text-sm text-gray-600">Your custom bloom begins production very soon.</p>
                     <div class="mt-3 text-xs text-gray-500">
-                        <span class="font-medium">Estimated production:</span> 3-5 business days
+                        <span class="font-medium">Estimated:</span> 3-5 business days
                     </div>
                 </div>
                 
@@ -279,9 +260,6 @@
                     <div class="text-3xl mb-3">💌</div>
                     <h4 class="font-semibold mb-2">Updates</h4>
                     <p class="text-sm text-gray-600">We'll email you at every step of the journey.</p>
-                    <div class="mt-3 text-xs text-gray-500">
-                        <span class="font-medium">Shipping confirmation:</span> Email with tracking
-                    </div>
                 </div>
             </div>
 
@@ -290,10 +268,6 @@
                 <a href="https://www.theweer.com/case.html" 
                    class="cta-magenta px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all">
                     Create Another Bloom
-                </a>
-                <a href="https://www.theweer.com/track-order" 
-                   class="cta-gold px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all">
-                    Track Your Order
                 </a>
             </div>
 
@@ -313,23 +287,18 @@
     <footer class="w-full max-w-960px mt-12 py-8 border-t border-gray-200">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Contact -->
                 <div>
                     <h3 class="font-bold text-lg mb-4">Contact</h3>
                     <p class="text-sm text-gray-600">Questions about your order?</p>
                     <a href="mailto:bloom@theweer.com" class="text-sm text-magenta hover:underline">bloom@theweer.com</a>
                 </div>
-
-                <!-- Legal Links -->
                 <div>
                     <h3 class="font-bold text-lg mb-4">Legal</h3>
                     <div class="space-y-2">
-                        <a href="/privacy-policy" class="block text-sm text-gray-600 hover:text-magenta transition-colors">Privacy Policy</a>
-                        <a href="/terms-of-service" class="block text-sm text-gray-600 hover:text-magenta transition-colors">Terms of Service</a>
+                        <a href="/privacy-policy" class="block text-sm text-gray-600 hover:text-magenta">Privacy Policy</a>
+                        <a href="/terms-of-service" class="block text-sm text-gray-600 hover:text-magenta">Terms of Service</a>
                     </div>
                 </div>
-                
-                <!-- Company Info -->
                 <div>
                     <h3 class="font-bold text-lg mb-4">GOLDEN GATE BLOOMS LLC</h3>
                     <address class="not-italic text-sm text-gray-600">
@@ -339,7 +308,6 @@
                     </address>
                 </div>
             </div>
-            
             <div class="border-t border-gray-200 mt-8 pt-6 text-center">
                 <p class="text-sm text-gray-500">&copy; 2025 Golden Gate Blooms LLC. All rights reserved.</p>
             </div>
@@ -356,62 +324,31 @@
         };
 
         const ORDERS_API_ENDPOINT = 'https://x9a46lous3.execute-api.us-east-1.amazonaws.com/prod/prod';
-        
+
         // ============ STORAGE KEYS ============
         const STORAGE_KEYS = {
-            COGNITO_SESSION: 'cognitoSession',
-            CART_ITEMS: 'bloom_cart_items',
-            GIFT_WRAPPING: 'bloom_gift_wrapping',
-            ACTIVE_PROMO_CODE: 'bloom_active_promo_code',
-            ACTIVE_PROMO_DISCOUNT: 'bloom_active_promo_discount',
-            GIFT_NOTE: 'gift_wrapping_note'
+            COGNITO_SESSION: 'cognitoSession'
         };
 
         // ============ HELPER FUNCTIONS ============
         function getAuthToken() {
             try {
-                // Try Cognito token format first (from main app)
+                // Try main app session format first
                 const session = localStorage.getItem(STORAGE_KEYS.COGNITO_SESSION);
                 if (session) {
                     const sessionData = JSON.parse(session);
-                    return sessionData.id_token || sessionData.access_token || null;
-                }
-                
-                // Fallback to Amplify/Cognito format
-                const clientId = COGNITO_CONFIG.clientId;
-                const lastAuthUser = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
-                if (lastAuthUser) {
-                    const idToken = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.${lastAuthUser}.idToken`);
-                    return idToken || null;
-                }
-                return null;
-            } catch (error) {
-                console.error('Failed to get auth token:', error);
-                return null;
-            }
-        }
-
-        function getUserEmail() {
-            try {
-                // Try from session first
-                const session = localStorage.getItem(STORAGE_KEYS.COGNITO_SESSION);
-                if (session) {
-                    const sessionData = JSON.parse(session);
-                    if (sessionData.id_token) {
-                        const payload = JSON.parse(atob(sessionData.id_token.split('.')[1]));
-                        return payload.email || null;
-                    }
+                    return sessionData.id_token || null;
                 }
                 
                 // Fallback to Cognito format
                 const clientId = COGNITO_CONFIG.clientId;
                 const lastAuthUser = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
                 if (lastAuthUser) {
-                    return lastAuthUser;
+                    return localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.${lastAuthUser}.idToken`);
                 }
                 return null;
             } catch (error) {
-                console.error('Failed to get user email:', error);
+                console.error('Failed to get auth token:', error);
                 return null;
             }
         }
@@ -440,84 +377,68 @@
             }).format(amount);
         }
 
-        // ============ TOAST NOTIFICATIONS ============
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
-            toast.className = `toast-message flex items-center gap-2 ${type === 'error' ? 'bg-red-600' : 'bg-charcoal'}`;
-            toast.innerHTML = `
-                ${type === 'success' ? '✅' : '⚠️'}
-                <span>${message}</span>
-            `;
+            toast.className = `toast ${type === 'error' ? 'bg-red-600' : ''}`;
+            toast.innerHTML = `${type === 'success' ? '✅' : '⚠️'} ${message}`;
             document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.remove();
-            }, 4000);
+            setTimeout(() => toast.remove(), 3000);
         }
 
         // ============ PDF GENERATION ============
-        async function generateEnhancedPDF(order) {
+        function generatePDF(order) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Colors
+            // Brand Colors
             const MAGENTA = [230, 0, 126];
             const GOLD = [212, 175, 55];
             const CHARCOAL = [46, 46, 46];
             
             try {
-                // Add subtle background pattern
+                // Header with decorative line
                 doc.setFillColor(255, 240, 245);
-                doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
+                doc.rect(0, 0, doc.internal.pageSize.width, 40, 'F');
                 
-                // Decorative header line
                 doc.setDrawColor(...MAGENTA);
                 doc.setLineWidth(0.5);
-                doc.line(14, 25, doc.internal.pageSize.width - 14, 25);
+                doc.line(14, 35, doc.internal.pageSize.width - 14, 35);
                 
-                // Logo/Title
+                // Title
                 doc.setFontSize(28);
                 doc.setTextColor(...MAGENTA);
                 doc.setFont('helvetica', 'bold');
-                doc.text('BLOOM', 105, 30, { align: 'center' });
+                doc.text('BLOOM', 105, 25, { align: 'center' });
                 
                 doc.setFontSize(12);
                 doc.setTextColor(...CHARCOAL);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Order Confirmation & Receipt', 105, 40, { align: 'center' });
-                
-                // Order Status Badge
-                doc.setFillColor(34, 197, 94);
-                doc.roundedRect(85, 45, 40, 8, 2, 2, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'bold');
-                doc.text('PAID', 105, 51, { align: 'center' });
+                doc.text('Order Confirmation & Receipt', 105, 45, { align: 'center' });
                 
                 // Order Information Box
                 doc.setFillColor(255, 255, 255);
-                doc.roundedRect(14, 60, doc.internal.pageSize.width - 28, 45, 3, 3, 'F');
+                doc.roundedRect(14, 55, doc.internal.pageSize.width - 28, 40, 3, 3, 'F');
                 doc.setDrawColor(...MAGENTA);
-                doc.setLineWidth(0.1);
-                doc.roundedRect(14, 60, doc.internal.pageSize.width - 28, 45, 3, 3, 'S');
+                doc.roundedRect(14, 55, doc.internal.pageSize.width - 28, 40, 3, 3, 'S');
                 
                 doc.setTextColor(...CHARCOAL);
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                doc.text('ORDER DETAILS', 20, 70);
+                doc.text('ORDER DETAILS', 20, 65);
                 
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(100, 100, 100);
-                doc.text(`Order ID: ${order.order_id || 'N/A'}`, 20, 80);
-                doc.text(`Date: ${formatDate(order.created_at)}`, 20, 87);
-                doc.text(`Status: ${order.status || 'Confirmed'}`, 20, 94);
+                doc.text(`Order ID: ${order.order_id || 'N/A'}`, 20, 75);
+                doc.text(`Date: ${formatDate(order.created_at)}`, 20, 82);
+                doc.text(`Status: ${order.status || 'Confirmed'}`, 20, 89);
                 
-                doc.text(`Email: ${order.user_email || 'N/A'}`, doc.internal.pageSize.width - 20, 80, { align: 'right' });
-                
-                // Customer Information
-                let yPos = 115;
+                if (order.user_email) {
+                    doc.text(`Email: ${order.user_email}`, doc.internal.pageSize.width - 20, 75, { align: 'right' });
+                }
                 
                 // Shipping Address
+                let yPos = 115;
+                
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(...MAGENTA);
                 doc.text('Shipping Address', 14, yPos);
@@ -538,73 +459,56 @@
                     yPos += 6;
                 });
                 
-                // Billing Address
-                const bill = order.billing_address || ship;
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(...MAGENTA);
-                doc.text('Billing Address', doc.internal.pageSize.width - 14, 115, { align: 'right' });
-                
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(...CHARCOAL);
-                const billingLines = [
-                    bill.fullName || '',
-                    bill.streetAddress || '',
-                    bill.address2 || '',
-                    `${bill.city || ''} ${bill.state || ''} ${bill.zipCode || ''}`.trim()
-                ].filter(Boolean);
-                
-                let billingY = 122;
-                billingLines.forEach(line => {
-                    doc.text(line, doc.internal.pageSize.width - 14, billingY, { align: 'right' });
-                    billingY += 6;
-                });
-                
-                // Gift Note
+                // Gift Note (if present)
                 if (order.gift_wrapping && order.gift_note) {
-                    yPos = Math.max(yPos, billingY) + 15;
+                    yPos += 10;
                     doc.setFillColor(255, 240, 245);
-                    doc.roundedRect(14, yPos, doc.internal.pageSize.width - 28, 25, 2, 2, 'F');
+                    doc.roundedRect(14, yPos, doc.internal.pageSize.width - 28, 20, 2, 2, 'F');
                     
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(...GOLD);
-                    doc.text('🎁 Gift Message', 20, yPos + 8);
+                    doc.text('🎁 Gift Message', 20, yPos + 7);
                     
                     doc.setFont('helvetica', 'italic');
                     doc.setTextColor(...CHARCOAL);
                     doc.setFontSize(9);
-                    const giftNote = order.gift_note.length > 100 
-                        ? order.gift_note.substring(0, 100) + '...' 
+                    const giftNote = order.gift_note.length > 80 
+                        ? order.gift_note.substring(0, 80) + '...' 
                         : order.gift_note;
-                    doc.text(`"${giftNote}"`, 20, yPos + 18);
+                    doc.text(`"${giftNote}"`, 20, yPos + 15);
                     
-                    yPos += 35;
+                    yPos += 30;
                 } else {
-                    yPos = Math.max(yPos + 20, billingY + 20);
+                    yPos += 20;
                 }
                 
-                // Order Items Table
+                // Order Items
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(...MAGENTA);
                 doc.setFontSize(11);
                 doc.text('Order Summary', 14, yPos);
                 
                 const tableData = [];
+                let subtotal = 0;
                 
-                // Add cart items
+                // Add items
                 if (order.items && Array.isArray(order.items)) {
                     order.items.forEach(item => {
                         if (!item.isGiftWrapping) {
+                            const price = parseFloat(item.price) || 0;
+                            subtotal += price;
                             tableData.push([
                                 item.name || 'Phone Case',
                                 item.device || 'Custom Device',
-                                `$${(item.price || 0).toFixed(2)}`
+                                `$${price.toFixed(2)}`
                             ]);
                         }
                     });
                 }
                 
-                // Add gift wrapping if present
+                // Add gift wrapping
                 if (order.gift_wrapping) {
+                    subtotal += 30;
                     tableData.push([
                         'Gift Wrapping',
                         'Premium gift wrap',
@@ -613,11 +517,10 @@
                 }
                 
                 // Calculate totals
-                const subtotal = order.subtotal || 0;
-                const discount = order.discount_amount || 0;
-                const shipping = order.shipping_cost || 8.90;
-                const tax = order.tax_amount || 0;
-                const total = order.amount || 0;
+                const discount = parseFloat(order.discount_amount) || 0;
+                const shipping = parseFloat(order.shipping_cost) || 8.90;
+                const tax = parseFloat(order.tax_amount) || 0;
+                const total = parseFloat(order.amount) || (subtotal - discount + shipping + tax);
                 
                 // Generate table
                 doc.autoTable({
@@ -649,66 +552,37 @@
                         2: { cellWidth: 30, halign: 'right' }
                     },
                     margin: { left: 14, right: 14 },
-                    styles: { 
-                        fontSize: 9,
-                        cellPadding: 3,
-                        lineColor: [230, 230, 230],
-                        lineWidth: 0.1
-                    },
-                    alternateRowStyles: {
-                        fillColor: [250, 250, 250]
-                    }
+                    styles: { fontSize: 9, cellPadding: 3 }
                 });
                 
-                // Add QR Code for order tracking
+                // Thank You Message
                 const finalY = doc.lastAutoTable.finalY + 15;
                 
-                // Only attempt QR if within page bounds
-                if (finalY < 250) {
-                    try {
-                        const qrData = `https://www.theweer.com/track-order?order_id=${order.order_id}`;
-                        const qrCanvas = await QRCode.toCanvas(qrData, { width: 50, margin: 0 });
-                        const qrImage = qrCanvas.toDataURL('image/png');
-                        doc.addImage(qrImage, 'PNG', 14, finalY, 25, 25);
-                        
-                        doc.setFontSize(7);
-                        doc.setTextColor(150, 150, 150);
-                        doc.text('Scan to track', 14, finalY + 30);
-                    } catch (qrError) {
-                        console.log('QR generation skipped:', qrError);
-                    }
-                }
-                
-                // Thank You Message
-                const thankYouY = Math.max(finalY + 20, 240);
                 doc.setFillColor(...GOLD);
-                doc.roundedRect(14, thankYouY, doc.internal.pageSize.width - 28, 25, 3, 3, 'F');
+                doc.roundedRect(14, finalY, doc.internal.pageSize.width - 28, 20, 3, 3, 'F');
                 
                 doc.setFontSize(11);
                 doc.setTextColor(255, 255, 255);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Thank You for Your Bloom!', 105, thankYouY + 10, { align: 'center' });
-                
+                doc.text('Thank You for Your Bloom!', 105, finalY + 8, { align: 'center' });
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Your custom art will bloom soon. We appreciate your support!', 105, thankYouY + 18, { align: 'center' });
+                doc.text('Your custom art will bloom soon.', 105, finalY + 15, { align: 'center' });
                 
                 // Footer
                 const footerY = doc.internal.pageSize.height - 15;
                 doc.setFontSize(8);
                 doc.setTextColor(150, 150, 150);
-                doc.setFont('helvetica', 'normal');
                 doc.text('GOLDEN GATE BLOOMS LLC • 3400 COTTAGE WAY, STE G2 • SACRAMENTO, CA 95825', 105, footerY, { align: 'center' });
-                doc.text(`Receipt generated: ${new Date().toLocaleString()}`, 105, footerY + 5, { align: 'center' });
+                
+                // Save PDF
+                doc.save(`Bloom_Receipt_${order.order_id || 'order'}.pdf`);
+                showToast('Receipt downloaded successfully');
                 
             } catch (error) {
-                console.error('Error generating PDF:', error);
-                // Fallback to simple PDF
+                console.error('PDF generation error:', error);
                 generateSimplePDF(order);
             }
-            
-            // Save PDF
-            doc.save(`Bloom_Receipt_${order.order_id || 'order'}.pdf`);
         }
 
         function generateSimplePDF(order) {
@@ -727,53 +601,40 @@
             doc.text(`Order ID: ${order.order_id || 'N/A'}`, 14, 50);
             doc.text(`Date: ${formatDate(order.created_at)}`, 14, 60);
             doc.text(`Email: ${order.user_email || 'N/A'}`, 14, 70);
-            doc.text(`Total: $${(order.amount || 0).toFixed(2)}`, 14, 80);
+            doc.text(`Total: ${formatCurrency(order.amount || 0)}`, 14, 80);
             
             doc.save(`Bloom_Receipt_${order.order_id || 'order'}.pdf`);
+            showToast('Receipt downloaded successfully');
         }
 
         // ============ API FUNCTIONS ============
         async function fetchOrderDetails(orderId) {
             const token = getAuthToken();
             if (!token) {
-                throw new Error('Please sign in to view your order details');
+                throw new Error('Please sign in to view your order details. If you just completed checkout, you may need to wait a moment.');
             }
-        
-            console.log(`🔍 Fetching order details for: ${orderId}`);
+
+            console.log(`Fetching order details for: ${orderId}`);
             
-            // Add AbortController for timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-            
-            try {
-                const response = await fetch(ORDERS_API_ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        action: 'getOrderDetails',
-                        order_id: orderId
-                    }),
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
-        
-                if (!response.ok) {
-                    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-                    throw new Error(error.error || `Failed to fetch order (${response.status})`);
-                }
-        
-                const data = await response.json();
-                return data.order || data;
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    throw new Error('Request timeout - please try again');
-                }
-                throw error;
+            const response = await fetch(ORDERS_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    action: 'getOrderDetails',
+                    order_id: orderId
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(error.error || `Failed to fetch order (${response.status})`);
             }
+
+            const data = await response.json();
+            return data.order || data;
         }
 
         // ============ UI FUNCTIONS ============
@@ -783,9 +644,9 @@
             document.getElementById('order-details-section').style.display = 'block';
             
             // Show user email in header
-            const userEmail = document.getElementById('user-email-display');
-            if (userEmail && order.user_email) {
-                userEmail.textContent = `Welcome, ${order.user_email.split('@')[0]}`;
+            if (order.user_email) {
+                const userEmailDisplay = document.getElementById('user-email-display');
+                userEmailDisplay.textContent = `Welcome, ${order.user_email.split('@')[0]}`;
             }
             
             // Populate basic data
@@ -800,119 +661,38 @@
             
             // Populate order items
             const itemsContainer = document.getElementById('order-items-list');
-            if (itemsContainer) {
+            const itemsSection = document.getElementById('order-items-section');
+            
+            if (itemsContainer && order.items && Array.isArray(order.items) && order.items.length > 0) {
+                itemsSection.style.display = 'block';
                 itemsContainer.innerHTML = '';
                 
-                if (order.items && Array.isArray(order.items) && order.items.length > 0) {
-                    order.items.forEach(item => {
-                        if (!item.isGiftWrapping) {
-                            const itemDiv = document.createElement('div');
-                            itemDiv.className = 'order-item flex justify-between items-center';
-                            itemDiv.innerHTML = `
-                                <div class="flex items-center gap-3">
-                                    <div>
-                                        <p class="font-medium">${item.name || 'Phone Case'}</p>
-                                        <p class="text-xs text-gray-500">${item.device || 'Custom Device'}</p>
-                                    </div>
-                                </div>
-                                <span class="font-semibold">${formatCurrency(item.price || 0)}</span>
-                            `;
-                            itemsContainer.appendChild(itemDiv);
-                        }
-                    });
-                }
-                
-                // Add gift wrapping if present
-                if (order.gift_wrapping) {
-                    const giftDiv = document.createElement('div');
-                    giftDiv.className = 'order-item flex justify-between items-center bg-gold/5 rounded-lg p-3 mt-2';
-                    giftDiv.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="text-xl">🎁</span>
+                order.items.forEach(item => {
+                    if (!item.isGiftWrapping) {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'order-item flex justify-between items-center';
+                        itemDiv.innerHTML = `
                             <div>
-                                <p class="font-medium">Gift Wrapping</p>
-                                <p class="text-xs text-gray-500">Premium gift wrap</p>
+                                <p class="font-medium">${item.name || 'Phone Case'}</p>
+                                <p class="text-xs text-gray-500">${item.device || 'Custom Device'}</p>
                             </div>
-                        </div>
-                        <span class="font-semibold">$30.00</span>
-                    `;
-                    itemsContainer.appendChild(giftDiv);
-                    
-                    // Show gift note if present
-                    if (order.gift_note) {
-                        const noteDiv = document.createElement('div');
-                        noteDiv.className = 'mt-3 p-3 bg-gray-50 rounded-lg text-left text-sm italic';
-                        noteDiv.innerHTML = `
-                            <span class="font-semibold text-gold">🎁 Gift Message:</span>
-                            <p class="mt-1 text-gray-600">"${order.gift_note}"</p>
+                            <span class="font-semibold">${formatCurrency(item.price || 0)}</span>
                         `;
-                        itemsContainer.appendChild(noteDiv);
+                        itemsContainer.appendChild(itemDiv);
                     }
-                    
-                    // Show gift receipt notice
-                    const giftNotice = document.getElementById('gift-receipt-notice');
-                    if (giftNotice) {
-                        giftNotice.style.display = 'block';
-                    }
-                }
+                });
+            }
+            
+            // Show gift wrapping notice
+            if (order.gift_wrapping) {
+                const giftNotice = document.getElementById('gift-receipt-notice');
+                if (giftNotice) giftNotice.style.display = 'block';
             }
             
             // Setup PDF download button
             const downloadBtn = document.getElementById('download-receipt-btn');
             if (downloadBtn) {
-                downloadBtn.onclick = async () => {
-                    downloadBtn.disabled = true;
-                    downloadBtn.innerHTML = `
-                        <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Generating PDF...
-                    `;
-                    
-                    try {
-                        await generateEnhancedPDF(order);
-                        showToast('Receipt downloaded successfully');
-                    } catch (error) {
-                        console.error('PDF generation failed:', error);
-                        generateSimplePDF(order);
-                        showToast('Receipt downloaded', 'success');
-                    } finally {
-                        downloadBtn.disabled = false;
-                        downloadBtn.innerHTML = `
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                            </svg>
-                            Download Receipt (PDF)
-                        `;
-                    }
-                };
-            }
-            
-            // Setup email receipt button
-            const emailBtn = document.getElementById('email-receipt-btn');
-            if (emailBtn) {
-                emailBtn.onclick = () => {
-                    emailBtn.disabled = true;
-                    emailBtn.innerHTML = `
-                        <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Sending...
-                    `;
-                    
-                    setTimeout(() => {
-                        emailBtn.disabled = false;
-                        emailBtn.innerHTML = `
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                            </svg>
-                            Email Receipt
-                        `;
-                        showToast('Receipt sent to your email');
-                    }, 1500);
-                };
+                downloadBtn.onclick = () => generatePDF(order);
             }
         }
 
@@ -940,7 +720,6 @@
 
         // ============ CONFETTI ============
         function createConfetti() {
-            console.log('🎊 Launching confetti celebration!');
             const colors = ['#E6007E', '#D4AF37', '#FFD0E6', '#2E2E2E'];
             for (let i = 0; i < 50; i++) {
                 setTimeout(() => {
@@ -951,13 +730,10 @@
                     confetti.style.animationDelay = Math.random() * 2 + 's';
                     confetti.style.width = Math.random() * 10 + 5 + 'px';
                     confetti.style.height = confetti.style.width;
-                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
                     document.body.appendChild(confetti);
                     
-                    setTimeout(() => {
-                        confetti.remove();
-                    }, 3000);
-                }, i * 50);
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 20);
             }
         }
 
@@ -993,12 +769,6 @@
         // Global error logging
         window.addEventListener('error', function(e) {
             console.error('💥 Page error:', e.error || e.message);
-        });
-        
-        // Clean up confetti on page unload
-        window.addEventListener('beforeunload', function() {
-            const confetti = document.querySelectorAll('.confetti');
-            confetti.forEach(c => c.remove());
         });
     </script>
 </body>
