@@ -738,42 +738,42 @@
             if (!token) {
                 throw new Error('Please sign in to view your order details');
             }
-
+        
             console.log(`🔍 Fetching order details for: ${orderId}`);
             
-            const response = await fetch(ORDERS_API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    action: 'getOrderDetails',
-                    order_id: orderId
-                })
-            });
-
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-                throw new Error(error.error || `Failed to fetch order (${response.status})`);
-            }
-
-            const data = await response.json();
-            console.log('✅ Order details received:', data);
+            // Add AbortController for timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
             
-            // Ensure consistent data structure
-            if (!data.order) {
-                return {
-                    ...data,
-                    items: data.items || [],
-                    shipping_address: data.shipping_address || data.shippingAddress,
-                    billing_address: data.billing_address || data.billingAddress,
-                    gift_wrapping: data.gift_wrapping || data.giftWrapping || false,
-                    gift_note: data.gift_note || data.giftNote || ''
-                };
+            try {
+                const response = await fetch(ORDERS_API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        action: 'getOrderDetails',
+                        order_id: orderId
+                    }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+        
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    throw new Error(error.error || `Failed to fetch order (${response.status})`);
+                }
+        
+                const data = await response.json();
+                return data.order || data;
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('Request timeout - please try again');
+                }
+                throw error;
             }
-            
-            return data.order;
         }
 
         // ============ UI FUNCTIONS ============
