@@ -59,6 +59,58 @@ class Application {
             console.error('Error initializing application:', error);
         }
     }
+    
+    // Studio page actions
+    proceedToUpload() {
+        this.studioManager.checkDeviceAndProceed();
+    }
+    
+    processImages() {
+        this.studioManager.processImages();
+    }
+    
+    startOver() {
+        this.studioManager.startOver();
+    }
+    
+    // Cart actions
+    applyPromo() {
+        const promoInput = document.getElementById('promo-input');
+        if (promoInput) {
+            this.promoManager.applyPromoCode(promoInput.value);
+        }
+    }
+    
+    addGiftWrapping() {
+        this.cartManager.addGiftWrapping();
+    }
+    
+    removeGiftWrapping() {
+        this.cartManager.removeGiftWrapping();
+    }
+    
+    // Checkout actions
+    applyCheckoutPromo() {
+        const promoInput = document.getElementById('checkout-promo-input');
+        if (promoInput) {
+            this.promoManager.applyPromoCode(promoInput.value);
+        }
+    }
+    
+    placeOrder() {
+        this.checkoutManager.placeOrder();
+    }
+    
+    // Navigation
+    goToStudio() {
+        this.navigateTo('studio');
+    }
+    
+    goToCheckout() {
+        this.closeCartModal();
+        this.navigateTo('checkout');
+        this.checkoutManager.renderCheckout();
+    }
 
     setupEventListeners() {
         // Floating cart click event - FIXED: Use event delegation
