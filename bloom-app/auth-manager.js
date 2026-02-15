@@ -90,7 +90,7 @@ class AuthManager {
                 this.saveSession(newSession);
                 return true;
             } else {
-                console.error("Refresh token exchange failed. Logging out:", tokens.error_description || JSON.stringify(tokens));
+                console.error("Refresh token exchange failed");
                 this.clearSession();
                 return false;
             }
@@ -118,7 +118,11 @@ class AuthManager {
             try {
                 const payload = JSON.parse(atob(session.id_token.split('.')[1]));
                 const displayName = payload.name || payload.given_name || payload.email || payload.sub;
-                return { email: payload.email, sub: payload.sub, displayName: displayName };
+                // ADD THESE 2 LINES
+                const sanitizedDisplayName = displayName.replace(/[<>&"']/g, function(m) {
+                    return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[m];
+                });
+                return { email: payload.email, sub: payload.sub, displayName: sanitizedDisplayName };
             } catch (e) {
                 console.error('Error parsing token:', e);
             }
@@ -131,9 +135,12 @@ class AuthManager {
         const verifier = this.genRandom();
         localStorage.setItem(STORAGE_KEYS.PKCE_VERIFIER, verifier);
         const challenge = await this.sha256(verifier);
-        
-        const url = `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code&client_id=${cognitoConfig.clientId}&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}&scope=email+openid+profile&code_challenge_method=S256&code_challenge=${challenge}`;
-        
+
+        const state = this.genRandom();
+        localStorage.setItem('oauth_state', state);
+
+        const url = `https://${cognitoConfig.domain}/oauth2/authorize?response_type=code&client_id=${cognitoConfig.clientId}&redirect_uri=${encodeURIComponent(cognitoConfig.redirectUri)}&scope=email+openid+profile&code_challenge_method=S256&code_challenge=${challenge}&state=${state}`;
+    
         window.location.href = url;
     }
 
@@ -147,6 +154,14 @@ class AuthManager {
         const code = params.get('code');
         if(!code) return false;
 
+        const returnedState = params.get('state');
+        const savedState = localStorage.getItem('oauth_state');
+        if (returnedState !== savedState) {
+            console.error('State mismatch - possible CSRF attack');
+            return false;
+        }
+        localStorage.removeItem('oauth_state');
+    
         const verifier = localStorage.getItem(STORAGE_KEYS.PKCE_VERIFIER);
         if (!verifier) {
             console.error("PKCE Error: Code verifier not found in storage.");
@@ -170,7 +185,7 @@ class AuthManager {
                 window.history.replaceState({}, document.title, cognitoConfig.redirectUri);
                 return true;
             } else {
-                console.error("Token exchange failed:", tokens.error_description || JSON.stringify(tokens));
+                console.error("Token exchange failed");
                 return false;
             }
         } catch (error) {
