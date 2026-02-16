@@ -1,49 +1,583 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Welcome</title>
-<style>
-    body {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #f8f9fa;
-    text-align: center;
-    padding: 40px 20px;
-}
-.logo { height: 80px; margin-bottom: 20px; }
-h1 { font-weight: 600; color: #212529; }
-p { color: #555; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloom - Your Reflection is Waiting to Bloom</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* --- Dreamlike Elegance Theme --- */
+        :root {
+            --color-magenta: #E6007E;
+            --color-gold: #D4AF37;
+            --color-charcoal: #2E2E2E;
+            --color-blush-start: #FFD0E6;
+            --color-blush-end: #FFF7FB;
+            --color-gray-300: #d1d5db;
+            --color-gray-600: #4b5563;
+        
+        }
+        
+        .bg-magenta { background-color: var(--color-magenta); }
+        .bg-gold { background-color: var(--color-gold); }
+        .bg-gray-300 { background-color: var(--color-gray-300); }
+        .text-white { color: white; }
+        .text-gray-600 { color: var(--color-gray-600); }
+        .border-magenta { border-color: var(--color-magenta); }
+        .border-gold { border-color: var(--color-gold); }
+        .border-gray-300 { border-color: var(--color-gray-300); }
+        .text-magenta { color: var(--color-magenta); }
+        .text-gold { color: var(--color-gold); }
+        .font-semibold { font-weight: 600; }
 
-.btn {
-    display: inline-block;
-    padding: 14px 28px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 16px;
-    cursor: pointer;
-    border: none;
-    transition: background 0.2s;
-}
-.btn-primary {
-    background: #007bff;
-    color: white;
-}
-.btn-primary:hover { background: #0056b3; }
-
-.btn-secondary {
-    background: #2c5530;
-    color: white;
-}
-.btn-secondary:hover { background: #1e3e22; }
-
-</style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Manrope:wght@400;600&display=swap');
+    </style>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <img src="logo.png" alt="Logo" class="logo">
-    <h1>Welcome</h1>
-    <p>Create your custom phone case</p>
-       <!-- Legal Links -->
+    <!-- Floating Cart -->
+    <div id="floating-cart" class="floating-cart">
+        <div class="cart-icon">🛒</div>
+        <div id="cart-badge" class="cart-badge" style="display: none;">0</div>
+    </div>
+    
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="cart-modal">
+        <div class="cart-modal-content">
+            <button class="cart-modal-close" onclick="window.app.closeCartModal()">&times;</button>
+            
+            <h2 class="poetic-title text-3xl mb-4">Your Bloom Cart</h2>
+            <div class="text-center italic mb-8">
+                <p>"Every flower began as light. Your bloom is ready to take shape."</p>
+            </div>
+    
+            <div id="cart-items-container" class="space-y-4 mb-6">
+                <div id="empty-cart-message" class="text-center p-8 border border-gray-200 rounded-lg">
+                    Your cart is empty. <a href="#" onclick="window.app.closeCartModal(); window.app.navigateTo('studio')" class="text-magenta font-semibold">Begin the bloom</a>.
+                </div>
+            </div>
+
+            <!-- Gift Wrapping Section -->
+            <div id="gift-wrapping-section" class="section-background p-4 mb-4">
+                <button id="add-gift-wrapping-btn" class="w-full text-left p-4 border-2 border-dashed border-gold rounded-lg hover:bg-gold/10 transition-all duration-200">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🎁</span>
+                        <div>
+                            <p class="font-semibold">Add Gift Wrapping - $20</p>
+                            <p class="text-sm text-gray-600">We’ll beautifully wrap the bloom and use the shipping address for the recipient.</p>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <div id="promo-section" class="section-background p-4 mt-6">
+                <h4 class="font-semibold mb-2">Have a Promo Code?</h4>
+                <div class="flex gap-2">
+                    <input type="text" id="promo-input" placeholder="Enter code" class="input-style flex-grow">
+                    <button onclick="window.app.promoManager.applyPromoCode(document.getElementById('promo-input').value)" class="cta-gold px-4 py-2 rounded-md font-semibold">Apply</button>
+                </div>
+                <p id="promo-message" class="text-sm mt-2 text-green-700"></p>
+            </div>
+            
+            <div class="flex justify-between items-center border-t border-gray-300 pt-4">
+                <h3 class="text-xl font-bold">Total: <span id="cart-total-display" class="gold-highlight">$0.00</span></h3>
+                <button onclick="window.app.closeCartModal(); window.app.navigateTo('checkout'); window.app.checkoutManager.renderCheckout();" id="checkout-button" class="cta-magenta px-6 py-2 rounded-md font-semibold" disabled>
+                    Proceed to Checkout
+                </button>
+            </div>
+    
+        </div>
+    </div>
+    <div class="container">
+        <header class="header flex justify-between items-center pb-4 mb-6">
+            <img src="logo.png" alt="Bloom" class="h-12 w-auto">
+            <div id="auth-action">
+                </div>
+        </header>
+
+        <div id="nav-container" class="mb-6">
+            </div>
+
+        <div id="token-display" class="auth-status text-center mb-4 text-sm">
+            </div>
+
+        <main id="app-main-content">
+            <section id="home-page" style="display: none;">
+                <div class="poetic-title text-4xl md:text-5xl mb-6">This isn't a phone case</div>
+                
+                <div class="text-center mb-12">
+                    <p class="text-xl font-medium text-gray-600 mb-8 leading-relaxed">
+                        <!-- "She took a selfie. The flowers took over." -->
+                        It's your bloom escaping the screen, continuing onto your phone case.
+                    </p>
+                    
+                    <div class="max-w-2xl mx-auto mb-10">
+                        <p class="text-sm text-center text-gray-500">
+                            Upload 3 selfies. Watch your unique floral art create one seamless piece.
+                        </p>
+                    </div>
+                    
+                    <div class="flex flex-col items-center gap-4">
+                        <button onclick="window.app.navigateTo('studio')" 
+                                class="cta-magenta px-10 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                            Begin Your Bloom →
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Visual Preview Section -->
+                <div class="section-background p-8 mb-12 rounded-2xl">
+                    <h3 class="text-2xl font-semibold mb-6 text-center">Watch the Transformation</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="text-center">
+                            <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-pink-200 to-purple-200 flex items-center justify-center">
+                                <span class="text-3xl">📸</span>
+                            </div>
+                            <h4 class="font-semibold mb-2">1. Upload Photos</h4>
+                            <p class="text-sm text-gray-600">Share 3 photos</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-yellow-200 to-orange-200 flex items-center justify-center">
+                                <span class="text-3xl">🌺</span>
+                            </div>
+                            <h4 class="font-semibold mb-2">2. Watch the Magic</h4>
+                            <p class="text-sm text-gray-600">You into floral art</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-200 to-teal-200 flex items-center justify-center">
+                                <span class="text-3xl">📱</span>
+                            </div>
+                            <h4 class="font-semibold mb-2">3. Wear Your Bloom</h4>
+                            <p class="text-sm text-gray-600">Get your custom phone case & wallpaper</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button onclick="window.app.navigateTo('studio')" 
+                                class="cta-gold px-8 py-3 font-semibold rounded-full hover:shadow-lg transition-all">
+                            See It in Action
+                        </button>
+                    </div>
+                </div>
+                
+            </section>
+
+            <section id="studio-page" style="display: none;">
+                <div id="auth-required-message" class="text-center p-10 bg-blush-start border border-magenta rounded-lg mb-6">
+                    <p class="font-bold text-xl mb-2">Create your account</p>
+                    <p class="mb-4">Sign in to create and view your personalized blooms</p>
+                    <button onclick="window.app.authManager.signin()" class="cta-gold px-6 py-2 text-sm font-semibold rounded-full shadow-lg">
+                        Sign In / Sign Up to Begin
+                    </button>
+                </div>
+            
+                <div id="app-content-box" style="display: none;">
+                    <h2 class="poetic-title text-3xl mb-4">Studio: Capture Your Bloom</h2>
+                    <p class="text-center text-lg mb-8">"Your reflection is growing into art."</p>
+            
+                    <!-- Updated Step Indicators -->
+                    <div class="flex justify-center gap-8 mb-8 text-center text-sm font-medium">
+                        <div class="step-indicator active flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full bg-magenta text-white flex items-center justify-center mb-1">1</div>
+                            <span class="p-2 border-b-2 border-magenta">Select Device</span>
+                        </div>
+                        <div class="step-indicator flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center mb-1">2</div>
+                            <span class="p-2 border-b-2 border-gray-300">Upload & Processing</span>
+                        </div>
+                        <div class="step-indicator flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center mb-1">3</div>
+                            <span class="p-2 border-b-2 border-gray-300">Preview & Cart</span>
+                        </div>
+                    </div>
+            
+                    <div id="device-selection-step" class="section-background p-6 mb-6">
+                        <h3 class="text-xl font-semibold mb-3">1. Select Your Device</h3>
+                        <p class="text-sm text-gray-600 mb-4">The phone case will be custom made for the selected device during production.</p>
+                        
+                        <!-- Manufacturer Selection -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium mb-2">Device Manufacturer</label>
+                            <div class="flex gap-6">
+                                <label class="flex items-center">
+                                    <!-- <input type="radio" name="device-manufacturer" value="apple" checked class="mr-2 accent-magenta"> -->
+                                    <input type="radio" name="device-manufacturer" value="apple" class="mr-2 accent-magenta" checked>
+                                    <span>Apple</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="device-manufacturer" value="samsung" class="mr-2 accent-magenta">
+                                    <span>Samsung</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Device Model Selection -->
+                        <div class="mb-4">
+                            <select id="device-dropdown" class="input-style flex-grow" disabled>
+                                <option value="" disabled selected>Choose your phone model...</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Acknowledgement -->
+                        <div class="flex items-start">
+                            <input type="checkbox" id="acknowledgement-box" class="mt-1 mr-2 accent-magenta">
+                            <label for="acknowledgement-box" class="text-sm">
+                                I acknowledge that the <span class="gold-highlight">initial product mockup</span> may be based on a standard, generic device model for design purposes, regardless of my selection. However, my chosen device (<span id="selected-device-text" class="font-bold italic">None Selected</span>) will be used for the final, physical product.
+                            </label>
+                        </div>
+                        <button id="proceed-upload-button" onclick="window.app.proceedToUpload()" class="cta-magenta mt-4 px-6 py-2 rounded-md font-semibold" disabled>
+                            Confirm Selection & Proceed
+                        </button>
+                    </div>
+            
+                    <div id="upload-and-product-step" style="display: none;">
+                        <!-- Start Over Button -->
+                        <div class="text-right mb-4">
+                            <!-- <button id="start-over-button" onclick="window.app.studioManager.startOver()" class="text-sm text-gray-600 hover:text-magenta flex items-center gap-1" style="display: none;"> 
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                Start Over with New Images
+                            </button>-->
+                            
+                            <button id="start-over-button" onclick="window.app.studioManager.startOver()" 
+                                    class="text-sm text-gray-600 hover:text-magenta flex items-center gap-1 bg-white border border-gray-300 rounded-md px-4 py-2 shadow-sm hover:shadow hover:border-magenta transition-all" 
+                                    style="display: none;">
+                                <svg class="w-4 h-4">...</svg>
+                                Start Over with New Images
+                            </button>
+
+                            
+                        </div>
+            
+                        <div id="upload-area" class="section-background p-6 mb-6">
+                            <h3 class="text-xl font-semibold mb-3">2. Upload Your Reflections (3 Images)</h3>
+                        
+                            <div id="blonde-photo-guide" class="mb-4" style="display: block;">
+                                <p class="text-sm italic text-gray-600 mb-3 text-center">
+                                    “For our **blonde muses**... Try placing your golden hair **mostly to one side** in your selfies for the best blooms”
+                                </p>
+                        
+                                <div class="flex justify-center gap-4">
+                                    
+                                    <div class="w-1/2 max-w-[120px] text-center">
+                                        <div class="relative w-full h-28 mx-auto rounded-lg border-2 border-red-500 overflow-hidden shadow-md">
+                                            <img src="none-optimal-image-min.png" alt="Non-Optimal Example" class="object-cover w-full h-full">
+                                            <div class="absolute bottom-1 right-1 bg-red-600 p-1 rounded-full border-2 border-white flex items-center justify-center">
+                                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                        
+                                    <div class="w-1/2 max-w-[120px] text-center">
+                                        <div class="relative w-full h-28 mx-auto rounded-lg border-2 border-gold overflow-hidden shadow-md">
+                                            <img src="optimal-image-min.png" alt="Optimal Example" class="object-cover w-full h-full">
+                                            <div class="absolute bottom-1 right-1 bg-gold p-1 rounded-full border-2 border-white flex items-center justify-center">
+                                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4 border-gray-200">
+                        
+                            <div class="mb-4">
+                                <!-- <label class="block text-sm font-medium mb-2">Upload all 3 images at once:</label> -->
+                                <input type="file" id="multi-photo-upload" accept="image/*" multiple class="input-style block w-full mb-2">
+                                <p class="text-xs text-gray-500">Select 3 images. You can select multiple files at once.</p>
+                            </div>
+                            
+                            <!-- Individual file inputs (hidden but functional) -->
+                            <div style="display: none;">
+                                <input type="file" id="photo-upload-1" accept="image/*">
+                                <input type="file" id="photo-upload-2" accept="image/*">
+                                <input type="file" id="photo-upload-3" accept="image/*">
+                            </div>
+                            
+                            <!-- File names display -->
+                            <div id="file-names-display" class="mb-4 p-3 bg-gray-50 rounded-lg">
+                                <p class="text-sm text-gray-500">No files selected</p>
+                            </div>
+                            
+                            <button onclick="window.app.studioManager.processImages()" class="cta-gold px-6 py-2 rounded-md font-semibold w-full">Watch your reflection grow</button>
+                        </div>
+                        
+                        <div id="processing-progress" class="section-background p-6 mb-6" style="display: none;">
+                            <h3 class="text-xl font-semibold mb-3">Processing Your Bloom...</h3>
+                            <p class="text-sm text-gray-600 mb-4">Creating your unique artwork. This typically takes 3-4 minutes.</p>
+                            <div class="bg-gray-200 rounded-full h-2.5 mb-2">
+                                <div id="progress-bar" class="bg-magenta h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <p id="progress-message" class="text-sm text-gray-600"></p>
+                        </div>
+            
+                        <div id="product-list-area" style="display: none;">
+                            <h3 class="poetic-title text-2xl mt-8 mb-4">3. Your Ready Blooms</h3>
+                            <p class="text-center text-sm text-gray-600 mb-6">"This isn't a case — it's your bloom captured in color."</p>
+                            <div id="mockup-products" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Products will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="checkout-page" style="display: none;">
+                <h2 class="poetic-title text-3xl mb-4">Complete Your Bloom</h2>
+                <div class="text-center italic mb-8">
+                    <!-- <p>"Your reflection is ready to blossom into your hands."</p> -->
+                    <p>"This isn't a case—it's your bloom escaping the screen, continuing onto your phone case."</p>
+                </div>
+            
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left Column: Forms -->
+                    <div class="space-y-6">
+                        <!-- Shipping Address -->
+                        <div class="section-background p-6">
+                            <h3 class="text-xl font-semibold mb-4" id="shipping-address-title">Shipping Address</h3>
+                            <div class="grid grid-cols-1 gap-4" id="shipping-address-fields">
+                                <input type="text" id="shipping-full-name" placeholder="Full Name" class="input-style" required>
+                                <input type="text" id="shipping-street-address" placeholder="Street Address" class="input-style" required>
+                                <input type="text" id="shipping-address-2" placeholder="Apartment, Suite, etc. (Optional)" class="input-style">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <input type="text" id="shipping-city" placeholder="City" class="input-style" required>
+                                    <select id="shipping-state" class="input-style" required>
+                                        <option value="">State</option>
+                                        <option value="AL">Alabama</option>
+                                        <option value="AK">Alaska</option>
+                                        <option value="AZ">Arizona</option>
+                                        <option value="AR">Arkansas</option>
+                                        <option value="CA">California</option>
+                                        <option value="CO">Colorado</option>
+                                        <option value="CT">Connecticut</option>
+                                        <option value="DE">Delaware</option>
+                                        <option value="DC">District of Columbia</option>
+                                        <option value="FL">Florida</option>
+                                        <option value="GA">Georgia</option>
+                                        <option value="HI">Hawaii</option>
+                                        <option value="ID">Idaho</option>
+                                        <option value="IL">Illinois</option>
+                                        <option value="IN">Indiana</option>
+                                        <option value="IA">Iowa</option>
+                                        <option value="KS">Kansas</option>
+                                        <option value="KY">Kentucky</option>
+                                        <option value="LA">Louisiana</option>
+                                        <option value="ME">Maine</option>
+                                        <option value="MD">Maryland</option>
+                                        <option value="MA">Massachusetts</option>
+                                        <option value="MI">Michigan</option>
+                                        <option value="MN">Minnesota</option>
+                                        <option value="MS">Mississippi</option>
+                                        <option value="MO">Missouri</option>
+                                        <option value="MT">Montana</option>
+                                        <option value="NE">Nebraska</option>
+                                        <option value="NV">Nevada</option>
+                                        <option value="NH">New Hampshire</option>
+                                        <option value="NJ">New Jersey</option>
+                                        <option value="NM">New Mexico</option>
+                                        <option value="NY">New York</option>
+                                        <option value="NC">North Carolina</option>
+                                        <option value="ND">North Dakota</option>
+                                        <option value="OH">Ohio</option>
+                                        <option value="OK">Oklahoma</option>
+                                        <option value="OR">Oregon</option>
+                                        <option value="PA">Pennsylvania</option>
+                                        <option value="RI">Rhode Island</option>
+                                        <option value="SC">South Carolina</option>
+                                        <option value="SD">South Dakota</option>
+                                        <option value="TN">Tennessee</option>
+                                        <option value="TX">Texas</option>
+                                        <option value="UT">Utah</option>
+                                        <option value="VT">Vermont</option>
+                                        <option value="VA">Virginia</option>
+                                        <option value="WA">Washington</option>
+                                        <option value="WV">West Virginia</option>
+                                        <option value="WI">Wisconsin</option>
+                                        <option value="WY">Wyoming</option>
+                                    </select>
+
+                                </div>
+                                <input type="text" id="shipping-zip-code" placeholder="ZIP Code" class="input-style" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Update your billing address section -->
+                        <div class="section-background p-6">
+                            <h3 class="text-xl font-semibold mb-4">Billing Address</h3>
+                            <div class="flex items-center mb-4">
+                                <input type="checkbox" id="same-as-shipping" class="mr-2 accent-magenta" checked>
+                                <label for="same-as-shipping">Same as shipping address</label>
+                            </div>
+                            <div id="billing-address-fields" style="display: none;">
+                                <div class="grid grid-cols-1 gap-4">
+                                    <input type="text" id="billing-full-name" placeholder="Full Name" class="input-style">
+                                    <input type="text" id="billing-street-address" placeholder="Street Address" class="input-style">
+                                    <input type="text" id="billing-address-2" placeholder="Apartment, Suite, etc. (Optional)" class="input-style">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input type="text" id="billing-city" placeholder="City" class="input-style">
+                                        <select id="billing-state" class="input-style">
+                                            <option value="">State</option>
+                                            <option value="AL">Alabama</option>
+                                            <option value="AK">Alaska</option>
+                                            <option value="AZ">Arizona</option>
+                                            <option value="AR">Arkansas</option>
+                                            <option value="CA">California</option>
+                                            <option value="CO">Colorado</option>
+                                            <option value="CT">Connecticut</option>
+                                            <option value="DE">Delaware</option>
+                                            <option value="DC">District of Columbia</option>
+                                            <option value="FL">Florida</option>
+                                            <option value="GA">Georgia</option>
+                                            <option value="HI">Hawaii</option>
+                                            <option value="ID">Idaho</option>
+                                            <option value="IL">Illinois</option>
+                                            <option value="IN">Indiana</option>
+                                            <option value="IA">Iowa</option>
+                                            <option value="KS">Kansas</option>
+                                            <option value="KY">Kentucky</option>
+                                            <option value="LA">Louisiana</option>
+                                            <option value="ME">Maine</option>
+                                            <option value="MD">Maryland</option>
+                                            <option value="MA">Massachusetts</option>
+                                            <option value="MI">Michigan</option>
+                                            <option value="MN">Minnesota</option>
+                                            <option value="MS">Mississippi</option>
+                                            <option value="MO">Missouri</option>
+                                            <option value="MT">Montana</option>
+                                            <option value="NE">Nebraska</option>
+                                            <option value="NV">Nevada</option>
+                                            <option value="NH">New Hampshire</option>
+                                            <option value="NJ">New Jersey</option>
+                                            <option value="NM">New Mexico</option>
+                                            <option value="NY">New York</option>
+                                            <option value="NC">North Carolina</option>
+                                            <option value="ND">North Dakota</option>
+                                            <option value="OH">Ohio</option>
+                                            <option value="OK">Oklahoma</option>
+                                            <option value="OR">Oregon</option>
+                                            <option value="PA">Pennsylvania</option>
+                                            <option value="RI">Rhode Island</option>
+                                            <option value="SC">South Carolina</option>
+                                            <option value="SD">South Dakota</option>
+                                            <option value="TN">Tennessee</option>
+                                            <option value="TX">Texas</option>
+                                            <option value="UT">Utah</option>
+                                            <option value="VT">Vermont</option>
+                                            <option value="VA">Virginia</option>
+                                            <option value="WA">Washington</option>
+                                            <option value="WV">West Virginia</option>
+                                            <option value="WI">Wisconsin</option>
+                                            <option value="WY">Wyoming</option>
+                                        </select>
+
+                                    </div>
+                                    <input type="text" id="billing-zip-code" placeholder="ZIP Code" class="input-style">
+                                </div>
+                            </div>
+                        </div>
+            
+                        <!-- Payment Method -->
+                        <!-- 
+                        <div class="section-background p-6">
+                            <h3 class="text-xl font-semibold mb-4">Payment Method</h3>
+                            <div class="space-y-4">
+                                <div class="border border-gray-300 rounded-lg p-4">
+                                    <input type="radio" name="payment" id="credit-card" class="mr-2 accent-magenta" checked>
+                                    <label for="credit-card" class="font-semibold">Credit Card</label>
+                                    <div class="mt-3 grid grid-cols-1 gap-3">
+                                        <input type="text" placeholder="Card Number" class="input-style">
+                                        <input type="text" placeholder="Name on Card" class="input-style">
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <input type="text" placeholder="MM/YY" class="input-style">
+                                            <input type="text" placeholder="CVV" class="input-style">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        -->
+
+                    </div>
+            
+                    <!-- Right Column: Order Summary -->
+                    <div class="space-y-6">
+                        <!-- Order Summary -->
+                        <div class="section-background p-6">
+                            <h3 class="text-xl font-semibold mb-4">Order Summary</h3>
+                            <div id="checkout-items" class="space-y-3 mb-4">
+                                <!-- Cart items will be populated here -->
+                            </div>
+                            <div class="border-t pt-4 space-y-2">
+                                <div class="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span id="checkout-subtotal">$0.00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Shipping</span>
+                                    <span id="checkout-shipping">$0.00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Tax</span>
+                                    <span id="checkout-tax">$0.00</span>
+                                </div>
+                                <div class="flex justify-between font-bold text-lg border-t pt-2">
+                                    <span>Total</span>
+                                    <span id="checkout-total">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+            
+                        <!-- Promo Code Section -->
+                        <div class="section-background p-6">
+                            <h4 class="font-semibold mb-3">Promo Code</h4>
+                            <div class="flex gap-2">
+                                <input type="text" id="checkout-promo-input" placeholder="Enter code" class="input-style flex-grow">
+                                <button id="checkout-promo-apply" class="cta-gold px-4 py-2 rounded-md font-semibold">Apply</button>
+                            </div>
+                            <p id="checkout-promo-message" class="text-sm mt-2 text-green-700"></p>
+                        </div>
+            
+                        <!-- Place Order Button -->
+                        <button onclick="window.app.checkoutManager.placeOrder()" class="cta-magenta w-full py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl">
+                            Place Your Order
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="bloom-app/config.js"></script>
+    <script src="bloom-app/auth-manager.js"></script>
+    <script src="bloom-app/upload-manager.js"></script>
+    <script src="bloom-app/device-manager.js"></script>
+    <script src="bloom-app/cart-manager.js"></script>
+    <script src="bloom-app/promo-manager.js"></script>
+    <script src="bloom-app/stripe-integration.js"></script>
+    <script src="bloom-app/checkout-manager.js"></script>
+    
+    <script src="bloom-app/realtime-updates.js"></script>
+    <script src="bloom-app/websocket-manager.js"></script>
+    <script src="bloom-app/product-carousel.js"></script>
+    <script src="bloom-app/consent-manager.js"></script>
+    <script src="bloom-app/studio-manager.js"></script>
+    <script src="bloom-app/navigation-manager.js"></script>
+    <script src="bloom-app/ui-manager.js"></script>
+    <script src="bloom-app/app.js"></script>
+    
+    <footer class="w-full max-w-960px mt-12 py-8 border-t border-gray-200">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Contact -->
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Contact</h3>
+                    <p class="text-sm text-gray-600">Need help with your order?</p>
+                    <a href="mailto:bloom@theweer.com" class="text-sm text-magenta hover:underline">bloom@theweer.com</a>
+                </div>
+
+                <!-- Legal Links -->
                 <div>
                     <h3 class="font-bold text-lg mb-4">Legal</h3>
                     <div class="space-y-2">
@@ -51,21 +585,23 @@ p { color: #555; }
                         <a href="/terms-of-service" class="block text-sm text-gray-600 hover:text-magenta transition-colors">Terms of Service</a>
                     </div>
                 </div>
-         
-    <!-- <div id="auth-action"></div> -->
-    
-    <!-- <div style="margin-top: 30px;">
-        <a href="case.html" class="btn btn-secondary">Go to Case Designer</a>
-    </div> -->
-
-<script src="config/constants.js"></script>
-<script src="js/auth.js"></script>
-<script>
-    // Use the same initialization as case.html
-    document.addEventListener('DOMContentLoaded', async () => {
-        await initializeAuth();
-    });
-</script>       
-             
+                
+                <!-- Company Info -->
+                <div>
+                    <h3 class="font-bold text-lg mb-4">GOLDEN GATE BLOOMS LLC</h3>
+                    <address class="not-italic text-sm text-gray-600">
+                        <p>3400 COTTAGE WAY</p>
+                        <p>STE G2</p>
+                        <p>SACRAMENTO, CA 95825</p>
+                    </address>
+                </div>
+                
+            </div>
+            
+            <div class="border-t border-gray-200 mt-8 pt-6 text-center">
+                <p class="text-sm text-gray-500">&copy; 2025 Golden Gate Blooms LLC. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
