@@ -3,7 +3,7 @@ class CartManager {
     constructor() {
         this.promoDiscount = 0; // 0 to 1 (e.g., 0.1 = 10% off)
         this.giftWrappingEnabled = JSON.parse(localStorage.getItem(STORAGE_KEYS.GIFT_WRAPPING) || 'false');
-        this.giftWrappingPrice = 30.00;
+        this.giftWrappingPrice = 20.00;
         this.cart = this.getCart(); // Load from storage initially
         this.loadSavedCart(); // Ensure gift wrapping is synced
     }
