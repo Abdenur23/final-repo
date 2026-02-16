@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bloom - Order Confirmed</title>
+    <title>TheWeer.com - Order Status</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         /* --- Dreamlike Elegance Theme --- */
@@ -209,13 +209,13 @@
 <body>
     <div class="container">
         <header class="header flex justify-between items-center pb-4 mb-6 border-b border-gray-200">
-            <img src="logo.png" alt="Bloom" class="h-12 w-auto">
+            <img src="logo.png" alt="TheWeer.com" class="h-12 w-auto">
             <div id="user-email-display" class="text-sm text-gray-600 auth-badge hidden"></div>
         </header>
 
         <main class="text-center">
-            <!-- Success Icon -->
-            <div class="success-animation mb-8">
+            <!-- Success Icon - Will be hidden for invalid/not paid orders -->
+            <div id="success-icon" class="success-animation mb-8" style="display: none;">
                 <div class="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mx-auto border-4 border-green-200">
                     <svg class="w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -223,10 +223,10 @@
                 </div>
             </div>
 
-            <!-- Main Success Message -->
-            <h1 class="poetic-title text-4xl mb-6">Your Bloom is Complete</h1>
+            <!-- Main Success Message - Will be hidden for invalid/not paid orders -->
+            <h1 id="success-title" class="poetic-title text-4xl mb-6" style="display: none;">Your Order is Confirmed</h1>
             
-            <div class="text-center italic mb-8">
+            <div id="success-quote" class="text-center italic mb-8" style="display: none;">
                 <p class="text-xl text-gray-600 mb-4">"Your reflection has blossomed into art."</p>
             </div>
 
@@ -236,11 +236,11 @@
                 <p class="text-gray-600">Loading your order details...</p>
             </div>
 
-            <!-- Order Details Section -->
+            <!-- Order Details Section - Will only show for PAID orders -->
             <div id="order-details-section" class="max-w-3xl mx-auto mb-8" style="display: none;">
                 <!-- Order Header Card -->
                 <div class="section-background p-6 mb-6">
-                    <h3 class="text-2xl font-semibold mb-4 text-magenta">Order Confirmation</h3>
+                    <h3 class="text-2xl font-semibold mb-4 text-magenta">Order Details</h3>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                         <div>
@@ -262,7 +262,7 @@
                                 <span class="font-semibold text-gray-600">Status:</span>
                                 <span id="order-status" class="text-green-600 font-semibold flex items-center gap-1">
                                     <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
-                                    Payment Confirmed
+                                    Processing
                                 </span>
                             </div>
                             <div class="flex justify-between py-2 border-b border-gray-100">
@@ -361,19 +361,15 @@
                         </svg>
                         Download Receipt (PDF)
                     </button>
-                    <p class="text-sm text-gray-600">✨ A confirmation email has been sent to your inbox.</p>
                 </div>
             </div>
 
-            <!-- Next Steps -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto">
+            <!-- Next Steps - Will be hidden for invalid/not paid orders -->
+            <div id="next-steps" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto" style="display: none;">
                 <div class="section-background p-6 hover:shadow-lg transition-all">
                     <div class="text-4xl mb-3">📦</div>
                     <h4 class="font-semibold mb-2 text-magenta">Production</h4>
-                    <p class="text-sm text-gray-600">Your custom bloom begins production very soon.</p>
-                    <div class="mt-3 text-xs text-gray-500">
-                        <span class="font-medium">Estimated:</span> 3-5 business days
-                    </div>
+                    <p class="text-sm text-gray-600">Your custom item begins production very soon.</p>
                 </div>
                 
                 <div class="section-background p-6 hover:shadow-lg transition-all">
@@ -387,7 +383,7 @@
             <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
                 <a href="https://www.theweer.com/case.html" 
                    class="cta-magenta px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
-                    Create Another Bloom
+                    Create Another
                 </a>
                 <a href="https://www.theweer.com/track" 
                    class="cta-gold px-8 py-3 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
@@ -395,14 +391,25 @@
                 </a>
             </div>
 
-            <!-- Thank You Message -->
-            <div class="section-background max-w-2xl mx-auto p-6 border border-gold/30">
+            <!-- Generic Message - Will show for invalid/not paid orders -->
+            <div id="generic-message" class="section-background max-w-2xl mx-auto p-6 border border-gold/30" style="display: none;">
+                <h3 class="text-xl font-semibold mb-3 text-magenta">Order Status</h3>
+                <p class="text-gray-600 mb-2" id="generic-message-text">
+                    We're having trouble retrieving your order details.
+                </p>
+                <p class="text-sm text-gray-500">
+                    If you believe this is an error, please contact our support team.
+                </p>
+            </div>
+
+            <!-- Thank You Message - Will only show for PAID orders -->
+            <div id="thank-you-message" class="section-background max-w-2xl mx-auto p-6 border border-gold/30" style="display: none;">
                 <h3 class="text-xl font-semibold mb-3 text-magenta">Thank You for Choosing TheWeer.com</h3>
                 <p class="text-gray-600 mb-2">
                     Your support helps us continue creating magical, personalized art for our community.
                 </p>
                 <p class="text-sm italic text-gray-500">
-                    "From our studio to your hands — may your bloom bring daily joy."
+                    "From our studio to your hands — may your creation bring daily joy."
                 </p>
             </div>
         </main>
@@ -414,7 +421,7 @@
                 <div>
                     <h3 class="font-bold text-lg mb-4">Contact</h3>
                     <p class="text-sm text-gray-600">Questions about your order?</p>
-                    <a href="mailto:bloom@theweer.com" class="text-sm text-magenta hover:underline">bloom@theweer.com</a>
+                    <a href="mailto:support@theweer.com" class="text-sm text-magenta hover:underline">support@theweer.com</a>
                 </div>
                 <div>
                     <h3 class="font-bold text-lg mb-4">Legal</h3>
@@ -529,12 +536,12 @@
                 doc.setFontSize(28);
                 doc.setTextColor(...MAGENTA);
                 doc.setFont('helvetica', 'bold');
-                doc.text('BLOOM', 105, 25, { align: 'center' });
+                doc.text('TheWeer.com', 105, 25, { align: 'center' });
                 
                 doc.setFontSize(12);
                 doc.setTextColor(...CHARCOAL);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Order Confirmation & Receipt', 105, 45, { align: 'center' });
+                doc.text('Order Receipt', 105, 45, { align: 'center' });
                 
                 // Order Information
                 doc.setFillColor(255, 255, 255);
@@ -551,7 +558,7 @@
                 doc.setTextColor(100, 100, 100);
                 doc.text(`Order ID: ${order.order_id || 'N/A'}`, 20, 75);
                 doc.text(`Date: ${formatDate(order.created_at)}`, 20, 82);
-                doc.text(`Status: ${order.status || 'Confirmed'}`, 20, 89);
+                doc.text(`Status: ${order.status || 'Processing'}`, 20, 89);
                 
                 if (order.user_email) {
                     doc.text(`Email: ${order.user_email}`, doc.internal.pageSize.width - 20, 75, { align: 'right' });
@@ -722,10 +729,10 @@
                 doc.setFontSize(11);
                 doc.setTextColor(255, 255, 255);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Thank You for Your Bloom!', 105, finalY + 8, { align: 'center' });
+                doc.text('Thank You for Your Order!', 105, finalY + 8, { align: 'center' });
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Your custom art will bloom soon.', 105, finalY + 15, { align: 'center' });
+                doc.text('Your custom creation will be processed soon.', 105, finalY + 15, { align: 'center' });
                 
                 // Footer
                 const footerY = doc.internal.pageSize.height - 15;
@@ -734,7 +741,7 @@
                 doc.text('GOLDEN GATE BLOOMS LLC • 3400 COTTAGE WAY, STE G2 • SACRAMENTO, CA 95825', 105, footerY, { align: 'center' });
                 
                 // Save PDF
-                doc.save(`Bloom_Receipt_${order.order_id || 'order'}.pdf`);
+                doc.save(`TheWeer_Receipt_${order.order_id || 'order'}.pdf`);
                 showToast('Receipt downloaded successfully');
                 
             } catch (error) {
@@ -749,7 +756,7 @@
             
             doc.setFontSize(22);
             doc.setTextColor(230, 0, 126);
-            doc.text('BLOOM', 105, 20, { align: 'center' });
+            doc.text('TheWeer.com', 105, 20, { align: 'center' });
             
             doc.setFontSize(14);
             doc.setTextColor(0, 0, 0);
@@ -761,7 +768,7 @@
             doc.text(`Email: ${order.user_email || 'N/A'}`, 14, 70);
             doc.text(`Total: ${formatCurrency(order.amount || 0)}`, 14, 80);
             
-            doc.save(`Bloom_Receipt_${order.order_id || 'order'}.pdf`);
+            doc.save(`TheWeer_Receipt_${order.order_id || 'order'}.pdf`);
             showToast('Receipt downloaded successfully');
         }
 
@@ -811,9 +818,52 @@
 
         // ============ UI FUNCTIONS ============
         function displayOrderDetails(order) {
-            // Hide loading, show order details
+            // Hide loading
             document.getElementById('loading-state').style.display = 'none';
+            
+            // Check if order is valid and PAID
+            const isValidOrder = order && order.order_id;
+            const isPaid = order && order.status && order.status.toUpperCase() === 'PAID';
+            
+            if (!isValidOrder || !isPaid) {
+                // Show only generic message - no confirmation elements
+                document.getElementById('generic-message').style.display = 'block';
+                
+                // Update generic message text based on error type
+                const genericText = document.getElementById('generic-message-text');
+                if (!isValidOrder) {
+                    genericText.textContent = 'Invalid order ID. Please check your order number and try again.';
+                } else if (!isPaid) {
+                    genericText.textContent = `This order is ${order.status || 'not paid'}. Please complete payment to view details.`;
+                }
+                
+                // Hide all confirmation/success elements
+                document.getElementById('success-icon').style.display = 'none';
+                document.getElementById('success-title').style.display = 'none';
+                document.getElementById('success-quote').style.display = 'none';
+                document.getElementById('order-details-section').style.display = 'none';
+                document.getElementById('next-steps').style.display = 'none';
+                document.getElementById('thank-you-message').style.display = 'none';
+                
+                // Show user email if authenticated
+                const token = getAuthToken();
+                if (token && order.user_email) {
+                    const userEmailDisplay = document.getElementById('user-email-display');
+                    userEmailDisplay.textContent = `${order.user_email.split('@')[0]}`;
+                    userEmailDisplay.classList.remove('hidden');
+                }
+                
+                return;
+            }
+            
+            // If we get here, order is valid and PAID - show all confirmation elements
+            document.getElementById('success-icon').style.display = 'block';
+            document.getElementById('success-title').style.display = 'block';
+            document.getElementById('success-quote').style.display = 'block';
             document.getElementById('order-details-section').style.display = 'block';
+            document.getElementById('next-steps').style.display = 'grid';
+            document.getElementById('thank-you-message').style.display = 'block';
+            document.getElementById('generic-message').style.display = 'none';
             
             // Show user email in header if authenticated and matches
             const token = getAuthToken();
@@ -829,7 +879,7 @@
             document.getElementById('order-total').textContent = formatCurrency(order.amount || 0);
             document.getElementById('order-status').innerHTML = `
                 <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
-                ${order.status || 'Payment Confirmed'}
+                ${order.status || 'Confirmed'}
             `;
             document.getElementById('order-date').textContent = formatDate(order.created_at);
             
@@ -962,38 +1012,36 @@
         function displayError(message) {
             document.getElementById('loading-state').style.display = 'none';
             
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message max-w-2xl mx-auto mb-8';
+            // Hide all confirmation elements
+            document.getElementById('success-icon').style.display = 'none';
+            document.getElementById('success-title').style.display = 'none';
+            document.getElementById('success-quote').style.display = 'none';
+            document.getElementById('order-details-section').style.display = 'none';
+            document.getElementById('next-steps').style.display = 'none';
+            document.getElementById('thank-you-message').style.display = 'none';
+            
+            // Show generic message with error
+            const genericDiv = document.getElementById('generic-message');
+            genericDiv.style.display = 'block';
+            
+            const genericText = document.getElementById('generic-message-text');
+            genericText.textContent = message;
             
             const isAuthError = message.toLowerCase().includes('unauthorized') || 
                                message.toLowerCase().includes('different account') ||
                                message.toLowerCase().includes('sign in');
             
-            errorDiv.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <span class="text-xl">⚠️</span>
-                    <div class="text-left">
-                        <p class="font-bold">Unable to load order details</p>
-                        <p class="text-sm mt-1">${message}</p>
-                        <div class="mt-3 flex gap-3">
-                            ${isAuthError ? 
-                                `<button onclick="window.location.reload()" 
-                                        class="text-sm px-4 py-2 bg-magenta text-white rounded-full hover:bg-opacity-90">
-                                    Try Again
-                                </button>` : 
-                                ''
-                            }
-                            <a href="mailto:bloom@theweer.com" 
-                               class="text-sm px-4 py-2 border border-magenta text-magenta rounded-full hover:bg-magenta hover:text-white transition-all">
-                                Contact Support
-                            </a>
-                        </div>
+            if (isAuthError) {
+                const contactHtml = `
+                    <div class="mt-3 flex gap-3 justify-center">
+                        <button onclick="window.location.reload()" 
+                                class="text-sm px-4 py-2 bg-magenta text-white rounded-full hover:bg-opacity-90">
+                            Try Again
+                        </button>
                     </div>
-                </div>
-            `;
-            
-            const mainElement = document.querySelector('main');
-            mainElement.insertBefore(errorDiv, mainElement.firstChild.nextSibling);
+                `;
+                genericDiv.innerHTML += contactHtml;
+            }
         }
 
         // ============ CONFETTI ============
@@ -1017,7 +1065,7 @@
 
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 Success page initializing...');
+            console.log('🚀 Order status page initializing...');
             
             createConfetti();
             
@@ -1027,19 +1075,8 @@
             if (!orderId) {
                 console.warn('No order_id found in URL');
                 document.getElementById('loading-state').style.display = 'none';
-                
-                const genericDiv = document.createElement('div');
-                genericDiv.className = 'section-background max-w-2xl mx-auto mb-8 p-8';
-                genericDiv.innerHTML = `
-                    <h3 class="text-2xl font-semibold mb-4 text-magenta">Order Confirmed!</h3>
-                    <p class="text-gray-600 mb-4">Thank you for your purchase. A confirmation email has been sent to your inbox.</p>
-                    <a href="https://www.theweer.com/case.html" class="cta-magenta inline-block px-8 py-3 rounded-full">
-                        Create Another Bloom
-                    </a>
-                `;
-                
-                const mainElement = document.querySelector('main');
-                mainElement.insertBefore(genericDiv, mainElement.firstChild.nextSibling);
+                document.getElementById('generic-message').style.display = 'block';
+                document.getElementById('generic-message-text').textContent = 'No order ID provided. Please check your order confirmation email for a valid link.';
                 return;
             }
             
