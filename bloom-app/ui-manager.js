@@ -79,7 +79,7 @@ class UIManager {
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">🎁</span>
                         <div>
-                            <p class="font-semibold">Gift Wrapping & Personal Note - $30</p>
+                            <p class="font-semibold">Gift Wrapping & Personal Note - $20</p>
                             <p class="text-sm text-gray-600">We'll use recipient's address for shipping</p>
                         </div>
                     </div>
@@ -94,7 +94,7 @@ class UIManager {
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">🎁</span>
                         <div>
-                            <p class="font-semibold">Add Gift Wrapping & Personal Note - $30</p>
+                            <p class="font-semibold">Add Gift Wrapping & Personal Note - $20</p>
                             <p class="text-sm text-gray-600">We'll beautifully wrap your bloom and use recipient's address for shipping</p>
                         </div>
                     </div>
