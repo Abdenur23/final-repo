@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>WePickItSF · file 001</title>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>WePickItSF</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* --- RESET: THE ARCHIVE (MOBILE-FIRST) --- */
+        /* ABSOLUTE MINIMAL RESET */
         * {
             margin: 0;
             padding: 0;
@@ -14,342 +14,159 @@
         }
 
         :root {
-            --bg: #FFFFFF;
-            --surface: #F7F7F5;
-            --ink: #111111;
-            --pure-black: #000000;
-            --muted-stroke: #D4D4D4;
-            --accent-file: #F0E68C;
-            --type-mono: 'Archivo Black', sans-serif;
-            --type-sans: 'Inter', sans-serif;
+            --bg: #ffffff;
+            --text: #111111;
+            --text-soft: #555555;
+            --line: #e5e5e5;
+            --highlight: #FEF08A;  /* soft yellow, like a highlighter */
+            --border-light: #dddddd;
         }
 
         body {
             background: var(--bg);
-            color: var(--ink);
-            font-family: var(--type-sans);
-            font-weight: 300;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* --- ARCHIVAL HEADER (mobile-first) --- */
-        .archive-header {
-            display: flex;
-            flex-direction: column;
-            padding: 1rem 1.25rem;
-            border-bottom: 2px solid var(--pure-black);
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            gap: 0.5rem;
-        }
-
-        .archive-header-top {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-        }
-
-        .archive-header .accent {
-            background: var(--accent-file);
-            padding: 0.2rem 0.6rem;
-            color: var(--pure-black);
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .archive-header-bottom {
-            color: #5A5A5A;
-            font-size: 0.65rem;
-        }
-
-        /* main container - mobile first, single column */
+        /* EVERYTHING IS JUST TYPE AND SPACE */
         .container {
-            max-width: 100%;
+            max-width: 600px;
             margin: 0 auto;
-            padding: 1.25rem 1.25rem 3rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
+            padding: 2rem 1.5rem 4rem;
         }
 
-        /* --- cards: hard borders, no rounding --- */
-        .card {
-            background: var(--surface);
-            border: 2px solid var(--pure-black);
-            padding: 1.5rem 1.25rem;
-            transition: none;
-            width: 100%;
-        }
-
-        .card.primary-statement {
-            background: var(--pure-black);
-            color: white;
-            border: 2px solid var(--pure-black);
-        }
-
-        .card.primary-statement h1 {
-            color: white;
-            font-family: var(--type-mono);
-            font-size: clamp(2.8rem, 10vw, 4.5rem);
+        /* HEADLINE — MASSIVE, BOLD, THE ONLY THING THAT MATTERS */
+        h1 {
+            font-size: clamp(3.2rem, 15vw, 5.5rem);
+            font-weight: 700;
             line-height: 1;
+            letter-spacing: -0.03em;
+            margin: 1rem 0 2rem 0;
             text-transform: uppercase;
-            margin: 0.25rem 0 1rem;
-            letter-spacing: -0.02em;
             word-break: break-word;
         }
 
-        .card h2 {
-            font-family: var(--type-mono);
-            font-size: 1.4rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 1.25rem;
-            border-bottom: 2px solid var(--pure-black);
-            padding-bottom: 0.4rem;
-            font-weight: 400;
-        }
-
-        .card p {
-            font-size: 1rem;
-            margin-bottom: 1rem;
+        /* BODY TEXT — SOFT, INVITING, READABLE */
+        p {
+            font-size: 1.2rem;
             font-weight: 300;
-            color: #2A2A2A;
+            color: var(--text-soft);
+            margin-bottom: 1.5rem;
+            max-width: 500px;
         }
 
-        .primary-statement p {
-            color: #CCCCCC;
-        }
-
-        /* list styling */
-        .list-entry {
-            margin-bottom: 0.8rem;
-            padding-bottom: 0.8rem;
-            border-bottom: 1px solid var(--muted-stroke);
-            font-weight: 350;
-            display: flex;
-            gap: 0.75rem;
-            font-size: 0.95rem;
-        }
-
-        .list-entry:before {
-            content: "—";
+        /* SMALLER HELPER TEXT */
+        .text-sm {
+            font-size: 0.9rem;
             color: #888;
+            font-weight: 300;
         }
 
-        .list-entry:last-child {
-            border-bottom: none;
-        }
-
-        /* --- PACKAGE ILLUSTRATION (replaces the weird abstract graphic) --- */
-        .package-illustration {
-            background: var(--surface);
-            border: 2px solid var(--pure-black);
-            padding: 2rem 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 200px;
-        }
-
-        .package {
-            width: 140px;
-            height: 140px;
-            background: white;
-            border: 3px solid var(--pure-black);
-            position: relative;
-            box-shadow: 6px 6px 0 rgba(0,0,0,0.1);
-        }
-
-        /* package strap (horizontal) */
-        .package-strap-horizontal {
-            position: absolute;
-            top: 50%;
-            left: -8px;
-            right: -8px;
-            height: 16px;
-            background: var(--pure-black);
-            transform: translateY(-50%);
-            z-index: 2;
-        }
-
-        /* package strap (vertical) */
-        .package-strap-vertical {
-            position: absolute;
-            left: 50%;
-            top: -8px;
-            bottom: -8px;
-            width: 16px;
-            background: var(--pure-black);
-            transform: translateX(-50%);
-            z-index: 2;
-        }
-
-        /* package label */
-        .package-label {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--accent-file);
-            padding: 0.4rem 0.8rem;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border: 2px solid var(--pure-black);
-            z-index: 3;
-            white-space: nowrap;
-        }
-
-        /* corner details (makes it look like a wrapped package) */
-        .package-corner {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--pure-black);
-            background: white;
-            z-index: 4;
-        }
-
-        .corner-tl {
-            top: -6px;
-            left: -6px;
-        }
-
-        .corner-tr {
-            top: -6px;
-            right: -6px;
-        }
-
-        .corner-bl {
-            bottom: -6px;
-            left: -6px;
-        }
-
-        .corner-br {
-            bottom: -6px;
-            right: -6px;
-        }
-
-        /* file label */
-        .file-label {
-            background: var(--accent-file);
+        /* HIGHLIGHTER EFFECT — LIKE YOU MARKED THE PAGE */
+        .highlight {
+            background: var(--highlight);
             display: inline-block;
-            padding: 0.25rem 1rem;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            border: 2px solid var(--pure-black);
-            margin-bottom: 1rem;
+            padding: 0 0.2rem;
+            font-weight: 400;
+            color: var(--text);
         }
 
-        /* button */
-        .cta-block {
-            margin: 1.5rem 0 0.5rem;
-        }
-
-        .btn {
-            display: inline-block;
-            background: white;
-            color: var(--pure-black);
-            text-decoration: none;
-            font-family: var(--type-sans);
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 0.8rem 2rem;
-            border: 2px solid var(--pure-black);
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .btn:hover {
-            background: var(--pure-black);
-            color: white;
-        }
-
-        .primary-statement .btn {
-            background: transparent;
-            color: white;
-            border-color: white;
-        }
-
-        .primary-statement .btn:hover {
-            background: white;
-            color: var(--pure-black);
-        }
-
-        .subtle-archive {
-            font-size: 0.75rem;
-            color: #5a5a5a;
-            margin-top: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            text-align: center;
-        }
-
-        .primary-statement .subtle-archive {
-            color: #AAA;
-        }
-
+        /* LINES FOR SEPARATION, NOT DECORATION */
         hr {
             border: none;
-            border-top: 2px solid var(--pure-black);
+            border-top: 1px solid var(--line);
+            margin: 2.5rem 0;
+            width: 100%;
+        }
+
+        /* SIMPLE LIST — NO BULLETS, JUST WORDS */
+        .list {
             margin: 1.5rem 0;
         }
 
-        .two-col {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
+        .list-item {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--line);
+            font-weight: 300;
+            font-size: 1.1rem;
         }
 
-        /* footer */
-        .footer {
-            margin-top: 2rem;
-            padding: 1.5rem 0 0;
-            border-top: 3px double var(--pure-black);
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            font-size: 0.75rem;
-            text-transform: uppercase;
+        .list-item:last-child {
+            border-bottom: none;
         }
 
-        .footer a {
+        /* BUTTON — JUST A BUTTON, NOT A STATEMENT */
+        .btn {
+            display: inline-block;
+            background: var(--text);
+            color: white;
             text-decoration: none;
-            color: var(--ink);
-            border-bottom: 1px solid var(--ink);
-            padding-bottom: 2px;
+            font-weight: 500;
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.1s;
+            width: 100%;
+            text-align: center;
+            border-radius: 0;
+            -webkit-appearance: none;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn:active {
+            opacity: 0.6;
+        }
+
+        /* FOOTER — SMALL, UNOBTRUSIVE */
+        .footer {
+            margin-top: 4rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            font-size: 0.85rem;
+            color: #888;
         }
 
         .footer-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 1rem;
-            justify-content: space-between;
+            gap: 1.5rem;
         }
 
-        /* --- MODAL --- */
+        .footer a {
+            text-decoration: none;
+            color: var(--text);
+            border-bottom: 1px solid transparent;
+        }
+
+        .footer a:hover {
+            border-bottom-color: var(--text);
+        }
+
+        /* MODAL — JUST A FORM, NOTHING ELSE */
         .modal {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.7);
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             justify-content: center;
             opacity: 0;
             visibility: hidden;
-            transition: 0.15s;
-            padding: 1rem;
+            transition: 0.2s;
             z-index: 1000;
         }
 
+        /* SLIDE UP ON MOBILE, CENTER ON DESKTOP */
         .modal.active {
             opacity: 1;
             visibility: visible;
@@ -357,200 +174,167 @@
 
         .modal-card {
             background: white;
-            border: 3px solid var(--pure-black);
             padding: 2rem 1.5rem;
             width: 100%;
-            max-width: 440px;
-            box-shadow: 8px 8px 0 var(--pure-black);
+            max-width: 500px;
+            transform: translateY(20px);
+            transition: transform 0.2s;
+            border-top: 4px solid var(--text);
         }
 
-        .modal-card h2 {
-            font-family: var(--type-mono);
-            text-transform: uppercase;
+        .modal.active .modal-card {
+            transform: translateY(0);
+        }
+
+        .modal h2 {
             font-size: 1.8rem;
+            font-weight: 600;
             margin-bottom: 1.5rem;
-            border-bottom: 2px solid #000;
-            padding-bottom: 0.4rem;
+            letter-spacing: -0.02em;
         }
 
         input, select {
             width: 100%;
-            padding: 0.9rem;
-            margin-bottom: 1.2rem;
-            border: 2px solid var(--pure-black);
-            background: #fff;
-            font-family: var(--type-sans);
-            font-size: 0.95rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-light);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
             border-radius: 0;
+            background: white;
         }
 
         input:focus, select:focus {
             outline: none;
-            background: var(--accent-file);
+            border-color: var(--text);
         }
 
-        .modal-card .btn {
-            width: 100%;
-            background: var(--pure-black);
-            color: white;
+        .modal .btn {
             margin-top: 0.5rem;
         }
 
-        .modal-card .btn:hover {
-            background: white;
-            color: var(--pure-black);
-        }
-
-        /* tablet and up */
-        @media (min-width: 700px) {
-            .archive-header {
-                flex-direction: row;
-                justify-content: space-between;
-                padding: 1.2rem 2rem;
-                font-size: 0.8rem;
+        /* tablet and up — center modal vertically */
+        @media (min-width: 600px) {
+            .modal {
+                align-items: center;
             }
-
-            .archive-header-bottom {
-                font-size: 0.8rem;
+            
+            .modal-card {
+                border: 2px solid var(--text);
+                border-top: 4px solid var(--text);
+                transform: scale(0.95);
             }
-
-            .container {
-                max-width: 1000px;
-                padding: 2rem 2rem 5rem;
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 2rem;
+            
+            .modal.active .modal-card {
+                transform: scale(1);
             }
-
-            .grid-span-2 {
-                grid-column: span 2;
-            }
-
-            .two-col {
-                flex-direction: row;
-                gap: 2rem;
-            }
-
-            .two-col > * {
-                flex: 1;
-            }
-
+            
             .btn {
                 width: auto;
                 display: inline-block;
             }
-
-            .footer {
-                grid-column: span 2;
-                flex-direction: row;
-                justify-content: space-between;
-            }
-
-            .footer-row {
-                display: block;
-            }
-
-            .package-illustration {
-                padding: 1rem;
+            
+            h1 {
+                margin: 2rem 0 3rem 0;
             }
         }
     </style>
 </head>
 <body>
 
-<!-- archival header -->
-<div class="archive-header">
-    <div class="archive-header-top">
-        <span>WEPICKITSF</span>
-        <span class="accent">FILE № 001</span>
-    </div>
-    <div class="archive-header-bottom">
-        SAN FRANCISCO · ENTRY: CLOSET / CORNER · 03.2026
-    </div>
-</div>
-
-<!-- main container -->
 <div class="container">
-
-    <!-- PRIMARY STATEMENT -->
-    <div class="card primary-statement grid-span-2">
-        <div class="file-label">STATEMENT OF INTENT</div>
-        <h1>
-            You already decided<br>
-            you don’t need it.
-        </h1>
-        <p style="max-width:600px;">
-            It meant something, once. Now it stays where you leave it.<br>
-            Not gone — just not lived with. This is not about throwing away.
-        </p>
-        <div class="cta-block">
-            <a href="#" class="btn" id="openModal">→ schedule pickup</a>
-        </div>
-        <p class="subtle-archive">same or next day · no sorting · locally moved</p>
+    
+    <!-- THE ONLY HEADLINE THAT MATTERS -->
+    <h1>
+        You already decided<br>
+        you don’t need it.
+    </h1>
+    
+    <!-- THE STORY — CLEAN, SIMPLE, DIRECT -->
+    <p>
+        It meant something, once. You chose it, kept it, carried it with you.<br>
+        Now it stays where you leave it. Not gone — just not lived with.
+    </p>
+    
+    <p>
+        <span class="highlight">This is not about throwing things away.</span><br>
+        It's about letting them continue — somewhere else.
+    </p>
+    
+    <!-- A SIMPLE LINE OF TEXT, NOT A DESIGN ELEMENT -->
+    <div class="text-sm" style="margin: 2rem 0 1rem 0; text-transform: uppercase; letter-spacing: 0.5px;">
+        jacket • tote • old shoes • cables • sunglasses • something folded away
     </div>
-
-    <!-- LEFT: the situation -->
-    <div class="card">
-        <h2>the situation</h2>
-        <p>A hallway in a walk-up. A closet that barely closes. Things don’t pile up — they just stay.</p>
-        <div style="margin: 1.5rem 0;">
-            <div class="list-entry">jacket, winter 2019</div>
-            <div class="list-entry">tote bag, never unfolded</div>
-            <div class="list-entry">cables, unknown purpose</div>
-            <div class="list-entry">shoes, back of closet</div>
-            <div class="list-entry">something folded away</div>
-        </div>
+    
+    <!-- THE BUTTON — JUST A BUTTON -->
+    <div style="margin: 2rem 0 1rem 0;">
+        <a href="#" class="btn" id="openModal">Schedule a pickup</a>
     </div>
-
-    <!-- RIGHT: PACKAGE ILLUSTRATION (replaces abstract graphic) -->
-    <div class="package-illustration">
-        <div class="package">
-            <div class="package-strap-horizontal"></div>
-            <div class="package-strap-vertical"></div>
-            <div class="package-label">READY</div>
-            <div class="package-corner corner-tl"></div>
-            <div class="package-corner corner-tr"></div>
-            <div class="package-corner corner-bl"></div>
-            <div class="package-corner corner-br"></div>
-        </div>
+    
+    <div class="text-sm">
+        We'll come by. Usually same or next day. No sorting needed.
     </div>
-
-    <!-- ONCE IT'S GONE (full width) -->
-    <div class="card grid-span-2">
-        <h2>once it’s gone</h2>
-        <div class="two-col">
-            <p style="font-size:1.2rem; font-weight:350;">The space feels different. Not bigger — just quieter.</p>
-            <div>
-                <div style="margin-bottom:0.5rem;"><span style="font-weight:600;">↳ it continues</span> — somewhere else, locally.</div>
-                <div><span style="font-weight:600;">↳ no drop-offs</span> — we come to you.</div>
-            </div>
-        </div>
+    
+    <hr>
+    
+    <!-- SECTION: WHAT STAYS -->
+    <h2 style="font-weight: 500; font-size: 1.5rem; margin-bottom: 1rem;">What tends to stay</h2>
+    
+    <div class="list">
+        <div class="list-item">Clothes you stopped reaching for</div>
+        <div class="list-item">Bags that don't leave the shelf</div>
+        <div class="list-item">Spare electronics</div>
+        <div class="list-item">Shoes you meant to deal with</div>
+        <div class="list-item">Things you already decided on</div>
     </div>
-
-    <!-- FOOTER -->
+    
+    <hr>
+    
+    <!-- SECTION: THE SPACE -->
+    <h2 style="font-weight: 500; font-size: 1.5rem; margin-bottom: 1rem;">Once it's gone</h2>
+    <p style="font-size: 1.4rem; font-weight: 300; margin-bottom: 0.5rem;">
+        The space feels different.
+    </p>
+    <p style="font-size: 1.4rem; font-weight: 300; color: var(--text);">
+        Not bigger — just quieter.
+    </p>
+    
+    <hr>
+    
+    <!-- FOOTER — JUST INFORMATION -->
     <div class="footer">
-        <div>WEPICKITSF · SAN FRANCISCO</div>
         <div class="footer-row">
-            <a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a> · <a href="#">privacy</a> · <a href="#">terms</a>
+            <span>WePickItSF</span>
+            <span>San Francisco</span>
         </div>
-        <div>folio 1 · est. 2026</div>
+        <div class="footer-row">
+            <a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a>
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+        </div>
     </div>
+    
 </div>
 
-<!-- MODAL -->
+<!-- MODAL — PURE FUNCTION, NO THEATRE -->
 <div class="modal" id="modal">
     <div class="modal-card">
-        <span class="file-label" style="margin-bottom:1rem;">FILE REQUEST</span>
-        <h2>schedule pickup</h2>
-        <input type="text" placeholder="full name">
-        <input type="text" placeholder="address, SF">
+        <h2>Schedule pickup</h2>
+        
+        <input type="text" placeholder="Your name" value="">
+        <input type="text" placeholder="Your address in SF" value="">
+        
         <select>
-            <option>morning (9–12)</option>
-            <option>afternoon (12–4)</option>
-            <option>evening (4–7)</option>
+            <option>Morning (9am — 12pm)</option>
+            <option>Afternoon (12pm — 4pm)</option>
+            <option>Evening (4pm — 7pm)</option>
         </select>
-        <button class="btn" id="confirmModal">submit entry</button>
-        <p class="subtle-archive" style="margin-top:1.5rem;">we’ll text to confirm · no sorting needed</p>
+        
+        <button class="btn" id="confirmModal">Confirm pickup</button>
+        
+        <div class="text-sm" style="margin-top: 1.5rem; text-align: center;">
+            We'll text to confirm. No sorting needed.
+        </div>
     </div>
 </div>
 
@@ -559,22 +343,27 @@
         const modal = document.getElementById('modal');
         const openBtn = document.getElementById('openModal');
         const confirmBtn = document.getElementById('confirmModal');
-
+        
+        if (!modal || !openBtn) return;
+        
         openBtn.addEventListener('click', (e) => {
             e.preventDefault();
             modal.classList.add('active');
         });
-
+        
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.classList.remove('active');
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
         });
-
+        
         if (confirmBtn) {
             confirmBtn.addEventListener('click', () => {
                 modal.classList.remove('active');
+                // In reality, you'd submit the form here
             });
         }
-
+        
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && modal.classList.contains('active')) {
                 modal.classList.remove('active');
@@ -582,10 +371,6 @@
         });
     })();
 </script>
-
-<style>
-    #confirmModal { border-radius:0; }
-</style>
 
 </body>
 </html>
