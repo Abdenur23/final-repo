@@ -28,18 +28,14 @@ body{
     line-height:1.7;
 }
 
-/* LAYOUT SHIFT: tighter at top, looser below */
 .container{
     max-width:720px;
     margin:0 auto;
     padding:3rem 1.5rem 6rem;
 }
 
-section{
-    margin-top:5rem;
-}
+section{margin-top:5rem;}
 
-/* TYPOGRAPHY */
 h1,h2{
     font-family:var(--serif);
     letter-spacing:-0.02em;
@@ -62,28 +58,17 @@ p{
     font-size:1.08rem;
 }
 
-/* HERO = slightly compressed */
-.hero{
-    max-width:560px;
-}
+.hero{max-width:560px;}
+.hero p{max-width:460px;}
 
-.hero p{
-    max-width:460px;
-}
-
-/* CLUTTER VISUAL */
 .clutter-line{
     font-size:0.9rem;
     color:#9a948f;
-    letter-spacing:0.02em;
     margin-top:1rem;
     line-height:1.8;
 }
 
-/* CTA */
-.cta{
-    margin-top:2.2rem;
-}
+.cta{margin-top:2.2rem;}
 
 .btn{
     padding:0.9rem 2.4rem;
@@ -92,39 +77,23 @@ p{
     color:white;
     text-decoration:none;
     font-size:0.95rem;
-    transition:0.25s;
 }
-
-.btn:hover{opacity:0.9;}
 
 .subtle{
     font-size:0.85rem;
     margin-top:0.8rem;
 }
 
-/* DIVIDER becomes softer as page goes */
 .divider{
     height:1px;
     background:var(--line);
     margin:4rem 0;
-    opacity:0.6;
 }
 
-/* LIST */
-.list div{
-    margin-bottom:0.5rem;
-}
+.list div{margin-bottom:0.5rem;}
 
-/* RELEASE SECTION = more space */
-.release{
-    margin-top:6rem;
-}
+.release{margin-top:6rem;}
 
-.release p{
-    max-width:520px;
-}
-
-/* FOOTER */
 .footer{
     margin-top:6rem;
     padding-top:2rem;
@@ -141,7 +110,7 @@ p{
     color:var(--ink);
 }
 
-/* MODAL */
+/* modal */
 .modal{
     position:fixed;
     inset:0;
@@ -181,114 +150,89 @@ input,select{
 
 <div class="container">
 
-<!-- HERO -->
 <section class="hero">
-    <h1>
-        It’s not important.<br>
-        It’s just still here.
-    </h1>
+<h1>
+You already moved on.<br>
+It just didn’t.
+</h1>
 
-    <p>
-        In a city where space is tight — closets fill up fast.
-        Things shift from chair to shelf, shelf to corner.
-    </p>
+<p>
+It meant something, once.
+You chose it, kept it, carried it with you.
+</p>
 
-    <p>
-        You don’t use them.<br>
-        You don’t throw them out.
-    </p>
+<p>
+But now it stays where you leave it.
+Not gone — just not lived with.
+</p>
 
-    <!-- visual clutter -->
-    <div class="clutter-line">
-        jacket • old tote • cables • sunglasses • shoes • another bag • something in a drawer •
-    </div>
+<div class="clutter-line">
+jacket • tote • old shoes • cables • sunglasses • something folded away •
+</div>
 
-    <p>
-        So they stay.
-    </p>
+<p>
+Not about throwing it away.
+Just letting it continue — somewhere else.
+</p>
 
-    <div class="cta">
-        <a href="#" class="btn" id="openModal">Let it go</a>
-    </div>
+<div class="cta">
+<a href="#" class="btn" id="openModal">Let it move on</a>
+</div>
 
-    <p class="subtle">
-        We’ll come by your building. Usually same or next day.
-    </p>
+<p class="subtle">
+We’ll come by. Usually same or next day.
+</p>
 </section>
 
 <div class="divider"></div>
 
-<!-- LOCAL TOUCH -->
 <section>
-    <h2>It happens here</h2>
-
-    <p>
-        A hallway in a walk-up.  
-        A closet that barely closes.  
-        A corner that keeps collecting.
-    </p>
-
-    <p>
-        Not clutter, exactly — just things that never left.
-    </p>
+<h2>It happens here</h2>
+<p>A hallway in a walk-up. A closet that barely closes.</p>
+<p>Things don’t pile up. They just stay.</p>
 </section>
 
 <div class="divider"></div>
 
-<!-- WHAT -->
 <section>
-    <h2>What tends to stay</h2>
-
-    <div class="list">
-        <div>Clothes you stopped reaching for</div>
-        <div>Bags that don’t leave the shelf</div>
-        <div>Spare electronics and cables</div>
-        <div>Shoes you meant to deal with</div>
-        <div>Things you already decided on</div>
-    </div>
+<h2>What tends to stay</h2>
+<div class="list">
+<div>Clothes you stopped reaching for</div>
+<div>Bags that don’t leave the shelf</div>
+<div>Spare electronics</div>
+<div>Shoes you meant to deal with</div>
+<div>Things you already decided on</div>
+</div>
 </section>
 
 <div class="divider"></div>
 
-<!-- RELEASE -->
 <section class="release">
-    <h2>Once it’s gone</h2>
-
-    <p>
-        The space feels different.
-    </p>
-
-    <p>
-        Not bigger — just quieter.  
-        Easier to keep that way.
-    </p>
+<h2>Once it’s gone</h2>
+<p>The space feels different.</p>
+<p>Not bigger — just quieter.</p>
 </section>
 
-<!-- FOOTER -->
 <div class="footer">
-    <div>WePickItSF<br>San Francisco</div>
-    <div><a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a></div>
-    <div><a href="#">Privacy</a> • <a href="#">Terms</a></div>
+<div>WePickItSF<br>San Francisco</div>
+<div><a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a></div>
+<div><a href="#">Privacy</a> • <a href="#">Terms</a></div>
 </div>
 
 </div>
 
-<!-- MODAL -->
 <div class="modal" id="modal">
-    <div class="modal-card">
-        <h2>Schedule pickup</h2>
-
-        <input type="text" placeholder="Name">
-        <input type="text" placeholder="Address">
-
-        <select>
-            <option>Morning (9–12)</option>
-            <option>Afternoon (12–4)</option>
-            <option>Evening (4–7)</option>
-        </select>
-
-        <button class="btn" style="width:100%;">Confirm</button>
-    </div>
+<div class="modal-card">
+<h2>Schedule pickup</h2>
+<input type="text" placeholder="Name">
+<input type="text" placeholder="Address">
+<select>
+<option>Morning (9–12)</option>
+<option>Afternoon (12–4)</option>
+<option>Evening (4–7)</option>
+</select>
+<button class="btn" style="width:100%;">Confirm</button>
+</div>
 </div>
 
 <script>
