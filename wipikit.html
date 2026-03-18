@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WePickItSF · let it move on</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <title>WePickItSF: file 001</title>
+    <!-- Archivo Black for monumentality, Inter for structure -->
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        /* --- RESET & VARIABLES --- */
+        /* --- RESET: THE ARCHIVE --- */
         * {
             margin: 0;
             padding: 0;
@@ -15,192 +16,218 @@
 
         :root {
             --bg: #FFFFFF;
-            --surface: #F9F8F6;    /* warm off-white for cards */
-            --ink: #1C1C1C;
-            --soft-text: #4A4A4A;   /* dark gray for body */
-            --muted-line: #E2E0DD;
-            --accent: #B46F5C;      /* warm clay / terracotta */
-            --accent-fade: #f1e2dd;  /* very light accent for hover */
-
-            --serif: 'Cormorant Garamond', serif;
-            --sans: 'Inter', sans-serif;
+            --surface: #F7F7F5;        /* off-white card stock */
+            --ink: #111111;
+            --pure-black: #000000;
+            --muted-stroke: #D4D4D4;    /* hard grid lines */
+            --accent-file: #F0E68C;      /* archive label yellow */
+            --type-mono: 'Archivo Black', sans-serif;
+            --type-sans: 'Inter', sans-serif;
         }
 
         body {
             background: var(--bg);
             color: var(--ink);
-            font-family: var(--sans);
+            font-family: var(--type-sans);
             font-weight: 300;
-            line-height: 1.6;
+            line-height: 1.5;
             -webkit-font-smoothing: antialiased;
         }
 
-        .container {
-            max-width: 680px;
-            margin: 0 auto;
-            padding: 3rem 1.5rem 5rem;
-        }
-
-        /* --- TYPOGRAPHY --- */
-        h1, h2 {
-            font-family: var(--serif);
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            line-height: 1.1;
-            color: var(--ink);
-        }
-
-        h1 {
-            font-size: clamp(3.4rem, 8vw, 5rem);
-            margin-bottom: 1.5rem;
-        }
-
-        h2 {
-            font-size: 2rem;
-            font-weight: 500;
-            margin-bottom: 1.25rem;
-            border-bottom: 1px solid var(--muted-line);
-            padding-bottom: 0.5rem;
-            display: inline-block;   /* makes border fit text */
-        }
-
-        p {
-            color: var(--soft-text);
-            font-weight: 300;
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-        }
-
-        .subtle {
-            font-size: 0.9rem;
-            color: #8A8A8A;
-            margin-top: 0.75rem;
-        }
-
-        /* --- CARDS / SECTIONS --- */
-        section {
-            background: var(--surface);
-            padding: 2.5rem 2.2rem;
-            border-radius: 28px;
-            margin-top: 3rem;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.03);
-            transition: box-shadow 0.2s ease;
-        }
-
-        section:hover {
-            box-shadow: 0 8px 20px rgba(0,0,0,0.03);
-        }
-
-        /* first section (hero) has no background – it's the opener */
-        .hero-section {
-            background: transparent;
-            padding: 0;
-            box-shadow: none;
-            margin-top: 0;
-        }
-        .hero-section:hover {
-            box-shadow: none;
-        }
-
-        /* subtle divider for spacing inside hero */
-        .clutter-line {
-            font-size: 0.9rem;
-            color: #A5A09A;
-            margin: 1.8rem 0 1.5rem;
-            line-height: 1.8;
-            font-weight: 300;
+        /* --- archival header (like a timestamp) --- */
+        .archive-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.2rem 2rem;
+            border-bottom: 2px solid var(--pure-black);
+            font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 0.03em;
-            word-spacing: 0.2rem;
-            opacity: 0.8;
+            letter-spacing: 0.8px;
+            font-weight: 400;
+            background: var(--bg);
         }
 
-        /* list styling */
-        .list {
-            margin-top: 1.5rem;
+        .archive-header span {
+            color: #5A5A5A;
         }
-        .list div {
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px dashed var(--muted-line);
-            font-size: 1.05rem;
-            color: var(--ink);
+
+        .archive-header .accent {
+            background: var(--accent-file);
+            padding: 0.2rem 0.8rem;
+            color: var(--pure-black);
+            font-weight: 600;
+        }
+
+        /* main grid container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 2rem 5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* full-width items */
+        .grid-span-2 {
+            grid-column: span 2;
+        }
+
+        /* --- cards: hard borders, no rounding, no bs --- */
+        .card {
+            background: var(--surface);
+            border: 2px solid var(--pure-black);
+            padding: 2rem 2rem 2.2rem;
+            box-shadow: none;
+            transition: none;
+        }
+
+        /* special treatment for the main statement */
+        .card.primary-statement {
+            background: var(--pure-black);
+            color: white;
+            border: 2px solid var(--pure-black);
+        }
+
+        .card.primary-statement h1 {
+            color: white;
+            font-family: var(--type-mono);
+            font-size: clamp(3.5rem, 7vw, 5.8rem);
+            line-height: 1;
+            text-transform: uppercase;
+            margin: 0.5rem 0 0.5rem;
+            letter-spacing: -0.02em;
+            word-break: break-word;
+        }
+
+        /* typography inside cards */
+        .card h2 {
+            font-family: var(--type-mono);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--pure-black);
+            padding-bottom: 0.5rem;
+            font-weight: 400;
+        }
+
+        .card p {
+            font-size: 1rem;
+            margin-bottom: 1.2rem;
+            font-weight: 300;
+            color: #2A2A2A;
+        }
+
+        .card .list-entry {
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid var(--muted-stroke);
             font-weight: 350;
+            display: flex;
+            gap: 1rem;
         }
-        .list div:last-child {
+
+        .card .list-entry:before {
+            content: "—";
+            color: #888;
+        }
+
+        .card .list-entry:last-child {
             border-bottom: none;
         }
 
-        /* --- BUTTON & CTA --- */
-        .cta {
-            margin: 2.2rem 0 0.8rem;
+        /* image panel (brutalist) */
+        .image-panel {
+            background: #e5e2db;
+            border: 2px solid var(--pure-black);
+            height: 100%;
+            min-height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,100 M100,0 L0,100" stroke="%23000000" stroke-width="0.8"/><rect x="10" y="30" width="80" height="40" fill="none" stroke="%23000000" stroke-width="1.2"/><circle cx="50" cy="40" r="10" fill="none" stroke="%23000000" stroke-width="1.2"/></svg>');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.9;
+        }
+
+        /* the "file label" accent bar */
+        .file-label {
+            background: var(--accent-file);
+            display: inline-block;
+            padding: 0.25rem 1rem 0.25rem 1.2rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border: 2px solid var(--pure-black);
+            margin-bottom: 1rem;
+        }
+
+        .cta-block {
+            margin: 2rem 0 0.5rem;
         }
 
         .btn {
             display: inline-block;
-            background: var(--accent);
-            color: white;
+            background: white;
+            color: var(--pure-black);
             text-decoration: none;
-            font-family: var(--sans);
-            font-weight: 400;
+            font-family: var(--type-sans);
+            font-weight: 600;
             font-size: 1rem;
-            padding: 0.9rem 2.8rem;
-            border-radius: 40px;
-            border: none;
+            padding: 0.8rem 2.4rem;
+            border: 2px solid var(--pure-black);
+            border-radius: 0;
             cursor: pointer;
-            transition: background 0.15s ease, transform 0.1s;
-            box-shadow: 0 2px 8px rgba(180, 111, 92, 0.2);
-            letter-spacing: 0.2px;
+            transition: 0.1s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            box-shadow: none;
         }
 
         .btn:hover {
-            background: #9f5f4d; /* darker clay */
-            transform: scale(1.02);
+            background: var(--pure-black);
+            color: white;
+            border-color: var(--pure-black);
         }
 
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        /* --- FOOTER --- */
+        /* footer as archival folio */
         .footer {
-            margin-top: 6rem;
-            padding: 2rem 1rem 0;
+            grid-column: span 2;
+            margin-top: 4rem;
+            padding: 1.8rem 0 0.5rem;
+            border-top: 3px double var(--pure-black);
             display: flex;
-            flex-wrap: wrap;
             justify-content: space-between;
-            align-items: baseline;
-            gap: 1.5rem 2rem;
-            font-size: 0.9rem;
-            color: #7A7A7A;
-            border-top: 1px solid var(--muted-line);
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 400;
         }
 
         .footer a {
             text-decoration: none;
             color: var(--ink);
-            font-weight: 350;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.1s;
+            border-bottom: 1px solid var(--ink);
+            padding-bottom: 2px;
         }
 
-        .footer a:hover {
-            border-bottom: 1px solid var(--accent);
-        }
-
-        /* --- MODAL (clean & minimal) --- */
+        /* MODAL – industrial form */
         .modal {
             position: fixed;
             inset: 0;
-            background: rgba(28, 28, 28, 0.5);  /* ink with opacity */
-            backdrop-filter: blur(3px);
+            background: rgba(0,0,0,0.8);
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
             visibility: hidden;
-            transition: 0.2s;
-            padding: 1rem;
+            transition: 0.15s;
         }
 
         .modal.active {
@@ -210,134 +237,159 @@
 
         .modal-card {
             background: white;
-            padding: 2.2rem 2rem;
-            border-radius: 32px;
+            border: 3px solid var(--pure-black);
+            padding: 2.5rem 2.2rem;
             width: 100%;
-            max-width: 440px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 460px;
+            box-shadow: 10px 10px 0 var(--pure-black);
         }
 
         .modal-card h2 {
+            font-family: var(--type-mono);
+            text-transform: uppercase;
             font-size: 2rem;
-            border-bottom: none;
-            padding-bottom: 0;
-            margin-bottom: 1.6rem;
-            display: block;
+            margin-bottom: 1.8rem;
+            border-bottom: 2px solid #000;
+            padding-bottom: 0.4rem;
         }
 
         input, select {
             width: 100%;
-            padding: 0.9rem 1rem;
-            margin-bottom: 1.2rem;
-            border: 1px solid var(--muted-line);
-            border-radius: 18px;
-            font-family: var(--sans);
-            font-size: 0.95rem;
-            background: #fefefe;
-            transition: 0.15s;
+            padding: 0.9rem;
+            margin-bottom: 1.3rem;
+            border: 2px solid var(--pure-black);
+            border-radius: 0;
+            background: #fff;
+            font-family: var(--type-sans);
+            font-size: 0.9rem;
         }
 
         input:focus, select:focus {
             outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-fade);
+            background: var(--accent-file);
+            border-color: var(--pure-black);
         }
 
         .modal-card .btn {
             width: 100%;
-            margin-top: 0.4rem;
+            background: var(--pure-black);
+            color: white;
+            border: 2px solid var(--pure-black);
+            margin-top: 0.5rem;
         }
 
-        /* extra refinement */
-        .brand-marker {
+        .modal-card .btn:hover {
+            background: white;
+            color: var(--pure-black);
+        }
+
+        /* smaller typography */
+        .subtle-archive {
             font-size: 0.8rem;
-            letter-spacing: 0.4px;
+            color: #5a5a5a;
+            margin-top: 0.8rem;
+            font-family: var(--type-sans);
             text-transform: uppercase;
-            color: #AFAFAF;
-            margin-bottom: 1rem;
+            letter-spacing: 0.3px;
         }
 
+        hr {
+            border: none;
+            border-top: 2px solid var(--pure-black);
+            margin: 1.5rem 0;
+        }
+
+        /* mobile collapse */
+        @media (max-width: 700px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 1.5rem;
+            }
+            .grid-span-2 {
+                grid-column: span 1;
+            }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-
-    <!-- HERO (no background card – feels like an opening statement) -->
-    <section class="hero-section">
-        <h1>
-            You already moved on.<br>
-            It just didn’t.
-        </h1>
-
-        <p style="max-width: 540px;">
-            It meant something, once. You chose it, kept it, carried it with you.<br>
-            But now it stays where you leave it. Not gone — just not lived with.
-        </p>
-
-        <div class="clutter-line">
-            jacket • tote • old shoes • cables • sunglasses • something folded away
-        </div>
-
-        <p>
-            Not about throwing it away.<br>
-            Just letting it continue — somewhere else.
-        </p>
-
-        <div class="cta">
-            <a href="#" class="btn" id="openModal">Let it move on →</a>
-        </div>
-        <p class="subtle">We’ll come by. Usually same or next day. • San Francisco</p>
-    </section>
-
-    <!-- CARD: It happens here -->
-    <section>
-        <h2>It happens here</h2>
-        <p>A hallway in a walk-up. A closet that barely closes.</p>
-        <p style="margin-bottom: 0;">Things don’t pile up. They just stay.</p>
-    </section>
-
-    <!-- CARD: What tends to stay -->
-    <section>
-        <h2>What tends to stay</h2>
-        <div class="list">
-            <div>Clothes you stopped reaching for</div>
-            <div>Bags that don’t leave the shelf</div>
-            <div>Spare electronics</div>
-            <div>Shoes you meant to deal with</div>
-            <div>Things you already decided on</div>
-        </div>
-    </section>
-
-    <!-- CARD: Once it’s gone -->
-    <section>
-        <h2>Once it’s gone</h2>
-        <p>The space feels different.</p>
-        <p style="margin-bottom: 0;">Not bigger — just quieter.</p>
-    </section>
-
-    <!-- FOOTER (clean, with a whisper of location) -->
-    <div class="footer">
-        <div style="font-weight: 350;">WePickItSF<br><span style="color:#9F9F9F;">San Francisco</span></div>
-        <div><a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a></div>
-        <div><a href="#">Privacy</a> • <a href="#">Terms</a></div>
-    </div>
-
+<!-- archival header (institution timestamp) -->
+<div class="archive-header">
+    <span>WEPICKITSF · SAN FRANCISCO</span>
+    <span class="accent">FILE № 001 · 03.2026</span>
+    <span>ENTRY: CLOSET / CORNER</span>
 </div>
 
-<!-- MODAL (schedule pickup) -->
+<!-- main archive grid -->
+<div class="container">
+
+    <!-- PRIMARY STATEMENT: massive, black card with your headline -->
+    <div class="card primary-statement grid-span-2">
+        <div class="file-label">STATEMENT OF INTENT</div>
+        <h1>
+            You already decided<br>
+            you don’t need it.
+        </h1>
+        <p style="color:#CCCCCC; max-width:600px; margin-top:1.5rem; font-size:1.1rem;">
+            It meant something, once. Now it stays where you leave it.<br>
+            Not gone — just not lived with. This is not about throwing away.
+        </p>
+        <div class="cta-block">
+            <a href="#" class="btn" id="openModal">→ schedule pickup</a>
+        </div>
+        <p class="subtle-archive" style="color:#AAA;">same or next day · no sorting · locally moved</p>
+    </div>
+
+    <!-- LEFT COLUMN: "the situation" -->
+    <div class="card">
+        <h2>the situation</h2>
+        <p>A hallway in a walk-up. A closet that barely closes. Things don’t pile up — they just stay.</p>
+        <div style="margin: 1.8rem 0;">
+            <div class="list-entry">jacket, winter 2019</div>
+            <div class="list-entry">tote bag, never unfolded</div>
+            <div class="list-entry">cables, unknown purpose</div>
+            <div class="list-entry">shoes, back of closet</div>
+            <div class="list-entry">something folded away</div>
+        </div>
+        <p style="font-size:0.9rem;">You chose it once. Now it's inventory.</p>
+    </div>
+
+    <!-- RIGHT COLUMN: image / object (stark) -->
+    <div class="image-panel" aria-label="archival garment study"></div>
+
+    <!-- FULL WIDTH: once it's gone -->
+    <div class="card grid-span-2" style="margin-top: 0;">
+        <h2>once it’s gone</h2>
+        <p style="max-width:700px; font-size:1.2rem;">The space feels different. Not bigger — just quieter.</p>
+        <hr>
+        <div style="display:flex; gap:2rem; flex-wrap:wrap;">
+            <div><span style="font-weight:600;">↳ it continues</span> — somewhere else, locally.</div>
+            <div><span style="font-weight:600;">↳ no drop-offs</span> — we come to you.</div>
+        </div>
+    </div>
+
+    <!-- FOOTER : archival folio -->
+    <div class="footer">
+        <div>WEPICKITSF · SAN FRANCISCO</div>
+        <div><a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a> · <a href="#">privacy</a> · <a href="#">terms</a></div>
+        <div>folio 1 · est. 2026</div>
+    </div>
+</div>
+
+<!-- MODAL — industrial archive form -->
 <div class="modal" id="modal">
     <div class="modal-card">
-        <h2>Schedule pickup</h2>
-        <input type="text" placeholder="your name">
-        <input type="text" placeholder="address in SF">
+        <span class="file-label" style="margin-bottom:1rem;">FILE REQUEST</span>
+        <h2>schedule pickup</h2>
+        <input type="text" placeholder="full name">
+        <input type="text" placeholder="address, SF">
         <select>
-            <option>Morning (9–12)</option>
-            <option>Afternoon (12–4)</option>
-            <option>Evening (4–7)</option>
+            <option>morning (9–12)</option>
+            <option>afternoon (12–4)</option>
+            <option>evening (4–7)</option>
         </select>
-        <button class="btn" id="confirmModal" style="width:100%;">Confirm</button>
-        <p class="subtle" style="text-align:center; margin-top:1rem; margin-bottom:0;">we’ll text to confirm</p>
+        <button class="btn" id="confirmModal">submit entry</button>
+        <p class="subtle-archive" style="text-align:center; margin-top:1.5rem;">we’ll text to confirm · no sorting needed</p>
     </div>
 </div>
 
@@ -345,29 +397,24 @@
     (function() {
         const modal = document.getElementById('modal');
         const openBtn = document.getElementById('openModal');
-        const confirmBtn = document.getElementById('confirmModal'); // optional, just to close
+        const confirmBtn = document.getElementById('confirmModal');
 
         openBtn.addEventListener('click', (e) => {
             e.preventDefault();
             modal.classList.add('active');
         });
 
-        // close when clicking outside modal card
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.remove('active');
-            }
+            if (e.target === modal) modal.classList.remove('active');
         });
 
-        // close on confirm (you'd normally handle form, but here just close)
         if (confirmBtn) {
             confirmBtn.addEventListener('click', () => {
-                // in a real scenario you'd validate & submit. for now, just hide.
                 modal.classList.remove('active');
+                // in a real world you'd validate / send
             });
         }
 
-        // optional: close on Esc key
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && modal.classList.contains('active')) {
                 modal.classList.remove('active');
@@ -376,16 +423,9 @@
     })();
 </script>
 
-<!-- small extra: style for the confirm button to match modal -->
+<!-- subtle extra: remove any default button styles on confirm -->
 <style>
-    #confirmModal {
-        background: var(--accent);
-        border-radius: 40px;
-        font-weight: 400;
-    }
-    #confirmModal:hover {
-        background: #9f5f4d;
-    }
+    #confirmModal { border-radius:0; }
 </style>
 
 </body>
