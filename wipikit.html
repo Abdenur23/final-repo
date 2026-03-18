@@ -2,10 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>it continues elsewhere</title>
-    <!-- quiet type, nothing loud -->
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>leave it · forget it</title>
     <style>
         * {
             margin: 0;
@@ -13,483 +11,358 @@
             box-sizing: border-box;
         }
 
-        :root {
-            --paper: #F4F3EF;
-            --ink: #1D1D1B;
-            --stamp-red: #A3311F;
-            --light-soil: #E8E5DA;
-            --type-mono: 'Space Mono', monospace;
-            --type-serif: 'Inter', sans-serif;   /* used sparingly, clean */
-            --border: 1.5px solid var(--ink);
-        }
-
         body {
-            background: var(--paper);
-            color: var(--ink);
-            font-family: var(--type-mono);
-            font-weight: 400;
+            background: #f2efea;
+            color: #1c1b17;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            font-weight: 300;
             line-height: 1.4;
-            padding: 1.2rem;
-            min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
+            padding: 1.4rem;
         }
 
-        /* main sheet — like a single folded folio */
-        .folio {
-            max-width: 960px;
+        .paper {
+            max-width: 860px;
             margin: 0 auto;
-            background: var(--paper);
-            border: var(--border);
-            padding: 2rem 1.8rem;
-            box-shadow: 6px 6px 0 rgba(0,0,0,0.05);
+            background: #ffffffd9;
+            border: 2px solid #1c1b17;
+            padding: 2.5rem 2rem;
+            box-shadow: 10px 10px 0 #b3a58b;
         }
 
-        /* everything is soft-edged, no hard gradients, no plastic */
         hr {
             border: none;
-            border-top: 1px dashed var(--ink);
-            margin: 1.8rem 0;
-            opacity: 0.5;
+            border-top: 2px solid #1c1b17;
+            margin: 2rem 0;
         }
 
-        hr.thick {
-            border-top: 2px solid var(--ink);
-            opacity: 1;
-            border-style: solid;
+        .hr-light {
+            border-top: 1px dashed #9e9483;
+            margin: 1.5rem 0;
         }
 
-        /* mute but not grey */
-        .note {
-            font-size: 0.75rem;
-            letter-spacing: -0.01em;
-            text-transform: uppercase;
-            color: #4F4E49;
-            font-style: italic;
-        }
-
-        .mono {
-            font-family: var(--type-mono);
-        }
-
-        .section-header {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--ink);
-            padding-bottom: 0.4rem;
-            margin-bottom: 1.6rem;
+        h1 {
+            font-size: clamp(2.6rem, 9vw, 4.8rem);
             font-weight: 400;
-            letter-spacing: 0.3px;
-        }
-
-        /* the voice */
-        .lead-block {
-            margin: 2.5rem 0 3rem 0;
-            padding: 0 0.5rem;
-        }
-
-        .lead-line {
-            font-size: clamp(2rem, 8vw, 4rem);
-            font-weight: 400;
-            line-height: 1.1;
+            line-height: 1;
             text-transform: uppercase;
-            font-family: var(--type-mono);
-            letter-spacing: -0.02em;
+            letter-spacing: -1.5px;
             word-break: break-word;
-            margin-bottom: 1rem;
+            margin: 0 0 0.5rem 0;
+            font-family: 'Arial Black', 'Helvetica Bold', sans-serif;
         }
 
-        .lead-line.smaller {
-            font-size: clamp(1.5rem, 6vw, 2.5rem);
-            margin-top: 0.2rem;
-        }
-
-        .secondary-voice {
-            font-size: 1rem;
-            max-width: 560px;
+        .subhead {
+            font-size: 1.4rem;
             font-style: italic;
-            margin: 1rem 0 1.5rem 0;
-            color: #25241E;
+            margin-bottom: 1.5rem;
+            color: #3e3a32;
         }
 
-        /* photo area – core of the ask */
-        .photo-panel {
-            background: var(--light-soil);
-            border: var(--border);
-            padding: 1.2rem 1.2rem 1rem 1.2rem;
-            margin: 2rem 0 2.2rem 0;
-        }
-
-        .photo-placeholder {
-            width: 100%;
-            aspect-ratio: 4 / 3;
-            background: #D6D2C4;
-            border: 1px solid var(--ink);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #2E2D28;
-            font-size: 0.8rem;
+        .tagline {
+            font-size: 1rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            background-image: radial-gradient(circle, #2E2D28 1px, transparent 1px);
-            background-size: 16px 16px;
-            margin-bottom: 1rem;
+            border-bottom: 1px solid black;
+            padding-bottom: 0.5rem;
+            margin-bottom: 2rem;
+            letter-spacing: 0.5px;
         }
 
-        .photo-placeholder span {
-            background: var(--paper);
-            padding: 0.3rem 1rem;
-            border: 1px solid var(--ink);
-            mix-blend-mode: multiply;
-        }
-
-        .instruction-grid {
+        .instruction-block {
             display: flex;
             flex-direction: column;
-            gap: 0.8rem;
+            gap: 1.2rem;
+            margin: 2rem 0;
         }
 
-        .instruction-item {
+        .step {
             display: flex;
             align-items: flex-start;
-            gap: 0.6rem;
-            font-size: 0.9rem;
-            border-bottom: 1px dotted #9B9A92;
-            padding-bottom: 0.6rem;
-        }
-
-        .instruction-item:last-child {
-            border-bottom: none;
-        }
-
-        .instruction-marker {
-            font-weight: 700;
+            gap: 1rem;
             font-size: 1.2rem;
+            border-left: 3px solid #ab8e5c;
+            padding-left: 1.2rem;
+        }
+
+        .step-number {
+            font-weight: 700;
+            font-size: 1.8rem;
             line-height: 1;
+            color: #5f4e32;
         }
 
-        /* form: no schedule, just coordinates */
-        .form-section {
-            margin: 2.8rem 0 1.2rem 0;
-            border: var(--border);
-            padding: 1.8rem 1.5rem;
-            background: #EAE7DE;
+        .photo-highlight {
+            background: #dbd3c2;
+            border: 2px solid #1c1b17;
+            padding: 1.2rem 1.2rem 1rem 1.2rem;
+            margin: 1.8rem 0;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        .photo-box {
+            background: #efeadb;
+            border: 2px dashed #5f4e32;
+            min-height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #3b362b;
+            background-image: radial-gradient(circle at 20px 20px, #aca189 1.5px, transparent 1px);
+            background-size: 30px 30px;
+            margin-bottom: 1rem;
+        }
+
+        .photo-box span {
+            background: white;
+            padding: 0.5rem 1.2rem;
+            border: 1px solid black;
+            font-weight: 400;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            border: 2px solid black;
+            padding: 1.2rem;
+            background: #f6f3eb;
         }
 
         label {
-            font-size: 0.75rem;
-            display: block;
-            margin-bottom: 0.2rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            display: block;
+            margin-top: 1rem;
         }
 
         input, textarea {
             width: 100%;
             background: transparent;
             border: none;
-            border-bottom: 1px solid var(--ink);
-            padding: 0.6rem 0.2rem;
-            font-family: var(--type-mono);
+            border-bottom: 1.5px solid #1c1b17;
+            padding: 0.6rem 0.3rem;
             font-size: 1rem;
-            color: var(--ink);
-            outline: none;
-        }
-
-        input:focus, textarea:focus {
-            border-bottom: 2px solid var(--stamp-red);
+            font-family: inherit;
+            margin-bottom: 1.5rem;
+            border-radius: 0;
         }
 
         textarea {
-            border: 1px solid var(--ink);
+            border: 1.5px solid #1c1b17;
             min-height: 70px;
-            padding: 0.8rem;
-            resize: vertical;
-            background: rgba(255,255,240,0.3);
         }
 
-        .forget-note {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            margin-top: 2rem;
-            font-size: 0.85rem;
-            background: var(--ink);
-            color: var(--paper);
-            padding: 0.8rem 1rem;
+        input:focus, textarea:focus {
+            outline: none;
+            background: #faf3e2;
         }
 
-        .btn {
-            background: var(--ink);
-            color: var(--paper);
-            border: none;
-            padding: 1rem 1.8rem;
-            font-family: var(--type-mono);
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            cursor: pointer;
+        button {
+            background: #1c1b17;
+            color: white;
+            border: 2px solid #1c1b17;
+            padding: 0.9rem 1.8rem;
+            font-size: 1.2rem;
+            font-weight: 400;
             width: 100%;
-            border: 2px solid var(--ink);
+            cursor: default;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             transition: 0.1s;
         }
 
-        .btn:hover {
-            background: var(--paper);
-            color: var(--ink);
+        button:hover {
+            background: white;
+            color: black;
         }
 
-        .flyer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1.2rem;
-            margin: 2.5rem 0 1rem 0;
+        .forget-message {
+            font-size: 2rem;
+            text-transform: uppercase;
+            font-weight: 500;
+            line-height: 1.2;
+            margin: 2rem 0 1rem 0;
+            padding: 1rem 0;
+            border-top: 2px solid black;
+            border-bottom: 2px solid black;
+            text-align: center;
         }
 
-        .flyer-card {
-            border: var(--border);
-            padding: 1.2rem 0.8rem;
-            background: var(--paper);
-            font-size: 0.8rem;
-            line-height: 1.3;
-            box-shadow: 3px 3px 0 #B9B4A7;
-        }
-
-        .flyer-card .front-matter {
+        .flyer-sample {
+            border: 2px solid black;
+            background: #fffcf2;
+            padding: 1rem;
             margin-bottom: 1rem;
-            white-space: pre-line;
         }
 
-        .hr-micro {
-            border-top: 1px dashed #888;
-            margin: 0.8rem 0;
-        }
-
-        .back-matter {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            color: #4B4A44;
-            margin-top: 0.5rem;
-            padding-top: 0.5rem;
-            border-top: 1px dashed #A5A192;
-        }
-
-        .stamp {
-            display: inline-block;
-            border: 1px solid var(--stamp-red);
-            color: var(--stamp-red);
-            padding: 0.1rem 0.5rem;
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            border-radius: 0px;
-            margin-right: 0.5rem;
+        .flyer-header {
+            font-size: 1.6rem;
             font-weight: 700;
+            line-height: 1.2;
+            text-transform: uppercase;
         }
 
-        .footer-note {
+        .flyer-body {
+            margin: 0.5rem 0;
+            font-style: italic;
+        }
+
+        .flyer-footer {
+            border-top: 1px dashed black;
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .row {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
-            margin-top: 2.5rem;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            border-top: 1px solid var(--ink);
-            padding-top: 1rem;
+            align-items: baseline;
+            margin: 0.5rem 0;
         }
 
-        /* no modal — it's all right there */
-        .no-schedule {
-            font-size: 0.9rem;
-            margin: 1rem 0;
-        }
-
-        @media (max-width: 500px) {
-            .folio {
-                padding: 1rem 1rem;
+        @media (max-width: 600px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            .paper {
+                padding: 1.5rem 1rem;
             }
         }
     </style>
 </head>
 <body>
+<div class="paper">
 
-<div class="folio">
-
-    <!-- floating meta -->
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--ink); padding-bottom: 0.4rem; margin-bottom: 1rem;">
-        <span style="font-size: 0.7rem;">it continues elsewhere — SF</span>
-        <span style="font-size: 0.7rem; background: var(--ink); color: var(--paper); padding: 0.2rem 0.6rem;">instruction leaflet 003</span>
+    <!-- top note: no scheduling anywhere -->
+    <div class="row">
+        <span style="font-size:0.75rem; text-transform:uppercase;">san francisco — item rescue</span>
+        <span style="background:black; color:white; padding:0.2rem 0.8rem;">no scheduling · ever</span>
     </div>
 
-    <!-- primary message — anchor version, but less 'statement' more whisper -->
-    <div class="lead-block">
-        <div class="lead-line">you already moved on.</div>
-        <div class="lead-line smaller">it just didn’t.</div>
-        <div class="secondary-voice">
-            It meant something, once. <br> Now it stays where you leave it.
-        </div>
-    </div>
+    <!-- main statement: brief & decisive -->
+    <h1>YOU ALREADY<br>DON'T NEED IT.</h1>
+    <div class="subhead">Leave it. That's the whole step.</div>
 
-    <!-- PHOTO IS KEY – visual instruction -->
-    <div class="photo-panel">
-        <div class="photo-placeholder">
-            <span>📸  YOUR PHOTO HERE</span>
+    <!-- THE PHOTO IS KEY (as requested) -->
+    <div class="photo-highlight">
+        <div class="photo-box">
+            <span>📸  ATTACH PHOTO — KEY PART</span>
         </div>
-        <div style="display: flex; justify-content: space-between; font-size:0.8rem;">
-            <span class="stamp">STEP 1</span>
-            <span style="font-style: italic;">bags / shoes / small electronics / clothing</span>
-        </div>
-        <div style="margin-top: 0.6rem;">
-            <span style="font-weight: bold;">take a picture</span> of the items where you leave them. that’s your receipt. 
-            that’s how we know where to look.
-        </div>
-    </div>
-
-    <!-- no scheduling section — just leave & forget -->
-    <div style="margin: 1.8rem 0 1rem 0;">
-        <div class="section-header">how it goes — no schedule, no waiting</div>
-        <div class="instruction-grid">
-            <div class="instruction-item">
-                <span class="instruction-marker">1</span>
-                <span><strong>parcel area / lobby shelf / mailroom corner</strong> — anywhere packages live. leave them there. neatly, if you can. doesn’t have to be pretty.</span>
-            </div>
-            <div class="instruction-item">
-                <span class="instruction-marker">2</span>
-                <span><strong>take that photo</strong>. then fill the form below: street address + where exactly (shelf 2? near the bikes? ) + attach the picture. </span>
-            </div>
-            <div class="instruction-item">
-                <span class="instruction-marker">3</span>
-                <span><strong>forget about it.</strong> no confirmation call. no “two-hour window.” we come by, we pick up, it continues elsewhere.</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- THE ONLY FORM: address + pickup instruction + photo (simulated) -->
-    <div class="form-section">
-        <div style="display: flex; gap:0.5rem; margin-bottom:1rem;">
-            <span class="stamp" style="background: var(--ink); color: var(--paper);">no scheduling</span>
-            <span class="stamp">just leave</span>
-        </div>
-
-        <div class="form-group">
-            <label>street address — building, sf</label>
-            <input type="text" placeholder="e.g. 451 shotwell st / 1234 valencia" value="451 shotwell st" disabled="disabled" style="background: rgba(0,0,0,0.02);">
-        </div>
-
-        <div class="form-group">
-            <label>pickup instruction — be specific, we don't ask twice</label>
-            <textarea disabled="disabled" placeholder="where to find it: back of mailroom, shelf marked 'packages', third floor landing …">package pickup area, left of the elevators. white shelf, black bag.</textarea>
-        </div>
-
-        <div class="form-group">
-            <label>upload photo (this is how we locate)</label>
-            <input type="text" placeholder="📷  IMG_7832.jpeg (simulated)" disabled="disabled" style="border: 1px solid var(--ink); padding:0.6rem;">
-        </div>
-
-        <!-- the "forget it" pledge -->
-        <div class="forget-note">
-            <span>⏎</span>
-            <span>you won’t hear from us again. it just leaves. we mean it.</span>
-        </div>
-
-        <!-- dead button – just a visual artifact, no action -->
-        <div style="margin-top: 1.8rem;">
-            <button class="btn" disabled="disabled" style="opacity:0.9;">→ send coordinates (demo)</button>
-        </div>
-        <p style="font-size:0.65rem; margin-top:0.8rem; text-align:right;">(photo + address = done. no confirmation needed.)</p>
+        <p style="font-size:1rem; font-weight:500;">A photo is how we find it. No photo, no pickup. <br>Show us the bag, the shelf, the corner.</p>
     </div>
 
     <hr>
 
-    <!-- flyer concepts / fragments — not separate, embedded as evidence -->
-    <div style="margin: 1rem 0 0.5rem 0;">
-        <span class="section-header">left in lobbies / clipped to doors</span>
+    <!-- the simple instruction (no schedule) -->
+    <div style="font-size:1.2rem; margin-bottom:1rem; font-weight:600;">how this works — you do not schedule anything</div>
+
+    <div class="instruction-block">
+        <div class="step">
+            <span class="step-number">01</span>
+            <span>Put items in your building's <strong>package pick‑up / drop‑off area</strong>. Lobby shelf, mailroom, parcel corner — wherever packages normally go.</span>
+        </div>
+        <div class="step">
+            <span class="step-number">02</span>
+            <span>Take one clear photo showing the items + their spot.</span>
+        </div>
+        <div class="step">
+            <span class="step-number">03</span>
+            <span>Fill out below: <strong>street address + pickup instruction + photo</strong>.</span>
+        </div>
+        <div class="step">
+            <span class="step-number">04</span>
+            <span><strong>Forget it.</strong> No reply, no follow‑up, no window. It leaves. You’re done.</span>
+        </div>
     </div>
 
-    <div class="flyer-grid">
-        <!-- FRONT 1 (anchor) -->
-        <div class="flyer-card">
-            <div class="front-matter">
-                YOU ALREADY MOVED ON.<br>
-                IT JUST DIDN’T.<br>
-                <span style="font-style: italic; font-size:0.75rem;">It meant something, once.<br>Now it stays where you leave it.</span>
+    <hr class="hr-light">
+
+    <!-- only fields that matter: address + instruction + photo -->
+    <div style="margin: 2rem 0;">
+        <div style="font-size:1.4rem; margin-bottom:1.2rem; border-left:8px solid #ab8e5c; padding-left:0.8rem;">
+            street address → then forget it
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <label>street address (san francisco only)</label>
+                <input type="text" placeholder="e.g. 451 shotwell, 3rd floor" value="451 shotwell st" disabled>
+                
+                <label>pickup instruction — be specific</label>
+                <textarea disabled>package shelf near mailboxes, left side, black bag</textarea>
             </div>
-            <div class="hr-micro"></div>
-            <div class="back-matter">
-                We come by your building. / You hand it off. / No drop-offs. No sorting.<br>
-                wepickitsf.com · hello@wepickitsf.com
+            <div class="card">
+                <label>upload photo (this is how we locate)</label>
+                <input type="file" disabled style="border:none; padding:0;">
+                <div style="background:#ddd5c6; padding:0.5rem; font-size:0.8rem; margin-top:0.8rem;">
+                    ⚡ last step — after this, you're done.
+                </div>
             </div>
+        </div>
+
+        <!-- the actual button does NOT schedule, just placeholder -->
+        <button disabled>→ submit — then forget it (demo)</button>
+        <p style="margin-top:0.3rem; font-size:0.7rem; text-align:right;">(no confirmation, no follow‑up. you're already done.)</p>
+    </div>
+
+    <!-- the "forget it" guarantee repeated -->
+    <div class="forget-message">
+        no schedule · no reply · no window
+    </div>
+
+    <!-- flyer concepts (exactly as provided) -->
+    <hr>
+    <div style="margin: 1.5rem 0 1rem 0; font-size:0.9rem; text-transform: uppercase;">flyers — left in lobbies</div>
+
+    <div class="grid-2">
+        <!-- FRONT 1 -->
+        <div class="flyer-sample">
+            <div class="flyer-header">YOU ALREADY<br>MOVED ON.<br>IT JUST DIDN'T.</div>
+            <div class="flyer-body">It meant something, once. Now it stays where you leave it.<br>Let it move on.</div>
+            <div class="flyer-footer">WePickItSF.com · hello@wepickitsf.com</div>
+            <div style="margin-top:0.8rem; background:#f5efe4; padding:0.3rem; font-size:0.7rem;">← BACK: We come by your building. You hand it off. No drop-offs. No sorting. It keeps moving — locally.</div>
         </div>
         <!-- FRONT 2 -->
-        <div class="flyer-card">
-            <div class="front-matter">
-                YOU CHOSE IT ONCE.<br>
-                YOU DON’T REACH FOR IT NOW.<br>
-                <span style="font-style: italic; font-size:0.75rem;">Not gone. Just not part of your days.</span>
-            </div>
-            <div class="hr-micro"></div>
-            <div class="back-matter">
-                It keeps moving — locally.  /  No drop-offs. No sorting.<br>
-                wepickitsf.com · hello@wepickitsf.com
-            </div>
+        <div class="flyer-sample">
+            <div class="flyer-header">YOU CHOSE IT ONCE.<br>YOU DON'T REACH FOR IT NOW.</div>
+            <div class="flyer-body">Not gone. Just not part of your days.<br>Let it move on.</div>
+            <div class="flyer-footer">WePickItSF.com · hello@wepickitsf.com</div>
+            <div style="margin-top:0.8rem; background:#f5efe4; padding:0.3rem; font-size:0.7rem;">← BACK: We come by your building. You hand it off. No drop-offs. No sorting.</div>
         </div>
-        <!-- FRONT 3 (SF spatial) -->
-        <div class="flyer-card">
-            <div class="front-matter">
-                SPACE IS TIGHT HERE.<br>
-                SOME THINGS JUST STAY TOO LONG.<br>
-                <span style="font-style: italic; font-size:0.75rem;">You don’t need more space. Just less of what stays.</span>
-            </div>
-            <div class="hr-micro"></div>
-            <div class="back-matter">
-                We come by your building. / You leave it. /  No sorting.<br>
-                wepickitsf.com · hello@wepickitsf.com
-            </div>
+        <!-- FRONT 3 -->
+        <div class="flyer-sample">
+            <div class="flyer-header">SPACE IS TIGHT HERE.<br>SOME THINGS JUST STAY TOO LONG.</div>
+            <div class="flyer-body">Closets fill. Corners collect. You don't need more space. Just less of what stays.</div>
+            <div class="flyer-footer">WePickItSF.com · hello@wepickitsf.com</div>
+            <div style="margin-top:0.8rem; background:#f5efe4; padding:0.3rem; font-size:0.7rem;">← BACK: We come by your building. You hand it off. No drop-offs. No sorting.</div>
         </div>
-        <!-- FRONT 4 (minimal) -->
-        <div class="flyer-card">
-            <div class="front-matter">
-                IT STILL BELONGS TO YOU.<br>
-                JUST NOT HERE.<br>
-                <span style="font-style: italic; font-size:0.75rem;">Let it move on.</span>
-            </div>
-            <div class="hr-micro"></div>
-            <div class="back-matter">
-                You hand it off. / It continues — somewhere else, locally.<br>
-                wepickitsf.com · hello@wepickitsf.com / SF
-            </div>
+        <!-- FRONT 4 -->
+        <div class="flyer-sample">
+            <div class="flyer-header">IT STILL BELONGS TO YOU.<br>JUST NOT HERE.</div>
+            <div class="flyer-body">Let it move on.</div>
+            <div class="flyer-footer">WePickItSF.com · hello@wepickitsf.com</div>
+            <div style="margin-top:0.8rem; background:#f5efe4; padding:0.3rem; font-size:0.7rem;">← BACK: We come by your building. You hand it off. No drop-offs. No sorting. It keeps moving — locally.</div>
         </div>
     </div>
 
-    <!-- a final note that repeats the core : no schedule, just leave -->
-    <div style="margin: 2rem 0 0.5rem 0; padding: 1rem 0; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--ink);">
-        <div style="display: flex; flex-wrap: wrap; gap: 1.2rem; justify-content: space-between; align-items: center;">
-            <div style="font-size: 1rem;">
-                <span style="font-weight:700;">NO SCHEDULING.</span> ONLY ADDRESS + WHERE + PHOTO.
-            </div>
-            <div style="background: var(--ink); color: var(--paper); padding:0.5rem 1rem; font-size:0.7rem;">
-                then forget it
-            </div>
-        </div>
+    <!-- final reminder: no scheduling -->
+    <hr>
+    <div style="display:flex; flex-wrap:wrap; gap:2rem; justify-content:space-between; margin-top:1.5rem;">
+        <span style="font-weight:600;">WE PICK IT · SAN FRANCISCO</span>
+        <span style="font-style:italic;">no scheduling, no phone calls, no two‑hour windows. you left it, we take it.</span>
     </div>
-
-    <!-- footer / archive -->
-    <div class="footer-note">
-        <div>WEPICKITSF — SAN FRANCISCO</div>
-        <div>hello@wepickitsf.com</div>
-        <div>file 003 / mar 2026</div>
+    <div style="margin-top:1rem; font-size:0.75rem; border-top:1px solid black; padding-top:0.5rem; text-align:center;">
+        hello@wepickitsf.com · wepickitsf.com · 03.2026
     </div>
-
-    <!-- tiny ghost instruction: no modal, no schedule -->
-    <p style="font-size:0.65rem; margin-top: 1.2rem; text-align:center; opacity:0.7;">
-        ⏎  no calls, no two‑hour windows. you left it, we take it. 
-    </p>
 </div>
-
-<!-- no javascript. no modal. because we don't schedule. -->
+<!-- no javascript, no modal, no scheduling -->
 </body>
 </html>
