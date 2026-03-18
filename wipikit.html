@@ -3,86 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WePickItSF – Free pickup. Same day.</title>
+    <title>WePickItSF – Clear Space. Clear Mind.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="wipikit/styles.css">
 </head>
 <body>
     <main class="site-wrapper">
-        <!-- hero section -->
+        <!-- hero section with science hook -->
         <header class="hero">
-            <h1 class="hero-headline">Free Pickup.<br>Same Day.</h1>
-            <p class="hero-tagline">Clothes. Bags. Sunglasses. Shoes.<br>Small electronics. Things you don't use anymore.</p>
-            <p class="hero-subline">We take them. You get space.</p>
+            <h1 class="hero-headline">Clear Space.<br>Clear Mind.</h1>
+            <p class="hero-science">Harvard study: clutter affects how we think and feel.*</p>
+            <p class="hero-tagline">Clothes. Bags. Sunglasses. Accessories.<br>Small electronics. Things you don't use anymore.</p>
+            <p class="hero-subline">We take them. Free. Same day.</p>
             <div class="hero-cta">
                 <button class="btn btn--primary" id="openBookingBtn">Book a pickup</button>
             </div>
+            <p class="hero-citation">*Dattilo, Harvard Medical School</p>
         </header>
 
-        <!-- what we take (simple list) -->
+        <!-- what we take (elevated card design) -->
         <section class="items-section">
             <h2 class="section-title">What we take</h2>
             <div class="items-grid">
-                <div class="item-category">Clothes (any condition)</div>
-                <div class="item-category">Bags & backpacks</div>
-                <div class="item-category">Sunglasses & eyewear</div>
-                <div class="item-category">Belts, scarves, accessories</div>
-                <div class="item-category">Small electronics</div>
-                <div class="item-category">Shoes</div>
+                <div class="item-card">Clothes <span class="item-note">any condition</span></div>
+                <div class="item-card">Bags & backpacks</div>
+                <div class="item-card">Sunglasses & eyewear</div>
+                <div class="item-card">Belts, scarves, accessories</div>
+                <div class="item-card">Small electronics</div>
+                <div class="item-card">Shoes</div>
             </div>
             <p class="items-note">Even if they need a small fix. We'll handle it.</p>
         </section>
 
-        <!-- how it works (3 steps) -->
+        <!-- how it works (refined steps) -->
         <section class="how-section">
             <h2 class="section-title">How it works</h2>
             <div class="steps">
                 <div class="step">
-                    <span class="step-number">1</span>
-                    <p class="step-text">You book online. 30 seconds.</p>
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">You book</h3>
+                    <p class="step-text">30 seconds online. That's it.</p>
                 </div>
                 <div class="step">
-                    <span class="step-number">2</span>
-                    <p class="step-text">We pick up from your door. By e-bike.</p>
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">We pick up</h3>
+                    <p class="step-text">By e-bike. From your door.</p>
                 </div>
                 <div class="step">
-                    <span class="step-number">3</span>
-                    <p class="step-text">We clean everything. Find it a new home in SF.</p>
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">We restore</h3>
+                    <p class="step-text">Clean, repair, find a new home in SF.</p>
                 </div>
             </div>
-            <p class="steps-footer">No trucks. No shipping. No waste. You're done.</p>
+            <div class="steps-footer">
+                <p>No trucks. No shipping. No waste. You're done.</p>
+            </div>
         </section>
 
-        <!-- modal overlay + booking form -->
+        <!-- science section (trust builder) -->
+        <section class="science-section">
+            <div class="science-card">
+                <h3 class="science-title">The Science of Space</h3>
+                <p class="science-quote">"Researchers at UCLA's Center on Everyday Lives and Families found a direct link between high cortisol (stress hormone) levels in homeowners and a high density of household objects. The more stuff, the more stress women feel."</p>
+                <p class="science-source">— Life at Home in the Twenty-First Century, UCLA CELF</p>
+                <p class="science-quote" style="margin-top: 1.5rem;">"Cluttered homes can affect our satisfaction with life. Disorganized living spaces contribute to 'mental clutter,' making it harder to think clearly and stay focused."</p>
+                <p class="science-source">— Natalie Christine Dattilo, PhD, Harvard Medical School</p>
+            </div>
+        </section>
+
+        <!-- modal overlay + booking form (unchanged functionality) -->
         <div class="modal-overlay" id="bookingModalOverlay" aria-hidden="true">
             <div class="modal-card">
-                <button class="modal-close" id="closeModalBtn">✕</button>
+                <button class="modal-close" id="closeModalBtn" aria-label="Close booking form">✕</button>
                 <h2 class="modal-title">Book your pickup</h2>
-                <form id="bookingForm">
+                <form id="bookingForm" class="booking-form">
                     <div class="form-group">
                         <label for="name">Name</label>
-                        <input type="text" id="name" name="name" required>
+                        <input type="text" id="name" name="name" required placeholder="Your name">
                     </div>
                     <div class="form-group">
                         <label for="address">Address (SF only)</label>
-                        <input type="text" id="address" name="address" required>
+                        <input type="text" id="address" name="address" required placeholder="Street address">
                     </div>
                     <div class="form-group">
                         <label for="neighborhood">Neighborhood</label>
                         <select id="neighborhood" name="neighborhood" required>
-                            <option value="" disabled selected>Select</option>
+                            <option value="" disabled selected>Select your neighborhood</option>
                             <option value="Mission">Mission</option>
                             <option value="Noe Valley">Noe Valley</option>
                             <option value="Haight">Haight</option>
                             <option value="Richmond">Richmond</option>
                             <option value="Sunset">Sunset</option>
                             <option value="Marina">Marina</option>
+                            <option value="Pacific Heights">Pacific Heights</option>
+                            <option value="Cow Hollow">Cow Hollow</option>
+                            <option value="Bernal Heights">Bernal Heights</option>
                         </select>
                     </div>
                     <fieldset class="form-group">
-                        <legend>Time slot</legend>
-                        <label><input type="radio" name="timeSlot" value="Morning" required> Morning (9–12)</label>
-                        <label><input type="radio" name="timeSlot" value="Afternoon"> Afternoon (12–4)</label>
-                        <label><input type="radio" name="timeSlot" value="Evening"> Evening (4–7)</label>
+                        <legend>Preferred time</legend>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="timeSlot" value="Morning" required> Morning (9am–12pm)
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="timeSlot" value="Afternoon"> Afternoon (12pm–4pm)
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="timeSlot" value="Evening"> Evening (4pm–7pm)
+                            </label>
+                        </div>
                     </fieldset>
                     <button type="submit" class="btn btn--primary btn--block">Confirm pickup</button>
                 </form>
@@ -96,12 +128,21 @@
 
     <footer class="site-footer">
         <div class="footer-content">
-            <div>WePickItSF</div>
-            <div>San Francisco</div>
-            <div><a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a></div>
-            <div class="footer-links">
-                <a href="#">Privacy</a> • <a href="#">Terms</a>
+            <div class="footer-brand">
+                <span class="footer-logo">WePickItSF</span>
+                <span class="footer-tagline">San Francisco</span>
             </div>
+            <div class="footer-contact">
+                <a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a>
+            </div>
+            <div class="footer-legal">
+                <a href="#">Privacy</a>
+                <span class="separator">•</span>
+                <a href="#">Terms</a>
+            </div>
+        </div>
+        <div class="footer-citations">
+            <p>*UCLA CELF Study: "Life at Home in the Twenty-First Century" — direct link between household objects and elevated cortisol in homeowners. Harvard Medical School: Dr. Natalie Christine Dattilo on clutter and mental focus.</p>
         </div>
     </footer>
 
