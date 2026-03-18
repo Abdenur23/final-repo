@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>WePickItSF · Entry 001</title>
+    <title>WePickItSF · file 001</title>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        /* --- RESET & CORE --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
             --bg: #FFFFFF;
             --surface: #F7F7F5;
@@ -28,7 +32,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* --- ARCHIVAL HEADER --- */
         .archive-header {
             display: flex;
             flex-direction: column;
@@ -40,153 +43,190 @@
             gap: 0.5rem;
         }
 
-        .archive-header-top { display: flex; justify-content: space-between; width: 100%; }
+        .archive-header-top {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
         .archive-header .accent {
             background: var(--accent-file);
             padding: 0.2rem 0.6rem;
             color: var(--pure-black);
             font-weight: 600;
+            white-space: nowrap;
         }
 
-        /* --- LAYOUT --- */
+        .archive-header-bottom {
+            color: #5A5A5A;
+            font-size: 0.65rem;
+        }
+
         .container {
-            max-width: 1000px;
+            max-width: 100%;
             margin: 0 auto;
-            padding: 1.25rem;
-            display: grid;
-            grid-template-columns: 1fr;
+            padding: 1.25rem 1.25rem 3rem;
+            display: flex;
+            flex-direction: column;
             gap: 1.25rem;
         }
 
-        @media (min-width: 700px) {
-            .container { grid-template-columns: 1fr 1fr; padding: 2rem; }
-            .grid-span-2 { grid-column: span 2; }
-            .archive-header { flex-direction: row; justify-content: space-between; padding: 1.2rem 2rem; }
-        }
-
-        /* --- CARDS --- */
         .card {
             background: var(--surface);
             border: 2px solid var(--pure-black);
-            padding: 1.5rem;
+            padding: 1.5rem 1.25rem;
+            width: 100%;
+        }
+
+        .card.primary-statement {
+            background: var(--pure-black);
+            color: white;
+        }
+
+        .card.primary-statement h1 {
+            color: white;
+            font-family: var(--type-mono);
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            line-height: 1;
+            text-transform: uppercase;
+            margin: 0.25rem 0 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .card h2 {
+            font-family: var(--type-mono);
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1.25rem;
+            border-bottom: 2px solid var(--pure-black);
+            padding-bottom: 0.4rem;
+        }
+
+        /* --- UPDATED DROP VISUAL --- */
+        .drop-visual {
+            background: #EAEAEA;
+            border: 2px solid var(--pure-black);
+            min-height: 220px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lobby-corner {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            border-left: 1px solid #ccc;
+        }
+
+        .package-group {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .box {
+            background: white;
+            border: 2px solid black;
             position: relative;
         }
 
-        .card.primary-statement { background: var(--pure-black); color: white; }
-        .card.primary-statement h1 {
-            font-family: var(--type-mono);
-            font-size: clamp(2.2rem, 8vw, 4rem);
-            line-height: 1;
+        .box-1 { width: 60px; height: 60px; }
+        .box-2 { width: 80px; height: 40px; background: var(--accent-file); }
+        
+        .photo-indicator {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
             text-transform: uppercase;
-            margin: 1rem 0;
+            background: white;
+            padding: 4px 8px;
+            border: 1px solid black;
         }
 
         .file-label {
             background: var(--accent-file);
             display: inline-block;
-            padding: 0.25rem 0.8rem;
+            padding: 0.25rem 1rem;
             font-size: 0.7rem;
             text-transform: uppercase;
             font-weight: 700;
             border: 2px solid var(--pure-black);
-            color: var(--pure-black);
-        }
-
-        /* --- THE VISUAL (Replaced "Ready" Box) --- */
-        .drop-zone-visual {
-            background: #eee;
-            border: 2px dashed var(--pure-black);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            text-align: center;
-            min-height: 300px;
-        }
-
-        .building-icon {
-            width: 80px;
-            height: 100px;
-            border: 3px solid #000;
-            position: relative;
-            background: white;
             margin-bottom: 1rem;
         }
-        .building-icon::after {
-            content: "PACKAGES";
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 8px;
-            font-weight: 900;
-            border: 1px solid #000;
-            padding: 2px;
-        }
 
-        /* --- BUTTONS --- */
         .btn {
-            display: block;
+            display: inline-block;
             background: white;
             color: var(--pure-black);
             text-decoration: none;
+            font-family: var(--type-sans);
             font-weight: 600;
-            padding: 1rem;
+            font-size: 0.95rem;
+            padding: 1rem 2rem;
             border: 2px solid var(--pure-black);
-            text-align: center;
-            text-transform: uppercase;
             cursor: pointer;
-            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            text-align: center;
         }
-        .btn:hover { background: var(--accent-file); }
-        .primary-statement .btn { margin-top: 1.5rem; }
 
-        /* --- MODAL & FORM --- */
+        .btn:hover { background: var(--pure-black); color: white; }
+        .primary-statement .btn { border-color: white; background: transparent; color: white; }
+        .primary-statement .btn:hover { background: white; color: black; }
+
         .modal {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.85);
             display: none;
             align-items: center;
             justify-content: center;
             padding: 1rem;
             z-index: 1000;
         }
+
         .modal.active { display: flex; }
+
         .modal-card {
             background: white;
+            border: 3px solid var(--pure-black);
             padding: 2rem;
             width: 100%;
-            max-width: 500px;
-            border: 3px solid #000;
+            max-width: 440px;
+            box-shadow: 8px 8px 0 var(--pure-black);
         }
 
-        input[type="text"], textarea {
+        input, textarea {
             width: 100%;
-            padding: 0.8rem;
-            margin: 0.5rem 0 1.2rem;
-            border: 2px solid #000;
-            font-family: inherit;
+            padding: 0.9rem;
+            margin-bottom: 1rem;
+            border: 2px solid var(--pure-black);
+            font-family: var(--type-sans);
+            font-size: 0.95rem;
         }
 
-        .photo-upload {
-            border: 2px dashed #000;
-            padding: 1.5rem;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            cursor: pointer;
-            background: #f9f9f9;
-        }
+        textarea { height: 80px; resize: none; }
 
-        .footer {
-            grid-column: span 2;
-            border-top: 2px solid #000;
-            padding-top: 2rem;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            display: flex;
-            justify-content: space-between;
+        @media (min-width: 700px) {
+            .container {
+                max-width: 1000px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+            }
+            .grid-span-2 { grid-column: span 2; }
         }
     </style>
 </head>
@@ -195,58 +235,59 @@
 <div class="archive-header">
     <div class="archive-header-top">
         <span>WEPICKITSF</span>
-        <span class="accent">LOG № 001</span>
+        <span class="accent">FILE № 001</span>
     </div>
-    <div>SAN FRANCISCO · REMOVAL SERVICE · 2026</div>
+    <div class="archive-header-bottom">
+        SF · DROP-OFF PROTOCOL · 03.2026
+    </div>
 </div>
 
 <div class="container">
     <div class="card primary-statement grid-span-2">
-        <div class="file-label">PROCEDURE</div>
-        <h1>Leave it behind. <br>We’ll find it.</h1>
-        <p>No waiting for couriers. No scheduling windows. Just leave your items in your building’s mailroom or designated package area. Tell us where, and they vanish.</p>
-        <a href="#" class="btn" id="openModal">Drop off & Notify Us</a>
+        <div class="file-label">STATEMENT OF INTENT</div>
+        <h1>You already decided<br>you don’t need it.</h1>
+        <p style="margin-bottom: 2rem; color: #ccc;">Leave it in the lobby. We’ll handle the rest.</p>
+        <a href="#" class="btn" id="openModal">→ Notify of Drop-off</a>
     </div>
 
     <div class="card">
-        <div class="file-label" style="background:#ddd;">STEP-BY-STEP</div>
-        <h2 style="margin: 1rem 0; font-family:var(--type-mono); text-transform:uppercase;">The Protocol</h2>
-        <p><strong>1. Place:</strong> Bag your items and leave them in your building’s package zone.</p>
-        <p><strong>2. Photo:</strong> Take a quick snap of where you left them.</p>
-        <p><strong>3. Notify:</strong> Submit the address and photo here. We pick up within 24 hours.</p>
+        <h2>The Protocol</h2>
+        <p>No waiting. No scheduling. No small talk.</p>
+        <div style="margin-top: 1rem;">
+            <div style="margin-bottom:1rem;"><strong>1. Pack:</strong> Bag or box your items.</div>
+            <div style="margin-bottom:1rem;"><strong>2. Leave:</strong> Place them in your building's package/mail area.</div>
+            <div style="margin-bottom:1rem;"><strong>3. Photo:</strong> Snap a quick photo and send it to us.</div>
+        </div>
     </div>
 
-    <div class="drop-zone-visual">
-        <div class="building-icon"></div>
-        <div style="font-family:var(--type-mono); font-size: 1.2rem; text-transform: uppercase;">Building Drop-Off</div>
-        <p style="font-size: 0.8rem; margin-top: 10px;">Lobby · Mailroom · Package Area</p>
+    <div class="drop-visual">
+        <div class="photo-indicator">● KEY: VISUAL CONTEXT</div>
+        <div class="package-group">
+            <div class="box box-1"></div>
+            <div class="box box-2"></div>
+        </div>
+        <div class="lobby-corner"></div>
+        <div style="position:absolute; bottom:10px; left:10px; font-size:0.6rem; text-transform:uppercase; letter-spacing:1px;">
+            Typical Lobby Placement
+        </div>
     </div>
 
-    <div class="footer">
-        <div>WEPICKITSF.COM</div>
-        <div>EST. 2026 · SF, CA</div>
+    <div class="card grid-span-2">
+        <h2>Once it’s gone</h2>
+        <p style="font-size:1.2rem;">The space is yours again. We move the items to local partners who can use them. Nothing is wasted.</p>
     </div>
 </div>
 
 <div class="modal" id="modal">
     <div class="modal-card">
-        <div class="file-label">DROP-OFF NOTIFICATION</div>
-        <h2 style="font-family:var(--type-mono); margin: 1rem 0;">WHERE IS IT?</h2>
-        
-        <label>Street Address</label>
-        <input type="text" placeholder="e.g. 450 Sutter St, Apt 3B">
-        
-        <label>Placement Instructions</label>
-        <textarea placeholder="e.g. In the lobby behind the black bench" rows="3"></textarea>
-        
-        <label>Evidence (A photo helps us find it fast)</label>
-        <div class="photo-upload" onclick="document.getElementById('file-input').click()">
-            <strong>[+] Upload Photo</strong>
-            <input type="file" id="file-input" hidden accept="image/*">
-        </div>
-
-        <button class="btn" style="background:#000; color:#fff; width:100%;" id="confirmModal">Submit & Forget It</button>
-        <p style="font-size:0.7rem; text-align:center; margin-top:1rem; text-transform:uppercase;">Items will be cleared within 24 hours.</p>
+        <span class="file-label">DROP REPORT</span>
+        <h2>Where is it?</h2>
+        <input type="text" placeholder="Street Address, SF">
+        <textarea placeholder="Pickup instructions (e.g., 'Behind the planter in the lobby' or 'Under the mailboxes')"></textarea>
+        <p style="font-size: 0.8rem; margin-bottom: 1rem; color: #666;">
+            A photo of the items in place is required for the driver. You can text it to us once you submit.
+        </p>
+        <button class="btn" id="confirmModal">Submit & Get Text Link</button>
     </div>
 </div>
 
@@ -255,12 +296,19 @@
     const openBtn = document.getElementById('openModal');
     const confirmBtn = document.getElementById('confirmModal');
 
-    openBtn.onclick = (e) => { e.preventDefault(); modal.classList.add('active'); };
-    window.onclick = (e) => { if (e.target == modal) modal.classList.remove('active'); };
-    confirmBtn.onclick = () => { 
-        alert("Received. Consider it gone.");
-        modal.classList.remove('active'); 
-    };
+    openBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.classList.add('active');
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('active');
+    });
+
+    confirmBtn.addEventListener('click', () => {
+        alert("Drop reported. We'll text you now for the photo.");
+        modal.classList.remove('active');
+    });
 </script>
 
 </body>
