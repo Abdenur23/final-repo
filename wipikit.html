@@ -1,337 +1,266 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WePickItSF · file 001</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>WePickItSF · Entry 001</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* --- RESET & CORE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #FFFFFF;
+            --surface: #F7F7F5;
+            --ink: #111111;
+            --pure-black: #000000;
+            --muted-stroke: #D4D4D4;
+            --accent-file: #F0E68C;
+            --type-mono: 'Archivo Black', sans-serif;
+            --type-sans: 'Inter', sans-serif;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--type-sans);
+            font-weight: 300;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
 
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
+        /* --- ARCHIVAL HEADER --- */
+        .archive-header {
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 1.25rem;
+            border-bottom: 2px solid var(--pure-black);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            gap: 0.5rem;
+        }
 
-:root{
---bg:#FFFFFF;
---surface:#F7F7F5;
---ink:#111;
---black:#000;
---muted:#D4D4D4;
---accent:#F0E68C;
---mono:'Archivo Black',sans-serif;
---sans:'Inter',sans-serif;
-}
+        .archive-header-top { display: flex; justify-content: space-between; width: 100%; }
+        .archive-header .accent {
+            background: var(--accent-file);
+            padding: 0.2rem 0.6rem;
+            color: var(--pure-black);
+            font-weight: 600;
+        }
 
-body{
-background:var(--bg);
-color:var(--ink);
-font-family:var(--sans);
-font-weight:300;
-line-height:1.5;
-}
+        /* --- LAYOUT --- */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 1.25rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
 
-/* HEADER */
-.header{
-display:flex;
-flex-direction:column;
-padding:1rem 1.25rem;
-border-bottom:2px solid var(--black);
-font-size:.7rem;
-text-transform:uppercase;
-gap:.4rem;
-}
+        @media (min-width: 700px) {
+            .container { grid-template-columns: 1fr 1fr; padding: 2rem; }
+            .grid-span-2 { grid-column: span 2; }
+            .archive-header { flex-direction: row; justify-content: space-between; padding: 1.2rem 2rem; }
+        }
 
-.header-top{
-display:flex;
-justify-content:space-between;
-}
+        /* --- CARDS --- */
+        .card {
+            background: var(--surface);
+            border: 2px solid var(--pure-black);
+            padding: 1.5rem;
+            position: relative;
+        }
 
-.accent{
-background:var(--accent);
-padding:.2rem .6rem;
-font-weight:600;
-}
+        .card.primary-statement { background: var(--pure-black); color: white; }
+        .card.primary-statement h1 {
+            font-family: var(--type-mono);
+            font-size: clamp(2.2rem, 8vw, 4rem);
+            line-height: 1;
+            text-transform: uppercase;
+            margin: 1rem 0;
+        }
 
-.header-bottom{
-color:#666;
-font-size:.65rem;
-}
+        .file-label {
+            background: var(--accent-file);
+            display: inline-block;
+            padding: 0.25rem 0.8rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            border: 2px solid var(--pure-black);
+            color: var(--pure-black);
+        }
 
-/* LAYOUT */
-.container{
-padding:1.25rem;
-display:flex;
-flex-direction:column;
-gap:1.25rem;
-}
+        /* --- THE VISUAL (Replaced "Ready" Box) --- */
+        .drop-zone-visual {
+            background: #eee;
+            border: 2px dashed var(--pure-black);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+            min-height: 300px;
+        }
 
-/* CARD */
-.card{
-background:var(--surface);
-border:2px solid var(--black);
-padding:1.5rem 1.25rem;
-}
+        .building-icon {
+            width: 80px;
+            height: 100px;
+            border: 3px solid #000;
+            position: relative;
+            background: white;
+            margin-bottom: 1rem;
+        }
+        .building-icon::after {
+            content: "PACKAGES";
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            font-weight: 900;
+            border: 1px solid #000;
+            padding: 2px;
+        }
 
-.primary{
-background:var(--black);
-color:#fff;
-}
+        /* --- BUTTONS --- */
+        .btn {
+            display: block;
+            background: white;
+            color: var(--pure-black);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 1rem;
+            border: 2px solid var(--pure-black);
+            text-align: center;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .btn:hover { background: var(--accent-file); }
+        .primary-statement .btn { margin-top: 1.5rem; }
 
-.primary h1{
-font-family:var(--mono);
-font-size:clamp(2.8rem,10vw,4.5rem);
-line-height:1;
-text-transform:uppercase;
-margin-bottom:1rem;
-}
+        /* --- MODAL & FORM --- */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 1000;
+        }
+        .modal.active { display: flex; }
+        .modal-card {
+            background: white;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            border: 3px solid #000;
+        }
 
-.card h2{
-font-family:var(--mono);
-font-size:1.4rem;
-text-transform:uppercase;
-border-bottom:2px solid var(--black);
-margin-bottom:1rem;
-}
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 0.5rem 0 1.2rem;
+            border: 2px solid #000;
+            font-family: inherit;
+        }
 
-.card p{margin-bottom:1rem;color:#2a2a2a;}
-.primary p{color:#ccc;}
+        .photo-upload {
+            border: 2px dashed #000;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            background: #f9f9f9;
+        }
 
-/* LIST */
-.list-entry{
-border-bottom:1px solid var(--muted);
-padding:.6rem 0;
-display:flex;
-gap:.6rem;
-}
-.list-entry:before{content:"—";color:#888;}
-
-/* OBJECT VISUAL */
-.object-box{
-border:2px solid var(--black);
-padding:2rem;
-display:flex;
-align-items:center;
-justify-content:center;
-min-height:200px;
-background:var(--surface);
-}
-
-.object{
-width:140px;
-height:140px;
-border:3px solid var(--black);
-background:#fff;
-position:relative;
-}
-
-.object-tag{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-background:var(--accent);
-padding:.4rem .8rem;
-font-size:.7rem;
-font-weight:700;
-border:2px solid var(--black);
-}
-
-/* BUTTON */
-.btn{
-display:block;
-width:100%;
-text-align:center;
-padding:.8rem;
-border:2px solid var(--black);
-text-decoration:none;
-font-weight:600;
-text-transform:uppercase;
-margin-top:1rem;
-}
-
-.primary .btn{
-color:#fff;
-border-color:#fff;
-}
-
-.primary .btn:hover{
-background:#fff;
-color:#000;
-}
-
-/* FOOTER */
-.footer{
-margin-top:2rem;
-border-top:3px double #000;
-padding-top:1rem;
-font-size:.75rem;
-text-transform:uppercase;
-}
-
-/* MODAL */
-.modal{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.8);
-display:flex;
-align-items:center;
-justify-content:center;
-opacity:0;
-visibility:hidden;
-transition:.2s;
-padding:1rem;
-}
-
-.modal.active{
-opacity:1;
-visibility:visible;
-}
-
-.modal-card{
-background:#fff;
-border:3px solid #000;
-padding:2rem 1.5rem;
-width:100%;
-max-width:420px;
-}
-
-.modal-card h2{
-font-family:var(--mono);
-text-transform:uppercase;
-margin-bottom:1rem;
-border-bottom:2px solid #000;
-}
-
-input{
-width:100%;
-padding:.9rem;
-margin-bottom:1rem;
-border:2px solid #000;
-font-family:var(--sans);
-}
-
-.modal .btn{
-background:#000;
-color:#fff;
-}
-</style>
+        .footer {
+            grid-column: span 2;
+            border-top: 2px solid #000;
+            padding-top: 2rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="header">
-<div class="header-top">
-<span>WEPICKITSF</span>
-<span class="accent">FILE № 001</span>
-</div>
-<div class="header-bottom">
-SAN FRANCISCO · CLOSET / CORNER · 03.2026
-</div>
+<div class="archive-header">
+    <div class="archive-header-top">
+        <span>WEPICKITSF</span>
+        <span class="accent">LOG № 001</span>
+    </div>
+    <div>SAN FRANCISCO · REMOVAL SERVICE · 2026</div>
 </div>
 
 <div class="container">
+    <div class="card primary-statement grid-span-2">
+        <div class="file-label">PROCEDURE</div>
+        <h1>Leave it behind. <br>We’ll find it.</h1>
+        <p>No waiting for couriers. No scheduling windows. Just leave your items in your building’s mailroom or designated package area. Tell us where, and they vanish.</p>
+        <a href="#" class="btn" id="openModal">Drop off & Notify Us</a>
+    </div>
 
-<!-- HERO -->
-<div class="card primary">
-<h1>
-You already decided<br>
-you don’t need it.
-</h1>
+    <div class="card">
+        <div class="file-label" style="background:#ddd;">STEP-BY-STEP</div>
+        <h2 style="margin: 1rem 0; font-family:var(--type-mono); text-transform:uppercase;">The Protocol</h2>
+        <p><strong>1. Place:</strong> Bag your items and leave them in your building’s package zone.</p>
+        <p><strong>2. Photo:</strong> Take a quick snap of where you left them.</p>
+        <p><strong>3. Notify:</strong> Submit the address and photo here. We pick up within 24 hours.</p>
+    </div>
 
-<p>
-It meant something, once.<br>
-Now it just stays where it rests.<br>
-Not gone — just waiting to be moved.
-</p>
+    <div class="drop-zone-visual">
+        <div class="building-icon"></div>
+        <div style="font-family:var(--type-mono); font-size: 1.2rem; text-transform: uppercase;">Building Drop-Off</div>
+        <p style="font-size: 0.8rem; margin-top: 10px;">Lobby · Mailroom · Package Area</p>
+    </div>
 
-<a href="#" class="btn" id="openModal">→ mark the spot</a>
-
-<p style="font-size:.75rem;margin-top:.6rem;">
-you don’t have to be there · no timing · we find it
-</p>
+    <div class="footer">
+        <div>WEPICKITSF.COM</div>
+        <div>EST. 2026 · SF, CA</div>
+    </div>
 </div>
 
-<!-- LEFT -->
-<div class="card">
-<h2>the situation</h2>
-<p>A hallway. A corner. A shelf that never clears.</p>
-
-<div>
-<div class="list-entry">jacket, winter 2019</div>
-<div class="list-entry">tote bag, never used</div>
-<div class="list-entry">cables, unknown purpose</div>
-<div class="list-entry">shoes, back of closet</div>
-<div class="list-entry">something folded away</div>
-</div>
-</div>
-
-<!-- RIGHT VISUAL -->
-<div class="object-box">
-<div class="object">
-<div class="object-tag">LEFT HERE</div>
-</div>
-</div>
-
-<!-- AFTER -->
-<div class="card">
-<h2>once it’s gone</h2>
-
-<p style="font-size:1.2rem;">
-The space feels different.<br>
-Not bigger — just quieter.
-</p>
-
-<p>
-↳ it continues somewhere else<br>
-↳ leave it anywhere — we’ll figure it out
-</p>
-
-</div>
-
-<!-- FOOTER -->
-<div class="footer">
-WEPICKITSF · SAN FRANCISCO<br>
-hello@wepickitsf.com
-</div>
-
-</div>
-
-<!-- MODAL -->
 <div class="modal" id="modal">
-<div class="modal-card">
+    <div class="modal-card">
+        <div class="file-label">DROP-OFF NOTIFICATION</div>
+        <h2 style="font-family:var(--type-mono); margin: 1rem 0;">WHERE IS IT?</h2>
+        
+        <label>Street Address</label>
+        <input type="text" placeholder="e.g. 450 Sutter St, Apt 3B">
+        
+        <label>Placement Instructions</label>
+        <textarea placeholder="e.g. In the lobby behind the black bench" rows="3"></textarea>
+        
+        <label>Evidence (A photo helps us find it fast)</label>
+        <div class="photo-upload" onclick="document.getElementById('file-input').click()">
+            <strong>[+] Upload Photo</strong>
+            <input type="file" id="file-input" hidden accept="image/*">
+        </div>
 
-<h2>where is it</h2>
-
-<input type="text" placeholder="street address">
-
-<input type="text" placeholder="where to find it (lobby, mailroom, stairs…)">
-
-<input type="text" placeholder="anything we should know (optional)">
-
-<input type="file" accept="image/*">
-
-<button class="btn" id="confirmModal">leave it there</button>
-
-<p style="font-size:.75rem;margin-top:1rem;">
-a photo helps · no need to prepare anything
-</p>
-
-</div>
+        <button class="btn" style="background:#000; color:#fff; width:100%;" id="confirmModal">Submit & Forget It</button>
+        <p style="font-size:0.7rem; text-align:center; margin-top:1rem; text-transform:uppercase;">Items will be cleared within 24 hours.</p>
+    </div>
 </div>
 
 <script>
-const modal=document.getElementById('modal');
-document.getElementById('openModal').onclick=e=>{
-e.preventDefault();
-modal.classList.add('active');
-};
+    const modal = document.getElementById('modal');
+    const openBtn = document.getElementById('openModal');
+    const confirmBtn = document.getElementById('confirmModal');
 
-modal.onclick=e=>{
-if(e.target===modal)modal.classList.remove('active');
-};
-
-document.getElementById('confirmModal').onclick=()=>{
-modal.classList.remove('active');
-};
+    openBtn.onclick = (e) => { e.preventDefault(); modal.classList.add('active'); };
+    window.onclick = (e) => { if (e.target == modal) modal.classList.remove('active'); };
+    confirmBtn.onclick = () => { 
+        alert("Received. Consider it gone.");
+        modal.classList.remove('active'); 
+    };
 </script>
 
 </body>
