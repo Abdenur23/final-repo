@@ -1,614 +1,338 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>WePickItSF · leave & go</title>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        /* --- RESET (same structural integrity) --- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WePickItSF · file 001</title>
 
-        :root {
-            --bg: #FFFFFF;
-            --surface: #F7F7F5;
-            --ink: #111111;
-            --pure-black: #000000;
-            --muted-stroke: #D4D4D4;
-            --accent-file: #F0E68C;
-            --type-mono: 'Archivo Black', sans-serif;
-            --type-sans: 'Inter', sans-serif;
-        }
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
-        body {
-            background: var(--bg);
-            color: var(--ink);
-            font-family: var(--type-sans);
-            font-weight: 300;
-            line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
-        }
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
 
-        .archive-header {
-            display: flex;
-            flex-direction: column;
-            padding: 1rem 1.25rem;
-            border-bottom: 2px solid var(--pure-black);
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            gap: 0.5rem;
-        }
+:root{
+--bg:#FFFFFF;
+--surface:#F7F7F5;
+--ink:#111;
+--black:#000;
+--muted:#D4D4D4;
+--accent:#F0E68C;
+--mono:'Archivo Black',sans-serif;
+--sans:'Inter',sans-serif;
+}
 
-        .archive-header-top {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-        }
+body{
+background:var(--bg);
+color:var(--ink);
+font-family:var(--sans);
+font-weight:300;
+line-height:1.5;
+}
 
-        .archive-header .accent {
-            background: var(--accent-file);
-            padding: 0.2rem 0.6rem;
-            color: var(--pure-black);
-            font-weight: 600;
-            white-space: nowrap;
-        }
+/* HEADER */
+.header{
+display:flex;
+flex-direction:column;
+padding:1rem 1.25rem;
+border-bottom:2px solid var(--black);
+font-size:.7rem;
+text-transform:uppercase;
+gap:.4rem;
+}
 
-        .archive-header-bottom {
-            color: #5A5A5A;
-            font-size: 0.65rem;
-        }
+.header-top{
+display:flex;
+justify-content:space-between;
+}
 
-        .container {
-            max-width: 100%;
-            margin: 0 auto;
-            padding: 1.25rem 1.25rem 3rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
+.accent{
+background:var(--accent);
+padding:.2rem .6rem;
+font-weight:600;
+}
 
-        .card {
-            background: var(--surface);
-            border: 2px solid var(--pure-black);
-            padding: 1.5rem 1.25rem;
-            transition: none;
-            width: 100%;
-        }
+.header-bottom{
+color:#666;
+font-size:.65rem;
+}
 
-        .card.primary-statement {
-            background: var(--pure-black);
-            color: white;
-            border: 2px solid var(--pure-black);
-        }
+/* LAYOUT */
+.container{
+padding:1.25rem;
+display:flex;
+flex-direction:column;
+gap:1.25rem;
+}
 
-        .card.primary-statement h1 {
-            color: white;
-            font-family: var(--type-mono);
-            font-size: clamp(2.8rem, 10vw, 4.5rem);
-            line-height: 1;
-            text-transform: uppercase;
-            margin: 0.25rem 0 1rem;
-            letter-spacing: -0.02em;
-            word-break: break-word;
-        }
+/* CARD */
+.card{
+background:var(--surface);
+border:2px solid var(--black);
+padding:1.5rem 1.25rem;
+}
 
-        .card h2 {
-            font-family: var(--type-mono);
-            font-size: 1.4rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 1.25rem;
-            border-bottom: 2px solid var(--pure-black);
-            padding-bottom: 0.4rem;
-            font-weight: 400;
-        }
+.primary{
+background:var(--black);
+color:#fff;
+}
 
-        .card p {
-            font-size: 1rem;
-            margin-bottom: 1rem;
-            font-weight: 300;
-            color: #2A2A2A;
-        }
+.primary h1{
+font-family:var(--mono);
+font-size:clamp(2.8rem,10vw,4.5rem);
+line-height:1;
+text-transform:uppercase;
+margin-bottom:1rem;
+}
 
-        .primary-statement p {
-            color: #CCCCCC;
-        }
+.card h2{
+font-family:var(--mono);
+font-size:1.4rem;
+text-transform:uppercase;
+border-bottom:2px solid var(--black);
+margin-bottom:1rem;
+}
 
-        /* list styling */
-        .list-entry {
-            margin-bottom: 0.8rem;
-            padding-bottom: 0.8rem;
-            border-bottom: 1px solid var(--muted-stroke);
-            font-weight: 350;
-            display: flex;
-            gap: 0.75rem;
-            font-size: 0.95rem;
-        }
+.card p{margin-bottom:1rem;color:#2a2a2a;}
+.primary p{color:#ccc;}
 
-        .list-entry:before {
-            content: "—";
-            color: #888;
-        }
+/* LIST */
+.list-entry{
+border-bottom:1px solid var(--muted);
+padding:.6rem 0;
+display:flex;
+gap:.6rem;
+}
+.list-entry:before{content:"—";color:#888;}
 
-        /* --- package illustration (clean, no weird box) --- */
-        .package-visual {
-            background: var(--surface);
-            border: 2px solid var(--pure-black);
-            padding: 2rem 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 240px;
-            gap: 1.5rem;
-        }
+/* OBJECT VISUAL */
+.object-box{
+border:2px solid var(--black);
+padding:2rem;
+display:flex;
+align-items:center;
+justify-content:center;
+min-height:200px;
+background:var(--surface);
+}
 
-        .package-icon {
-            width: 160px;
-            height: 160px;
-            background: white;
-            border: 3px solid var(--pure-black);
-            position: relative;
-            box-shadow: 8px 8px 0 rgba(0,0,0,0.08);
-        }
+.object{
+width:140px;
+height:140px;
+border:3px solid var(--black);
+background:#fff;
+position:relative;
+}
 
-        .strap-horizontal {
-            position: absolute;
-            top: 50%;
-            left: -10px;
-            right: -10px;
-            height: 18px;
-            background: var(--pure-black);
-            transform: translateY(-50%);
-            z-index: 2;
-        }
+.object-tag{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+background:var(--accent);
+padding:.4rem .8rem;
+font-size:.7rem;
+font-weight:700;
+border:2px solid var(--black);
+}
 
-        .strap-vertical {
-            position: absolute;
-            left: 50%;
-            top: -10px;
-            bottom: -10px;
-            width: 18px;
-            background: var(--pure-black);
-            transform: translateX(-50%);
-            z-index: 2;
-        }
+/* BUTTON */
+.btn{
+display:block;
+width:100%;
+text-align:center;
+padding:.8rem;
+border:2px solid var(--black);
+text-decoration:none;
+font-weight:600;
+text-transform:uppercase;
+margin-top:1rem;
+}
 
-        .package-tag {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 0.4rem 1rem;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            border: 2px solid var(--pure-black);
-            z-index: 3;
-            white-space: nowrap;
-            background: var(--accent-file);
-            color: var(--pure-black);
-        }
+.primary .btn{
+color:#fff;
+border-color:#fff;
+}
 
-        .corner {
-            position: absolute;
-            width: 22px;
-            height: 22px;
-            border: 2px solid var(--pure-black);
-            background: white;
-            z-index: 4;
-        }
+.primary .btn:hover{
+background:#fff;
+color:#000;
+}
 
-        .corner-tl { top: -8px; left: -8px; }
-        .corner-tr { top: -8px; right: -8px; }
-        .corner-bl { bottom: -8px; left: -8px; }
-        .corner-br { bottom: -8px; right: -8px; }
+/* FOOTER */
+.footer{
+margin-top:2rem;
+border-top:3px double #000;
+padding-top:1rem;
+font-size:.75rem;
+text-transform:uppercase;
+}
 
-        /* instruction card – new */
-        .instruction-block {
-            background: var(--accent-file);
-            border: 2px solid var(--pure-black);
-            padding: 1.4rem 1rem;
-            width: 100%;
-            text-align: left;
-            box-shadow: 5px 5px 0 var(--pure-black);
-        }
+/* MODAL */
+.modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.8);
+display:flex;
+align-items:center;
+justify-content:center;
+opacity:0;
+visibility:hidden;
+transition:.2s;
+padding:1rem;
+}
 
-        .instruction-block p {
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-            color: var(--pure-black);
-        }
+.modal.active{
+opacity:1;
+visibility:visible;
+}
 
-        .instruction-block ul {
-            list-style: none;
-            font-size: 0.95rem;
-            font-weight: 400;
-        }
+.modal-card{
+background:#fff;
+border:3px solid #000;
+padding:2rem 1.5rem;
+width:100%;
+max-width:420px;
+}
 
-        .instruction-block li {
-            margin-bottom: 0.4rem;
-            display: flex;
-            gap: 0.5rem;
-            align-items: baseline;
-        }
+.modal-card h2{
+font-family:var(--mono);
+text-transform:uppercase;
+margin-bottom:1rem;
+border-bottom:2px solid #000;
+}
 
-        .instruction-block li:before {
-            content: "→";
-            font-weight: 600;
-        }
+input{
+width:100%;
+padding:.9rem;
+margin-bottom:1rem;
+border:2px solid #000;
+font-family:var(--sans);
+}
 
-        .photo-note {
-            margin-top: 0.8rem;
-            background: white;
-            border: 2px solid var(--pure-black);
-            padding: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .photo-note span {
-            font-size: 1.6rem;
-        }
-
-        /* file label */
-        .file-label {
-            background: var(--accent-file);
-            display: inline-block;
-            padding: 0.25rem 1rem;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            border: 2px solid var(--pure-black);
-            margin-bottom: 1rem;
-        }
-
-        .btn {
-            display: inline-block;
-            background: white;
-            color: var(--pure-black);
-            text-decoration: none;
-            font-family: var(--type-sans);
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 0.8rem 2rem;
-            border: 2px solid var(--pure-black);
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .btn:hover {
-            background: var(--pure-black);
-            color: white;
-        }
-
-        .primary-statement .btn {
-            background: transparent;
-            color: white;
-            border-color: white;
-        }
-
-        .primary-statement .btn:hover {
-            background: white;
-            color: var(--pure-black);
-        }
-
-        .subtle-archive {
-            font-size: 0.75rem;
-            color: #5a5a5a;
-            margin-top: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            text-align: center;
-        }
-
-        hr {
-            border: none;
-            border-top: 2px solid var(--pure-black);
-            margin: 1.5rem 0;
-        }
-
-        .two-col {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .footer {
-            margin-top: 2rem;
-            padding: 1.5rem 0 0;
-            border-top: 3px double var(--pure-black);
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-        }
-
-        .footer a {
-            text-decoration: none;
-            color: var(--ink);
-            border-bottom: 1px solid var(--ink);
-            padding-bottom: 2px;
-        }
-
-        .footer-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            justify-content: space-between;
-        }
-
-        /* tablet and up */
-        @media (min-width: 700px) {
-            .archive-header {
-                flex-direction: row;
-                justify-content: space-between;
-                padding: 1.2rem 2rem;
-                font-size: 0.8rem;
-            }
-
-            .archive-header-bottom {
-                font-size: 0.8rem;
-            }
-
-            .container {
-                max-width: 1000px;
-                padding: 2rem 2rem 5rem;
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 2rem;
-            }
-
-            .grid-span-2 {
-                grid-column: span 2;
-            }
-
-            .two-col {
-                flex-direction: row;
-                gap: 2rem;
-            }
-
-            .two-col > * {
-                flex: 1;
-            }
-
-            .btn {
-                width: auto;
-                display: inline-block;
-            }
-
-            .footer {
-                grid-column: span 2;
-                flex-direction: row;
-                justify-content: space-between;
-            }
-
-            .package-visual {
-                padding: 1rem;
-            }
-        }
-    </style>
+.modal .btn{
+background:#000;
+color:#fff;
+}
+</style>
 </head>
+
 <body>
 
-<!-- archival header (unchanged vibe) -->
-<div class="archive-header">
-    <div class="archive-header-top">
-        <span>WEPICKITSF</span>
-        <span class="accent">FILE № 001</span>
-    </div>
-    <div class="archive-header-bottom">
-        SAN FRANCISCO · ENTRY: CLOSET / CORNER · 03.2026
-    </div>
+<div class="header">
+<div class="header-top">
+<span>WEPICKITSF</span>
+<span class="accent">FILE № 001</span>
+</div>
+<div class="header-bottom">
+SAN FRANCISCO · CLOSET / CORNER · 03.2026
+</div>
 </div>
 
-<!-- main container -->
 <div class="container">
 
-    <!-- PRIMARY STATEMENT: tonality adjusted – no "schedule" -->
-    <div class="card primary-statement grid-span-2">
-        <div class="file-label">DROP & GO</div>
-        <h1>
-            Leave it.<br>
-            We’ll pick it up.
-        </h1>
-        <p style="max-width:600px;">
-            No appointment. No waiting. Just leave your items at the package area — we grab them, you move on.
-        </p>
-        <!-- CTA now opens modal with address/instruction, no scheduling -->
-        <div class="cta-block">
-            <a href="#" class="btn" id="openModal">→ tell us where</a>
-        </div>
-        <p class="subtle-archive">same-day pickup · just leave it · photo = key</p>
-    </div>
+<!-- HERO -->
+<div class="card primary">
+<h1>
+You already decided<br>
+you don’t need it.
+</h1>
 
-    <!-- LEFT: the situation (kept) -->
-    <div class="card">
-        <h2>the situation</h2>
-        <p>A hallway in a walk-up. A closet that barely closes. Things don’t pile up — they just stay.</p>
-        <div style="margin: 1.5rem 0;">
-            <div class="list-entry">jacket, winter 2019</div>
-            <div class="list-entry">tote bag, never unfolded</div>
-            <div class="list-entry">cables, unknown purpose</div>
-            <div class="list-entry">shoes, back of closet</div>
-            <div class="list-entry">something folded away</div>
-        </div>
-    </div>
+<p>
+It meant something, once.<br>
+Now it just stays where it rests.<br>
+Not gone — just waiting to be moved.
+</p>
 
-    <!-- RIGHT: PACKAGE VISUAL + INSTRUCTION (replaces the weird box) -->
-    <div class="package-visual">
-        <!-- package icon, neutral, no "READY" label – just a package -->
-        <div class="package-icon">
-            <div class="strap-horizontal"></div>
-            <div class="strap-vertical"></div>
-            <div class="package-tag">PACKAGE</div>  <!-- generic, no weird "READY" -->
-            <div class="corner corner-tl"></div>
-            <div class="corner corner-tr"></div>
-            <div class="corner corner-bl"></div>
-            <div class="corner corner-br"></div>
-        </div>
-        <!-- pickup instruction card (exactly what you asked for) -->
-        <div class="instruction-block">
-            <p>📦 package pickup → how it works</p>
-            <ul>
-                <li>place items in building’s package/drop area</li>
-                <li>take a photo (show location + items)</li>
-                <li>enter address below + upload photo</li>
-            </ul>
-            <div class="photo-note">
-                <span>📸</span> photo is mandatory — we find it, you forget it.
-            </div>
-        </div>
-    </div>
+<a href="#" class="btn" id="openModal">→ mark the spot</a>
 
-    <!-- ONCE IT'S GONE (full width) -->
-    <div class="card grid-span-2">
-        <h2>once it’s gone</h2>
-        <div class="two-col">
-            <p style="font-size:1.2rem; font-weight:350;">The space feels different. Not bigger — just quieter.</p>
-            <div>
-                <div style="margin-bottom:0.5rem;"><span style="font-weight:600;">↳ it continues</span> — somewhere else, locally.</div>
-                <div><span style="font-weight:600;">↳ no drop-offs</span> — we come to you.</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- FOOTER -->
-    <div class="footer">
-        <div>WEPICKITSF · SAN FRANCISCO</div>
-        <div class="footer-row">
-            <a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a> · <a href="#">privacy</a> · <a href="#">terms</a>
-        </div>
-        <div>folio 1 · est. 2026</div>
-    </div>
+<p style="font-size:.75rem;margin-top:.6rem;">
+you don’t have to be there · no timing · we find it
+</p>
 </div>
 
-<!-- MODAL — now only address + photo instruction (NO scheduling) -->
+<!-- LEFT -->
+<div class="card">
+<h2>the situation</h2>
+<p>A hallway. A corner. A shelf that never clears.</p>
+
+<div>
+<div class="list-entry">jacket, winter 2019</div>
+<div class="list-entry">tote bag, never used</div>
+<div class="list-entry">cables, unknown purpose</div>
+<div class="list-entry">shoes, back of closet</div>
+<div class="list-entry">something folded away</div>
+</div>
+</div>
+
+<!-- RIGHT VISUAL -->
+<div class="object-box">
+<div class="object">
+<div class="object-tag">LEFT HERE</div>
+</div>
+</div>
+
+<!-- AFTER -->
+<div class="card">
+<h2>once it’s gone</h2>
+
+<p style="font-size:1.2rem;">
+The space feels different.<br>
+Not bigger — just quieter.
+</p>
+
+<p>
+↳ it continues somewhere else<br>
+↳ leave it anywhere — we’ll figure it out
+</p>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+WEPICKITSF · SAN FRANCISCO<br>
+hello@wepickitsf.com
+</div>
+
+</div>
+
+<!-- MODAL -->
 <div class="modal" id="modal">
-    <div class="modal-card">
-        <span class="file-label" style="margin-bottom:1rem;">PICKUP INFO</span>
-        <h2 style="font-size: 1.5rem;">address + photo</h2>
-        <!-- only address field, no time selects -->
-        <input type="text" placeholder="street address (SF)" id="addressInput">
-        <!-- photo mock (in real world would be file upload) -->
-        <div style="border:2px dashed #000; padding: 1rem; text-align:center; margin-bottom:1.2rem; background:#f0f0f0; font-weight:500; font-size:0.9rem;">
-            📷 click to upload photo<br><span style="font-weight:300; font-size:0.75rem;">(showing drop spot + items)</span>
-        </div>
-        <!-- instruction repeat -->
-        <p style="font-size:0.85rem; margin-bottom:0.5rem; font-weight:500;">↳ leave items at package area. that’s it.</p>
-        <button class="btn" id="confirmModal">submit & forget</button>
-        <p class="subtle-archive" style="margin-top:1.5rem;">we’ll grab it within 24h · no reply needed</p>
-    </div>
+<div class="modal-card">
+
+<h2>where is it</h2>
+
+<input type="text" placeholder="street address">
+
+<input type="text" placeholder="where to find it (lobby, mailroom, stairs…)">
+
+<input type="text" placeholder="anything we should know (optional)">
+
+<input type="file" accept="image/*">
+
+<button class="btn" id="confirmModal">leave it there</button>
+
+<p style="font-size:.75rem;margin-top:1rem;">
+a photo helps · no need to prepare anything
+</p>
+
+</div>
 </div>
 
 <script>
-    (function() {
-        const modal = document.getElementById('modal');
-        const openBtn = document.getElementById('openModal');
-        const confirmBtn = document.getElementById('confirmModal');
+const modal=document.getElementById('modal');
+document.getElementById('openModal').onclick=e=>{
+e.preventDefault();
+modal.classList.add('active');
+};
 
-        openBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            modal.classList.add('active');
-        });
+modal.onclick=e=>{
+if(e.target===modal)modal.classList.remove('active');
+};
 
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.classList.remove('active');
-        });
-
-        if (confirmBtn) {
-            confirmBtn.addEventListener('click', () => {
-                modal.classList.remove('active');
-                // optional simple feedback (no real submit)
-                alert('got it. no need to do anything else — just leave the items.');
-            });
-        }
-
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal.classList.contains('active')) {
-                modal.classList.remove('active');
-            }
-        });
-    })();
+document.getElementById('confirmModal').onclick=()=>{
+modal.classList.remove('active');
+};
 </script>
 
-<!-- minimal style for modal photo area -->
-<style>
-    .modal {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        visibility: hidden;
-        transition: 0.15s;
-        padding: 1rem;
-        z-index: 1000;
-    }
-    .modal.active {
-        opacity: 1;
-        visibility: visible;
-    }
-    .modal-card {
-        background: white;
-        border: 3px solid var(--pure-black);
-        padding: 2rem 1.5rem;
-        width: 100%;
-        max-width: 440px;
-        box-shadow: 8px 8px 0 var(--pure-black);
-    }
-    .modal-card h2 {
-        font-family: var(--type-mono);
-        text-transform: uppercase;
-        font-size: 1.8rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 2px solid #000;
-        padding-bottom: 0.4rem;
-    }
-    input, select {
-        width: 100%;
-        padding: 0.9rem;
-        margin-bottom: 1.2rem;
-        border: 2px solid var(--pure-black);
-        background: #fff;
-        font-family: var(--type-sans);
-        font-size: 0.95rem;
-        border-radius: 0;
-    }
-    input:focus {
-        outline: none;
-        background: var(--accent-file);
-    }
-    .modal-card .btn {
-        width: 100%;
-        background: var(--pure-black);
-        color: white;
-        margin-top: 0.5rem;
-    }
-    .modal-card .btn:hover {
-        background: white;
-        color: var(--pure-black);
-    }
-    /* remove weird leftover border-radius */
-    #confirmModal { border-radius:0; }
-</style>
 </body>
 </html>
