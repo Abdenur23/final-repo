@@ -11,118 +11,101 @@
         <!-- hero section -->
         <header class="hero">
             <h1 class="hero-headline">Free Pickup.<br>Same Day.</h1>
-            <p class="hero-tagline">Clear your space. We handle the rest — all in San Francisco.</p>
+            <p class="hero-tagline">Clothes. Bags. Sunglasses. Shoes.<br>Small electronics. Things you don't use anymore.</p>
+            <p class="hero-subline">We take them. You get space.</p>
             <div class="hero-cta">
                 <button class="btn btn--primary" id="openBookingBtn">Book a pickup</button>
             </div>
         </header>
 
-        <!-- features (four concise poetic blocks) -->
-        <section class="features" aria-label="What we take and how we work">
-            <div class="feature-card">
-                <h2 class="feature-title">Clothes, shoes, bags</h2>
-                <p class="feature-text">Denim jackets with fog-kissed memories, sneakers that climbed Twin Peaks — we take them all.</p>
+        <!-- what we take (simple list) -->
+        <section class="items-section">
+            <h2 class="section-title">What we take</h2>
+            <div class="items-grid">
+                <div class="item-category">Clothes (any condition)</div>
+                <div class="item-category">Bags & backpacks</div>
+                <div class="item-category">Sunglasses & eyewear</div>
+                <div class="item-category">Belts, scarves, accessories</div>
+                <div class="item-category">Small electronics</div>
+                <div class="item-category">Shoes</div>
             </div>
-            <div class="feature-card">
-                <h2 class="feature-title">No hassle, no sorting</h2>
-                <p class="feature-text">Just pile it by the door. We’ll sort, pack, and pedal away — you keep your sunday.</p>
-            </div>
-            <div class="feature-card">
-                <h2 class="feature-title">Moved by e‑bike</h2>
-                <p class="feature-text">Quiet wheels, zero shipping. Your things stay local, from the Mission to the Marina.</p>
-            </div>
-            <div class="feature-card">
-                <h2 class="feature-title">Items needing a small fix</h2>
-                <p class="feature-text">A loose button, a torn seam? Good items even if they need a little love.</p>
-            </div>
+            <p class="items-note">Even if they need a small fix. We'll handle it.</p>
         </section>
 
-        <!-- modal overlay + booking form (hidden by default) -->
+        <!-- how it works (3 steps) -->
+        <section class="how-section">
+            <h2 class="section-title">How it works</h2>
+            <div class="steps">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <p class="step-text">You book online. 30 seconds.</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <p class="step-text">We pick up from your door. By e-bike.</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <p class="step-text">We clean everything. Find it a new home in SF.</p>
+                </div>
+            </div>
+            <p class="steps-footer">No trucks. No shipping. No waste. You're done.</p>
+        </section>
+
+        <!-- modal overlay + booking form -->
         <div class="modal-overlay" id="bookingModalOverlay" aria-hidden="true">
-            <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-                <button class="modal-close" id="closeModalBtn" aria-label="Close booking form">✕</button>
-                <h2 id="modal-title" class="modal-title">when & where</h2>
-                <form id="bookingForm" class="booking-form">
+            <div class="modal-card">
+                <button class="modal-close" id="closeModalBtn">✕</button>
+                <h2 class="modal-title">Book your pickup</h2>
+                <form id="bookingForm">
                     <div class="form-group">
-                        <label for="name">Your name</label>
-                        <input type="text" id="name" name="name" required placeholder="e.g., Jamie">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" required>
                     </div>
                     <div class="form-group">
                         <label for="address">Address (SF only)</label>
-                        <input type="text" id="address" name="address" required placeholder="street, no. – we’ll e‑bike there">
+                        <input type="text" id="address" name="address" required>
                     </div>
                     <div class="form-group">
                         <label for="neighborhood">Neighborhood</label>
                         <select id="neighborhood" name="neighborhood" required>
-                            <option value="" disabled selected>– choose one –</option>
+                            <option value="" disabled selected>Select</option>
                             <option value="Mission">Mission</option>
                             <option value="Noe Valley">Noe Valley</option>
                             <option value="Haight">Haight</option>
                             <option value="Richmond">Richmond</option>
                             <option value="Sunset">Sunset</option>
                             <option value="Marina">Marina</option>
-                            <option value="North Beach">North Beach</option>
-                            <option value="SOMA">SOMA</option>
-                            <option value="Bernal Heights">Bernal Heights</option>
                         </select>
                     </div>
-                    <fieldset class="form-group time-slots">
-                        <legend>Preferred time slot</legend>
-                        <label class="radio-label">
-                            <input type="radio" name="timeSlot" value="Morning" required> Morning (9–12)
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="timeSlot" value="Afternoon"> Afternoon (12–4)
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="timeSlot" value="Evening"> Evening (4–7)
-                        </label>
+                    <fieldset class="form-group">
+                        <legend>Time slot</legend>
+                        <label><input type="radio" name="timeSlot" value="Morning" required> Morning (9–12)</label>
+                        <label><input type="radio" name="timeSlot" value="Afternoon"> Afternoon (12–4)</label>
+                        <label><input type="radio" name="timeSlot" value="Evening"> Evening (4–7)</label>
                     </fieldset>
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn--primary btn--block">confirm pickup</button>
-                    </div>
+                    <button type="submit" class="btn btn--primary btn--block">Confirm pickup</button>
                 </form>
-                <!-- thank you message (hidden initially) -->
                 <div id="thankYouMessage" class="thank-you" hidden>
-                    <p class="thank-you-title">You’re all set.</p>
-                    <p class="thank-you-text">We’ll be there soon. <br>Questions? cancellations? <a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a></p>
+                    <p class="thank-you-title">You're all set.</p>
+                    <p class="thank-you-text">We'll be there soon.<br>Questions? <a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a></p>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- footer with LLC, address, contact, legal links -->
     <footer class="site-footer">
         <div class="footer-content">
-            <div class="footer-meta">
-                <span class="footer-logo">WePickItSF LLC</span>
-                <address class="footer-address">2820 Sacramento St, San Francisco, CA 94115</address>
-                <a href="mailto:hello@wepickitsf.com" class="footer-email">hello@wepickitsf.com</a>
-            </div>
+            <div>WePickItSF</div>
+            <div>San Francisco</div>
+            <div><a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a></div>
             <div class="footer-links">
-                <a href="#" class="footer-link" id="privacyLink">Privacy</a>
-                <span class="dot-sep">•</span>
-                <a href="#" class="footer-link" id="termsLink">Terms</a>
+                <a href="#">Privacy</a> • <a href="#">Terms</a>
             </div>
         </div>
     </footer>
 
-    <!-- scripts (modular, inside wipikit folder) -->
     <script src="wipikit/app.js"></script>
     <script src="wipikit/booking.js"></script>
-
-    <!-- tiny inline placeholder for demo: click on privacy/terms shows dummy alert (not required but polite) -->
-    <script>
-        (function simpleLegalFallback() {
-            document.getElementById('privacyLink')?.addEventListener('click', (e) => {
-                e.preventDefault();
-                alert('[demo] privacy policy – we treat your data like a neighbor.');
-            });
-            document.getElementById('termsLink')?.addEventListener('click', (e) => {
-                e.preventDefault();
-                alert('[demo] terms of service: simple, fair, SF.');
-            });
-        })();
-    </script>
 </body>
 </html>
