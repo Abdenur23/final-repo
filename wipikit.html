@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WePickItSF</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+  <main class="container">
+    <h1>Free Pickup. Same Day.</h1>
+
+    <p class="tagline">
+      Clear your space. We handle the rest.
+    </p>
+
+    <p class="items">
+      Clothes • Shoes • Bags • Small electronics
+    </p>
+
+    <p class="no-hassle">
+      No selling. No sorting. No hassle.
+    </p>
+
+    <p class="local">
+      Moved by e-bike. No shipping.  
+      Kept in San Francisco.
+    </p>
+
+    <p class="quality">
+      Good items — even if they need a small fix.
+    </p>
+
+    <button id="openBooking">Book Pickup</button>
+  </main>
+
+  <!-- Booking Modal -->
+  <div id="bookingModal" class="modal hidden">
+    <div class="modal-content">
+      <span id="closeModal">&times;</span>
+
+      <h2>Schedule a Pickup</h2>
+
+      <form id="bookingForm">
+        <input type="text" name="name" placeholder="Your name" required />
+        <input type="text" name="address" placeholder="Pickup address" required />
+        <input type="text" name="neighborhood" placeholder="Neighborhood" required />
+
+        <select name="timeSlot" required>
+          <option value="">Select time</option>
+          <option>Morning (9–12)</option>
+          <option>Afternoon (12–4)</option>
+          <option>Evening (4–7)</option>
+        </select>
+
+        <button type="submit">Confirm Pickup</button>
+      </form>
+
+      <div id="thankYou" class="hidden">
+        <h3>You're all set.</h3>
+        <p>
+          We'll be there soon.<br/>
+          Questions or changes?
+        </p>
+        <p><strong>hello@wepickitsf.com</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="booking.js"></script>
+</body>
+</html>
