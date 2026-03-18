@@ -1,71 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WePickItSF</title>
-  <link rel="stylesheet" href="wipikit/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WePickItSF – Free pickup. Same day.</title>
+    <link rel="stylesheet" href="wipikit/styles.css">
 </head>
 <body>
-  <header class="hero">
-    <div class="hero-content">
-      <h1>Free Pickup. Same Day.</h1>
-      <p class="tagline">Clear your space. We handle the rest — all in San Francisco.</p>
-      <button id="openBooking" class="cta-button">Book Pickup</button>
-    </div>
-  </header>
+    <main class="site-wrapper">
+        <!-- hero section -->
+        <header class="hero">
+            <h1 class="hero-headline">Free Pickup.<br>Same Day.</h1>
+            <p class="hero-tagline">Clear your space. We handle the rest — all in San Francisco.</p>
+            <div class="hero-cta">
+                <button class="btn btn--primary" id="openBookingBtn">Book a pickup</button>
+            </div>
+        </header>
 
-  <section class="features">
-    <div class="feature">
-      <h2>What We Take</h2>
-      <p>Clothes • Shoes • Bags • Small electronics</p>
-    </div>
-    <div class="feature">
-      <h2>No Hassle</h2>
-      <p>No selling. No sorting. No meetups. We handle everything.</p>
-    </div>
-    <div class="feature">
-      <h2>Local & Responsible</h2>
-      <p>Moved by e-bike. No shipping. Kept in San Francisco.</p>
-    </div>
-    <div class="feature">
-      <h2>Even Items That Need a Fix</h2>
-      <p>Good items — even if they need a small repair. We take care of it.</p>
-    </div>
-  </section>
+        <!-- features (four concise poetic blocks) -->
+        <section class="features" aria-label="What we take and how we work">
+            <div class="feature-card">
+                <h2 class="feature-title">Clothes, shoes, bags</h2>
+                <p class="feature-text">Denim jackets with fog-kissed memories, sneakers that climbed Twin Peaks — we take them all.</p>
+            </div>
+            <div class="feature-card">
+                <h2 class="feature-title">No hassle, no sorting</h2>
+                <p class="feature-text">Just pile it by the door. We’ll sort, pack, and pedal away — you keep your sunday.</p>
+            </div>
+            <div class="feature-card">
+                <h2 class="feature-title">Moved by e‑bike</h2>
+                <p class="feature-text">Quiet wheels, zero shipping. Your things stay local, from the Mission to the Marina.</p>
+            </div>
+            <div class="feature-card">
+                <h2 class="feature-title">Items needing a small fix</h2>
+                <p class="feature-text">A loose button, a torn seam? Good items even if they need a little love.</p>
+            </div>
+        </section>
 
-  <!-- Booking Modal -->
-  <div id="bookingModal" class="modal hidden">
-    <div class="modal-content">
-      <span id="closeModal" class="close">&times;</span>
-      <h2>Schedule a Pickup</h2>
-      <form id="bookingForm">
-        <input type="text" name="name" placeholder="Your Name" required>
-        <input type="text" name="address" placeholder="Pickup Address" required>
-        <input type="text" name="neighborhood" placeholder="Neighborhood" required>
-        <select name="timeSlot" required>
-          <option value="">Select Time</option>
-          <option>Morning (9–12)</option>
-          <option>Afternoon (12–4)</option>
-          <option>Evening (4–7)</option>
-        </select>
-        <button type="submit" class="cta-button">Confirm Pickup</button>
-      </form>
-      <div id="thankYou" class="hidden">
-        <h3>You're All Set</h3>
-        <p>We’ll be there soon.</p>
-        <p>Questions or changes? Contact us at:</p>
-        <p><strong>hello@wepickitsf.com</strong></p>
-      </div>
-    </div>
-  </div>
+        <!-- modal overlay + booking form (hidden by default) -->
+        <div class="modal-overlay" id="bookingModalOverlay" aria-hidden="true">
+            <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+                <button class="modal-close" id="closeModalBtn" aria-label="Close booking form">✕</button>
+                <h2 id="modal-title" class="modal-title">when & where</h2>
+                <form id="bookingForm" class="booking-form">
+                    <div class="form-group">
+                        <label for="name">Your name</label>
+                        <input type="text" id="name" name="name" required placeholder="e.g., Jamie">
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Address (SF only)</label>
+                        <input type="text" id="address" name="address" required placeholder="street, no. – we’ll e‑bike there">
+                    </div>
+                    <div class="form-group">
+                        <label for="neighborhood">Neighborhood</label>
+                        <select id="neighborhood" name="neighborhood" required>
+                            <option value="" disabled selected>– choose one –</option>
+                            <option value="Mission">Mission</option>
+                            <option value="Noe Valley">Noe Valley</option>
+                            <option value="Haight">Haight</option>
+                            <option value="Richmond">Richmond</option>
+                            <option value="Sunset">Sunset</option>
+                            <option value="Marina">Marina</option>
+                            <option value="North Beach">North Beach</option>
+                            <option value="SOMA">SOMA</option>
+                            <option value="Bernal Heights">Bernal Heights</option>
+                        </select>
+                    </div>
+                    <fieldset class="form-group time-slots">
+                        <legend>Preferred time slot</legend>
+                        <label class="radio-label">
+                            <input type="radio" name="timeSlot" value="Morning" required> Morning (9–12)
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="timeSlot" value="Afternoon"> Afternoon (12–4)
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="timeSlot" value="Evening"> Evening (4–7)
+                        </label>
+                    </fieldset>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn--primary btn--block">confirm pickup</button>
+                    </div>
+                </form>
+                <!-- thank you message (hidden initially) -->
+                <div id="thankYouMessage" class="thank-you" hidden>
+                    <p class="thank-you-title">You’re all set.</p>
+                    <p class="thank-you-text">We’ll be there soon. <br>Questions? cancellations? <a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
 
-  <footer>
-    <p>WePickItSF LLC · 123 Sacramento St, Sacramento, CA · hello@wepickitsf.com</p>
-    <p><a href="#">Privacy</a> · <a href="#">Terms</a></p>
-  </footer>
+    <!-- footer with LLC, address, contact, legal links -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-meta">
+                <span class="footer-logo">WePickItSF LLC</span>
+                <address class="footer-address">2820 Sacramento St, San Francisco, CA 94115</address>
+                <a href="mailto:hello@wepickitsf.com" class="footer-email">hello@wepickitsf.com</a>
+            </div>
+            <div class="footer-links">
+                <a href="#" class="footer-link" id="privacyLink">Privacy</a>
+                <span class="dot-sep">•</span>
+                <a href="#" class="footer-link" id="termsLink">Terms</a>
+            </div>
+        </div>
+    </footer>
 
-  <script src="wipikit/app.js"></script>
-  <script src="wipikit/booking.js"></script>
+    <!-- scripts (modular, inside wipikit folder) -->
+    <script src="wipikit/app.js"></script>
+    <script src="wipikit/booking.js"></script>
+
+    <!-- tiny inline placeholder for demo: click on privacy/terms shows dummy alert (not required but polite) -->
+    <script>
+        (function simpleLegalFallback() {
+            document.getElementById('privacyLink')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('[demo] privacy policy – we treat your data like a neighbor.');
+            });
+            document.getElementById('termsLink')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('[demo] terms of service: simple, fair, SF.');
+            });
+        })();
+    </script>
 </body>
 </html>
