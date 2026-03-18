@@ -1,15 +1,11 @@
 const BookingModule = (() => {
-
   const init = () => {
     const form = document.getElementById("bookingForm");
-    const thankYou = document.getElementById("thankYou");
-
     form.addEventListener("submit", handleSubmit);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     e.preventDefault();
-
     const formData = new FormData(e.target);
 
     const data = {
@@ -20,10 +16,6 @@ const BookingModule = (() => {
     };
 
     console.log("Booking Data:", data);
-
-    // FUTURE: send to backend
-    // fetch('/api/book', { method: 'POST', body: JSON.stringify(data) })
-
     showThankYou();
   };
 
@@ -33,7 +25,6 @@ const BookingModule = (() => {
   };
 
   return { init };
-
 })();
 
 document.addEventListener("DOMContentLoaded", BookingModule.init);
