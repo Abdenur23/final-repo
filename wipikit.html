@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WePickItSF: file 001</title>
-    <!-- Archivo Black for monumentality, Inter for structure -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>WePickItSF · file 001</title>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        /* --- RESET: THE ARCHIVE --- */
+        /* --- RESET: THE ARCHIVE (MOBILE-FIRST) --- */
         * {
             margin: 0;
             padding: 0;
@@ -16,11 +15,11 @@
 
         :root {
             --bg: #FFFFFF;
-            --surface: #F7F7F5;        /* off-white card stock */
+            --surface: #F7F7F5;
             --ink: #111111;
             --pure-black: #000000;
-            --muted-stroke: #D4D4D4;    /* hard grid lines */
-            --accent-file: #F0E68C;      /* archive label yellow */
+            --muted-stroke: #D4D4D4;
+            --accent-file: #F0E68C;
             --type-mono: 'Archivo Black', sans-serif;
             --type-sans: 'Inter', sans-serif;
         }
@@ -34,56 +33,56 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* --- archival header (like a timestamp) --- */
+        /* --- ARCHIVAL HEADER (mobile-first) --- */
         .archive-header {
             display: flex;
-            justify-content: space-between;
-            padding: 1.2rem 2rem;
+            flex-direction: column;
+            padding: 1rem 1.25rem;
             border-bottom: 2px solid var(--pure-black);
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            font-weight: 400;
-            background: var(--bg);
+            letter-spacing: 0.5px;
+            gap: 0.5rem;
         }
 
-        .archive-header span {
-            color: #5A5A5A;
+        .archive-header-top {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
         }
 
         .archive-header .accent {
             background: var(--accent-file);
-            padding: 0.2rem 0.8rem;
+            padding: 0.2rem 0.6rem;
             color: var(--pure-black);
             font-weight: 600;
+            white-space: nowrap;
         }
 
-        /* main grid container */
+        .archive-header-bottom {
+            color: #5A5A5A;
+            font-size: 0.65rem;
+        }
+
+        /* main container - mobile first, single column */
         .container {
-            max-width: 1000px;
+            max-width: 100%;
             margin: 0 auto;
-            padding: 2rem 2rem 5rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            align-items: start;
+            padding: 1.25rem 1.25rem 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
         }
 
-        /* full-width items */
-        .grid-span-2 {
-            grid-column: span 2;
-        }
-
-        /* --- cards: hard borders, no rounding, no bs --- */
+        /* --- cards: hard borders, no rounding --- */
         .card {
             background: var(--surface);
             border: 2px solid var(--pure-black);
-            padding: 2rem 2rem 2.2rem;
-            box-shadow: none;
+            padding: 1.5rem 1.25rem;
             transition: none;
+            width: 100%;
         }
 
-        /* special treatment for the main statement */
         .card.primary-statement {
             background: var(--pure-black);
             color: white;
@@ -93,82 +92,163 @@
         .card.primary-statement h1 {
             color: white;
             font-family: var(--type-mono);
-            font-size: clamp(3.5rem, 7vw, 5.8rem);
+            font-size: clamp(2.8rem, 10vw, 4.5rem);
             line-height: 1;
             text-transform: uppercase;
-            margin: 0.5rem 0 0.5rem;
+            margin: 0.25rem 0 1rem;
             letter-spacing: -0.02em;
             word-break: break-word;
         }
 
-        /* typography inside cards */
         .card h2 {
             font-family: var(--type-mono);
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             border-bottom: 2px solid var(--pure-black);
-            padding-bottom: 0.5rem;
+            padding-bottom: 0.4rem;
             font-weight: 400;
         }
 
         .card p {
             font-size: 1rem;
-            margin-bottom: 1.2rem;
+            margin-bottom: 1rem;
             font-weight: 300;
             color: #2A2A2A;
         }
 
-        .card .list-entry {
+        .primary-statement p {
+            color: #CCCCCC;
+        }
+
+        /* list styling */
+        .list-entry {
             margin-bottom: 0.8rem;
             padding-bottom: 0.8rem;
             border-bottom: 1px solid var(--muted-stroke);
             font-weight: 350;
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
+            font-size: 0.95rem;
         }
 
-        .card .list-entry:before {
+        .list-entry:before {
             content: "—";
             color: #888;
         }
 
-        .card .list-entry:last-child {
+        .list-entry:last-child {
             border-bottom: none;
         }
 
-        /* image panel (brutalist) */
-        .image-panel {
-            background: #e5e2db;
+        /* --- PACKAGE ILLUSTRATION (replaces the weird abstract graphic) --- */
+        .package-illustration {
+            background: var(--surface);
             border: 2px solid var(--pure-black);
-            height: 100%;
-            min-height: 260px;
+            padding: 2rem 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,100 M100,0 L0,100" stroke="%23000000" stroke-width="0.8"/><rect x="10" y="30" width="80" height="40" fill="none" stroke="%23000000" stroke-width="1.2"/><circle cx="50" cy="40" r="10" fill="none" stroke="%23000000" stroke-width="1.2"/></svg>');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            opacity: 0.9;
+            min-height: 200px;
         }
 
-        /* the "file label" accent bar */
+        .package {
+            width: 140px;
+            height: 140px;
+            background: white;
+            border: 3px solid var(--pure-black);
+            position: relative;
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.1);
+        }
+
+        /* package strap (horizontal) */
+        .package-strap-horizontal {
+            position: absolute;
+            top: 50%;
+            left: -8px;
+            right: -8px;
+            height: 16px;
+            background: var(--pure-black);
+            transform: translateY(-50%);
+            z-index: 2;
+        }
+
+        /* package strap (vertical) */
+        .package-strap-vertical {
+            position: absolute;
+            left: 50%;
+            top: -8px;
+            bottom: -8px;
+            width: 16px;
+            background: var(--pure-black);
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        /* package label */
+        .package-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--accent-file);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 2px solid var(--pure-black);
+            z-index: 3;
+            white-space: nowrap;
+        }
+
+        /* corner details (makes it look like a wrapped package) */
+        .package-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--pure-black);
+            background: white;
+            z-index: 4;
+        }
+
+        .corner-tl {
+            top: -6px;
+            left: -6px;
+        }
+
+        .corner-tr {
+            top: -6px;
+            right: -6px;
+        }
+
+        .corner-bl {
+            bottom: -6px;
+            left: -6px;
+        }
+
+        .corner-br {
+            bottom: -6px;
+            right: -6px;
+        }
+
+        /* file label */
         .file-label {
             background: var(--accent-file);
             display: inline-block;
-            padding: 0.25rem 1rem 0.25rem 1.2rem;
-            font-size: 0.75rem;
+            padding: 0.25rem 1rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
             font-weight: 700;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             border: 2px solid var(--pure-black);
             margin-bottom: 1rem;
         }
 
+        /* button */
         .cta-block {
-            margin: 2rem 0 0.5rem;
+            margin: 1.5rem 0 0.5rem;
         }
 
         .btn {
@@ -178,36 +258,67 @@
             text-decoration: none;
             font-family: var(--type-sans);
             font-weight: 600;
-            font-size: 1rem;
-            padding: 0.8rem 2.4rem;
+            font-size: 0.95rem;
+            padding: 0.8rem 2rem;
             border: 2px solid var(--pure-black);
-            border-radius: 0;
             cursor: pointer;
-            transition: 0.1s ease;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            box-shadow: none;
+            letter-spacing: 1px;
+            width: 100%;
+            text-align: center;
         }
 
         .btn:hover {
             background: var(--pure-black);
             color: white;
-            border-color: var(--pure-black);
         }
 
-        /* footer as archival folio */
+        .primary-statement .btn {
+            background: transparent;
+            color: white;
+            border-color: white;
+        }
+
+        .primary-statement .btn:hover {
+            background: white;
+            color: var(--pure-black);
+        }
+
+        .subtle-archive {
+            font-size: 0.75rem;
+            color: #5a5a5a;
+            margin-top: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            text-align: center;
+        }
+
+        .primary-statement .subtle-archive {
+            color: #AAA;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid var(--pure-black);
+            margin: 1.5rem 0;
+        }
+
+        .two-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* footer */
         .footer {
-            grid-column: span 2;
-            margin-top: 4rem;
-            padding: 1.8rem 0 0.5rem;
+            margin-top: 2rem;
+            padding: 1.5rem 0 0;
             border-top: 3px double var(--pure-black);
             display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-            font-size: 0.8rem;
+            flex-direction: column;
+            gap: 0.75rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            font-weight: 400;
         }
 
         .footer a {
@@ -217,7 +328,14 @@
             padding-bottom: 2px;
         }
 
-        /* MODAL – industrial form */
+        .footer-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: space-between;
+        }
+
+        /* --- MODAL --- */
         .modal {
             position: fixed;
             inset: 0;
@@ -228,6 +346,8 @@
             opacity: 0;
             visibility: hidden;
             transition: 0.15s;
+            padding: 1rem;
+            z-index: 1000;
         }
 
         .modal.active {
@@ -238,17 +358,17 @@
         .modal-card {
             background: white;
             border: 3px solid var(--pure-black);
-            padding: 2.5rem 2.2rem;
+            padding: 2rem 1.5rem;
             width: 100%;
-            max-width: 460px;
-            box-shadow: 10px 10px 0 var(--pure-black);
+            max-width: 440px;
+            box-shadow: 8px 8px 0 var(--pure-black);
         }
 
         .modal-card h2 {
             font-family: var(--type-mono);
             text-transform: uppercase;
-            font-size: 2rem;
-            margin-bottom: 1.8rem;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
             border-bottom: 2px solid #000;
             padding-bottom: 0.4rem;
         }
@@ -256,25 +376,23 @@
         input, select {
             width: 100%;
             padding: 0.9rem;
-            margin-bottom: 1.3rem;
+            margin-bottom: 1.2rem;
             border: 2px solid var(--pure-black);
-            border-radius: 0;
             background: #fff;
             font-family: var(--type-sans);
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            border-radius: 0;
         }
 
         input:focus, select:focus {
             outline: none;
             background: var(--accent-file);
-            border-color: var(--pure-black);
         }
 
         .modal-card .btn {
             width: 100%;
             background: var(--pure-black);
             color: white;
-            border: 2px solid var(--pure-black);
             margin-top: 0.5rem;
         }
 
@@ -283,100 +401,143 @@
             color: var(--pure-black);
         }
 
-        /* smaller typography */
-        .subtle-archive {
-            font-size: 0.8rem;
-            color: #5a5a5a;
-            margin-top: 0.8rem;
-            font-family: var(--type-sans);
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        hr {
-            border: none;
-            border-top: 2px solid var(--pure-black);
-            margin: 1.5rem 0;
-        }
-
-        /* mobile collapse */
-        @media (max-width: 700px) {
-            .container {
-                grid-template-columns: 1fr;
-                padding: 1.5rem;
+        /* tablet and up */
+        @media (min-width: 700px) {
+            .archive-header {
+                flex-direction: row;
+                justify-content: space-between;
+                padding: 1.2rem 2rem;
+                font-size: 0.8rem;
             }
+
+            .archive-header-bottom {
+                font-size: 0.8rem;
+            }
+
+            .container {
+                max-width: 1000px;
+                padding: 2rem 2rem 5rem;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+            }
+
             .grid-span-2 {
-                grid-column: span 1;
+                grid-column: span 2;
+            }
+
+            .two-col {
+                flex-direction: row;
+                gap: 2rem;
+            }
+
+            .two-col > * {
+                flex: 1;
+            }
+
+            .btn {
+                width: auto;
+                display: inline-block;
+            }
+
+            .footer {
+                grid-column: span 2;
+                flex-direction: row;
+                justify-content: space-between;
+            }
+
+            .footer-row {
+                display: block;
+            }
+
+            .package-illustration {
+                padding: 1rem;
             }
         }
     </style>
 </head>
 <body>
 
-<!-- archival header (institution timestamp) -->
+<!-- archival header -->
 <div class="archive-header">
-    <span>WEPICKITSF · SAN FRANCISCO</span>
-    <span class="accent">FILE № 001 · 03.2026</span>
-    <span>ENTRY: CLOSET / CORNER</span>
+    <div class="archive-header-top">
+        <span>WEPICKITSF</span>
+        <span class="accent">FILE № 001</span>
+    </div>
+    <div class="archive-header-bottom">
+        SAN FRANCISCO · ENTRY: CLOSET / CORNER · 03.2026
+    </div>
 </div>
 
-<!-- main archive grid -->
+<!-- main container -->
 <div class="container">
 
-    <!-- PRIMARY STATEMENT: massive, black card with your headline -->
+    <!-- PRIMARY STATEMENT -->
     <div class="card primary-statement grid-span-2">
         <div class="file-label">STATEMENT OF INTENT</div>
         <h1>
             You already decided<br>
             you don’t need it.
         </h1>
-        <p style="color:#CCCCCC; max-width:600px; margin-top:1.5rem; font-size:1.1rem;">
+        <p style="max-width:600px;">
             It meant something, once. Now it stays where you leave it.<br>
             Not gone — just not lived with. This is not about throwing away.
         </p>
         <div class="cta-block">
             <a href="#" class="btn" id="openModal">→ schedule pickup</a>
         </div>
-        <p class="subtle-archive" style="color:#AAA;">same or next day · no sorting · locally moved</p>
+        <p class="subtle-archive">same or next day · no sorting · locally moved</p>
     </div>
 
-    <!-- LEFT COLUMN: "the situation" -->
+    <!-- LEFT: the situation -->
     <div class="card">
         <h2>the situation</h2>
         <p>A hallway in a walk-up. A closet that barely closes. Things don’t pile up — they just stay.</p>
-        <div style="margin: 1.8rem 0;">
+        <div style="margin: 1.5rem 0;">
             <div class="list-entry">jacket, winter 2019</div>
             <div class="list-entry">tote bag, never unfolded</div>
             <div class="list-entry">cables, unknown purpose</div>
             <div class="list-entry">shoes, back of closet</div>
             <div class="list-entry">something folded away</div>
         </div>
-        <p style="font-size:0.9rem;">You chose it once. Now it's inventory.</p>
     </div>
 
-    <!-- RIGHT COLUMN: image / object (stark) -->
-    <div class="image-panel" aria-label="archival garment study"></div>
-
-    <!-- FULL WIDTH: once it's gone -->
-    <div class="card grid-span-2" style="margin-top: 0;">
-        <h2>once it’s gone</h2>
-        <p style="max-width:700px; font-size:1.2rem;">The space feels different. Not bigger — just quieter.</p>
-        <hr>
-        <div style="display:flex; gap:2rem; flex-wrap:wrap;">
-            <div><span style="font-weight:600;">↳ it continues</span> — somewhere else, locally.</div>
-            <div><span style="font-weight:600;">↳ no drop-offs</span> — we come to you.</div>
+    <!-- RIGHT: PACKAGE ILLUSTRATION (replaces abstract graphic) -->
+    <div class="package-illustration">
+        <div class="package">
+            <div class="package-strap-horizontal"></div>
+            <div class="package-strap-vertical"></div>
+            <div class="package-label">READY</div>
+            <div class="package-corner corner-tl"></div>
+            <div class="package-corner corner-tr"></div>
+            <div class="package-corner corner-bl"></div>
+            <div class="package-corner corner-br"></div>
         </div>
     </div>
 
-    <!-- FOOTER : archival folio -->
+    <!-- ONCE IT'S GONE (full width) -->
+    <div class="card grid-span-2">
+        <h2>once it’s gone</h2>
+        <div class="two-col">
+            <p style="font-size:1.2rem; font-weight:350;">The space feels different. Not bigger — just quieter.</p>
+            <div>
+                <div style="margin-bottom:0.5rem;"><span style="font-weight:600;">↳ it continues</span> — somewhere else, locally.</div>
+                <div><span style="font-weight:600;">↳ no drop-offs</span> — we come to you.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
     <div class="footer">
         <div>WEPICKITSF · SAN FRANCISCO</div>
-        <div><a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a> · <a href="#">privacy</a> · <a href="#">terms</a></div>
+        <div class="footer-row">
+            <a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a> · <a href="#">privacy</a> · <a href="#">terms</a>
+        </div>
         <div>folio 1 · est. 2026</div>
     </div>
 </div>
 
-<!-- MODAL — industrial archive form -->
+<!-- MODAL -->
 <div class="modal" id="modal">
     <div class="modal-card">
         <span class="file-label" style="margin-bottom:1rem;">FILE REQUEST</span>
@@ -389,7 +550,7 @@
             <option>evening (4–7)</option>
         </select>
         <button class="btn" id="confirmModal">submit entry</button>
-        <p class="subtle-archive" style="text-align:center; margin-top:1.5rem;">we’ll text to confirm · no sorting needed</p>
+        <p class="subtle-archive" style="margin-top:1.5rem;">we’ll text to confirm · no sorting needed</p>
     </div>
 </div>
 
@@ -411,7 +572,6 @@
         if (confirmBtn) {
             confirmBtn.addEventListener('click', () => {
                 modal.classList.remove('active');
-                // in a real world you'd validate / send
             });
         }
 
@@ -423,7 +583,6 @@
     })();
 </script>
 
-<!-- subtle extra: remove any default button styles on confirm -->
 <style>
     #confirmModal { border-radius:0; }
 </style>
