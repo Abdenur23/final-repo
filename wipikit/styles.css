@@ -1,16 +1,12 @@
-/* wipikit/styles.css */
 :root {
-    --primary: #FF4500;      /* orange-red, energetic & warm */
-    --primary-light: #ff6a33;
-    --bg: #ffffff;
-    --text-dark: #1e1e1e;
-    --text-soft: #2b2b2b;
-    --gray-light: #f4f4f4;
-    --border-light: #e0e0e0;
-    --shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.02), 0 2px 6px rgba(0, 0, 0, 0.05);
-    --shadow-focus: 0 0 0 4px rgba(255, 69, 0, 0.15);
-    --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-    --space-unit: 1.5rem;
+    --primary: #0B6E4F;      /* deep green — prints as gray, signals responsible */
+    --primary-dark: #08573e;
+    --bg: #FFFFFF;
+    --text-dark: #1A1A1A;
+    --text-soft: #4A4A4A;
+    --border-light: #E0E0E0;
+    --gray-bg: #F5F5F5;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 * {
@@ -21,47 +17,42 @@
 
 body {
     font-family: var(--font-sans);
-    background-color: var(--bg);
+    background: var(--bg);
     color: var(--text-dark);
     line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
 }
 
-/* site wrapper for consistent spacing */
 .site-wrapper {
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
-    padding: 2rem 2rem 1rem;
+    padding: 2rem;
 }
 
-/* ---------- hero ---------- */
+/* hero */
 .hero {
-    text-align: left;
-    padding: 3rem 0 4rem;
-    border-bottom: 1px solid var(--border-light);
+    padding: 3rem 0 2rem;
 }
 
 .hero-headline {
-    font-size: clamp(3rem, 10vw, 5.5rem);
+    font-size: clamp(3rem, 8vw, 5rem);
     font-weight: 700;
     line-height: 1.1;
-    letter-spacing: -0.02em;
-    color: var(--text-dark);
-    max-width: 900px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .hero-tagline {
     font-size: 1.5rem;
-    font-weight: 350;
-    color: #4a4a4a;
-    max-width: 650px;
-    margin-bottom: 2.2rem;
-    border-left: 4px solid var(--primary);
-    padding-left: 1.5rem;
+    color: var(--text-soft);
+    margin-bottom: 0.5rem;
 }
 
-/* button */
+.hero-subline {
+    font-size: 1.8rem;
+    font-weight: 500;
+    color: var(--primary);
+    margin-bottom: 2rem;
+}
+
 .btn {
     display: inline-block;
     background: transparent;
@@ -71,76 +62,101 @@ body {
     font-weight: 600;
     border-radius: 40px;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-    text-decoration: none;
-    color: var(--primary);
-    background-color: white;
-}
-
-.btn--primary {
-    background-color: var(--primary);
+    background: var(--primary);
     color: white;
-    border: 2px solid var(--primary);
+    transition: background 0.2s;
 }
 
-.btn--primary:hover, .btn--primary:focus {
-    background-color: var(--primary-light);
-    border-color: var(--primary-light);
-    box-shadow: var(--shadow-focus);
-    outline: none;
+.btn:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
 }
 
 .btn--block {
     width: 100%;
 }
 
-/* ---------- features (four blocks) ---------- */
-.features {
+/* sections */
+.section-title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 3rem 0 1.5rem;
+    letter-spacing: -0.02em;
+}
+
+/* items grid */
+.items-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.item-category {
+    padding: 1rem;
+    background: var(--gray-bg);
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.items-note {
+    color: var(--primary);
+    font-weight: 500;
+    margin-top: 1rem;
+}
+
+/* steps */
+.steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
-    margin: 4rem 0 3rem;
+    margin: 2rem 0 1rem;
 }
 
-.feature-card {
-    padding: 1.5rem 1rem 1rem 0;
-    border-top: 3px solid var(--primary);
-    background: white;
-    transition: transform 0.2s ease;
+.step {
+    text-align: center;
 }
 
-.feature-title {
+.step-number {
+    display: block;
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
     font-size: 1.3rem;
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    color: var(--text-dark);
-    letter-spacing: -0.01em;
+    font-weight: 600;
+    line-height: 40px;
+    margin: 0 auto 1rem;
 }
 
-.feature-text {
-    color: var(--text-soft);
-    font-size: 1rem;
-    line-height: 1.5;
-    opacity: 0.8;
+.step-text {
+    font-size: 1.1rem;
 }
 
-/* ---------- modal overlay & card ---------- */
+.steps-footer {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--primary);
+    font-weight: 500;
+    margin-top: 2rem;
+}
+
+/* modal */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(3px);
+    background: rgba(0,0,0,0.5);
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.25s ease, visibility 0.25s;
+    transition: 0.2s;
     z-index: 1000;
-    padding: 1rem;
 }
 
 .modal-overlay[aria-hidden="false"] {
@@ -150,234 +166,97 @@ body {
 
 .modal-card {
     background: white;
-    max-width: 480px;
-    width: 100%;
-    border-radius: 28px;
-    padding: 2.2rem 2rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    max-width: 450px;
+    width: 90%;
+    border-radius: 24px;
+    padding: 2rem;
     position: relative;
-    transform: scale(0.98);
-    transition: transform 0.2s;
-}
-
-.modal-overlay[aria-hidden="false"] .modal-card {
-    transform: scale(1);
 }
 
 .modal-close {
     position: absolute;
-    top: 1.2rem;
-    right: 1.5rem;
+    top: 1rem;
+    right: 1rem;
     background: none;
     border: none;
-    font-size: 1.8rem;
-    line-height: 1;
+    font-size: 1.5rem;
     cursor: pointer;
-    color: #888;
-    transition: color 0.2s;
-    padding: 0.2rem 0.6rem;
-    border-radius: 30px;
-}
-
-.modal-close:hover {
-    color: var(--primary);
-    background-color: var(--gray-light);
+    color: #999;
 }
 
 .modal-title {
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 2rem;
-    letter-spacing: -0.02em;
-    color: var(--text-dark);
-    border-left: 5px solid var(--primary);
-    padding-left: 1rem;
-}
-
-/* booking form */
-.booking-form {
-    margin-bottom: 1rem;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary);
 }
 
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
 }
 
-.form-group label, .time-slots legend {
+.form-group label, .form-group legend {
     font-weight: 600;
-    font-size: 0.95rem;
-    color: #3a3a3a;
     display: block;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.3rem;
 }
 
 input, select {
     width: 100%;
-    padding: 0.8rem 1rem;
+    padding: 0.8rem;
     border: 1px solid var(--border-light);
-    border-radius: 30px;
+    border-radius: 8px;
     font-size: 1rem;
-    background-color: white;
-    transition: border 0.2s, box-shadow 0.2s;
 }
 
 input:focus, select:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: var(--shadow-focus);
+    outline: 2px solid var(--primary);
+    border-color: transparent;
 }
 
-.time-slots {
-    border: none;
-    padding: 0;
-    margin-bottom: 2rem;
-}
-
-.radio-label {
-    display: block;
-    margin: 0.5rem 0 0.5rem 1.5rem;
-    font-weight: 400;
-}
-
-.radio-label input {
-    width: auto;
-    margin-right: 0.6rem;
-}
-
-/* thank you */
 .thank-you {
-    background: #faf8f6;
-    border-radius: 32px;
-    padding: 2rem 1.5rem;
     text-align: center;
-    border: 1px solid #eee;
+    padding: 2rem 0;
 }
 
 .thank-you-title {
     font-size: 2rem;
-    font-weight: 600;
     color: var(--primary);
     margin-bottom: 1rem;
 }
 
-.thank-you-text {
-    font-size: 1.2rem;
-    color: #2e2e2e;
-}
-
-.thank-you-text a {
-    color: var(--primary);
-    text-decoration: underline;
-    font-weight: 500;
-}
-
-/* ---------- footer ---------- */
+/* footer */
 .site-footer {
     border-top: 1px solid var(--border-light);
-    margin-top: 2rem;
-    padding: 2rem 2rem 1.5rem;
+    margin-top: 4rem;
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-soft);
 }
 
 .footer-content {
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    align-items: baseline;
-    gap: 1.5rem;
-    color: #4a4a4a;
-}
-
-.footer-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 1rem 2rem;
-    font-size: 1rem;
-}
-
-.footer-logo {
-    font-weight: 650;
-    color: var(--text-dark);
-}
-
-.footer-address {
-    font-style: normal;
-    color: #5a5a5a;
-}
-
-.footer-email {
-    color: var(--primary);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-}
-
-.footer-email:hover {
-    border-bottom: 1px solid var(--primary);
-}
-
-.footer-links {
-    display: flex;
-    gap: 0.5rem;
     align-items: center;
+    gap: 1rem;
 }
 
-.footer-link {
-    color: #6f6f6f;
+.footer-links a {
+    color: var(--text-soft);
     text-decoration: none;
-    font-size: 0.95rem;
 }
 
-.footer-link:hover {
+.footer-links a:hover {
     color: var(--primary);
-    text-decoration: underline;
-}
-
-.dot-sep {
-    color: #ccc;
-    font-weight: 300;
-}
-
-/* responsive */
-@media (max-width: 900px) {
-    .features {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.8rem;
-    }
-    .hero-headline {
-        font-size: 4rem;
-    }
 }
 
 @media (max-width: 600px) {
-    .site-wrapper {
-        padding: 1.5rem 1.2rem 0.5rem;
-    }
-    .hero {
-        padding: 2rem 0 2.5rem;
-    }
-    .hero-headline {
-        font-size: 3rem;
-    }
-    .hero-tagline {
-        font-size: 1.3rem;
-    }
-    .features {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-    .feature-card {
-        padding-right: 0;
-    }
-    .footer-content {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .modal-card {
-        padding: 1.8rem 1.5rem;
-    }
-    .modal-title {
-        font-size: 1.8rem;
-    }
+    .site-wrapper { padding: 1rem; }
+    .hero-headline { font-size: 2.8rem; }
+    .hero-tagline { font-size: 1.2rem; }
+    .hero-subline { font-size: 1.4rem; }
+    .steps { grid-template-columns: 1fr; }
+    .footer-content { flex-direction: column; }
 }
