@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Inter:wght@300;400&display=swap" rel="stylesheet">
 
 <style>
-:root {
+:root{
     --bg:#FAF9F7;
     --ink:#1E1E1E;
     --muted:#6B6763;
@@ -28,12 +28,18 @@ body{
     line-height:1.7;
 }
 
+/* LAYOUT SHIFT: tighter at top, looser below */
 .container{
     max-width:720px;
     margin:0 auto;
-    padding:5rem 1.5rem;
+    padding:3rem 1.5rem 6rem;
 }
 
+section{
+    margin-top:5rem;
+}
+
+/* TYPOGRAPHY */
 h1,h2{
     font-family:var(--serif);
     letter-spacing:-0.02em;
@@ -42,21 +48,41 @@ h1,h2{
 h1{
     font-size:clamp(3rem,6vw,4.2rem);
     line-height:1.1;
-    margin-bottom:1.5rem;
+    margin-bottom:1.2rem;
+}
+
+h2{
+    font-size:1.6rem;
+    margin-bottom:1rem;
 }
 
 p{
     color:var(--muted);
-    margin-bottom:1.2rem;
-    font-size:1.1rem;
+    margin-bottom:1.1rem;
+    font-size:1.08rem;
+}
+
+/* HERO = slightly compressed */
+.hero{
+    max-width:560px;
 }
 
 .hero p{
-    max-width:520px;
+    max-width:460px;
 }
 
+/* CLUTTER VISUAL */
+.clutter-line{
+    font-size:0.9rem;
+    color:#9a948f;
+    letter-spacing:0.02em;
+    margin-top:1rem;
+    line-height:1.8;
+}
+
+/* CTA */
 .cta{
-    margin-top:2.5rem;
+    margin-top:2.2rem;
 }
 
 .btn{
@@ -69,35 +95,38 @@ p{
     transition:0.25s;
 }
 
-.btn:hover{
-    opacity:0.9;
-}
+.btn:hover{opacity:0.9;}
 
 .subtle{
     font-size:0.85rem;
-    margin-top:1rem;
+    margin-top:0.8rem;
 }
 
+/* DIVIDER becomes softer as page goes */
 .divider{
-    margin:4rem 0;
     height:1px;
     background:var(--line);
+    margin:4rem 0;
+    opacity:0.6;
 }
 
-.list{
-    margin-top:1.5rem;
-}
-
+/* LIST */
 .list div{
-    margin-bottom:0.4rem;
+    margin-bottom:0.5rem;
 }
 
-.steps div{
-    margin-bottom:0.9rem;
+/* RELEASE SECTION = more space */
+.release{
+    margin-top:6rem;
 }
 
+.release p{
+    max-width:520px;
+}
+
+/* FOOTER */
 .footer{
-    margin-top:5rem;
+    margin-top:6rem;
     padding-top:2rem;
     border-top:1px solid var(--line);
     font-size:0.9rem;
@@ -112,11 +141,7 @@ p{
     color:var(--ink);
 }
 
-.footer a:hover{
-    text-decoration:underline;
-}
-
-/* modal */
+/* MODAL */
 .modal{
     position:fixed;
     inset:0;
@@ -145,13 +170,10 @@ p{
 input,select{
     width:100%;
     padding:0.8rem;
-    margin-top:0.3rem;
     margin-bottom:1rem;
     border:1px solid var(--line);
     border-radius:8px;
 }
-
-button{cursor:pointer;}
 </style>
 </head>
 
@@ -162,22 +184,27 @@ button{cursor:pointer;}
 <!-- HERO -->
 <section class="hero">
     <h1>
-        You already decided<br>
-        you don’t need it.
+        It’s not important.<br>
+        It’s just still here.
     </h1>
 
     <p>
-        It’s been sitting there for weeks. Maybe months.
-        Moved from one place to another, but never used.
+        In a city where space is tight — closets fill up fast.
+        Things shift from chair to shelf, shelf to corner.
     </p>
 
     <p>
-        Not important enough to keep.<br>
-        Not urgent enough to let go.
+        You don’t use them.<br>
+        You don’t throw them out.
     </p>
 
+    <!-- visual clutter -->
+    <div class="clutter-line">
+        jacket • old tote • cables • sunglasses • shoes • another bag • something in a drawer •
+    </div>
+
     <p>
-        So it stays.
+        So they stay.
     </p>
 
     <div class="cta">
@@ -185,7 +212,24 @@ button{cursor:pointer;}
     </div>
 
     <p class="subtle">
-        We’ll come by. Usually the same or next day.
+        We’ll come by your building. Usually same or next day.
+    </p>
+</section>
+
+<div class="divider"></div>
+
+<!-- LOCAL TOUCH -->
+<section>
+    <h2>It happens here</h2>
+
+    <p>
+        A hallway in a walk-up.  
+        A closet that barely closes.  
+        A corner that keeps collecting.
+    </p>
+
+    <p>
+        Not clutter, exactly — just things that never left.
     </p>
 </section>
 
@@ -196,42 +240,27 @@ button{cursor:pointer;}
     <h2>What tends to stay</h2>
 
     <div class="list">
-        <div>Clothes you don’t reach for</div>
-        <div>Bags that never leave the shelf</div>
-        <div>Sunglasses you forgot you had</div>
-        <div>Small electronics in drawers</div>
-        <div>Shoes you meant to fix</div>
-        <div>Things that almost matter</div>
+        <div>Clothes you stopped reaching for</div>
+        <div>Bags that don’t leave the shelf</div>
+        <div>Spare electronics and cables</div>
+        <div>Shoes you meant to deal with</div>
+        <div>Things you already decided on</div>
     </div>
 </section>
 
 <div class="divider"></div>
 
-<!-- HOW -->
-<section>
-    <h2>What happens next</h2>
-
-    <div class="steps">
-        <div>You pick a time</div>
-        <div>We come to your door</div>
-        <div>It leaves your space — and keeps moving</div>
-    </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- WHY -->
-<section>
-    <h2>Why this works</h2>
+<!-- RELEASE -->
+<section class="release">
+    <h2>Once it’s gone</h2>
 
     <p>
-        Most things don’t leave because they’re valuable.
-        They stay because they’re undecided.
+        The space feels different.
     </p>
 
     <p>
-        Once they’re gone, the space feels different.
-        Lighter, quieter — easier to keep that way.
+        Not bigger — just quieter.  
+        Easier to keep that way.
     </p>
 </section>
 
