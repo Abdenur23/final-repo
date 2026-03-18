@@ -27,18 +27,57 @@
             color: var(--ink);
             font-family: var(--sans);
             line-height: 1.7;
-            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
         }
+
+        /* FLOATING PARTICLES - things drifting away */
+        .particle {
+            position: fixed;
+            color: var(--line);
+            font-size: 1.2rem;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+            animation: floatAround 20s linear infinite;
+            white-space: nowrap;
+        }
+
+        @keyframes floatAround {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.3;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translate(var(--drift-x, 100px), var(--drift-y, -100px)) rotate(20deg);
+                opacity: 0;
+            }
+        }
+
+        .particle:nth-child(1) { top: 10%; left: 5%; --drift-x: 200px; --drift-y: -150px; animation-duration: 18s; }
+        .particle:nth-child(2) { top: 30%; right: 2%; --drift-x: -250px; --drift-y: 100px; animation-duration: 22s; }
+        .particle:nth-child(3) { bottom: 20%; left: 10%; --drift-x: 150px; --drift-y: -200px; animation-duration: 25s; }
+        .particle:nth-child(4) { top: 60%; right: 15%; --drift-x: -180px; --drift-y: -120px; animation-duration: 20s; }
+        .particle:nth-child(5) { bottom: 40%; left: 20%; --drift-x: 220px; --drift-y: 180px; animation-duration: 28s; }
+        .particle:nth-child(6) { top: 15%; right: 25%; --drift-x: -300px; --drift-y: 50px; animation-duration: 24s; }
 
         .container {
             max-width: 720px;
             margin: 0 auto;
             padding: 3rem 1.5rem 6rem;
+            position: relative;
+            z-index: 2;
+            background: transparent;
         }
 
         section {
             margin-top: 5rem;
-            will-change: transform, opacity;
         }
 
         h1, h2 {
@@ -47,19 +86,52 @@
             font-weight: 500;
         }
 
+        /* AGGRESSIVE HEADLINE ANIMATION */
         h1 {
             font-size: clamp(3rem, 6vw, 4.2rem);
             line-height: 1.1;
             margin-bottom: 1.2rem;
-            opacity: 0;
-            transform: translateY(8px);
-            animation: fadeUp 0.8s ease forwards;
+            animation: slamIn 0.8s cubic-bezier(0.1, 0.9, 0.3, 1.2) forwards;
+            transform-origin: left;
+        }
+
+        @keyframes slamIn {
+            0% {
+                opacity: 0;
+                transform: translateX(-50px) scale(0.8);
+                filter: blur(10px);
+            }
+            60% {
+                opacity: 0.9;
+                transform: translateX(5px) scale(1.02);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+                filter: blur(0);
+            }
         }
 
         h2 {
             font-size: 1.6rem;
             margin-bottom: 1rem;
-            font-weight: 500;
+            position: relative;
+            display: inline-block;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            animation: expandLine 1s ease-out 0.5s forwards;
+        }
+
+        @keyframes expandLine {
+            to { width: 60px; }
         }
 
         p {
@@ -67,15 +139,18 @@
             margin-bottom: 1.1rem;
             font-size: 1.08rem;
             opacity: 0;
-            transform: translateY(8px);
+            transform: translateY(20px);
+            animation: slideUpReveal 0.6s ease-out forwards;
         }
 
-        .hero p:first-of-type {
-            animation: fadeUp 0.8s 0.15s ease forwards;
-        }
+        .hero p:nth-of-type(1) { animation-delay: 0.2s; }
+        .hero p:nth-of-type(2) { animation-delay: 0.4s; }
 
-        .hero p:last-of-type {
-            animation: fadeUp 0.8s 0.3s ease forwards;
+        @keyframes slideUpReveal {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .hero {
@@ -86,36 +161,50 @@
             max-width: 460px;
         }
 
+        /* CLUTTER LINE - aggressive drift */
         .clutter-line {
             font-size: 0.9rem;
             color: #9a948f;
-            margin-top: 1rem;
+            margin: 2rem 0 1.5rem;
             line-height: 1.8;
             white-space: nowrap;
             overflow: hidden;
             position: relative;
             width: 100%;
             opacity: 0;
-            transform: translateY(8px);
-            animation: fadeUp 0.8s 0.45s ease forwards;
+            animation: fadeIn 0.5s 0.8s forwards, aggressiveDrift 8s ease-in-out infinite 1.3s;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        @keyframes aggressiveDrift {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-15px); }
+            40% { transform: translateX(5px); }
+            60% { transform: translateX(-20px); }
+            80% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
         }
 
         .clutter-line span {
             display: inline-block;
             padding-right: 2rem;
-            animation: drift 12s ease-in-out infinite;
-        }
-
-        @keyframes drift {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(-10px); }
         }
 
         .cta {
             margin-top: 2.2rem;
             opacity: 0;
-            transform: translateY(8px);
-            animation: fadeUp 0.8s 0.6s ease forwards;
+            transform: scale(0.9);
+            animation: popIn 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) 1s forwards;
+        }
+
+        @keyframes popIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .btn {
@@ -126,23 +215,47 @@
             text-decoration: none;
             font-size: 0.95rem;
             display: inline-block;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             border: none;
             cursor: pointer;
             font-family: var(--sans);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .btn:hover::after {
+            width: 300px;
+            height: 300px;
         }
 
         .btn:hover {
             background: #234d3a;
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
         }
 
         .subtle {
             font-size: 0.85rem;
             margin-top: 0.8rem;
             color: #9a948f;
+            opacity: 0;
+            animation: fadeIn 0.5s 1.2s forwards;
         }
 
+        /* DIVIDER - electric pulse */
         .divider {
             height: 1px;
             background: var(--line);
@@ -151,54 +264,63 @@
             overflow: hidden;
         }
 
-        .divider::after {
+        .divider::before {
             content: '';
             position: absolute;
             top: 0;
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            animation: shimmer 6s ease-in-out infinite;
+            background: linear-gradient(90deg, transparent, var(--accent), var(--accent), transparent);
+            animation: electricPulse 4s ease-in-out infinite;
         }
 
-        @keyframes shimmer {
+        @keyframes electricPulse {
             0% { left: -100%; }
             20% { left: 100%; }
             100% { left: 100%; }
         }
 
-        @keyframes fadeUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
+        /* LIST - aggressive slide in */
         .list div {
             margin-bottom: 0.5rem;
-            opacity: 0;
-            transform: translateX(-4px);
-            transition: all 0.6s ease;
             font-size: 1.08rem;
             color: var(--muted);
+            transform: translateX(-30px);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
         }
 
         .list div.visible {
-            opacity: 1;
             transform: translateX(0);
+            opacity: 1;
         }
 
+        .list div:nth-child(1) { transition-delay: 0.1s; }
+        .list div:nth-child(2) { transition-delay: 0.2s; }
+        .list div:nth-child(3) { transition-delay: 0.3s; }
+        .list div:nth-child(4) { transition-delay: 0.4s; }
+        .list div:nth-child(5) { transition-delay: 0.5s; }
+
+        /* RELEASE SECTION - heavy fade with scale */
         .release {
             margin-top: 6rem;
             opacity: 0;
-            transform: translateY(10px);
-            transition: all 1s ease;
+            transform: scale(0.95);
+            transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1);
         }
 
         .release.visible {
             opacity: 1;
-            transform: translateY(0);
+            transform: scale(1);
+        }
+
+        .release h2 {
+            animation: none;
+        }
+
+        .release h2::after {
+            animation: expandLine 1s ease-out forwards;
         }
 
         .footer {
@@ -217,6 +339,11 @@
             text-decoration: none;
             color: var(--ink);
             position: relative;
+            transition: color 0.2s;
+        }
+
+        .footer a:hover {
+            color: var(--accent);
         }
 
         .footer a::after {
@@ -227,26 +354,27 @@
             width: 0;
             height: 1px;
             background: var(--accent);
-            transition: width 0.3s ease;
+            transition: width 0.2s ease;
         }
 
         .footer a:hover::after {
             width: 100%;
         }
 
-        /* modal */
+        /* MODAL - aggressive pop */
         .modal {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.25s ease, visibility 0.25s;
+            transition: opacity 0.3s ease, visibility 0.3s;
             padding: 1rem;
+            z-index: 1000;
         }
 
         .modal.active {
@@ -256,17 +384,17 @@
 
         .modal-card {
             background: white;
-            padding: 2rem;
-            border-radius: 20px;
+            padding: 2.5rem;
+            border-radius: 24px;
             width: 100%;
             max-width: 400px;
-            transform: scale(0.96);
-            transition: transform 0.25s ease;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.8) translateY(30px);
+            transition: transform 0.5s cubic-bezier(0.2, 1.2, 0.3, 1);
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.3);
         }
 
         .modal.active .modal-card {
-            transform: scale(1);
+            transform: scale(1) translateY(0);
         }
 
         .modal h2 {
@@ -285,17 +413,28 @@
             font-family: var(--sans);
             transition: all 0.2s ease;
             background: white;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideUpInput 0.4s forwards;
+        }
+
+        input:nth-of-type(1) { animation-delay: 0.1s; }
+        input:nth-of-type(2) { animation-delay: 0.2s; }
+        select { animation-delay: 0.3s; }
+        .modal .btn { animation-delay: 0.4s; }
+
+        @keyframes slideUpInput {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         input:focus, select:focus {
             outline: none;
             border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(26, 59, 46, 0.1);
-        }
-
-        .modal .btn {
-            width: 100%;
-            margin-top: 0.5rem;
+            transform: scale(1.02);
         }
 
         .close-btn {
@@ -307,11 +446,12 @@
             font-size: 1.8rem;
             cursor: pointer;
             color: var(--muted);
-            transition: color 0.2s;
+            transition: transform 0.2s, color 0.2s;
         }
 
         .close-btn:hover {
             color: var(--accent);
+            transform: rotate(90deg);
         }
 
         @media (max-width: 600px) {
@@ -322,6 +462,14 @@
     </style>
 </head>
 <body>
+    <!-- floating particles - things drifting away -->
+    <div class="particle">jacket</div>
+    <div class="particle">tote</div>
+    <div class="particle">shoes</div>
+    <div class="particle">cables</div>
+    <div class="particle">sunglasses</div>
+    <div class="particle">bag</div>
+
     <div class="container">
         <section class="hero">
             <h1>You already moved on.<br>It just didn't.</h1>
@@ -403,7 +551,6 @@
         const closeBtn = document.getElementById("closeModal");
         const confirmBtn = document.getElementById("confirmPickup");
         const thankYou = document.getElementById("thankYou");
-        const modalCard = document.querySelector('.modal-card');
         
         openBtn.addEventListener("click", (e) => {
             e.preventDefault();
@@ -412,7 +559,17 @@
         
         closeBtn.addEventListener("click", () => {
             modal.classList.remove("active");
-            // Reset form
+            resetModal();
+        });
+        
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                modal.classList.remove("active");
+                resetModal();
+            }
+        });
+        
+        function resetModal() {
             document.getElementById('name').value = '';
             document.getElementById('address').value = '';
             document.getElementById('timeSlot').selectedIndex = 0;
@@ -422,23 +579,7 @@
             document.getElementById('address').style.display = 'block';
             document.getElementById('timeSlot').style.display = 'block';
             confirmBtn.style.display = 'block';
-        });
-        
-        modal.addEventListener("click", (e) => {
-            if (e.target === modal) {
-                modal.classList.remove("active");
-                // Reset form
-                document.getElementById('name').value = '';
-                document.getElementById('address').value = '';
-                document.getElementById('timeSlot').selectedIndex = 0;
-                thankYou.style.display = 'none';
-                document.querySelector('.modal h2').style.display = 'block';
-                document.getElementById('name').style.display = 'block';
-                document.getElementById('address').style.display = 'block';
-                document.getElementById('timeSlot').style.display = 'block';
-                confirmBtn.style.display = 'block';
-            }
-        });
+        }
         
         confirmBtn.addEventListener("click", (e) => {
             e.preventDefault();
