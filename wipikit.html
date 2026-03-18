@@ -1,245 +1,476 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WePickItSF</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WePickItSF</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+        :root {
+            --bg: #FAF9F7;
+            --ink: #1E1E1E;
+            --muted: #6B6763;
+            --line: #E6E2DD;
+            --accent: #1A3B2E;
+            --serif: 'Cormorant Garamond', serif;
+            --sans: 'Inter', sans-serif;
+        }
 
-<style>
-:root{
-    --bg:#FAF9F7;
-    --ink:#1E1E1E;
-    --muted:#6B6763;
-    --line:#E6E2DD;
-    --accent:#1A3B2E;
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--sans);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
 
-    --serif:'Cormorant Garamond', serif;
-    --sans:'Inter', sans-serif;
-}
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 6rem;
+        }
 
-*{margin:0;padding:0;box-sizing:border-box;}
+        section {
+            margin-top: 5rem;
+            will-change: transform, opacity;
+        }
 
-body{
-    background:var(--bg);
-    color:var(--ink);
-    font-family:var(--sans);
-    line-height:1.7;
-}
+        h1, h2 {
+            font-family: var(--serif);
+            letter-spacing: -0.02em;
+            font-weight: 500;
+        }
 
-.container{
-    max-width:720px;
-    margin:0 auto;
-    padding:3rem 1.5rem 6rem;
-}
+        h1 {
+            font-size: clamp(3rem, 6vw, 4.2rem);
+            line-height: 1.1;
+            margin-bottom: 1.2rem;
+            opacity: 0;
+            transform: translateY(8px);
+            animation: fadeUp 0.8s ease forwards;
+        }
 
-section{margin-top:5rem;}
+        h2 {
+            font-size: 1.6rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
 
-h1,h2{
-    font-family:var(--serif);
-    letter-spacing:-0.02em;
-}
+        p {
+            color: var(--muted);
+            margin-bottom: 1.1rem;
+            font-size: 1.08rem;
+            opacity: 0;
+            transform: translateY(8px);
+        }
 
-h1{
-    font-size:clamp(3rem,6vw,4.2rem);
-    line-height:1.1;
-    margin-bottom:1.2rem;
-}
+        .hero p:first-of-type {
+            animation: fadeUp 0.8s 0.15s ease forwards;
+        }
 
-h2{
-    font-size:1.6rem;
-    margin-bottom:1rem;
-}
+        .hero p:last-of-type {
+            animation: fadeUp 0.8s 0.3s ease forwards;
+        }
 
-p{
-    color:var(--muted);
-    margin-bottom:1.1rem;
-    font-size:1.08rem;
-}
+        .hero {
+            max-width: 560px;
+        }
 
-.hero{max-width:560px;}
-.hero p{max-width:460px;}
+        .hero p {
+            max-width: 460px;
+        }
 
-.clutter-line{
-    font-size:0.9rem;
-    color:#9a948f;
-    margin-top:1rem;
-    line-height:1.8;
-}
+        .clutter-line {
+            font-size: 0.9rem;
+            color: #9a948f;
+            margin-top: 1rem;
+            line-height: 1.8;
+            white-space: nowrap;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            opacity: 0;
+            transform: translateY(8px);
+            animation: fadeUp 0.8s 0.45s ease forwards;
+        }
 
-.cta{margin-top:2.2rem;}
+        .clutter-line span {
+            display: inline-block;
+            padding-right: 2rem;
+            animation: drift 12s ease-in-out infinite;
+        }
 
-.btn{
-    padding:0.9rem 2.4rem;
-    border-radius:999px;
-    background:var(--accent);
-    color:white;
-    text-decoration:none;
-    font-size:0.95rem;
-}
+        @keyframes drift {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-10px); }
+        }
 
-.subtle{
-    font-size:0.85rem;
-    margin-top:0.8rem;
-}
+        .cta {
+            margin-top: 2.2rem;
+            opacity: 0;
+            transform: translateY(8px);
+            animation: fadeUp 0.8s 0.6s ease forwards;
+        }
 
-.divider{
-    height:1px;
-    background:var(--line);
-    margin:4rem 0;
-}
+        .btn {
+            padding: 0.9rem 2.4rem;
+            border-radius: 999px;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            font-size: 0.95rem;
+            display: inline-block;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-family: var(--sans);
+        }
 
-.list div{margin-bottom:0.5rem;}
+        .btn:hover {
+            background: #234d3a;
+            transform: translateY(-2px);
+        }
 
-.release{margin-top:6rem;}
+        .subtle {
+            font-size: 0.85rem;
+            margin-top: 0.8rem;
+            color: #9a948f;
+        }
 
-.footer{
-    margin-top:6rem;
-    padding-top:2rem;
-    border-top:1px solid var(--line);
-    font-size:0.9rem;
-    display:flex;
-    justify-content:space-between;
-    flex-wrap:wrap;
-    gap:1rem;
-}
+        .divider {
+            height: 1px;
+            background: var(--line);
+            margin: 4rem 0;
+            position: relative;
+            overflow: hidden;
+        }
 
-.footer a{
-    text-decoration:none;
-    color:var(--ink);
-}
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: shimmer 6s ease-in-out infinite;
+        }
 
-/* modal */
-.modal{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.5);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    opacity:0;
-    visibility:hidden;
-    transition:0.25s;
-}
+        @keyframes shimmer {
+            0% { left: -100%; }
+            20% { left: 100%; }
+            100% { left: 100%; }
+        }
 
-.modal.active{
-    opacity:1;
-    visibility:visible;
-}
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-.modal-card{
-    background:white;
-    padding:2rem;
-    border-radius:14px;
-    width:100%;
-    max-width:400px;
-}
+        .list div {
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            transform: translateX(-4px);
+            transition: all 0.6s ease;
+            font-size: 1.08rem;
+            color: var(--muted);
+        }
 
-input,select{
-    width:100%;
-    padding:0.8rem;
-    margin-bottom:1rem;
-    border:1px solid var(--line);
-    border-radius:8px;
-}
-</style>
+        .list div.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .release {
+            margin-top: 6rem;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 1s ease;
+        }
+
+        .release.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .footer {
+            margin-top: 6rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--line);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            color: var(--muted);
+        }
+
+        .footer a {
+            text-decoration: none;
+            color: var(--ink);
+            position: relative;
+        }
+
+        .footer a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        .footer a:hover::after {
+            width: 100%;
+        }
+
+        /* modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            transform: scale(0.96);
+            transition: transform 0.25s ease;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: var(--sans);
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(26, 59, 46, 0.1);
+        }
+
+        .modal .btn {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--muted);
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: var(--accent);
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 2rem 1.2rem 4rem; }
+            h1 { font-size: 2.8rem; }
+            .footer { flex-direction: column; text-align: center; }
+        }
+    </style>
 </head>
-
 <body>
-
-<div class="container">
-
-<section class="hero">
-<h1>
-You already moved on.<br>
-It just didn’t.
-</h1>
-
-<p>
-It meant something, once.
-You chose it, kept it, carried it with you.
-</p>
-
-<p>
-But now it stays where you leave it.
-Not gone — just not lived with.
-</p>
-
-<div class="clutter-line">
-jacket • tote • old shoes • cables • sunglasses • something folded away •
-</div>
-
-<p>
-Not about throwing it away.
-Just letting it continue — somewhere else.
-</p>
-
-<div class="cta">
-<a href="#" class="btn" id="openModal">Let it move on</a>
-</div>
-
-<p class="subtle">
-We’ll come by. Usually same or next day.
-</p>
-</section>
-
-<div class="divider"></div>
-
-<section>
-<h2>It happens here</h2>
-<p>A hallway in a walk-up. A closet that barely closes.</p>
-<p>Things don’t pile up. They just stay.</p>
-</section>
-
-<div class="divider"></div>
-
-<section>
-<h2>What tends to stay</h2>
-<div class="list">
-<div>Clothes you stopped reaching for</div>
-<div>Bags that don’t leave the shelf</div>
-<div>Spare electronics</div>
-<div>Shoes you meant to deal with</div>
-<div>Things you already decided on</div>
-</div>
-</section>
-
-<div class="divider"></div>
-
-<section class="release">
-<h2>Once it’s gone</h2>
-<p>The space feels different.</p>
-<p>Not bigger — just quieter.</p>
-</section>
-
-<div class="footer">
-<div>WePickItSF<br>San Francisco</div>
-<div><a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a></div>
-<div><a href="#">Privacy</a> • <a href="#">Terms</a></div>
-</div>
-
-</div>
-
-<div class="modal" id="modal">
-<div class="modal-card">
-<h2>Schedule pickup</h2>
-<input type="text" placeholder="Name">
-<input type="text" placeholder="Address">
-<select>
-<option>Morning (9–12)</option>
-<option>Afternoon (12–4)</option>
-<option>Evening (4–7)</option>
-</select>
-<button class="btn" style="width:100%;">Confirm</button>
-</div>
-</div>
-
-<script>
-const modal=document.getElementById("modal");
-document.getElementById("openModal").onclick=()=>modal.classList.add("active");
-modal.onclick=(e)=>{if(e.target===modal)modal.classList.remove("active");};
-</script>
-
+    <div class="container">
+        <section class="hero">
+            <h1>You already moved on.<br>It just didn't.</h1>
+            <p>It meant something, once.<br>You chose it, kept it, carried it with you.</p>
+            <p>But now it stays where you leave it.<br>Not gone — just not lived with.</p>
+            
+            <div class="clutter-line">
+                <span>jacket • tote • old shoes • cables • sunglasses • something folded away •</span>
+            </div>
+            
+            <p>Not about throwing it away.<br>Just letting it continue — somewhere else.</p>
+            
+            <div class="cta">
+                <a href="#" class="btn" id="openModal">Let it move on</a>
+            </div>
+            
+            <p class="subtle">We'll come by. Usually same or next day.</p>
+        </section>
+        
+        <div class="divider"></div>
+        
+        <section>
+            <h2>It happens here</h2>
+            <p>A hallway in a walk-up. A closet that barely closes.</p>
+            <p>Things don't pile up. They just stay.</p>
+        </section>
+        
+        <div class="divider"></div>
+        
+        <section>
+            <h2>What tends to stay</h2>
+            <div class="list">
+                <div>Clothes you stopped reaching for</div>
+                <div>Bags that don't leave the shelf</div>
+                <div>Spare electronics</div>
+                <div>Shoes you meant to deal with</div>
+                <div>Things you already decided on</div>
+            </div>
+        </section>
+        
+        <div class="divider"></div>
+        
+        <section class="release">
+            <h2>Once it's gone</h2>
+            <p>The space feels different.</p>
+            <p>Not bigger — just quieter.</p>
+        </section>
+        
+        <div class="footer">
+            <div>WePickItSF<br>San Francisco</div>
+            <div><a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a></div>
+            <div><a href="#">Privacy</a> • <a href="#">Terms</a></div>
+        </div>
+    </div>
+    
+    <div class="modal" id="modal">
+        <div class="modal-card" style="position: relative;">
+            <button class="close-btn" id="closeModal">✕</button>
+            <h2>Schedule pickup</h2>
+            <input type="text" placeholder="Name" id="name">
+            <input type="text" placeholder="Address" id="address">
+            <select id="timeSlot">
+                <option>Morning (9–12)</option>
+                <option>Afternoon (12–4)</option>
+                <option>Evening (4–7)</option>
+            </select>
+            <button class="btn" id="confirmPickup" style="width:100%;">Confirm</button>
+            <div id="thankYou" style="display: none; text-align: center; margin-top: 1rem;">
+                <p style="color: var(--accent); font-size: 1.2rem; margin-bottom: 0.5rem;">You're all set.</p>
+                <p style="color: var(--muted); font-size: 0.9rem;">We'll be there soon.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Modal functionality
+        const modal = document.getElementById("modal");
+        const openBtn = document.getElementById("openModal");
+        const closeBtn = document.getElementById("closeModal");
+        const confirmBtn = document.getElementById("confirmPickup");
+        const thankYou = document.getElementById("thankYou");
+        const modalCard = document.querySelector('.modal-card');
+        
+        openBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            modal.classList.add("active");
+        });
+        
+        closeBtn.addEventListener("click", () => {
+            modal.classList.remove("active");
+            // Reset form
+            document.getElementById('name').value = '';
+            document.getElementById('address').value = '';
+            document.getElementById('timeSlot').selectedIndex = 0;
+            thankYou.style.display = 'none';
+            document.querySelector('.modal h2').style.display = 'block';
+            document.getElementById('name').style.display = 'block';
+            document.getElementById('address').style.display = 'block';
+            document.getElementById('timeSlot').style.display = 'block';
+            confirmBtn.style.display = 'block';
+        });
+        
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                modal.classList.remove("active");
+                // Reset form
+                document.getElementById('name').value = '';
+                document.getElementById('address').value = '';
+                document.getElementById('timeSlot').selectedIndex = 0;
+                thankYou.style.display = 'none';
+                document.querySelector('.modal h2').style.display = 'block';
+                document.getElementById('name').style.display = 'block';
+                document.getElementById('address').style.display = 'block';
+                document.getElementById('timeSlot').style.display = 'block';
+                confirmBtn.style.display = 'block';
+            }
+        });
+        
+        confirmBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value.trim();
+            const address = document.getElementById('address').value.trim();
+            
+            if (!name || !address || !document.getElementById('timeSlot').value) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            // Show thank you
+            document.querySelector('.modal h2').style.display = 'none';
+            document.getElementById('name').style.display = 'none';
+            document.getElementById('address').style.display = 'none';
+            document.getElementById('timeSlot').style.display = 'none';
+            confirmBtn.style.display = 'none';
+            thankYou.style.display = 'block';
+        });
+        
+        // Intersection Observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.2, rootMargin: '0px 0px -20px 0px' });
+        
+        document.querySelectorAll('.list div, .release').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
 </body>
 </html>
