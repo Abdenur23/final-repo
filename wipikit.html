@@ -1,79 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WePickItSF</title>
-  <link rel="stylesheet" href="wipikit/styles.css"/>
+  <link rel="stylesheet" href="wipikit/styles.css">
 </head>
 <body>
+  <header class="hero">
+    <div class="hero-content">
+      <h1>Free Pickup. Same Day.</h1>
+      <p class="tagline">Clear your space. We handle the rest — all in San Francisco.</p>
+      <button id="openBooking" class="cta-button">Book Pickup</button>
+    </div>
+  </header>
 
-  <main class="container">
-    <h1>Free Pickup. Same Day.</h1>
-
-    <p class="tagline">
-      Clear your space. We handle the rest.
-    </p>
-
-    <p class="items">
-      Clothes • Shoes • Bags • Small electronics
-    </p>
-
-    <p class="no-hassle">
-      No selling. No sorting. No hassle.
-    </p>
-
-    <p class="local">
-      Moved by e-bike. No shipping.  
-      Kept in San Francisco.
-    </p>
-
-    <p class="quality">
-      Good items — even if they need a small fix.
-    </p>
-
-    <button id="openBooking">Book Pickup</button>
-  </main>
+  <section class="features">
+    <div class="feature">
+      <h2>What We Take</h2>
+      <p>Clothes • Shoes • Bags • Small electronics</p>
+    </div>
+    <div class="feature">
+      <h2>No Hassle</h2>
+      <p>No selling. No sorting. No meetups. We handle everything.</p>
+    </div>
+    <div class="feature">
+      <h2>Local & Responsible</h2>
+      <p>Moved by e-bike. No shipping. Kept in San Francisco.</p>
+    </div>
+    <div class="feature">
+      <h2>Even Items That Need a Fix</h2>
+      <p>Good items — even if they need a small repair. We take care of it.</p>
+    </div>
+  </section>
 
   <!-- Booking Modal -->
   <div id="bookingModal" class="modal hidden">
     <div class="modal-content">
-      <span id="closeModal">&times;</span>
-
+      <span id="closeModal" class="close">&times;</span>
       <h2>Schedule a Pickup</h2>
-
       <form id="bookingForm">
-        <input type="text" name="name" placeholder="Your name" required />
-        <input type="text" name="address" placeholder="Pickup address" required />
-        <input type="text" name="neighborhood" placeholder="Neighborhood" required />
-
+        <input type="text" name="name" placeholder="Your Name" required>
+        <input type="text" name="address" placeholder="Pickup Address" required>
+        <input type="text" name="neighborhood" placeholder="Neighborhood" required>
         <select name="timeSlot" required>
-          <option value="">Select time</option>
+          <option value="">Select Time</option>
           <option>Morning (9–12)</option>
           <option>Afternoon (12–4)</option>
           <option>Evening (4–7)</option>
         </select>
-
-        <button type="submit">Confirm Pickup</button>
+        <button type="submit" class="cta-button">Confirm Pickup</button>
       </form>
-
       <div id="thankYou" class="hidden">
-        <h3>You're all set.</h3>
-        <p>
-          We'll be there soon.<br/>
-          Questions or changes?
-        </p>
+        <h3>You're All Set</h3>
+        <p>We’ll be there soon.</p>
+        <p>Questions or changes? Contact us at:</p>
         <p><strong>hello@wepickitsf.com</strong></p>
       </div>
     </div>
   </div>
 
   <footer>
-    <a href="#">Privacy</a>
-    <a href="#">Terms</a>
+    <p>WePickItSF LLC · 123 Sacramento St, Sacramento, CA · hello@wepickitsf.com</p>
+    <p><a href="#">Privacy</a> · <a href="#">Terms</a></p>
   </footer>
 
-  <script src="wipikit/app.js"></script>
-  <script src="wipikit/booking.js"></script>
+  <script src="app.js"></script>
+  <script src="booking.js"></script>
 </body>
 </html>
