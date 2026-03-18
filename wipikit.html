@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>WePickItSF · file 001</title>
+    <title>WePickItSF · inventory 001</title>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        /* --- RESET: THE ARCHIVE (refined, no gimmicks) --- */
+        /* --- RESET: THE INVENTORY (cold, factual, clear) --- */
         * {
             margin: 0;
             padding: 0;
@@ -19,7 +19,7 @@
             --ink: #111111;
             --pure-black: #000000;
             --muted-stroke: #D4D4D4;
-            --accent-file: #F0E68C;
+            --accent-yellow: #F0E68C;
             --type-mono: 'Archivo Black', sans-serif;
             --type-sans: 'Inter', sans-serif;
         }
@@ -33,8 +33,8 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* --- ARCHIVAL HEADER --- */
-        .archive-header {
+        /* --- HEADER: DATE · LOCATION · ENTRY (clear, not clever) --- */
+        .inventory-header {
             display: flex;
             flex-direction: column;
             padding: 1rem 1.25rem;
@@ -45,26 +45,28 @@
             gap: 0.5rem;
         }
 
-        .archive-header-top {
+        .header-top {
             display: flex;
             justify-content: space-between;
             width: 100%;
         }
 
-        .archive-header .accent {
-            background: var(--accent-file);
+        .header-top .identifier {
+            background: var(--accent-yellow);
             padding: 0.2rem 0.6rem;
             color: var(--pure-black);
             font-weight: 600;
             white-space: nowrap;
         }
 
-        .archive-header-bottom {
+        .header-bottom {
             color: #5A5A5A;
             font-size: 0.65rem;
+            display: flex;
+            gap: 1rem;
         }
 
-        /* main container - mobile first, single column */
+        /* main container - mobile first */
         .container {
             max-width: 100%;
             margin: 0 auto;
@@ -121,8 +123,12 @@
             color: #CCCCCC;
         }
 
-        /* list styling */
-        .list-entry {
+        /* list styling — now literally an inventory */
+        .inventory-list {
+            margin: 1.5rem 0;
+        }
+
+        .inventory-item {
             margin-bottom: 0.8rem;
             padding-bottom: 0.8rem;
             border-bottom: 1px solid var(--muted-stroke);
@@ -132,18 +138,18 @@
             font-size: 0.95rem;
         }
 
-        .list-entry:before {
+        .inventory-item:before {
             content: "—";
             color: #888;
         }
 
-        .list-entry:last-child {
+        .inventory-item:last-child {
             border-bottom: none;
         }
 
-        /* file label */
-        .file-label {
-            background: var(--accent-file);
+        /* label style — used sparingly */
+        .label {
+            background: var(--accent-yellow);
             display: inline-block;
             padding: 0.25rem 1rem;
             font-size: 0.7rem;
@@ -192,7 +198,7 @@
             color: var(--pure-black);
         }
 
-        .subtle-archive {
+        .caption {
             font-size: 0.75rem;
             color: #5a5a5a;
             margin-top: 0.75rem;
@@ -201,7 +207,7 @@
             text-align: center;
         }
 
-        .primary-statement .subtle-archive {
+        .primary-statement .caption {
             color: #AAA;
         }
 
@@ -243,7 +249,7 @@
             justify-content: space-between;
         }
 
-        /* --- MODAL --- */
+        /* --- MODAL: now a receipt, not a file --- */
         .modal {
             position: fixed;
             inset: 0;
@@ -294,7 +300,7 @@
 
         input:focus, select:focus {
             outline: none;
-            background: var(--accent-file);
+            background: var(--accent-yellow);
         }
 
         .modal-card .btn {
@@ -311,14 +317,14 @@
 
         /* tablet and up */
         @media (min-width: 700px) {
-            .archive-header {
+            .inventory-header {
                 flex-direction: row;
                 justify-content: space-between;
                 padding: 1.2rem 2rem;
                 font-size: 0.8rem;
             }
 
-            .archive-header-bottom {
+            .header-bottom {
                 font-size: 0.8rem;
             }
 
@@ -358,14 +364,16 @@
 </head>
 <body>
 
-<!-- archival header -->
-<div class="archive-header">
-    <div class="archive-header-top">
+<!-- inventory header: DATE · LOCATION · ENTRY (clear) -->
+<div class="inventory-header">
+    <div class="header-top">
         <span>WEPICKITSF</span>
-        <span class="accent">FILE № 001</span>
+        <span class="identifier">INVENTORY № 001</span>
     </div>
-    <div class="archive-header-bottom">
-        SAN FRANCISCO · ENTRY: CLOSET / CORNER · 03.2026
+    <div class="header-bottom">
+        <span>2026.03.18</span>
+        <span>SAN FRANCISCO</span>
+        <span>ENTRY: CLOSET / CORNER</span>
     </div>
 </div>
 
@@ -374,7 +382,7 @@
 
     <!-- PRIMARY STATEMENT -->
     <div class="card primary-statement grid-span-2">
-        <div class="file-label">STATEMENT OF INTENT</div>
+        <div class="label">STATEMENT</div>
         <h1>
             You already decided<br>
             you don’t need it.
@@ -386,34 +394,34 @@
         <div class="cta-block">
             <a href="#" class="btn" id="openModal">→ schedule pickup</a>
         </div>
-        <p class="subtle-archive">same or next day · no sorting · locally moved</p>
+        <p class="caption">same or next day · no sorting · locally moved</p>
     </div>
 
-    <!-- LEFT: the situation -->
+    <!-- LEFT: the inventory (clear what this is) -->
     <div class="card">
-        <h2>the situation</h2>
-        <p>A hallway in a walk-up. A closet that barely closes. Things don’t pile up — they just stay.</p>
-        <div style="margin: 1.5rem 0;">
-            <div class="list-entry">jacket, winter 2019</div>
-            <div class="list-entry">tote bag, never unfolded</div>
-            <div class="list-entry">cables, unknown purpose</div>
-            <div class="list-entry">shoes, back of closet</div>
-            <div class="list-entry">something folded away</div>
+        <h2>inventory</h2>
+        <p>Items located: hallway closet, back corner.</p>
+        <div class="inventory-list">
+            <div class="inventory-item">jacket, winter 2019</div>
+            <div class="inventory-item">tote bag, never unfolded</div>
+            <div class="inventory-item">cables, unknown purpose</div>
+            <div class="inventory-item">shoes, back of closet</div>
+            <div class="inventory-item">something folded away</div>
         </div>
     </div>
 
-    <!-- RIGHT: empty card with just a label (the space itself becomes the statement) -->
+    <!-- RIGHT: inventory placeholder (makes sense now) -->
     <div class="card" style="display: flex; align-items: center; justify-content: center; min-height: 200px;">
-        <div class="file-label" style="margin-bottom: 0;">IT CONTINUES ELSEWHERE</div>
+        <div class="label" style="margin-bottom: 0;">INVENTORY · ITEM 001–005</div>
     </div>
 
-    <!-- ONCE IT'S GONE (full width) -->
+    <!-- ONCE IT'S GONE -->
     <div class="card grid-span-2">
-        <h2>once it’s gone</h2>
+        <h2>disposition</h2>
         <div class="two-col">
             <p style="font-size:1.2rem; font-weight:350;">The space feels different. Not bigger — just quieter.</p>
             <div>
-                <div style="margin-bottom:0.5rem;"><span style="font-weight:600;">↳ it continues</span> — somewhere else, locally.</div>
+                <div style="margin-bottom:0.5rem;"><span style="font-weight:600;">↳ continues</span> — somewhere else, locally.</div>
                 <div><span style="font-weight:600;">↳ no drop-offs</span> — we come to you.</div>
             </div>
         </div>
@@ -425,14 +433,14 @@
         <div class="footer-row">
             <a href="mailto:hello@wepickitsf.com">hello@wepickitsf.com</a> · <a href="#">privacy</a> · <a href="#">terms</a>
         </div>
-        <div>folio 1 · est. 2026</div>
+        <div>inventory 001 · est. 2026</div>
     </div>
 </div>
 
-<!-- MODAL -->
+<!-- MODAL: PICKUP RECEIPT (clear, final) -->
 <div class="modal" id="modal">
     <div class="modal-card">
-        <span class="file-label" style="margin-bottom:1rem;">FILE REQUEST</span>
+        <span class="label" style="margin-bottom:1rem;">PICKUP RECEIPT</span>
         <h2>schedule pickup</h2>
         <input type="text" placeholder="full name">
         <input type="text" placeholder="address, SF">
@@ -441,8 +449,8 @@
             <option>afternoon (12–4)</option>
             <option>evening (4–7)</option>
         </select>
-        <button class="btn" id="confirmModal">submit entry</button>
-        <p class="subtle-archive" style="margin-top:1.5rem;">we’ll text to confirm · no sorting needed</p>
+        <button class="btn" id="confirmModal">confirm</button>
+        <p class="caption" style="margin-top:1.5rem;">we’ll text to confirm · no sorting</p>
     </div>
 </div>
 
