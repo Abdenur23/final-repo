@@ -5,171 +5,153 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WePickItSF</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Inter:wght@300;400&display=swap" rel="stylesheet">
 
 <style>
 :root {
-    --bg: #FAF9F7;
-    --ink: #1E1E1E;
-    --muted: #6B6763;
-    --line: #E6E2DD;
-    --accent: #1A3B2E;
+    --bg:#FAF9F7;
+    --ink:#1E1E1E;
+    --muted:#6B6763;
+    --line:#E6E2DD;
+    --accent:#1A3B2E;
 
-    --serif: 'Cormorant Garamond', serif;
-    --sans: 'Inter', sans-serif;
+    --serif:'Cormorant Garamond', serif;
+    --sans:'Inter', sans-serif;
 }
 
-* { margin:0; padding:0; box-sizing:border-box; }
+*{margin:0;padding:0;box-sizing:border-box;}
 
-body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: var(--sans);
-    line-height: 1.6;
+body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
 }
 
-.container {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 4rem 1.5rem;
+.container{
+    max-width:720px;
+    margin:0 auto;
+    padding:5rem 1.5rem;
 }
 
-h1, h2 {
-    font-family: var(--serif);
-    letter-spacing: -0.02em;
+h1,h2{
+    font-family:var(--serif);
+    letter-spacing:-0.02em;
 }
 
-h1 {
-    font-size: clamp(2.8rem, 6vw, 4.2rem);
-    line-height: 1.1;
-    margin-bottom: 1.2rem;
+h1{
+    font-size:clamp(3rem,6vw,4.2rem);
+    line-height:1.1;
+    margin-bottom:1.5rem;
 }
 
-h2 {
-    font-size: 1.6rem;
-    margin-bottom: 1rem;
+p{
+    color:var(--muted);
+    margin-bottom:1.2rem;
+    font-size:1.1rem;
 }
 
-p {
-    color: var(--muted);
-    margin-bottom: 1rem;
+.hero p{
+    max-width:520px;
 }
 
-.hero p {
-    font-size: 1.15rem;
-    max-width: 520px;
+.cta{
+    margin-top:2.5rem;
 }
 
-.quick-points {
-    margin: 1.5rem 0;
+.btn{
+    padding:0.9rem 2.4rem;
+    border-radius:999px;
+    background:var(--accent);
+    color:white;
+    text-decoration:none;
+    font-size:0.95rem;
+    transition:0.25s;
 }
 
-.quick-points div {
-    margin-bottom: 0.4rem;
-    font-size: 0.95rem;
+.btn:hover{
+    opacity:0.9;
 }
 
-.cta {
-    margin-top: 1.8rem;
+.subtle{
+    font-size:0.85rem;
+    margin-top:1rem;
 }
 
-.btn {
-    display: inline-block;
-    padding: 0.9rem 2.2rem;
-    border-radius: 999px;
-    background: var(--accent);
-    color: white;
-    text-decoration: none;
-    font-size: 0.95rem;
-    transition: 0.2s ease;
+.divider{
+    margin:4rem 0;
+    height:1px;
+    background:var(--line);
 }
 
-.btn:hover {
-    opacity: 0.9;
+.list{
+    margin-top:1.5rem;
 }
 
-.subtle {
-    font-size: 0.85rem;
-    margin-top: 0.8rem;
+.list div{
+    margin-bottom:0.4rem;
 }
 
-section {
-    margin-top: 4rem;
+.steps div{
+    margin-bottom:0.9rem;
 }
 
-.divider {
-    height: 1px;
-    background: var(--line);
-    margin: 3rem 0;
+.footer{
+    margin-top:5rem;
+    padding-top:2rem;
+    border-top:1px solid var(--line);
+    font-size:0.9rem;
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:1rem;
 }
 
-.list {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem 2rem;
-    margin-top: 1rem;
+.footer a{
+    text-decoration:none;
+    color:var(--ink);
 }
 
-.steps div {
-    margin-bottom: 0.8rem;
-}
-
-.footer {
-    margin-top: 5rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--line);
-    font-size: 0.9rem;
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.footer a {
-    text-decoration: none;
-    color: var(--ink);
-}
-
-.footer a:hover {
-    text-decoration: underline;
+.footer a:hover{
+    text-decoration:underline;
 }
 
 /* modal */
-.modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: 0.25s;
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    visibility:hidden;
+    transition:0.25s;
 }
 
-.modal.active {
-    opacity: 1;
-    visibility: visible;
+.modal.active{
+    opacity:1;
+    visibility:visible;
 }
 
-.modal-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 14px;
-    width: 100%;
-    max-width: 400px;
+.modal-card{
+    background:white;
+    padding:2rem;
+    border-radius:14px;
+    width:100%;
+    max-width:400px;
 }
 
-input, select {
-    width: 100%;
-    padding: 0.8rem;
-    margin-top: 0.3rem;
-    margin-bottom: 1rem;
-    border: 1px solid var(--line);
-    border-radius: 8px;
+input,select{
+    width:100%;
+    padding:0.8rem;
+    margin-top:0.3rem;
+    margin-bottom:1rem;
+    border:1px solid var(--line);
+    border-radius:8px;
 }
 
-button { cursor:pointer; }
+button{cursor:pointer;}
 </style>
 </head>
 
@@ -179,25 +161,31 @@ button { cursor:pointer; }
 
 <!-- HERO -->
 <section class="hero">
-    <h1>We pick it up. You’re done.</h1>
+    <h1>
+        You already decided<br>
+        you don’t need it.
+    </h1>
 
     <p>
-        Clothes, accessories, small electronics — anything you no longer use.
-        We collect it and keep it in circulation within San Francisco.
+        It’s been sitting there for weeks. Maybe months.
+        Moved from one place to another, but never used.
     </p>
 
-    <div class="quick-points">
-        <div>• Free pickup</div>
-        <div>• Same or next day availability</div>
-        <div>• Collected by e-bike when possible</div>
-    </div>
+    <p>
+        Not important enough to keep.<br>
+        Not urgent enough to let go.
+    </p>
+
+    <p>
+        So it stays.
+    </p>
 
     <div class="cta">
-        <a href="#" class="btn" id="openModal">Book a pickup</a>
+        <a href="#" class="btn" id="openModal">Let it go</a>
     </div>
 
     <p class="subtle">
-        Takes less than a minute.
+        We’ll come by. Usually the same or next day.
     </p>
 </section>
 
@@ -205,47 +193,45 @@ button { cursor:pointer; }
 
 <!-- WHAT -->
 <section>
-    <h2>What we take</h2>
+    <h2>What tends to stay</h2>
 
     <div class="list">
-        <div>Clothing</div>
-        <div>Bags & backpacks</div>
-        <div>Sunglasses</div>
-        <div>Accessories</div>
-        <div>Small electronics</div>
-        <div>Shoes</div>
+        <div>Clothes you don’t reach for</div>
+        <div>Bags that never leave the shelf</div>
+        <div>Sunglasses you forgot you had</div>
+        <div>Small electronics in drawers</div>
+        <div>Shoes you meant to fix</div>
+        <div>Things that almost matter</div>
     </div>
-
-    <p class="subtle">
-        Items in usable or repairable condition.
-    </p>
 </section>
 
 <div class="divider"></div>
 
 <!-- HOW -->
 <section>
-    <h2>How it works</h2>
+    <h2>What happens next</h2>
 
     <div class="steps">
-        <div>1. Pick a time</div>
-        <div>2. We collect from your door</div>
-        <div>3. Items are sorted and passed on locally</div>
+        <div>You pick a time</div>
+        <div>We come to your door</div>
+        <div>It leaves your space — and keeps moving</div>
     </div>
 </section>
 
 <div class="divider"></div>
 
-<!-- TRUST -->
+<!-- WHY -->
 <section>
-    <h2>Simple, local, handled with care</h2>
+    <h2>Why this works</h2>
 
     <p>
-        No shipping. No drop-offs. No unnecessary disposal.
+        Most things don’t leave because they’re valuable.
+        They stay because they’re undecided.
     </p>
 
     <p>
-        Just a straightforward way to move things along.
+        Once they’re gone, the space feels different.
+        Lighter, quieter — easier to keep that way.
     </p>
 </section>
 
@@ -261,7 +247,7 @@ button { cursor:pointer; }
 <!-- MODAL -->
 <div class="modal" id="modal">
     <div class="modal-card">
-        <h2>Book pickup</h2>
+        <h2>Schedule pickup</h2>
 
         <input type="text" placeholder="Name">
         <input type="text" placeholder="Address">
@@ -277,9 +263,9 @@ button { cursor:pointer; }
 </div>
 
 <script>
-const modal = document.getElementById("modal");
-document.getElementById("openModal").onclick = () => modal.classList.add("active");
-modal.onclick = (e) => { if (e.target === modal) modal.classList.remove("active"); };
+const modal=document.getElementById("modal");
+document.getElementById("openModal").onclick=()=>modal.classList.add("active");
+modal.onclick=(e)=>{if(e.target===modal)modal.classList.remove("active");};
 </script>
 
 </body>
