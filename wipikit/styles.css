@@ -1,45 +1,72 @@
+/* Base */
 body {
-  font-family: Arial, Helvetica, sans-serif;
-  background: #ffffff;
-  color: #000;
   margin: 0;
-  padding: 0;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #111;
+  background: #fff;
+  line-height: 1.6;
+}
+
+a {
+  text-decoration: none;
+  color: #555;
+}
+
+/* Hero */
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FF4500;
+  color: #fff;
   text-align: center;
+  padding: 80px 20px;
 }
 
-.container {
-  max-width: 500px;
-  margin: 80px auto;
-  padding: 20px;
-}
-
-h1 {
-  font-size: 42px;
+.hero h1 {
+  font-size: 3rem;
   margin-bottom: 20px;
 }
 
-.tagline {
-  font-size: 20px;
-  margin-bottom: 15px;
+.hero .tagline {
+  font-size: 1.25rem;
+  margin-bottom: 30px;
 }
 
-.items, .no-hassle, .local, .quality {
-  margin: 10px 0;
-  font-size: 16px;
-}
-
-button {
-  margin-top: 30px;
-  padding: 14px 24px;
-  font-size: 16px;
-  background: #FF4500;
-  color: white;
+.cta-button {
+  background: #fff;
+  color: #FF4500;
   border: none;
+  padding: 15px 30px;
+  font-size: 1rem;
   cursor: pointer;
+  border-radius: 4px;
+  font-weight: bold;
 }
 
-button:hover {
+.cta-button:hover {
   opacity: 0.9;
+}
+
+/* Features */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  padding: 50px 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.feature h2 {
+  font-size: 1.25rem;
+  margin-bottom: 10px;
+  color: #FF4500;
+}
+
+.feature p {
+  font-size: 1rem;
+  color: #333;
 }
 
 /* Modal */
@@ -53,6 +80,7 @@ button:hover {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 100;
 }
 
 .hidden {
@@ -64,31 +92,38 @@ button:hover {
   padding: 30px;
   width: 90%;
   max-width: 400px;
+  border-radius: 6px;
   position: relative;
+  text-align: center;
 }
 
-#closeModal {
+.close {
   position: absolute;
   right: 15px;
   top: 10px;
-  cursor: pointer;
   font-size: 22px;
+  cursor: pointer;
 }
 
 input, select {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin: 10px 0;
   font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
 }
 
+/* Footer */
 footer {
-  margin: 50px 0 20px;
+  text-align: center;
+  padding: 30px 20px;
+  background: #f5f5f5;
+  font-size: 0.85rem;
+  color: #555;
 }
 
 footer a {
-  margin: 0 10px;
-  font-size: 12px;
   color: #555;
-  text-decoration: none;
+  margin: 0 5px;
 }
