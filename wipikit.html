@@ -77,31 +77,44 @@
             color: var(--ash);
         }
 
-        /* claim block — now uses exact requested line */
+        /* claim block — now integrated poetically, not literal glue */
         .claim {
             margin: 0 0 12rem 0;
             position: relative;
         }
 
         .claim h1 {
-            font-size: clamp(4rem, 12vw, 9rem);
+            font-size: clamp(3.8rem, 11vw, 8rem);
             font-weight: 600;
-            line-height: 0.85;
+            line-height: 0.9;
             text-transform: uppercase;
-            letter-spacing: -4px;
+            letter-spacing: -3px;
             color: var(--skin);
-            max-width: 90%;
+            max-width: 95%;
         }
 
-        .claim h1 span {
+        .claim h1 .line-block {
             display: block;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: clip;
+        }
+
+        .claim h1 .line-block:first-child {
+            color: var(--skin);
+        }
+
+        .claim h1 .line-block:last-child {
             color: var(--ash);
             font-weight: 350;
-            font-size: 0.45em;
-            letter-spacing: 2px;
-            margin-top: 0.8rem;
+            font-size: 0.6em;
+            letter-spacing: -0.5px;
+            margin-top: 0.4rem;
             border-left: 6px solid currentColor;
-            padding-left: 2rem;
+            padding-left: 1.5rem;
+            white-space: normal;
+            word-break: break-word;
+            text-transform: none;
         }
 
         /* floating sub */
@@ -370,7 +383,8 @@
             .canvas { padding: 1.5rem; }
             .module { grid-template-columns: 1fr; }
             .module aside { writing-mode: horizontal-tb; transform: none; padding-left: 2rem; }
-            .claim h1 { font-size: 4rem; }
+            .claim h1 { font-size: 3.2rem; }
+            .claim h1 .line-block:last-child { font-size: 0.7em; white-space: normal; }
             .sub-block { grid-template-columns: 1fr; }
             .cta-monolith { grid-template-columns: 1fr; }
             footer { grid-template-columns: 1fr; }
@@ -385,11 +399,11 @@
             <div class="enter-trigger" id="scrollTrigger">→ OPEN DOOR</div>
         </div>
 
-        <!-- main claim — EXACT requested line: "You already decided you don’t need it." -->
+        <!-- main claim — your thought, but rhythmically embedded, not just glued -->
         <div class="claim">
             <h1>
-                You already decided<br>you don’t need it.
-                <span>freeze became weight</span>
+                <span class="line-block">You already decided</span>
+                <span class="line-block">you don’t need it.</span>
             </h1>
         </div>
 
@@ -400,17 +414,17 @@
 
         <div class="rift"></div>
 
-        <!-- Module 01: Anatomy — rephrased per feedback: clothing, shoes, bags, small items (poetic twist) -->
+        <!-- Module 01: Anatomy — infused with your specific items, but poetically -->
         <div class="module">
             <aside>01 — ANATOMY</aside>
             <div class="content">
                 <h2>Hesitation<br>collects dust.</h2>
-                <p>Clothing, shoes, bags, small items — things you once touched, now still. We extract them without contact. Within San Francisco, everything re-enters use. No shipping, no waste, no performance.</p>
+                <p>Garments you once reached for. Shoes that stayed in the box. Bags, small devices — the still life you walk past. We extract them without contact. Within San Francisco, everything re-enters use. No shipping, no waste, no performance.</p>
                 <div class="micro"><span class="note-marker"></span> 1800 items returned to motion last month</div>
             </div>
         </div>
 
-        <!-- process grid — updated step 02 and step 04 wording to reflect your notes -->
+        <!-- process grid — your notes woven in, not copy-pasted -->
         <div class="process-grid">
             <div class="process-item">
                 <strong>01</strong>
@@ -420,7 +434,7 @@
             <div class="process-item">
                 <strong>02</strong>
                 <span>DROP / SHOW</span>
-                <p>Leave in package pickup/drop‑off area (every building has one). Add a photo + brief instruction — we find it.</p>
+                <p>Leave it in the pickup area — every building has one. Snap a photo, tell us how to enter. We find it from that.</p>
             </div>
             <div class="process-item">
                 <strong>03</strong>
@@ -430,7 +444,7 @@
             <div class="process-item">
                 <strong>04</strong>
                 <span>NEXT OWNER</span>
-                <p>Repaired, cleaned, placed directly with someone in this city who will use them. No donation limbo — new home found.</p>
+                <p>Repaired, cleaned, placed directly with someone in this city who will use them. No donation vortex — a new owner, not an abstraction.</p>
             </div>
         </div>
 
@@ -469,7 +483,7 @@
             </div>
         </div>
 
-        <!-- "why people" block unchanged but fine -->
+        <!-- "why people" block -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin: 6rem 0;">
             <div style="border-top: 2px solid var(--iron); padding-top: 1rem;">
                 <span style="color: var(--ash);">Motive</span>
@@ -481,7 +495,7 @@
             </div>
         </div>
 
-        <!-- FOOTER — fully revised per feedback -->
+        <!-- FOOTER — refined and clear -->
         <footer>
             <div>
                 <div class="signature">(SF)</div>
@@ -491,14 +505,11 @@
             <div class="footer-links">
                 <a href="#">PRIVACY (minimal)</a>
                 <a href="#">TERMS OF REMOVAL</a>
-                <!-- "LOCAL INDEX" removed, replaced with clearer "PICKUP MAP" -->
                 <a href="#">PICKUP MAP</a>
-                <!-- "100% recirculated" removed, replaced with honest message -->
-                <div style="color: #6b655f; margin-top: 0.8rem; text-transform: none;">we maximize circulation, not everything recirculates — but nothing goes to landfill.</div>
+                <div style="color: #6b655f; margin-top: 0.8rem; text-transform: none;">we maximize circulation — nothing goes to landfill.</div>
             </div>
             <div style="text-align: right;">
                 <div>electric fleet</div>
-                <!-- removed "100% recirculated" and "design: a/b/ordinary" completely -->
                 <div style="margin-top: 2rem; color: #4a4640;">every item finds a new owner locally</div>
             </div>
         </footer>
