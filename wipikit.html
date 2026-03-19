@@ -3,260 +3,294 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>You Already Decided</title>
+
+<title>Free Your Space | San Francisco</title>
 
 <style>
 :root {
-  --black: #000;
-  --white: #fff;
-  --gray: #888;
+    --bg: #0b0b0b;
+    --text: #f2f2f2;
+    --muted: #9a9a9a;
+    --line: #1f1f1f;
+    --accent: #ffffff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-  margin: 0;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  background: var(--white);
-  color: var(--black);
-  overflow-x: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
 }
 
-/* CONTAINER */
-.poster {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 80px 40px 120px;
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 60px 24px;
 }
 
-/* HERO */
-.hero {
-  font-weight: 900;
-  font-size: 96px;
-  line-height: 0.9;
-  letter-spacing: -2px;
-  margin: 0 0 20px;
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 80px;
 }
 
-.hero span {
-  display: block;
+.logo {
+    font-size: 1rem;
+    letter-spacing: 1px;
+    color: var(--muted);
 }
 
-.sub {
-  font-weight: 600;
-  font-size: 26px;
-  color: var(--gray);
-  margin-bottom: 60px;
+.cta-top {
+    font-size: 0.9rem;
+    color: var(--text);
+    border-bottom: 1px solid var(--text);
+    cursor: pointer;
 }
 
-/* BREAK - dramatic bar */
-.break {
-  width: 100%;
-  height: 8px;
-  background: var(--black);
-  margin-bottom: 60px;
-  transform: skewX(-12deg);
+.hero h1 {
+    font-size: clamp(2.8rem, 6vw, 4.5rem);
+    line-height: 1.1;
+    margin-bottom: 30px;
+    letter-spacing: -1px;
 }
 
-/* BODY TEXT */
-.body {
-  font-size: 22px;
-  line-height: 1.8;
-  margin-bottom: 60px;
+.hero p {
+    font-size: 1.3rem;
+    color: var(--muted);
+    max-width: 700px;
 }
 
-.body p {
-  margin: 32px 0;
+.section {
+    margin-top: 120px;
 }
 
-/* REPEAT LINE - huge and impactful */
-.repeat {
-  font-size: 72px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -1px;
-  margin: 80px 0;
-  line-height: 1;
-  color: var(--black);
+.section h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
 }
 
-/* ACTION BLOCK - inverted for commitment */
-.action {
-  background: var(--black);
-  color: var(--white);
-  padding: 60px 40px;
-  margin: 80px 0;
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+.section p {
+    color: var(--muted);
+    max-width: 700px;
 }
 
-.action-title {
-  font-size: 32px;
-  font-weight: 900;
-  margin-bottom: 30px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+.grid {
+    margin-top: 50px;
 }
 
-.steps {
-  font-size: 22px;
-  line-height: 2;
+.step {
+    margin-bottom: 30px;
+    font-size: 1.1rem;
 }
 
-.steps strong {
-  display: inline-block;
-  margin-bottom: 8px;
+.step strong {
+    display: block;
+    margin-bottom: 6px;
 }
 
-/* IMPACT / FINAL - huge scale for gravity */
-.impact {
-  font-size: 44px;
-  font-weight: 900;
-  line-height: 1.2;
-  margin-top: 80px;
-  margin-bottom: 40px;
+.divider {
+    height: 1px;
+    background: var(--line);
+    margin: 100px 0;
 }
 
-.final {
-  font-size: 64px;
-  font-weight: 900;
-  line-height: 1.1;
-  margin-bottom: 120px;
-  color: var(--black);
+.final-cta {
+    margin-top: 140px;
 }
 
-/* FOOTER */
-.footer {
-  font-size: 14px;
-  color: var(--gray);
-  border-top: 2px solid #ddd;
-  padding-top: 20px;
+.final-cta h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
 }
 
-.footer a {
-  color: var(--black);
-  text-decoration: none;
-  border-bottom: 1px solid var(--black);
-  margin-right: 16px;
+button {
+    margin-top: 20px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 16px 32px;
+    font-size: 1rem;
+    cursor: pointer;
 }
 
-/* SMALL MOTION - subtle */
-@keyframes float {
-  0%,100% { transform: translateY(0);}
-  50% { transform: translateY(-8px);}
+button:hover {
+    opacity: 0.9;
 }
 
-.repeat:hover {
-  animation: float 1s infinite ease-in-out;
+.subtle {
+    margin-top: 15px;
+    color: var(--muted);
+    font-size: 0.9rem;
 }
 
-/* MOBILE */
-@media (max-width: 700px) {
-  .hero { font-size: 60px; }
-  .sub { font-size: 20px; }
-  .repeat { font-size: 48px; }
-  .action-title { font-size: 28px; }
-  .steps { font-size: 20px; }
-  .impact { font-size: 32px; }
-  .final { font-size: 44px; }
+footer {
+    margin-top: 140px;
+    padding-top: 40px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.footer-links a {
+    margin-right: 20px;
+    text-decoration: none;
+    color: var(--muted);
+}
+
+.footer-links a:hover {
+    color: var(--text);
 }
 </style>
 </head>
+
 <body>
 
-<div class="poster">
+<div class="container">
 
-  <div class="hero">
-    <span>You already</span>
-    <span>decided.</span>
-  </div>
+<header>
+    <div class="logo">SAN FRANCISCO · SPACE RECOVERY</div>
+    <div class="cta-top" onclick="scrollToAction()">Start now</div>
+</header>
 
-  <div class="sub">
-    You don’t need it.
-  </div>
-
-  <div class="break"></div>
-
-  <div class="body">
-    <p>
-      It’s still there.<br/>
-      Taking space.<br/>
-      Quietly draining attention every time you see it.
-    </p>
+<section class="hero">
+    <h1>
+        You already decided<br>
+        you don’t need it.
+    </h1>
 
     <p>
-      The jacket. The shoes.<br/>
-      The bag you don’t use.<br/>
-      The cables. The small electronics.
+        It’s not storage.<br>
+        It’s hesitation.<br><br>
+
+        Good things sitting still.<br>
+        Waiting for a life you already moved on from.
     </p>
+</section>
+
+<div class="section">
+    <h2>
+        Let it move again.
+    </h2>
 
     <p>
-      You already made the decision.<br/>
-      You just haven’t completed it.
+        We collect items you’ve already mentally let go of — clothing, shoes, small electronics, bags.
+        We restore, repurpose, and place them back into use within San Francisco.
+        No waste. No long-distance shipping. No unnecessary friction.
     </p>
-  </div>
+</div>
 
-  <div class="repeat">
-    Finish it.
-  </div>
+<div class="divider"></div>
 
-  <div class="action">
-    <div class="action-title">
-      Do this now. Not later.
+<div class="section">
+    <h2>
+        How it works
+    </h2>
+
+    <div class="grid">
+        <div class="step">
+            <strong>01 — Gather</strong>
+            Put aside what you no longer use. If you haven’t reached for it, you already know.
+        </div>
+
+        <div class="step">
+            <strong>02 — Leave it</strong>
+            Place it at your building’s pickup or drop-off area. Or your front step.
+        </div>
+
+        <div class="step">
+            <strong>03 — Show us</strong>
+            Take a photo. Add a simple note so we can find it.
+        </div>
+
+        <div class="step">
+            <strong>04 — Done</strong>
+            We pick it up the same day. Quietly.
+        </div>
     </div>
-    <div class="steps">
-      <strong>Pick it up.</strong><br/><br/>
-      Put it in a bag. Or don’t.<br/>
-      Carry it as it is.<br/><br/>
-      Walk it to your building’s pickup area.<br/>
-      Leave it there.<br/><br/>
-      Take a photo.<br/>
-      Write one line of where it is.
+</div>
+
+<div class="divider"></div>
+
+<div class="section">
+    <h2>
+        What happens next
+    </h2>
+
+    <p>
+        Your items don’t disappear into a system.<br><br>
+
+        They are repaired if needed.<br>
+        Cleaned. Reconditioned.<br>
+        Given directly to someone in this city who will use them.<br><br>
+
+        What was idle becomes useful again — here, not somewhere else.
+    </p>
+</div>
+
+<div class="divider"></div>
+
+<div class="section">
+    <h2>
+        Why people do this
+    </h2>
+
+    <p>
+        Because it feels wrong to throw it away.<br>
+        And worse to keep ignoring it.<br><br>
+
+        This is the middle path.<br>
+        No waste. No guilt. No effort.
+    </p>
+</div>
+
+<div class="final-cta" id="action">
+    <h2>
+        Do it now.<br>
+        Before it blends back in.
+    </h2>
+
+    <button>Clear it today</button>
+
+    <div class="subtle">
+        No scheduling · No accounts · No calls<br>
+        Same-day pickup within San Francisco
     </div>
-  </div>
+</div>
 
-  <div class="body">
-    <p>
-      No forms.<br/>
-      No scheduling.<br/>
-      No name. No number.
-    </p>
-
-    <p>
-      Same-day pickup.<br/>
-      San Francisco only.
-    </p>
-
-    <p>
-      E-bikes.<br/>
-      No trucks.<br/>
-      No shipping across states burning fuel.
-    </p>
-
-    <p>
-      It stays here.<br/>
-      Someone here uses it.
-    </p>
-  </div>
-
-  <div class="impact">
-    What’s in your way<br/>
-    is exactly what someone else needs.
-  </div>
-
-  <div class="final">
-    Don’t carry it home again.<br/>
-    Let it go. Now.
-  </div>
-
-  <div class="footer">
-    ©️ 2026 Your Company Name, LLC — San Francisco, CA<br/>
-    Same-day pickup • Zero friction • Local reuse
+<footer>
     <div>
-      <a href="/terms">Terms</a>
-      <a href="/privacy">Privacy</a>
+        © 2026 Free Your Space LLC<br>
+        San Francisco, California
     </div>
-  </div>
+
+    <div class="footer-links">
+        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/terms.html">Terms of Service</a>
+    </div>
+
+    <div>
+        Operated locally. Pickups completed via electric transport.<br>
+        Items remain within San Francisco circulation.
+    </div>
+</footer>
 
 </div>
+
+<script>
+function scrollToAction() {
+    document.getElementById("action").scrollIntoView({ behavior: "smooth" });
+}
+</script>
 
 </body>
 </html>
