@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>hush · san francisco</title>
+    <title>drift · sf</title>
     <style>
         * {
             margin: 0;
@@ -12,457 +12,452 @@
         }
 
         body {
-            background-color: #f6f3f0;
-            font-family: 'Times New Roman', Times, serif;
-            color: #1e1e1c;
-            line-height: 1.3;
-            font-weight: 400;
+            background: #f2f0ec;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: #1f1f1d;
+            line-height: 1.4;
+            font-weight: 300;
         }
 
-        .air {
-            max-width: 1300px;
+        .basin {
+            max-width: 1250px;
             margin: 0 auto;
-            padding: 3rem 2.5rem;
+            padding: 3rem 2rem;
         }
 
-        .top {
+        .sprinkle {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 7rem;
-            font-size: 0.9rem;
-            letter-spacing: 0.3px;
-            color: #6b6863;
-            border-top: 1px solid #cdc9c2;
-            padding-top: 1.2rem;
+            margin-bottom: 8rem;
+            font-size: 0.85rem;
+            color: #9e9a93;
+            border-bottom: 1px solid #ddd8d0;
+            padding-bottom: 1.5rem;
         }
 
-        .top-l {
+        .sprinkle-left {
+            letter-spacing: 2px;
             text-transform: uppercase;
-            font-size: 0.8rem;
         }
 
-        .top-r {
-            font-style: italic;
+        .sprinkle-right {
             cursor: pointer;
-            border-bottom: 1px solid #1e1e1c;
-            line-height: 1;
-        }
-
-        .main-pull {
-            margin: 6rem 0 12rem 0;
-        }
-
-        .main-pull h1 {
-            font-size: clamp(3.5rem, 10vw, 6.5rem);
-            font-weight: 400;
-            line-height: 1;
-            letter-spacing: -0.02em;
-            text-transform: none;
-            color: #1e1e1c;
-            max-width: 90%;
-        }
-
-        .main-pull h1 span {
-            display: block;
             font-style: italic;
-            color: #8f8a83;
-            font-size: 0.65em;
-            margin-top: 1.5rem;
-            border-left: 3px solid #b9b2a8;
-            padding-left: 2rem;
         }
 
-        .soft-row {
+        .vessel {
+            margin: 5rem 0 12rem 0;
+        }
+
+        .vessel h1 {
+            font-size: clamp(4rem, 13vw, 8rem);
+            font-weight: 300;
+            line-height: 1;
+            letter-spacing: -1.5px;
+            color: #272522;
+            max-width: 85%;
+        }
+
+        .vessel h1 i {
+            font-style: italic;
+            color: #a39e95;
+            display: block;
+            font-size: 0.45em;
+            margin-top: 1.2rem;
+            border-right: 3px solid #bfb7ac;
+            padding-right: 2rem;
+            text-align: right;
+        }
+
+        .drift-note {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
             gap: 2rem;
-            margin: 2rem 0 8rem 0;
+            margin: 3rem 0 10rem 0;
         }
 
-        .soft-row p {
-            font-size: 1.6rem;
-            max-width: 40rem;
-            color: #3a3835;
+        .drift-note p {
+            font-size: 1.8rem;
+            max-width: 38rem;
+            color: #4d4841;
         }
 
-        .soft-note {
-            font-size: 1rem;
-            color: #7d7770;
-            background: #e9e4dd;
-            padding: 1.5rem 2rem;
-            border-radius: 60px;
+        .drift-note span {
+            background: #e2dbd1;
+            padding: 1.2rem 2.2rem;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            color: #5b554d;
             align-self: flex-end;
         }
 
-        .thin-line {
+        .streak {
             width: 100%;
             height: 1px;
-            background: #dad5cf;
+            background: #d6cfc5;
             margin: 6rem 0;
         }
 
-        .slab {
+        .field {
             display: grid;
-            grid-template-columns: 1fr 2.5fr;
+            grid-template-columns: 1fr 2.2fr;
             gap: 2rem 4rem;
-            margin: 8rem 0;
+            margin: 10rem 0;
         }
 
-        .slab .slab-meta {
-            font-size: 0.9rem;
+        .field .field-meta {
+            font-size: 0.8rem;
+            color: #bcb4a9;
             text-transform: uppercase;
-            color: #a39e97;
-            letter-spacing: 4px;
+            letter-spacing: 5px;
             writing-mode: vertical-rl;
             transform: rotate(180deg);
             height: fit-content;
             justify-self: end;
-            font-style: normal;
         }
 
-        .slab-main {
-            border-left: 1px solid #cfc8c0;
+        .field-main {
+            border-left: 1px solid #d2cbc1;
             padding-left: 3rem;
         }
 
-        .slab-main h2 {
+        .field-main h2 {
             font-size: 2.8rem;
-            font-weight: 380;
+            font-weight: 320;
             margin-bottom: 2rem;
-            letter-spacing: -0.02em;
+            color: #2b2823;
         }
 
-        .slab-main p {
+        .field-main p {
             font-size: 1.5rem;
-            color: #4d4944;
-            max-width: 35rem;
+            color: #5e5850;
+            max-width: 34rem;
             margin-bottom: 1.8rem;
         }
 
-        .slab-main .small-note {
+        .whisper {
             font-size: 0.95rem;
-            color: #948e86;
+            color: #9f988e;
             display: flex;
             gap: 0.8rem;
             align-items: center;
         }
 
-        .dot {
-            display: inline-block;
+        .pebble {
             width: 8px;
             height: 8px;
-            background: #b0a89e;
-            border-radius: 50%;
+            background: #cfc6bb;
+            border-radius: 0;
         }
 
-        .flow {
+        .steps {
             display: flex;
             flex-wrap: wrap;
-            gap: 1.5rem;
-            margin-top: 5rem;
+            gap: 1.8rem;
+            margin: 6rem 0;
         }
 
-        .flow-item {
-            flex: 1 1 200px;
-            background: transparent;
-            border: 1px solid #e1dbd3;
-            padding: 2rem 1.5rem;
-            transition: 0.2s;
+        .step-piece {
+            flex: 1 1 210px;
+            background: #ffffff10;
+            border: 1px solid #e0d9d0;
+            padding: 2.2rem 1.8rem;
+            transition: all 0.2s;
         }
 
-        .flow-item:hover {
-            background: #f0ece6;
+        .step-piece:hover {
+            background: #e9e3db;
         }
 
-        .flow-item .num {
-            font-size: 2.8rem;
-            font-weight: 300;
-            color: #b7b0a7;
+        .step-piece .step-num {
+            font-size: 3rem;
+            font-weight: 250;
+            color: #cfc6ba;
             line-height: 1;
             margin-bottom: 0.8rem;
         }
 
-        .flow-item h4 {
+        .step-piece h4 {
             font-size: 1.3rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 1rem;
-            font-weight: 400;
+            font-weight: 350;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.8rem;
+            text-transform: none;
         }
 
-        .flow-item p {
+        .step-piece p {
             font-size: 1rem;
-            color: #5d5750;
+            color: #67615a;
         }
 
-        .quote {
+        /* special emphasis for key steps 2 and 3 */
+        .step-piece.key {
+            background: #e6dfd6;
+            border-color: #bfb4a7;
+        }
+
+        .step-piece.key:hover {
+            background: #dbd2c7;
+        }
+
+        .fragment {
+            margin: 8rem 0;
             display: flex;
-            justify-content: flex-start;
-            margin: 7rem 0;
+            justify-content: flex-end;
         }
 
-        .quote blockquote {
-            max-width: 65%;
-            font-size: 2.5rem;
-            line-height: 1.1;
-            color: #2b2824;
-            border-left: 4px solid #c5bcb2;
+        .fragment blockquote {
+            max-width: 60%;
+            font-size: 2.3rem;
+            line-height: 1.2;
+            color: #37332e;
+            border-left: 5px solid #cfc6bb;
             padding-left: 2rem;
-            font-style: italic;
-        }
-
-        .quote cite {
-            display: block;
-            margin-top: 1rem;
-            font-size: 1rem;
-            color: #908a82;
             font-style: normal;
         }
 
-        .callout {
-            background: #e9e2d9;
-            padding: 4rem 3rem;
-            margin: 7rem 0 5rem;
+        .fragment cite {
+            display: block;
+            margin-top: 0.8rem;
+            font-size: 0.9rem;
+            color: #9f988e;
+        }
+
+        .gather {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin: 8rem 0;
+        }
+
+        .gather-item {
+            border-top: 2px solid #dcd3c9;
+            padding-top: 1rem;
+        }
+
+        .gather-item .gather-label {
+            color: #bcb3a8;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 1.2rem;
+        }
+
+        .gather-item .gather-text {
+            font-size: 2rem;
+            line-height: 1.2;
+            font-weight: 280;
+        }
+
+        .exit-block {
+            background: #e3dbd1;
+            padding: 4.5rem 3.5rem;
+            margin: 8rem 0 5rem;
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 2rem;
             align-items: center;
         }
 
-        .callout h3 {
-            font-size: 3rem;
-            font-weight: 380;
-            line-height: 1;
-            letter-spacing: -1px;
-            color: #1e1e1c;
+        .exit-block h3 {
+            font-size: 3.2rem;
+            font-weight: 300;
+            line-height: 0.95;
+            color: #1f1f1d;
         }
 
-        .callout-r {
+        .exit-right {
             text-align: right;
         }
 
-        .callout-r .btn {
-            background: #1e1e1c;
+        .exit-right .action {
+            background: #1f1f1d;
+            color: #f1ede7;
             border: none;
-            color: #f0ebe5;
             padding: 1.2rem 2.8rem;
             font-size: 1.2rem;
-            letter-spacing: 1px;
+            font-family: 'Georgia', serif;
             cursor: pointer;
             transition: 0.2s;
-            font-family: 'Times New Roman', serif;
-            border-radius: 0;
             width: fit-content;
             margin-left: auto;
         }
 
-        .btn:hover {
-            background: #423f3b;
+        .action:hover {
+            background: #3d3934;
         }
 
-        .callout-note {
-            margin-top: 1.2rem;
+        .action-note {
+            margin-top: 1rem;
             font-size: 0.85rem;
-            color: #625c55;
-        }
-
-        .double {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3rem;
-            margin: 6rem 0;
-        }
-
-        .double-item {
-            border-top: 2px solid #d9d2c9;
-            padding-top: 1.2rem;
-        }
-
-        .double-item .pre {
-            color: #8f8880;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            margin-bottom: 1rem;
-        }
-
-        .double-item .main-text {
-            font-size: 2rem;
-            line-height: 1.2;
-            font-weight: 350;
+            color: #645d55;
         }
 
         footer {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
+            gap: 2.5rem;
             padding: 3rem 0 2rem;
-            border-top: 1px solid #d5cfc7;
+            border-top: 1px solid #d5cdc2;
             font-size: 0.85rem;
-            color: #756f68;
-            margin-top: 5rem;
+            color: #7b746b;
+            margin-top: 4rem;
         }
 
         footer a {
-            color: #5d5750;
+            color: #645e56;
             text-decoration: none;
-            border-bottom: 0.5px dotted #9f978e;
+            border-bottom: 1px dotted #b1a89d;
         }
 
-        .footer-links {
+        .footer-stack {
             display: flex;
             flex-direction: column;
             gap: 0.3rem;
         }
 
-        .signoff {
+        .watermark {
             font-size: 1.8rem;
-            font-weight: 300;
-            color: #cfc8c0;
+            color: #d7cfc5;
             text-align: right;
         }
 
         @media (max-width: 700px) {
-            .slab { grid-template-columns: 1fr; }
-            .slab .slab-meta { writing-mode: horizontal-tb; transform: none; justify-self: start; }
-            .callout { grid-template-columns: 1fr; }
+            .field { grid-template-columns: 1fr; }
+            .field .field-meta { writing-mode: horizontal-tb; transform: none; justify-self: start; }
+            .exit-block { grid-template-columns: 1fr; }
             footer { grid-template-columns: 1fr; }
-            .double { grid-template-columns: 1fr; }
+            .gather { grid-template-columns: 1fr; }
+            .fragment blockquote { max-width: 90%; }
         }
     </style>
 </head>
 <body>
-    <div class="air">
+    <div class="basin">
 
-        <div class="top">
-            <div class="top-l">san francisco · hush</div>
-            <div class="top-r" id="scrollBtn">↓ enter</div>
+        <div class="sprinkle">
+            <div class="sprinkle-left">san francisco · drift</div>
+            <div class="sprinkle-right" id="moveDown">→</div>
         </div>
 
-        <div class="main-pull">
+        <div class="vessel">
             <h1>
-                the room<br>breathes lighter.
-                <span>what stays — stays by choice. the rest, we carry out.</span>
+                some weight<br>lifts itself.
+                <i>what remains — you choose. the rest we carry.</i>
             </h1>
         </div>
 
-        <div class="soft-row">
-            <p>this is not a purge. it’s a quiet unbuilding. clothes, shoes, bags, small things — they leave the way they arrived: without noise.</p>
-            <div class="soft-note">same day · no account · sf</div>
+        <div class="drift-note">
+            <p>quiet removal of what no longer fits. clothes, bags, shoes, small things — leaving the way they came: without ceremony.</p>
+            <span>within a day · no account</span>
         </div>
 
-        <div class="thin-line"></div>
+        <div class="streak"></div>
 
-        <!-- slab 01: what goes? — now specific, no furniture confusion -->
-        <div class="slab">
-            <div class="slab-meta">01 — kind</div>
-            <div class="slab-main">
-                <h2>what goes?</h2>
-                <p>clothing, shoes, bags, small electronics — the things you once carried. not the sofa, not the chair. the personal, the wearable, the still‑good.</p>
-                <div class="small-note"><span class="dot"></span> we never ask why</div>
-            </div>
-        </div>
-
-        <!-- flow — steps revised per feedback, rhythm intact -->
-        <div class="flow">
-            <div class="flow-item">
-                <div class="num">01</div>
-                <h4>set aside</h4>
-                <p>no sorting. just what you don’t use. if it’s still, it’s ready.</p>
-            </div>
-            <div class="flow-item">
-                <div class="num">02</div>
-                <h4>leave & show</h4>
-                <p>place it in the pickup/drop‑off area — your building has one. add a photo and a short note: how we enter. we’ll spot it.</p>
-            </div>
-            <div class="flow-item">
-                <div class="num">03</div>
-                <h4>within a day</h4>
-                <p>morning or late, we come — sometimes we ring, sometimes we glide. within 24 hours it’s no longer yours.</p>
-            </div>
-            <div class="flow-item">
-                <div class="num">04</div>
-                <h4>find a hand</h4>
-                <p>repaired if it needs, then carried by someone here. what leaves you meets someone else — no landfill, no abstraction.</p>
+        <div class="field">
+            <div class="field-meta">01 — sort</div>
+            <div class="field-main">
+                <h2>what moves?</h2>
+                <p>things you held once. jackets that wait. a bag by the door. electronics that still work. small objects — not furniture, not large. the personal, the wearable.</p>
+                <div class="whisper"><span class="pebble"></span> no questions</div>
             </div>
         </div>
 
-        <div class="thin-line"></div>
-
-        <!-- slab 02 — circulation (unchanged, still fits) -->
-        <div class="slab">
-            <div class="slab-meta">02 — current</div>
-            <div class="slab-main">
-                <h2>stay inside the city</h2>
-                <p>no trucks, no diesel. we move by foot, by bike, by hand. everything that leaves you stays in sf — passes to another door, another life.</p>
-                <p style="font-size: 1.2rem; margin-top: 0.5rem;">“still here, just not yours.”</p>
+        <!-- steps — steps 2 and 3 completely reimagined and elevated -->
+        <div class="steps">
+            <div class="step-piece">
+                <div class="step-num">1</div>
+                <h4>gather</h4>
+                <p>what you no longer reach for. that’s all. no need to sort.</p>
+            </div>
+            <div class="step-piece key">
+                <div class="step-num">2</div>
+                <h4>set at the threshold</h4>
+                <p>the place where things arrive and depart — your building's common room, the alcove by the mail, the step inside. leave it there. one photo tells us the rest.</p>
+            </div>
+            <div class="step-piece key">
+                <div class="step-num">3</div>
+                <h4>we enter quietly</h4>
+                <p>within a day we come. sometimes we ring, sometimes we follow the note you left. by nightfall it's no longer yours to hold.</p>
+            </div>
+            <div class="step-piece">
+                <div class="step-num">4</div>
+                <h4>continue</h4>
+                <p>what leaves you finds another — repaired if needed, held by someone new.</p>
             </div>
         </div>
 
-        <!-- quote — soft -->
-        <div class="quote">
+        <div class="streak"></div>
+
+        <div class="field">
+            <div class="field-meta">02 — stay</div>
+            <div class="field-main">
+                <h2>stays here</h2>
+                <p>no trucks, no distance. we move by foot, by bike. everything stays inside the city — from your door to another’s.</p>
+                <p style="font-size: 1.2rem; margin-top: 1rem;">“still here. just not yours.”</p>
+            </div>
+        </div>
+
+        <div class="fragment">
             <blockquote>
-                what’s still finds hands again.
-                <cite>— 2026 log</cite>
+                what’s idle can move again.
+                <cite>— drift log, 2026</cite>
             </blockquote>
         </div>
 
-        <!-- double thought (replacing motive block) -->
-        <div class="double">
-            <div class="double-item">
-                <div class="pre">weight</div>
-                <div class="main-text">keeping what you don’t hold — that’s the friction.</div>
+        <div class="gather">
+            <div class="gather-item">
+                <div class="gather-label">hold</div>
+                <div class="gather-text">keeping what you don’t carry — that’s the weight.</div>
             </div>
-            <div class="double-item">
-                <div class="pre">lift</div>
-                <div class="main-text">one photo. we take it. no schedule, no call.</div>
-            </div>
-        </div>
-
-        <!-- callout CTA -->
-        <div class="callout" id="actionHere">
-            <h3>clear the<br>corner</h3>
-            <div class="callout-r">
-                <div class="btn" id="clearBtn">→ today</div>
-                <div class="callout-note">no accounts · no wait · sf only</div>
+            <div class="gather-item">
+                <div class="gather-label">release</div>
+                <div class="gather-text">one image. we come. nothing to schedule.</div>
             </div>
         </div>
 
-        <!-- footer — no overpromise, just "kept local" -->
+        <div class="exit-block" id="target">
+            <h3>clear a<br>corner</h3>
+            <div class="exit-right">
+                <div class="action" id="actionBtn">→ today</div>
+                <div class="action-note">no wait · sf only</div>
+            </div>
+        </div>
+
         <footer>
             <div>
-                <div style="font-size: 1.6rem; color: #dbd4cb;">(sf)</div>
-                <div>© 2026 hush</div>
-                <div>valencia st.</div>
+                <div style="font-size: 1.8rem; color: #d9d1c7;">(sf)</div>
+                <div>© 2026 drift</div>
+                <div>valencia</div>
             </div>
-            <div class="footer-links">
+            <div class="footer-stack">
                 <a href="#">privacy</a>
                 <a href="#">terms</a>
-                <a href="#">pickup log</a>
-                <div style="color:#948e86; text-transform: none; margin-top: 0.5rem;">we keep things here — no export</div>
+                <a href="#">updates</a>
+                <div style="color:#a59e94; margin-top: 0.5rem;">local only — no export</div>
             </div>
             <div style="text-align: right;">
                 <div>electric · on foot</div>
-                <div style="margin-top: 1.2rem;">everything we take meets a person or a purpose</div>
+                <div style="margin-top: 1rem;">each thing meets a person</div>
             </div>
         </footer>
     </div>
 
     <script>
-        const scrollBtn = document.getElementById('scrollBtn');
-        const actionHere = document.getElementById('actionHere');
-        const clearBtn = document.getElementById('clearBtn');
+        const trigger = document.getElementById('moveDown');
+        const target = document.getElementById('target');
+        const actionBtn = document.getElementById('actionBtn');
 
-        if (scrollBtn) {
-            scrollBtn.addEventListener('click', () => {
-                actionHere.scrollIntoView({ behavior: 'smooth' });
+        if (trigger) {
+            trigger.addEventListener('click', () => {
+                target.scrollIntoView({ behavior: 'smooth' });
             });
         }
 
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                alert('[demo] — send one photo, we come. that’s the whole flow.');
+        if (actionBtn) {
+            actionBtn.addEventListener('click', () => {
+                alert('[demo] — one photo, we come. that’s all.');
             });
         }
     </script>
