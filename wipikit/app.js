@@ -4,7 +4,7 @@
 // It also holds the config for the API endpoint (to be set later)
 
 window.DRIFT_CONFIG = {
-    apiEndpoint: 'https://your-api-gateway.execute-api.us-west-1.amazonaws.com/prod/drift' // replace later
+    apiEndpoint: 'https://fmhzgn2ea3.execute-api.us-east-1.amazonaws.com/prod/' // replace later
 };
 
 document.addEventListener('DOMContentLoaded', function() {
