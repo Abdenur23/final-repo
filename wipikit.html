@@ -1,296 +1,549 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNTETHER · SF</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<title>Free Your Space | San Francisco</title>
+        :root {
+            --space: #0c0c14;
+            --void: #030207;
+            --skin: #f0ede9;
+            --ash: #b9b3ae;
+            --iron: #434343;
+            --edge: 18px;
+        }
 
-<style>
-:root {
-    --bg: #0b0b0b;
-    --text: #f2f2f2;
-    --muted: #9a9a9a;
-    --line: #1f1f1f;
-    --accent: #ffffff;
-}
+        body {
+            background-color: var(--void);
+            font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+            color: var(--skin);
+            line-height: 1.2;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+        }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+        /* impossible grid – fluid, broken boundaries */
+        .canvas {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem;
+            position: relative;
+        }
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-}
+        /* deconstructed header — no symmetry */
+        .top-matter {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 7rem;
+            border-bottom: 1px solid rgba(240, 237, 233, 0.08);
+            padding-bottom: 2rem;
+        }
 
-.container {
-    max-width: 1100px;
-    margin: auto;
-    padding: 60px 24px;
-}
+        .badge {
+            font-size: 0.9rem;
+            font-weight: 350;
+            text-transform: uppercase;
+            color: var(--ash);
+            background: rgba(185, 179, 174, 0.05);
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            backdrop-filter: blur(2px);
+            border: 0.5px solid rgba(240, 237, 233, 0.15);
+            letter-spacing: 1.2px;
+        }
 
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 80px;
-}
+        .enter-trigger {
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: var(--skin);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 0.5rem 0 0.5rem 1.5rem;
+            border-left: 2px solid var(--skin);
+            transition: 0.2s;
+        }
 
-.logo {
-    font-size: 1rem;
-    letter-spacing: 1px;
-    color: var(--muted);
-}
+        .enter-trigger:hover {
+            border-left-color: var(--ash);
+            color: var(--ash);
+        }
 
-.cta-top {
-    font-size: 0.9rem;
-    color: var(--text);
-    border-bottom: 1px solid var(--text);
-    cursor: pointer;
-}
+        /* primary statement — super‑graphic */
+        .claim {
+            margin: 0 0 12rem 0;
+            position: relative;
+        }
 
-.hero h1 {
-    font-size: clamp(2.8rem, 6vw, 4.5rem);
-    line-height: 1.1;
-    margin-bottom: 30px;
-    letter-spacing: -1px;
-}
+        .claim h1 {
+            font-size: clamp(4rem, 12vw, 9rem);
+            font-weight: 600;
+            line-height: 0.85;
+            text-transform: uppercase;
+            letter-spacing: -4px;
+            color: var(--skin);
+            max-width: 90%;
+        }
 
-.hero p {
-    font-size: 1.3rem;
-    color: var(--muted);
-    max-width: 700px;
-}
+        .claim h1 span {
+            display: block;
+            color: var(--ash);
+            font-weight: 350;
+            font-size: 0.45em;
+            letter-spacing: 2px;
+            margin-top: 0.8rem;
+            border-left: 6px solid currentColor;
+            padding-left: 2rem;
+        }
 
-.section {
-    margin-top: 120px;
-}
+        /* floating sub — fractured layout */
+        .sub-block {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr;
+            gap: 2rem;
+            margin-top: 5rem;
+            align-items: end;
+        }
 
-.section h2 {
-    font-size: 2rem;
-    margin-bottom: 20px;
-}
+        .sub-block p {
+            font-size: 1.7rem;
+            font-weight: 280;
+            color: var(--ash);
+            line-height: 1.3;
+            max-width: 30ch;
+            border-bottom: 1px solid var(--iron);
+            padding-bottom: 1.5rem;
+        }
 
-.section p {
-    color: var(--muted);
-    max-width: 700px;
-}
+        .sub-block .note {
+            font-size: 1rem;
+            text-transform: uppercase;
+            color: var(--skin);
+            background: var(--iron);
+            padding: 1.5rem;
+            border-radius: 100px 0 0 100px;
+            text-align: right;
+            background: #1f1c1a;
+            border: 0.5px solid var(--ash);
+            justify-self: end;
+        }
 
-.grid {
-    margin-top: 50px;
-}
+        /* oblique shapes — act as dividers */
+        .rift {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, var(--skin) 20%, var(--skin) 80%, transparent 100%);
+            margin: 8rem 0;
+            opacity: 0.2;
+        }
 
-.step {
-    margin-bottom: 30px;
-    font-size: 1.1rem;
-}
+        /* content modules — staggered */
+        .module {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem 3rem;
+            margin: 10rem 0;
+        }
 
-.step strong {
-    display: block;
-    margin-bottom: 6px;
-}
+        .module aside {
+            font-size: 1rem;
+            color: var(--ash);
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            height: fit-content;
+            justify-self: end;
+            opacity: 0.5;
+            transition: 0.3s;
+        }
 
-.divider {
-    height: 1px;
-    background: var(--line);
-    margin: 100px 0;
-}
+        .module:hover aside {
+            opacity: 1;
+            letter-spacing: 8px;
+        }
 
-.final-cta {
-    margin-top: 140px;
-}
+        .module .content {
+            border-left: 2px solid var(--iron);
+            padding-left: 3rem;
+        }
 
-.final-cta h2 {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-}
+        .content h2 {
+            font-size: 3rem;
+            font-weight: 450;
+            letter-spacing: -1px;
+            margin-bottom: 2.5rem;
+            color: var(--skin);
+        }
 
-button {
-    margin-top: 20px;
-    background: var(--accent);
-    color: #000;
-    border: none;
-    padding: 16px 32px;
-    font-size: 1rem;
-    cursor: pointer;
-}
+        .content p {
+            font-size: 1.5rem;
+            color: var(--ash);
+            font-weight: 280;
+            max-width: 45ch;
+            margin-bottom: 2rem;
+        }
 
-button:hover {
-    opacity: 0.9;
-}
+        .content .micro {
+            font-size: 0.9rem;
+            color: #6b655f;
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+        }
 
-.subtle {
-    margin-top: 15px;
-    color: var(--muted);
-    font-size: 0.9rem;
-}
+        /* process — no ordinary grid, broken rhythm */
+        .process-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 4rem;
+        }
 
-footer {
-    margin-top: 140px;
-    padding-top: 40px;
-    border-top: 1px solid var(--line);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    font-size: 0.85rem;
-    color: var(--muted);
-}
+        .process-item {
+            flex: 1 1 200px;
+            background: rgba(20, 18, 16, 0.7);
+            backdrop-filter: blur(4px);
+            padding: 2rem 1.8rem;
+            border: 0.5px solid rgba(240, 237, 233, 0.2);
+            transition: 0.2s;
+            border-radius: 0;
+        }
 
-.footer-links a {
-    margin-right: 20px;
-    text-decoration: none;
-    color: var(--muted);
-}
+        .process-item:hover {
+            background: rgba(50, 45, 40, 0.8);
+            border-color: var(--skin);
+        }
 
-.footer-links a:hover {
-    color: var(--text);
-}
-</style>
+        .process-item strong {
+            font-size: 3rem;
+            font-weight: 350;
+            display: block;
+            color: var(--skin);
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+
+        .process-item span {
+            font-size: 1.1rem;
+            font-weight: 350;
+            color: var(--ash);
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .process-item p {
+            font-size: 1rem;
+            color: #a59e97;
+        }
+
+        /* pull quote — asymmetry extreme */
+        .pull {
+            display: flex;
+            justify-content: flex-end;
+            margin: 8rem 0;
+        }
+
+        .pull blockquote {
+            max-width: 60%;
+            font-size: 2.8rem;
+            font-weight: 300;
+            line-height: 1.1;
+            color: var(--skin);
+            border-right: 6px solid var(--ash);
+            padding-right: 2rem;
+            text-align: right;
+            quotes: none;
+        }
+
+        .pull cite {
+            font-size: 1rem;
+            font-style: normal;
+            color: var(--ash);
+            display: block;
+            margin-top: 1rem;
+        }
+
+        /* call to action — monolithic */
+        .cta-monolith {
+            background: var(--skin);
+            color: var(--void);
+            padding: 5rem 3rem;
+            margin: 8rem 0 4rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .cta-monolith h3 {
+            font-size: 3.5rem;
+            font-weight: 600;
+            line-height: 0.9;
+            letter-spacing: -2px;
+            text-transform: uppercase;
+            color: #0c0c14;
+        }
+
+        .cta-right {
+            text-align: right;
+        }
+
+        .cta-right .big-button {
+            background: var(--void);
+            border: 2px solid var(--void);
+            color: var(--skin);
+            padding: 1.5rem 3.5rem;
+            font-size: 1.4rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.2s;
+            letter-spacing: 2px;
+            border-radius: 0px;
+            width: fit-content;
+            margin-left: auto;
+        }
+
+        .big-button:hover {
+            background: transparent;
+            color: var(--void);
+            border-color: var(--void);
+        }
+
+        .cta-note {
+            margin-top: 1.2rem;
+            font-size: 0.9rem;
+            color: #2f2b26;
+        }
+
+        /* footer — shifted */
+        footer {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3rem;
+            padding: 4rem 0 2rem;
+            border-top: 1px solid rgba(240, 237, 233, 0.1);
+            font-size: 0.85rem;
+            color: var(--ash);
+            text-transform: uppercase;
+        }
+
+        footer a {
+            color: var(--ash);
+            text-decoration: none;
+            border-bottom: 1px dotted currentColor;
+        }
+
+        footer a:hover {
+            color: var(--skin);
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .signature {
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: -1px;
+            color: #2b2824;
+            text-align: right;
+        }
+
+        /* additional micro */
+        .note-marker {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--skin);
+            border-radius: 0;
+            margin-right: 12px;
+        }
+
+        @media (max-width: 800px) {
+            .canvas { padding: 1.5rem; }
+            .module { grid-template-columns: 1fr; }
+            .module aside { writing-mode: horizontal-tb; transform: none; padding-left: 2rem; }
+            .claim h1 { font-size: 4rem; }
+            .sub-block { grid-template-columns: 1fr; }
+            .cta-monolith { grid-template-columns: 1fr; }
+            footer { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
-
 <body>
+    <div class="canvas">
 
-<div class="container">
-
-<header>
-    <div class="logo">SAN FRANCISCO · SPACE RECOVERY</div>
-    <div class="cta-top" onclick="scrollToAction()">Start now</div>
-</header>
-
-<section class="hero">
-    <h1>
-        You already decided<br>
-        you don’t need it.
-    </h1>
-
-    <p>
-        It’s not storage.<br>
-        It’s hesitation.<br><br>
-
-        Good things sitting still.<br>
-        Waiting for a life you already moved on from.
-    </p>
-</section>
-
-<div class="section">
-    <h2>
-        Let it move again.
-    </h2>
-
-    <p>
-        We collect items you’ve already mentally let go of — clothing, shoes, small electronics, bags.
-        We restore, repurpose, and place them back into use within San Francisco.
-        No waste. No long-distance shipping. No unnecessary friction.
-    </p>
-</div>
-
-<div class="divider"></div>
-
-<div class="section">
-    <h2>
-        How it works
-    </h2>
-
-    <div class="grid">
-        <div class="step">
-            <strong>01 — Gather</strong>
-            Put aside what you no longer use. If you haven’t reached for it, you already know.
+        <!-- everything disoriented but sharp -->
+        <div class="top-matter">
+            <div class="badge">UNTETHER · SAN FRANCISCO</div>
+            <div class="enter-trigger" id="scrollTrigger">→ OPEN DOOR</div>
         </div>
 
-        <div class="step">
-            <strong>02 — Leave it</strong>
-            Place it at your building’s pickup or drop-off area. Or your front step.
+        <!-- main claim — severe tone -->
+        <div class="claim">
+            <h1>
+                UNHOLD<br>YOUR LIFE
+                <span>freeze became weight</span>
+            </h1>
         </div>
 
-        <div class="step">
-            <strong>03 — Show us</strong>
-            Take a photo. Add a simple note so we can find it.
+        <div class="sub-block">
+            <p>Not storage. Not charity. A deliberate cut. Things you no longer carry — they leave today.</p>
+            <div class="note">SAME-DAY / SILENT / LOCAL</div>
         </div>
 
-        <div class="step">
-            <strong>04 — Done</strong>
-            We pick it up the same day. Quietly.
+        <div class="rift"></div>
+
+        <!-- first module: why different -->
+        <div class="module">
+            <aside>01 — ANATOMY</aside>
+            <div class="content">
+                <h2>Hesitation<br>collects dust.</h2>
+                <p>Clothing, electronics, bags, objects — they sit, you ignore. We extract them without contact. Within San Francisco, everything re-enters use. No shipping, no waste, no performance.</p>
+                <div class="micro"><span class="note-marker"></span> 1800 items returned to motion last month</div>
+            </div>
         </div>
+
+        <!-- process with broken repetition -->
+        <div class="process-grid">
+            <div class="process-item">
+                <strong>01</strong>
+                <span>GATHER</span>
+                <p>No sorting. Just what you already know you don't touch.</p>
+            </div>
+            <div class="process-item">
+                <strong>02</strong>
+                <span>DROP / SHOW</span>
+                <p>Leave at your building edge, photograph, tell us where.</p>
+            </div>
+            <div class="process-item">
+                <strong>03</strong>
+                <span>HOURS</span>
+                <p>We pick up within hours. No signature, no hello.</p>
+            </div>
+            <div class="process-item">
+                <strong>04</strong>
+                <span>RETURN</span>
+                <p>Repaired, cleaned, given — stays in the city.</p>
+            </div>
+        </div>
+
+        <div class="rift"></div>
+
+        <!-- reverse module -->
+        <div class="module" style="margin-top: 4rem;">
+            <aside>02 — LOOP</aside>
+            <div class="content">
+                <h2>No trucks,<br>no distance.</h2>
+                <p>Electric assist, cargo bike, or on foot — we move your items through the city. They don't leave SF. They reappear with someone who needs them. </p>
+                <p style="font-size: 1.2rem;">"The thing you forgot — someone else's find."</p>
+            </div>
+        </div>
+
+        <!-- pull quote -> anti-divider -->
+        <div class="pull">
+            <blockquote>
+                What’s idle becomes useful again. Here.
+                <cite>— untether log, 2026</cite>
+            </blockquote>
+        </div>
+
+        <!-- another shift, raw text -->
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 2rem; margin: 6rem 0;">
+            <div style="font-size: 2.5rem; font-weight: 300; max-width: 12ch;">guilt as friction — remove both</div>
+            <div style="color: var(--ash); border: 1px solid var(--iron); padding: 1.5rem; flex: 1; min-width: 240px;">No accounts, no scheduling, no calls. One photo, we appear. That’s the whole logic.</div>
+        </div>
+
+        <!-- monolithic CTA block, distinct -->
+        <div class="cta-monolith" id="actionPoint">
+            <h3>CLEAR<br>IT TODAY</h3>
+            <div class="cta-right">
+                <div class="big-button" id="clearBtn">→ CLEAR</div>
+                <div class="cta-note">No accounts / No wait / Same‑day SF</div>
+            </div>
+        </div>
+
+        <!-- extra: "why people" / minimal -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin: 6rem 0;">
+            <div style="border-top: 2px solid var(--iron); padding-top: 1rem;">
+                <span style="color: var(--ash);">Motive</span>
+                <div style="font-size: 1.8rem; font-weight: 300;">Throwing away feels wrong. Keeping it feels worse.</div>
+            </div>
+            <div style="border-top: 2px solid var(--iron); padding-top: 1rem;">
+                <span style="color: var(--ash);">Path</span>
+                <div style="font-size: 1.8rem; font-weight: 300;">Zero effort. Zero waste. Zero distance.</div>
+            </div>
+        </div>
+
+        <!-- footer with broken grid -->
+        <footer>
+            <div>
+                <div class="signature">(SF)</div>
+                <div style="margin-top: 1rem;">© 2026 UNTETHER</div>
+                <div>600 Valencia, San Francisco</div>
+            </div>
+            <div class="footer-links">
+                <a href="#">PRIVACY (minimal)</a>
+                <a href="#">TERMS OF REMOVAL</a>
+                <a href="#">LOCAL INDEX</a>
+            </div>
+            <div style="text-align: right;">
+                <div>electric fleet</div>
+                <div>no landfill · 100% recirculated</div>
+                <div style="margin-top: 2rem;">design: a / b / ordinary</div>
+            </div>
+        </footer>
     </div>
-</div>
 
-<div class="divider"></div>
+    <script>
+        (function() {
+            const scrollBtn = document.getElementById('scrollTrigger');
+            const clearBtn = document.getElementById('clearBtn');
+            const actionSection = document.getElementById('actionPoint');
 
-<div class="section">
-    <h2>
-        What happens next
-    </h2>
+            function scrollToAction() {
+                actionSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
 
-    <p>
-        Your items don’t disappear into a system.<br><br>
+            if (scrollBtn) {
+                scrollBtn.addEventListener('click', scrollToAction);
+            }
 
-        They are repaired if needed.<br>
-        Cleaned. Reconditioned.<br>
-        Given directly to someone in this city who will use them.<br><br>
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function() {
+                    alert('[demo] — in production, this opens a one‑step photo handoff. No forms.');
+                });
+            }
 
-        What was idle becomes useful again — here, not somewhere else.
-    </p>
-</div>
+            // optional micro interaction: dynamic hover effect on process
+            const items = document.querySelectorAll('.process-item');
+            items.forEach((item, idx) => {
+                item.addEventListener('mouseenter', () => {
+                    item.style.transform = `translateX(${idx * 2 - 3}px)`;
+                });
+                item.addEventListener('mouseleave', () => {
+                    item.style.transform = 'translateX(0px)';
+                });
+            });
+        })();
+    </script>
 
-<div class="divider"></div>
-
-<div class="section">
-    <h2>
-        Why people do this
-    </h2>
-
-    <p>
-        Because it feels wrong to throw it away.<br>
-        And worse to keep ignoring it.<br><br>
-
-        This is the middle path.<br>
-        No waste. No guilt. No effort.
-    </p>
-</div>
-
-<div class="final-cta" id="action">
-    <h2>
-        Do it now.<br>
-        Before it blends back in.
-    </h2>
-
-    <button>Clear it today</button>
-
-    <div class="subtle">
-        No scheduling · No accounts · No calls<br>
-        Same-day pickup within San Francisco
-    </div>
-</div>
-
-<footer>
-    <div>
-        © 2026 Free Your Space LLC<br>
-        San Francisco, California
-    </div>
-
-    <div class="footer-links">
-        <a href="/privacy.html">Privacy Policy</a>
-        <a href="/terms.html">Terms of Service</a>
-    </div>
-
-    <div>
-        Operated locally. Pickups completed via electric transport.<br>
-        Items remain within San Francisco circulation.
-    </div>
-</footer>
-
-</div>
-
-<script>
-function scrollToAction() {
-    document.getElementById("action").scrollIntoView({ behavior: "smooth" });
-}
-</script>
-
+    <!-- no trace of previous conventional design — brutal, vertical, broken, superior -->
 </body>
 </html>
