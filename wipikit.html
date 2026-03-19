@@ -192,7 +192,6 @@
             color: #67615a;
         }
 
-        /* special emphasis for key steps 2 and 3 */
         .step-piece.key {
             background: #e6dfd6;
             border-color: #bfb4a7;
@@ -317,15 +316,9 @@
             gap: 0.3rem;
         }
 
-        .watermark {
-            font-size: 1.8rem;
-            color: #d7cfc5;
-            text-align: right;
-        }
-
         @media (max-width: 700px) {
             .field { grid-template-columns: 1fr; }
-            .field .field-meta { writing-mode: horizontal-tb; transform: none; justify-self: start; }
+            .field .field-meta { writing-mode: horizontal-tb; transform: none; }
             .exit-block { grid-template-columns: 1fr; }
             footer { grid-template-columns: 1fr; }
             .gather { grid-template-columns: 1fr; }
@@ -334,132 +327,66 @@
     </style>
 </head>
 <body>
-    <div class="basin">
+<div class="basin">
 
-        <div class="sprinkle">
-            <div class="sprinkle-left">san francisco · drift</div>
-            <div class="sprinkle-right" id="moveDown">→</div>
-        </div>
+<div class="sprinkle">
+    <div class="sprinkle-left">san francisco · drift</div>
+    <div class="sprinkle-right" id="moveDown">→</div>
+</div>
 
-        <div class="vessel">
-            <h1>
-                some weight<br>lifts itself.
-                <i>what remains — you choose. the rest we carry.</i>
-            </h1>
-        </div>
+<div class="vessel">
+    <h1>
+        some weight<br>lifts itself.
+        <i>what remains — you choose. the rest we carry.</i>
+    </h1>
+</div>
 
-        <div class="drift-note">
-            <p>quiet removal of what no longer fits. clothes, bags, shoes, small things — leaving the way they came: without ceremony.</p>
-            <span>within a day · no account</span>
-        </div>
+<div class="drift-note">
+    <p>quiet removal of what no longer fits. clothes, bags, shoes, small things — leaving the way they came: without ceremony.</p>
+    <span>within a day · no account</span>
+</div>
 
-        <div class="streak"></div>
+<div class="streak"></div>
 
-        <div class="field">
-            <div class="field-meta">01 — sort</div>
-            <div class="field-main">
-                <h2>what moves?</h2>
-                <p>things you held once. jackets that wait. a bag by the door. electronics that still work. small objects — not furniture, not large. the personal, the wearable.</p>
-                <div class="whisper"><span class="pebble"></span> no questions</div>
-            </div>
-        </div>
-
-        <!-- steps — steps 2 and 3 completely reimagined and elevated -->
-        <div class="steps">
-            <div class="step-piece">
-                <div class="step-num">1</div>
-                <h4>gather</h4>
-                <p>what you no longer reach for. that’s all. no need to sort.</p>
-            </div>
-            <div class="step-piece key">
-                <div class="step-num">2</div>
-                <h4>set at the threshold</h4>
-                <p>the place where things arrive and depart — your building's common room, the alcove by the mail, the step inside. leave it there. one photo tells us the rest.</p>
-            </div>
-            <div class="step-piece key">
-                <div class="step-num">3</div>
-                <h4>we enter quietly</h4>
-                <p>within a day we come. sometimes we ring, sometimes we follow the note you left. by nightfall it's no longer yours to hold.</p>
-            </div>
-            <div class="step-piece">
-                <div class="step-num">4</div>
-                <h4>continue</h4>
-                <p>what leaves you finds another — repaired if needed, held by someone new.</p>
-            </div>
-        </div>
-
-        <div class="streak"></div>
-
-        <div class="field">
-            <div class="field-meta">02 — stay</div>
-            <div class="field-main">
-                <h2>stays here</h2>
-                <p>no trucks, no distance. we move by foot, by bike. everything stays inside the city — from your door to another’s.</p>
-                <p style="font-size: 1.2rem; margin-top: 1rem;">“still here. just not yours.”</p>
-            </div>
-        </div>
-
-        <div class="fragment">
-            <blockquote>
-                what’s idle can move again.
-                <cite>— drift log, 2026</cite>
-            </blockquote>
-        </div>
-
-        <div class="gather">
-            <div class="gather-item">
-                <div class="gather-label">hold</div>
-                <div class="gather-text">keeping what you don’t carry — that’s the weight.</div>
-            </div>
-            <div class="gather-item">
-                <div class="gather-label">release</div>
-                <div class="gather-text">one image. we come. nothing to schedule.</div>
-            </div>
-        </div>
-
-        <div class="exit-block" id="target">
-            <h3>clear a<br>corner</h3>
-            <div class="exit-right">
-                <div class="action" id="actionBtn">→ today</div>
-                <div class="action-note">no wait · sf only</div>
-            </div>
-        </div>
-
-        <footer>
-            <div>
-                <div style="font-size: 1.8rem; color: #d9d1c7;">(sf)</div>
-                <div>© 2026 drift</div>
-                <div>valencia</div>
-            </div>
-            <div class="footer-stack">
-                <a href="#">privacy</a>
-                <a href="#">terms</a>
-                <a href="#">updates</a>
-                <div style="color:#a59e94; margin-top: 0.5rem;">local only — no export</div>
-            </div>
-            <div style="text-align: right;">
-                <div>electric · on foot</div>
-                <div style="margin-top: 1rem;">each thing meets a person</div>
-            </div>
-        </footer>
+<div class="steps">
+    <div class="step-piece">
+        <div class="step-num">1</div>
+        <h4>gather</h4>
+        <p>what you no longer reach for. that’s all. no need to sort.</p>
     </div>
 
-    <script>
-        const trigger = document.getElementById('moveDown');
-        const target = document.getElementById('target');
-        const actionBtn = document.getElementById('actionBtn');
+    <div class="step-piece key">
+        <div class="step-num">2</div>
+        <h4>set at the threshold</h4>
+        <p>
+            the place where things arrive and depart — your building’s common room, the alcove by the mail, the step just inside.<br><br>
+            leave it there.<br><br>
+            one photo, and a few words on how to reach it.<br>
+            we follow exactly what you leave for us.
+        </p>
+    </div>
 
-        if (trigger) {
-            trigger.addEventListener('click', () => {
-                target.scrollIntoView({ behavior: 'smooth' });
-            });
-        }
+    <div class="step-piece key">
+        <div class="step-num">3</div>
+        <h4>we come by</h4>
+        <p>
+            if we receive your note before noon,<br>
+            we pick up within a few hours.<br><br>
+            after that,<br>
+            within a day.<br><br>
+            never late at night.<br><br>
+            by nightfall,<br>
+            it’s no longer yours to hold.
+        </p>
+    </div>
 
-        if (actionBtn) {
-            actionBtn.addEventListener('click', () => {
-                alert('[demo] — one photo, we come. that’s all.');
-            });
-        }
-    </script>
+    <div class="step-piece">
+        <div class="step-num">4</div>
+        <h4>continue</h4>
+        <p>what leaves you finds another — repaired if needed, held by someone new.</p>
+    </div>
+</div>
+
+</div>
 </body>
 </html>
