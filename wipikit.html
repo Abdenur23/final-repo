@@ -1,368 +1,262 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>leave it · forget it</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You Already Decided</title>
 
-        body {
-            background: #f2efea;
-            color: #1c1b17;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            font-weight: 300;
-            line-height: 1.4;
-            padding: 1.4rem;
-        }
+<style>
+:root {
+  --black: #000;
+  --white: #fff;
+  --gray: #888;
+}
 
-        .paper {
-            max-width: 860px;
-            margin: 0 auto;
-            background: #ffffffd9;
-            border: 2px solid #1c1b17;
-            padding: 2.5rem 2rem;
-            box-shadow: 10px 10px 0 #b3a58b;
-        }
+body {
+  margin: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background: var(--white);
+  color: var(--black);
+  overflow-x: hidden;
+}
 
-        hr {
-            border: none;
-            border-top: 2px solid #1c1b17;
-            margin: 2rem 0;
-        }
+/* CONTAINER */
+.poster {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 80px 40px 120px;
+}
 
-        .hr-light {
-            border-top: 1px dashed #9e9483;
-            margin: 1.5rem 0;
-        }
+/* HERO */
+.hero {
+  font-weight: 900;
+  font-size: 96px;
+  line-height: 0.9;
+  letter-spacing: -2px;
+  margin: 0 0 20px;
+}
 
-        h1 {
-            font-size: clamp(2.6rem, 9vw, 4.8rem);
-            font-weight: 400;
-            line-height: 1;
-            text-transform: uppercase;
-            letter-spacing: -1.5px;
-            word-break: break-word;
-            margin: 0 0 0.5rem 0;
-            font-family: 'Arial Black', 'Helvetica Bold', sans-serif;
-        }
+.hero span {
+  display: block;
+}
 
-        .subhead {
-            font-size: 1.4rem;
-            font-style: italic;
-            margin-bottom: 1.5rem;
-            color: #3e3a32;
-        }
+.sub {
+  font-weight: 600;
+  font-size: 26px;
+  color: var(--gray);
+  margin-bottom: 60px;
+}
 
-        .tagline {
-            font-size: 1rem;
-            text-transform: uppercase;
-            border-bottom: 1px solid black;
-            padding-bottom: 0.5rem;
-            margin-bottom: 2rem;
-            letter-spacing: 0.5px;
-        }
+/* BREAK - dramatic bar */
+.break {
+  width: 100%;
+  height: 8px;
+  background: var(--black);
+  margin-bottom: 60px;
+  transform: skewX(-12deg);
+}
 
-        .instruction-block {
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem;
-            margin: 2rem 0;
-        }
+/* BODY TEXT */
+.body {
+  font-size: 22px;
+  line-height: 1.8;
+  margin-bottom: 60px;
+}
 
-        .step {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            font-size: 1.2rem;
-            border-left: 3px solid #ab8e5c;
-            padding-left: 1.2rem;
-        }
+.body p {
+  margin: 32px 0;
+}
 
-        .step-number {
-            font-weight: 700;
-            font-size: 1.8rem;
-            line-height: 1;
-            color: #5f4e32;
-        }
+/* REPEAT LINE - huge and impactful */
+.repeat {
+  font-size: 72px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  margin: 80px 0;
+  line-height: 1;
+  color: var(--black);
+}
 
-        .photo-highlight {
-            background: #dbd3c2;
-            border: 2px solid #1c1b17;
-            padding: 1.2rem 1.2rem 1rem 1.2rem;
-            margin: 1.8rem 0;
-        }
+/* ACTION BLOCK - inverted for commitment */
+.action {
+  background: var(--black);
+  color: var(--white);
+  padding: 60px 40px;
+  margin: 80px 0;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
 
-        .photo-box {
-            background: #efeadb;
-            border: 2px dashed #5f4e32;
-            min-height: 160px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            color: #3b362b;
-            background-image: radial-gradient(circle at 20px 20px, #aca189 1.5px, transparent 1px);
-            background-size: 30px 30px;
-            margin-bottom: 1rem;
-        }
+.action-title {
+  font-size: 32px;
+  font-weight: 900;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
 
-        .photo-box span {
-            background: white;
-            padding: 0.5rem 1.2rem;
-            border: 1px solid black;
-            font-weight: 400;
-        }
+.steps {
+  font-size: 22px;
+  line-height: 2;
+}
 
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
+.steps strong {
+  display: inline-block;
+  margin-bottom: 8px;
+}
 
-        .card {
-            border: 2px solid black;
-            padding: 1.2rem;
-            background: #f6f3eb;
-        }
+/* IMPACT / FINAL - huge scale for gravity */
+.impact {
+  font-size: 44px;
+  font-weight: 900;
+  line-height: 1.2;
+  margin-top: 80px;
+  margin-bottom: 40px;
+}
 
-        label {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.4px;
-            display: block;
-            margin-top: 1rem;
-        }
+.final {
+  font-size: 64px;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 120px;
+  color: var(--black);
+}
 
-        input, textarea {
-            width: 100%;
-            background: transparent;
-            border: none;
-            border-bottom: 1.5px solid #1c1b17;
-            padding: 0.6rem 0.3rem;
-            font-size: 1rem;
-            font-family: inherit;
-            margin-bottom: 1.5rem;
-            border-radius: 0;
-        }
+/* FOOTER */
+.footer {
+  font-size: 14px;
+  color: var(--gray);
+  border-top: 2px solid #ddd;
+  padding-top: 20px;
+}
 
-        textarea {
-            border: 1.5px solid #1c1b17;
-            min-height: 70px;
-        }
+.footer a {
+  color: var(--black);
+  text-decoration: none;
+  border-bottom: 1px solid var(--black);
+  margin-right: 16px;
+}
 
-        input:focus, textarea:focus {
-            outline: none;
-            background: #faf3e2;
-        }
+/* SMALL MOTION - subtle */
+@keyframes float {
+  0%,100% { transform: translateY(0);}
+  50% { transform: translateY(-8px);}
+}
 
-        button {
-            background: #1c1b17;
-            color: white;
-            border: 2px solid #1c1b17;
-            padding: 0.9rem 1.8rem;
-            font-size: 1.2rem;
-            font-weight: 400;
-            width: 100%;
-            cursor: default;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: 0.1s;
-        }
+.repeat:hover {
+  animation: float 1s infinite ease-in-out;
+}
 
-        button:hover {
-            background: white;
-            color: black;
-        }
-
-        .forget-message {
-            font-size: 2rem;
-            text-transform: uppercase;
-            font-weight: 500;
-            line-height: 1.2;
-            margin: 2rem 0 1rem 0;
-            padding: 1rem 0;
-            border-top: 2px solid black;
-            border-bottom: 2px solid black;
-            text-align: center;
-        }
-
-        .flyer-sample {
-            border: 2px solid black;
-            background: #fffcf2;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .flyer-header {
-            font-size: 1.6rem;
-            font-weight: 700;
-            line-height: 1.2;
-            text-transform: uppercase;
-        }
-
-        .flyer-body {
-            margin: 0.5rem 0;
-            font-style: italic;
-        }
-
-        .flyer-footer {
-            border-top: 1px dashed black;
-            padding-top: 0.5rem;
-            margin-top: 0.5rem;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-        }
-
-        .row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: baseline;
-            margin: 0.5rem 0;
-        }
-
-        @media (max-width: 600px) {
-            .grid-2 {
-                grid-template-columns: 1fr;
-            }
-            .paper {
-                padding: 1.5rem 1rem;
-            }
-        }
-    </style>
+/* MOBILE */
+@media (max-width: 700px) {
+  .hero { font-size: 60px; }
+  .sub { font-size: 20px; }
+  .repeat { font-size: 48px; }
+  .action-title { font-size: 28px; }
+  .steps { font-size: 20px; }
+  .impact { font-size: 32px; }
+  .final { font-size: 44px; }
+}
+</style>
 </head>
 <body>
-<div class="paper">
 
-    <!-- top note: no scheduling anywhere -->
-    <div class="row">
-        <span style="font-size:0.75rem; text-transform:uppercase;">san francisco — item rescue</span>
-        <span style="background:black; color:white; padding:0.2rem 0.8rem;">no scheduling · ever</span>
+<div class="poster">
+
+  <div class="hero">
+    <span>You already</span>
+    <span>decided.</span>
+  </div>
+
+  <div class="sub">
+    You don’t need it.
+  </div>
+
+  <div class="break"></div>
+
+  <div class="body">
+    <p>
+      It’s still there.<br/>
+      Taking space.<br/>
+      Quietly draining attention every time you see it.
+    </p>
+
+    <p>
+      The jacket. The shoes.<br/>
+      The bag you don’t use.<br/>
+      The cables. The small electronics.
+    </p>
+
+    <p>
+      You already made the decision.<br/>
+      You just haven’t completed it.
+    </p>
+  </div>
+
+  <div class="repeat">
+    Finish it.
+  </div>
+
+  <div class="action">
+    <div class="action-title">
+      Do this now. Not later.
     </div>
-
-    <!-- main statement: brief & decisive -->
-    <h1>YOU ALREADY<br>DON'T NEED IT.</h1>
-    <div class="subhead">Leave it. That's the whole step.</div>
-
-    <!-- THE PHOTO IS KEY (as requested) -->
-    <div class="photo-highlight">
-        <div class="photo-box">
-            <span>📸  ATTACH PHOTO — KEY PART</span>
-        </div>
-        <p style="font-size:1rem; font-weight:500;">A photo is how we find it. No photo, no pickup. <br>Show us the bag, the shelf, the corner.</p>
+    <div class="steps">
+      <strong>Pick it up.</strong><br/><br/>
+      Put it in a bag. Or don’t.<br/>
+      Carry it as it is.<br/><br/>
+      Walk it to your building’s pickup area.<br/>
+      Leave it there.<br/><br/>
+      Take a photo.<br/>
+      Write one line of where it is.
     </div>
+  </div>
 
-    <hr>
+  <div class="body">
+    <p>
+      No forms.<br/>
+      No scheduling.<br/>
+      No name. No number.
+    </p>
 
-    <!-- the simple instruction (no schedule) -->
-    <div style="font-size:1.2rem; margin-bottom:1rem; font-weight:600;">how this works — you do not schedule anything</div>
+    <p>
+      Same-day pickup.<br/>
+      San Francisco only.
+    </p>
 
-    <div class="instruction-block">
-        <div class="step">
-            <span class="step-number">01</span>
-            <span>Put items in your building's <strong>package pick‑up / drop‑off area</strong>. Lobby shelf, mailroom, parcel corner — wherever packages normally go.</span>
-        </div>
-        <div class="step">
-            <span class="step-number">02</span>
-            <span>Take one clear photo showing the items + their spot.</span>
-        </div>
-        <div class="step">
-            <span class="step-number">03</span>
-            <span>Fill out below: <strong>street address + pickup instruction + photo</strong>.</span>
-        </div>
-        <div class="step">
-            <span class="step-number">04</span>
-            <span><strong>Forget it.</strong> No reply, no follow‑up, no window. It leaves. You’re done.</span>
-        </div>
+    <p>
+      E-bikes.<br/>
+      No trucks.<br/>
+      No shipping across states burning fuel.
+    </p>
+
+    <p>
+      It stays here.<br/>
+      Someone here uses it.
+    </p>
+  </div>
+
+  <div class="impact">
+    What’s in your way<br/>
+    is exactly what someone else needs.
+  </div>
+
+  <div class="final">
+    Don’t carry it home again.<br/>
+    Let it go. Now.
+  </div>
+
+  <div class="footer">
+    ©️ 2026 Your Company Name, LLC — San Francisco, CA<br/>
+    Same-day pickup • Zero friction • Local reuse
+    <div>
+      <a href="/terms">Terms</a>
+      <a href="/privacy">Privacy</a>
     </div>
+  </div>
 
-    <hr class="hr-light">
-
-    <!-- only fields that matter: address + instruction + photo -->
-    <div style="margin: 2rem 0;">
-        <div style="font-size:1.4rem; margin-bottom:1.2rem; border-left:8px solid #ab8e5c; padding-left:0.8rem;">
-            street address → then forget it
-        </div>
-
-        <div class="grid-2">
-            <div class="card">
-                <label>street address (san francisco only)</label>
-                <input type="text" placeholder="e.g. 451 shotwell, 3rd floor" value="451 shotwell st" disabled>
-                
-                <label>pickup instruction — be specific</label>
-                <textarea disabled>package shelf near mailboxes, left side, black bag</textarea>
-            </div>
-            <div class="card">
-                <label>upload photo (this is how we locate)</label>
-                <input type="file" disabled style="border:none; padding:0;">
-                <div style="background:#ddd5c6; padding:0.5rem; font-size:0.8rem; margin-top:0.8rem;">
-                    ⚡ last step — after this, you're done.
-                </div>
-            </div>
-        </div>
-
-        <!-- the actual button does NOT schedule, just placeholder -->
-        <button disabled>→ submit — then forget it (demo)</button>
-        <p style="margin-top:0.3rem; font-size:0.7rem; text-align:right;">(no confirmation, no follow‑up. you're already done.)</p>
-    </div>
-
-    <!-- the "forget it" guarantee repeated -->
-    <div class="forget-message">
-        no schedule · no reply · no window
-    </div>
-
-    <!-- flyer concepts (exactly as provided) -->
-    <hr>
-    <div style="margin: 1.5rem 0 1rem 0; font-size:0.9rem; text-transform: uppercase;">flyers — left in lobbies</div>
-
-    <div class="grid-2">
-        <!-- FRONT 1 -->
-        <div class="flyer-sample">
-            <div class="flyer-header">YOU ALREADY<br>MOVED ON.<br>IT JUST DIDN'T.</div>
-            <div class="flyer-body">It meant something, once. Now it stays where you leave it.<br>Let it move on.</div>
-            <div class="flyer-footer">WePickItSF.com · hello@wepickitsf.com</div>
-            <div style="margin-top:0.8rem; background:#f5efe4; padding:0.3rem; font-size:0.7rem;">← BACK: We come by your building. You hand it off. No drop-offs. No sorting. It keeps moving — locally.</div>
-        </div>
-        <!-- FRONT 2 -->
-        <div class="flyer-sample">
-            <div class="flyer-header">YOU CHOSE IT ONCE.<br>YOU DON'T REACH FOR IT NOW.</div>
-            <div class="flyer-body">Not gone. Just not part of your days.<br>Let it move on.</div>
-            <div class="flyer-footer">WePickItSF.com · hello@wepickitsf.com</div>
-            <div style="margin-top:0.8rem; background:#f5efe4; padding:0.3rem; font-size:0.7rem;">← BACK: We come by your building. You hand it off. No drop-offs. No sorting.</div>
-        </div>
-        <!-- FRONT 3 -->
-        <div class="flyer-sample">
-            <div class="flyer-header">SPACE IS TIGHT HERE.<br>SOME THINGS JUST STAY TOO LONG.</div>
-            <div class="flyer-body">Closets fill. Corners collect. You don't need more space. Just less of what stays.</div>
-            <div class="flyer-footer">WePickItSF.com · hello@wepickitsf.com</div>
-            <div style="margin-top:0.8rem; background:#f5efe4; padding:0.3rem; font-size:0.7rem;">← BACK: We come by your building. You hand it off. No drop-offs. No sorting.</div>
-        </div>
-        <!-- FRONT 4 -->
-        <div class="flyer-sample">
-            <div class="flyer-header">IT STILL BELONGS TO YOU.<br>JUST NOT HERE.</div>
-            <div class="flyer-body">Let it move on.</div>
-            <div class="flyer-footer">WePickItSF.com · hello@wepickitsf.com</div>
-            <div style="margin-top:0.8rem; background:#f5efe4; padding:0.3rem; font-size:0.7rem;">← BACK: We come by your building. You hand it off. No drop-offs. No sorting. It keeps moving — locally.</div>
-        </div>
-    </div>
-
-    <!-- final reminder: no scheduling -->
-    <hr>
-    <div style="display:flex; flex-wrap:wrap; gap:2rem; justify-content:space-between; margin-top:1.5rem;">
-        <span style="font-weight:600;">WE PICK IT · SAN FRANCISCO</span>
-        <span style="font-style:italic;">no scheduling, no phone calls, no two‑hour windows. you left it, we take it.</span>
-    </div>
-    <div style="margin-top:1rem; font-size:0.75rem; border-top:1px solid black; padding-top:0.5rem; text-align:center;">
-        hello@wepickitsf.com · wepickitsf.com · 03.2026
-    </div>
 </div>
-<!-- no javascript, no modal, no scheduling -->
+
 </body>
 </html>
