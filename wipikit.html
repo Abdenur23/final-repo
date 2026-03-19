@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNTETHER · SF</title>
+    <title>hush · san francisco</title>
     <style>
         * {
             margin: 0;
@@ -11,540 +11,470 @@
             box-sizing: border-box;
         }
 
-        :root {
-            --space: #0c0c14;
-            --void: #030207;
-            --skin: #f0ede9;
-            --ash: #b9b3ae;
-            --iron: #434343;
-            --edge: 18px;
-        }
-
         body {
-            background-color: var(--void);
-            font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-            color: var(--skin);
-            line-height: 1.2;
+            background-color: #f6f3f0;
+            font-family: 'Times New Roman', Times, serif;
+            color: #1e1e1c;
+            line-height: 1.3;
             font-weight: 400;
-            letter-spacing: -0.01em;
         }
 
-        .canvas {
-            max-width: 1440px;
+        .air {
+            max-width: 1300px;
             margin: 0 auto;
-            padding: 2.5rem 2rem;
-            position: relative;
+            padding: 3rem 2.5rem;
         }
 
-        .top-matter {
+        /* thin — almost nothing */
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 7rem;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            color: #6b6863;
+            border-top: 1px solid #cdc9c2;
+            padding-top: 1.2rem;
+        }
+
+        .top-l {
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .top-r {
+            font-style: italic;
+            cursor: pointer;
+            border-bottom: 1px solid #1e1e1c;
+            line-height: 1;
+        }
+
+        /* main — quiet, roomy */
+        .main-pull {
+            margin: 6rem 0 12rem 0;
+        }
+
+        .main-pull h1 {
+            font-size: clamp(3.5rem, 10vw, 6.5rem);
+            font-weight: 400;
+            line-height: 1;
+            letter-spacing: -0.02em;
+            text-transform: none;
+            color: #1e1e1c;
+            max-width: 90%;
+        }
+
+        .main-pull h1 span {
+            display: block;
+            font-style: italic;
+            color: #8f8a83;
+            font-size: 0.65em;
+            margin-top: 1.5rem;
+            border-left: 3px solid #b9b2a8;
+            padding-left: 2rem;
+        }
+
+        .soft-row {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 7rem;
-            border-bottom: 1px solid rgba(240, 237, 233, 0.08);
-            padding-bottom: 2rem;
-        }
-
-        .badge {
-            font-size: 0.9rem;
-            font-weight: 350;
-            text-transform: uppercase;
-            color: var(--ash);
-            background: rgba(185, 179, 174, 0.05);
-            padding: 0.4rem 1rem;
-            border-radius: 40px;
-            backdrop-filter: blur(2px);
-            border: 0.5px solid rgba(240, 237, 233, 0.15);
-            letter-spacing: 1.2px;
-        }
-
-        .enter-trigger {
-            font-size: 1.1rem;
-            font-weight: 400;
-            color: var(--skin);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            padding: 0.5rem 0 0.5rem 1.5rem;
-            border-left: 2px solid var(--skin);
-            transition: 0.2s;
-        }
-
-        .enter-trigger:hover {
-            border-left-color: var(--ash);
-            color: var(--ash);
-        }
-
-        /* claim block — now integrated poetically, not literal glue */
-        .claim {
-            margin: 0 0 12rem 0;
-            position: relative;
-        }
-
-        .claim h1 {
-            font-size: clamp(3.8rem, 11vw, 8rem);
-            font-weight: 600;
-            line-height: 0.9;
-            text-transform: uppercase;
-            letter-spacing: -3px;
-            color: var(--skin);
-            max-width: 95%;
-        }
-
-        .claim h1 .line-block {
-            display: block;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: clip;
-        }
-
-        .claim h1 .line-block:first-child {
-            color: var(--skin);
-        }
-
-        .claim h1 .line-block:last-child {
-            color: var(--ash);
-            font-weight: 350;
-            font-size: 0.6em;
-            letter-spacing: -0.5px;
-            margin-top: 0.4rem;
-            border-left: 6px solid currentColor;
-            padding-left: 1.5rem;
-            white-space: normal;
-            word-break: break-word;
-            text-transform: none;
-        }
-
-        /* floating sub */
-        .sub-block {
-            display: grid;
-            grid-template-columns: 2fr 1.5fr;
             gap: 2rem;
-            margin-top: 5rem;
-            align-items: end;
+            margin: 2rem 0 8rem 0;
         }
 
-        .sub-block p {
-            font-size: 1.7rem;
-            font-weight: 280;
-            color: var(--ash);
-            line-height: 1.3;
-            max-width: 30ch;
-            border-bottom: 1px solid var(--iron);
-            padding-bottom: 1.5rem;
+        .soft-row p {
+            font-size: 1.6rem;
+            max-width: 40rem;
+            color: #3a3835;
         }
 
-        .sub-block .note {
+        .soft-note {
             font-size: 1rem;
-            text-transform: uppercase;
-            color: var(--skin);
-            background: var(--iron);
-            padding: 1.5rem;
-            border-radius: 100px 0 0 100px;
-            text-align: right;
-            background: #1f1c1a;
-            border: 0.5px solid var(--ash);
-            justify-self: end;
+            color: #7d7770;
+            background: #e9e4dd;
+            padding: 1.5rem 2rem;
+            border-radius: 60px;
+            align-self: flex-end;
         }
 
-        .rift {
+        /* divider — almost nothing */
+        .thin-line {
             width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent 0%, var(--skin) 20%, var(--skin) 80%, transparent 100%);
-            margin: 8rem 0;
-            opacity: 0.2;
+            height: 1px;
+            background: #dad5cf;
+            margin: 6rem 0;
         }
 
-        .module {
+        /* content slabs — minimal */
+        .slab {
             display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 2rem 3rem;
-            margin: 10rem 0;
+            grid-template-columns: 1fr 2.5fr;
+            gap: 2rem 4rem;
+            margin: 8rem 0;
         }
 
-        .module aside {
-            font-size: 1rem;
-            color: var(--ash);
+        .slab .slab-meta {
+            font-size: 0.9rem;
             text-transform: uppercase;
-            letter-spacing: 6px;
+            color: #a39e97;
+            letter-spacing: 4px;
             writing-mode: vertical-rl;
             transform: rotate(180deg);
             height: fit-content;
             justify-self: end;
-            opacity: 0.5;
-            transition: 0.3s;
+            font-style: normal;
         }
 
-        .module:hover aside {
-            opacity: 1;
-            letter-spacing: 8px;
-        }
-
-        .module .content {
-            border-left: 2px solid var(--iron);
+        .slab-main {
+            border-left: 1px solid #cfc8c0;
             padding-left: 3rem;
         }
 
-        .content h2 {
-            font-size: 3rem;
-            font-weight: 450;
-            letter-spacing: -1px;
-            margin-bottom: 2.5rem;
-            color: var(--skin);
-        }
-
-        .content p {
-            font-size: 1.5rem;
-            color: var(--ash);
-            font-weight: 280;
-            max-width: 45ch;
+        .slab-main h2 {
+            font-size: 2.8rem;
+            font-weight: 380;
             margin-bottom: 2rem;
+            letter-spacing: -0.02em;
         }
 
-        .content .micro {
-            font-size: 0.9rem;
-            color: #6b655f;
+        .slab-main p {
+            font-size: 1.5rem;
+            color: #4d4944;
+            max-width: 35rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .slab-main .small-note {
+            font-size: 0.95rem;
+            color: #948e86;
             display: flex;
             gap: 0.8rem;
             align-items: center;
         }
 
-        .process-grid {
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #b0a89e;
+            border-radius: 50%;
+        }
+
+        /* process — loose, not rigid */
+        .flow {
             display: flex;
             flex-wrap: wrap;
-            gap: 2rem;
-            margin-top: 4rem;
+            gap: 1.5rem;
+            margin-top: 5rem;
         }
 
-        .process-item {
+        .flow-item {
             flex: 1 1 200px;
-            background: rgba(20, 18, 16, 0.7);
-            backdrop-filter: blur(4px);
-            padding: 2rem 1.8rem;
-            border: 0.5px solid rgba(240, 237, 233, 0.2);
+            background: transparent;
+            border: 1px solid #e1dbd3;
+            padding: 2rem 1.5rem;
             transition: 0.2s;
-            border-radius: 0;
         }
 
-        .process-item:hover {
-            background: rgba(50, 45, 40, 0.8);
-            border-color: var(--skin);
+        .flow-item:hover {
+            background: #f0ece6;
         }
 
-        .process-item strong {
-            font-size: 3rem;
-            font-weight: 350;
-            display: block;
-            color: var(--skin);
-            line-height: 1;
-            margin-bottom: 1rem;
-        }
-
-        .process-item span {
-            font-size: 1.1rem;
-            font-weight: 350;
-            color: var(--ash);
-            display: block;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 1rem;
-        }
-
-        .process-item p {
-            font-size: 1rem;
-            color: #a59e97;
-        }
-
-        .pull {
-            display: flex;
-            justify-content: flex-end;
-            margin: 8rem 0;
-        }
-
-        .pull blockquote {
-            max-width: 60%;
+        .flow-item .num {
             font-size: 2.8rem;
             font-weight: 300;
-            line-height: 1.1;
-            color: var(--skin);
-            border-right: 6px solid var(--ash);
-            padding-right: 2rem;
-            text-align: right;
-            quotes: none;
+            color: #b7b0a7;
+            line-height: 1;
+            margin-bottom: 0.8rem;
         }
 
-        .pull cite {
+        .flow-item h4 {
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 1rem;
+            font-weight: 400;
+        }
+
+        .flow-item p {
             font-size: 1rem;
-            font-style: normal;
-            color: var(--ash);
+            color: #5d5750;
+        }
+
+        /* quote section — breathing */
+        .quote {
+            display: flex;
+            justify-content: flex-start;
+            margin: 7rem 0;
+        }
+
+        .quote blockquote {
+            max-width: 65%;
+            font-size: 2.5rem;
+            line-height: 1.1;
+            color: #2b2824;
+            border-left: 4px solid #c5bcb2;
+            padding-left: 2rem;
+            font-style: italic;
+        }
+
+        .quote cite {
             display: block;
             margin-top: 1rem;
+            font-size: 1rem;
+            color: #908a82;
+            font-style: normal;
         }
 
-        .cta-monolith {
-            background: var(--skin);
-            color: var(--void);
-            padding: 5rem 3rem;
-            margin: 8rem 0 4rem;
+        /* callout — soft, not monolithic */
+        .callout {
+            background: #e9e2d9;
+            padding: 4rem 3rem;
+            margin: 7rem 0 5rem;
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 2rem;
             align-items: center;
         }
 
-        .cta-monolith h3 {
-            font-size: 3.5rem;
-            font-weight: 600;
-            line-height: 0.9;
-            letter-spacing: -2px;
-            text-transform: uppercase;
-            color: #0c0c14;
+        .callout h3 {
+            font-size: 3rem;
+            font-weight: 380;
+            line-height: 1;
+            letter-spacing: -1px;
+            color: #1e1e1c;
         }
 
-        .cta-right {
+        .callout-r {
             text-align: right;
         }
 
-        .cta-right .big-button {
-            background: var(--void);
-            border: 2px solid var(--void);
-            color: var(--skin);
-            padding: 1.5rem 3.5rem;
-            font-size: 1.4rem;
-            font-weight: 500;
-            text-transform: uppercase;
+        .callout-r .btn {
+            background: #1e1e1c;
+            border: none;
+            color: #f0ebe5;
+            padding: 1.2rem 2.8rem;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
             cursor: pointer;
             transition: 0.2s;
-            letter-spacing: 2px;
-            border-radius: 0px;
+            font-family: 'Times New Roman', serif;
+            border-radius: 0;
             width: fit-content;
             margin-left: auto;
         }
 
-        .big-button:hover {
-            background: transparent;
-            color: var(--void);
-            border-color: var(--void);
+        .btn:hover {
+            background: #423f3b;
         }
 
-        .cta-note {
+        .callout-note {
             margin-top: 1.2rem;
-            font-size: 0.9rem;
-            color: #2f2b26;
+            font-size: 0.85rem;
+            color: #625c55;
         }
 
+        /* closing thoughts */
+        .double {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin: 6rem 0;
+        }
+
+        .double-item {
+            border-top: 2px solid #d9d2c9;
+            padding-top: 1.2rem;
+        }
+
+        .double-item .pre {
+            color: #8f8880;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .double-item .main-text {
+            font-size: 2rem;
+            line-height: 1.2;
+            font-weight: 350;
+        }
+
+        /* footer — clean */
         footer {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 3rem;
-            padding: 4rem 0 2rem;
-            border-top: 1px solid rgba(240, 237, 233, 0.1);
+            gap: 2rem;
+            padding: 3rem 0 2rem;
+            border-top: 1px solid #d5cfc7;
             font-size: 0.85rem;
-            color: var(--ash);
-            text-transform: uppercase;
+            color: #756f68;
+            margin-top: 5rem;
         }
 
         footer a {
-            color: var(--ash);
+            color: #5d5750;
             text-decoration: none;
-            border-bottom: 1px dotted currentColor;
-        }
-
-        footer a:hover {
-            color: var(--skin);
+            border-bottom: 0.5px dotted #9f978e;
         }
 
         .footer-links {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.3rem;
         }
 
-        .signature {
-            font-size: 2rem;
+        .signoff {
+            font-size: 1.8rem;
             font-weight: 300;
-            letter-spacing: -1px;
-            color: #2b2824;
+            color: #cfc8c0;
             text-align: right;
         }
 
-        .note-marker {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: var(--skin);
-            border-radius: 0;
-            margin-right: 12px;
-        }
-
-        @media (max-width: 800px) {
-            .canvas { padding: 1.5rem; }
-            .module { grid-template-columns: 1fr; }
-            .module aside { writing-mode: horizontal-tb; transform: none; padding-left: 2rem; }
-            .claim h1 { font-size: 3.2rem; }
-            .claim h1 .line-block:last-child { font-size: 0.7em; white-space: normal; }
-            .sub-block { grid-template-columns: 1fr; }
-            .cta-monolith { grid-template-columns: 1fr; }
+        @media (max-width: 700px) {
+            .slab { grid-template-columns: 1fr; }
+            .slab .slab-meta { writing-mode: horizontal-tb; transform: none; justify-self: start; }
+            .callout { grid-template-columns: 1fr; }
             footer { grid-template-columns: 1fr; }
+            .double { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="canvas">
+    <div class="air">
 
-        <div class="top-matter">
-            <div class="badge">UNTETHER · SAN FRANCISCO</div>
-            <div class="enter-trigger" id="scrollTrigger">→ OPEN DOOR</div>
+        <div class="top">
+            <div class="top-l">san francisco · hush</div>
+            <div class="top-r" id="scrollBtn">↓ enter</div>
         </div>
 
-        <!-- main claim — your thought, but rhythmically embedded, not just glued -->
-        <div class="claim">
+        <!-- main line — fresh language, not copied -->
+        <div class="main-pull">
             <h1>
-                <span class="line-block">You already decided</span>
-                <span class="line-block">you don’t need it.</span>
+                the room<br>breathes lighter.
+                <span>what stays — stays by choice. the rest, we carry out.</span>
             </h1>
         </div>
 
-        <div class="sub-block">
-            <p>Not storage. Not charity. A deliberate cut. Things you no longer carry — they leave today.</p>
-            <div class="note">SAME-DAY / SILENT / LOCAL</div>
+        <div class="soft-row">
+            <p>this is not a purge. it’s a quiet unbuilding. clothes, shoes, small things — they leave the way they arrived: without noise.</p>
+            <div class="soft-note">same day · no account · sf</div>
         </div>
 
-        <div class="rift"></div>
+        <div class="thin-line"></div>
 
-        <!-- Module 01: Anatomy — infused with your specific items, but poetically -->
-        <div class="module">
-            <aside>01 — ANATOMY</aside>
-            <div class="content">
-                <h2>Hesitation<br>collects dust.</h2>
-                <p>Garments you once reached for. Shoes that stayed in the box. Bags, small devices — the still life you walk past. We extract them without contact. Within San Francisco, everything re-enters use. No shipping, no waste, no performance.</p>
-                <div class="micro"><span class="note-marker"></span> 1800 items returned to motion last month</div>
-            </div>
-        </div>
-
-        <!-- process grid — your notes woven in, not copy-pasted -->
-        <div class="process-grid">
-            <div class="process-item">
-                <strong>01</strong>
-                <span>GATHER</span>
-                <p>No sorting. Just what you already know you don't touch.</p>
-            </div>
-            <div class="process-item">
-                <strong>02</strong>
-                <span>DROP / SHOW</span>
-                <p>Leave it in the pickup area — every building has one. Snap a photo, tell us how to enter. We find it from that.</p>
-            </div>
-            <div class="process-item">
-                <strong>03</strong>
-                <span>HOURS</span>
-                <p>We pick up within hours. No signature, no hello.</p>
-            </div>
-            <div class="process-item">
-                <strong>04</strong>
-                <span>NEXT OWNER</span>
-                <p>Repaired, cleaned, placed directly with someone in this city who will use them. No donation vortex — a new owner, not an abstraction.</p>
+        <!-- slab 01 (anatomy reimagined) -->
+        <div class="slab">
+            <div class="slab-meta">01 — kind</div>
+            <div class="slab-main">
+                <h2>what goes?</h2>
+                <p>things that lost their hand. jackets that hang too long. a bag you don’t reach for. electronics that work but wait. small objects, still good, still here.</p>
+                <div class="small-note"><span class="dot"></span> we never ask why</div>
             </div>
         </div>
 
-        <div class="rift"></div>
-
-        <!-- module 02 loop -->
-        <div class="module" style="margin-top: 4rem;">
-            <aside>02 — LOOP</aside>
-            <div class="content">
-                <h2>No trucks,<br>no distance.</h2>
-                <p>Electric assist, cargo bike, or on foot — we move your items through the city. They don't leave SF. They reappear with someone who needs them. </p>
-                <p style="font-size: 1.2rem;">"The thing you forgot — someone else's find."</p>
+        <!-- flow (process — fresh language, no pickup area nonsense) -->
+        <div class="flow">
+            <div class="flow-item">
+                <div class="num">01</div>
+                <h4>set aside</h4>
+                <p>no sorting. just what you don’t use. if it’s still, it’s ready.</p>
+            </div>
+            <div class="flow-item">
+                <div class="num">02</div>
+                <h4>leave & show</h4>
+                <p>put it at the door — any door. a photo tells us where. one instruction: how to enter.</p>
+            </div>
+            <div class="flow-item">
+                <div class="num">03</div>
+                <h4>same day</h4>
+                <p>we come. no ring, no talk. it’s gone before evening.</p>
+            </div>
+            <div class="flow-item">
+                <div class="num">04</div>
+                <h4>pass on</h4>
+                <p>repaired if needed, then placed — someone here will carry it. not donation, not landfill.</p>
             </div>
         </div>
 
-        <!-- pull quote -->
-        <div class="pull">
+        <div class="thin-line"></div>
+
+        <!-- slab 02 — circulation -->
+        <div class="slab">
+            <div class="slab-meta">02 — current</div>
+            <div class="slab-main">
+                <h2>stay inside the city</h2>
+                <p>no trucks, no diesel. we move by foot, by bike, by hand. everything that leaves you stays in sf — passes to another door, another life.</p>
+                <p style="font-size: 1.2rem; margin-top: 0.5rem;">“still here, just not yours.”</p>
+            </div>
+        </div>
+
+        <!-- quote — soft -->
+        <div class="quote">
             <blockquote>
-                What’s idle becomes useful again. Here.
-                <cite>— untether log, 2026</cite>
+                what’s still finds hands again.
+                <cite>— 2026 log</cite>
             </blockquote>
         </div>
 
-        <!-- extra raw block -->
-        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 2rem; margin: 6rem 0;">
-            <div style="font-size: 2.5rem; font-weight: 300; max-width: 12ch;">guilt as friction — remove both</div>
-            <div style="color: var(--ash); border: 1px solid var(--iron); padding: 1.5rem; flex: 1; min-width: 240px;">No accounts, no scheduling, no calls. One photo, we appear. That’s the whole logic.</div>
-        </div>
-
-        <!-- monolithic CTA -->
-        <div class="cta-monolith" id="actionPoint">
-            <h3>CLEAR<br>IT TODAY</h3>
-            <div class="cta-right">
-                <div class="big-button" id="clearBtn">→ CLEAR</div>
-                <div class="cta-note">No accounts / No wait / Same‑day SF</div>
+        <!-- double thought (replacing motive block) -->
+        <div class="double">
+            <div class="double-item">
+                <div class="pre">weight</div>
+                <div class="main-text">keeping what you don’t hold — that’s the friction.</div>
+            </div>
+            <div class="double-item">
+                <div class="pre">lift</div>
+                <div class="main-text">one photo. we take it. no schedule, no call.</div>
             </div>
         </div>
 
-        <!-- "why people" block -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin: 6rem 0;">
-            <div style="border-top: 2px solid var(--iron); padding-top: 1rem;">
-                <span style="color: var(--ash);">Motive</span>
-                <div style="font-size: 1.8rem; font-weight: 300;">Throwing away feels wrong. Keeping it feels worse.</div>
-            </div>
-            <div style="border-top: 2px solid var(--iron); padding-top: 1rem;">
-                <span style="color: var(--ash);">Path</span>
-                <div style="font-size: 1.8rem; font-weight: 300;">Zero effort. Zero waste. Zero distance.</div>
+        <!-- callout CTA (new language) -->
+        <div class="callout" id="actionHere">
+            <h3>clear the<br>corner</h3>
+            <div class="callout-r">
+                <div class="btn" id="clearBtn">→ today</div>
+                <div class="callout-note">no accounts · no wait · sf only</div>
             </div>
         </div>
 
-        <!-- FOOTER — refined and clear -->
+        <!-- footer — clean, simple -->
         <footer>
             <div>
-                <div class="signature">(SF)</div>
-                <div style="margin-top: 1rem;">© 2026 UNTETHER</div>
-                <div>600 Valencia, San Francisco</div>
+                <div style="font-size: 1.6rem; color: #dbd4cb;">(sf)</div>
+                <div>© 2026 hush</div>
+                <div>valencia st.</div>
             </div>
             <div class="footer-links">
-                <a href="#">PRIVACY (minimal)</a>
-                <a href="#">TERMS OF REMOVAL</a>
-                <a href="#">PICKUP MAP</a>
-                <div style="color: #6b655f; margin-top: 0.8rem; text-transform: none;">we maximize circulation — nothing goes to landfill.</div>
+                <a href="#">privacy</a>
+                <a href="#">terms</a>
+                <a href="#">pickup log</a>
+                <div style="color:#948e86; text-transform: none; margin-top: 0.5rem;">we keep things here — no export</div>
             </div>
             <div style="text-align: right;">
-                <div>electric fleet</div>
-                <div style="margin-top: 2rem; color: #4a4640;">every item finds a new owner locally</div>
+                <div>electric · on foot</div>
+                <div style="margin-top: 1.2rem;">each thing finds a person, not a bin</div>
             </div>
         </footer>
     </div>
 
     <script>
-        (function() {
-            const scrollBtn = document.getElementById('scrollTrigger');
-            const clearBtn = document.getElementById('clearBtn');
-            const actionSection = document.getElementById('actionPoint');
+        const scrollBtn = document.getElementById('scrollBtn');
+        const actionHere = document.getElementById('actionHere');
+        const clearBtn = document.getElementById('clearBtn');
 
-            function scrollToAction() {
-                actionSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-
-            if (scrollBtn) {
-                scrollBtn.addEventListener('click', scrollToAction);
-            }
-
-            if (clearBtn) {
-                clearBtn.addEventListener('click', function() {
-                    alert('[demo] — one‑step photo handoff. No forms.');
-                });
-            }
-
-            const items = document.querySelectorAll('.process-item');
-            items.forEach((item, idx) => {
-                item.addEventListener('mouseenter', () => {
-                    item.style.transform = `translateX(${idx * 2 - 3}px)`;
-                });
-                item.addEventListener('mouseleave', () => {
-                    item.style.transform = 'translateX(0px)';
-                });
+        if (scrollBtn) {
+            scrollBtn.addEventListener('click', () => {
+                actionHere.scrollIntoView({ behavior: 'smooth' });
             });
-        })();
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                alert('[demo] — send one photo, we come. that’s the whole flow.');
+            });
+        }
     </script>
 </body>
 </html>
