@@ -1,75 +1,44 @@
-// wipikit/app.js
-// Core app namespace, scalable. Handles modal open/close.
+// /wipikit/app.js
 
-window.WePickItSF = window.WePickItSF || {};
+// this file handles the UI interactions: opening modal, closing, etc.
+// It also holds the config for the API endpoint (to be set later)
 
-(function(NS) {
-    'use strict';
+window.DRIFT_CONFIG = {
+    apiEndpoint: 'https://your-api-gateway.execute-api.us-west-1.amazonaws.com/prod/drift' // replace later
+};
 
-    // DOM elements
-    const overlay = document.getElementById('bookingModalOverlay');
-    const openBtn = document.getElementById('openBookingBtn');
-    const closeBtn = document.getElementById('closeModalBtn');
+document.addEventListener('DOMContentLoaded', function() {
+    const openBtn = document.getElementById('actionBtn');
+    const modal = document.getElementById('modalOverlay');
+    const cancelBtn = document.getElementById('cancelModal');
 
-    // state
-    let modalOpen = false;
+    // open modal
+    if (openBtn) {
+        openBtn.addEventListener('click', function() {
+            modal.classList.add('active');
+        });
+    }
 
-    // public methods
-    NS.openModal = function openModal() {
-        if (!overlay) return;
-        overlay.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';     // prevent background scroll
-        modalOpen = true;
-    };
+    // close modal via cancel
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            modal.classList.remove('active');
+        });
+    }
 
-    NS.closeModal = function closeModal() {
-        if (!overlay) return;
-        overlay.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-        modalOpen = false;
-
-        // optional: reset form to pristine (but keep any confirmation hidden – booking.js will handle)
-        const form = document.getElementById('bookingForm');
-        const thankYou = document.getElementById('thankYouMessage');
-        if (form) form.reset();
-        if (thankYou) thankYou.hidden = true;
-        if (form) form.hidden = false;
-    };
-
-    NS.isModalOpen = function isModalOpen() {
-        return modalOpen;
-    };
-
-    // attach event listeners
-    function initModal() {
-        if (!overlay || !openBtn || !closeBtn) {
-            console.warn('Modal elements missing – still safe.');
-            return;
+    // close if click outside modal card (on overlay)
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.remove('active');
         }
+    });
 
-        openBtn.addEventListener('click', NS.openModal);
-        closeBtn.addEventListener('click', NS.closeModal);
-
-        // click outside the modal card closes it
-        overlay.addEventListener('click', function(e) {
-            if (e.target === overlay) {   // click on the overlay background
-                NS.closeModal();
-            }
-        });
-
-        // ESC key closes modal
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && NS.isModalOpen()) {
-                NS.closeModal();
-            }
+    // smooth scroll for top-right trigger
+    const scrollTrigger = document.getElementById('moveDown');
+    const target = document.getElementById('target');
+    if (scrollTrigger && target) {
+        scrollTrigger.addEventListener('click', function() {
+            target.scrollIntoView({ behavior: 'smooth' });
         });
     }
-
-    // start on DOM ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initModal);
-    } else {
-        initModal();
-    }
-
-})(window.WePickItSF);
+});
