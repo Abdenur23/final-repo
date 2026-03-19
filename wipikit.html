@@ -29,7 +29,6 @@
             letter-spacing: -0.01em;
         }
 
-        /* impossible grid – fluid, broken boundaries */
         .canvas {
             max-width: 1440px;
             margin: 0 auto;
@@ -37,7 +36,6 @@
             position: relative;
         }
 
-        /* deconstructed header — no symmetry */
         .top-matter {
             display: flex;
             flex-wrap: wrap;
@@ -79,7 +77,7 @@
             color: var(--ash);
         }
 
-        /* primary statement — super‑graphic */
+        /* claim block — now uses exact requested line */
         .claim {
             margin: 0 0 12rem 0;
             position: relative;
@@ -106,7 +104,7 @@
             padding-left: 2rem;
         }
 
-        /* floating sub — fractured layout */
+        /* floating sub */
         .sub-block {
             display: grid;
             grid-template-columns: 2fr 1.5fr;
@@ -138,7 +136,6 @@
             justify-self: end;
         }
 
-        /* oblique shapes — act as dividers */
         .rift {
             width: 100%;
             height: 2px;
@@ -147,7 +144,6 @@
             opacity: 0.2;
         }
 
-        /* content modules — staggered */
         .module {
             display: grid;
             grid-template-columns: 1fr 2fr;
@@ -202,7 +198,6 @@
             align-items: center;
         }
 
-        /* process — no ordinary grid, broken rhythm */
         .process-grid {
             display: flex;
             flex-wrap: wrap;
@@ -249,7 +244,6 @@
             color: #a59e97;
         }
 
-        /* pull quote — asymmetry extreme */
         .pull {
             display: flex;
             justify-content: flex-end;
@@ -276,7 +270,6 @@
             margin-top: 1rem;
         }
 
-        /* call to action — monolithic */
         .cta-monolith {
             background: var(--skin);
             color: var(--void);
@@ -329,7 +322,6 @@
             color: #2f2b26;
         }
 
-        /* footer — shifted */
         footer {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -365,7 +357,6 @@
             text-align: right;
         }
 
-        /* additional micro */
         .note-marker {
             display: inline-block;
             width: 8px;
@@ -389,16 +380,15 @@
 <body>
     <div class="canvas">
 
-        <!-- everything disoriented but sharp -->
         <div class="top-matter">
             <div class="badge">UNTETHER · SAN FRANCISCO</div>
             <div class="enter-trigger" id="scrollTrigger">→ OPEN DOOR</div>
         </div>
 
-        <!-- main claim — severe tone -->
+        <!-- main claim — EXACT requested line: "You already decided you don’t need it." -->
         <div class="claim">
             <h1>
-                UNHOLD<br>YOUR LIFE
+                You already decided<br>you don’t need it.
                 <span>freeze became weight</span>
             </h1>
         </div>
@@ -410,17 +400,17 @@
 
         <div class="rift"></div>
 
-        <!-- first module: why different -->
+        <!-- Module 01: Anatomy — rephrased per feedback: clothing, shoes, bags, small items (poetic twist) -->
         <div class="module">
             <aside>01 — ANATOMY</aside>
             <div class="content">
                 <h2>Hesitation<br>collects dust.</h2>
-                <p>Clothing, electronics, bags, objects — they sit, you ignore. We extract them without contact. Within San Francisco, everything re-enters use. No shipping, no waste, no performance.</p>
+                <p>Clothing, shoes, bags, small items — things you once touched, now still. We extract them without contact. Within San Francisco, everything re-enters use. No shipping, no waste, no performance.</p>
                 <div class="micro"><span class="note-marker"></span> 1800 items returned to motion last month</div>
             </div>
         </div>
 
-        <!-- process with broken repetition -->
+        <!-- process grid — updated step 02 and step 04 wording to reflect your notes -->
         <div class="process-grid">
             <div class="process-item">
                 <strong>01</strong>
@@ -430,7 +420,7 @@
             <div class="process-item">
                 <strong>02</strong>
                 <span>DROP / SHOW</span>
-                <p>Leave at your building edge, photograph, tell us where.</p>
+                <p>Leave in package pickup/drop‑off area (every building has one). Add a photo + brief instruction — we find it.</p>
             </div>
             <div class="process-item">
                 <strong>03</strong>
@@ -439,14 +429,14 @@
             </div>
             <div class="process-item">
                 <strong>04</strong>
-                <span>RETURN</span>
-                <p>Repaired, cleaned, given — stays in the city.</p>
+                <span>NEXT OWNER</span>
+                <p>Repaired, cleaned, placed directly with someone in this city who will use them. No donation limbo — new home found.</p>
             </div>
         </div>
 
         <div class="rift"></div>
 
-        <!-- reverse module -->
+        <!-- module 02 loop -->
         <div class="module" style="margin-top: 4rem;">
             <aside>02 — LOOP</aside>
             <div class="content">
@@ -456,7 +446,7 @@
             </div>
         </div>
 
-        <!-- pull quote -> anti-divider -->
+        <!-- pull quote -->
         <div class="pull">
             <blockquote>
                 What’s idle becomes useful again. Here.
@@ -464,13 +454,13 @@
             </blockquote>
         </div>
 
-        <!-- another shift, raw text -->
+        <!-- extra raw block -->
         <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 2rem; margin: 6rem 0;">
             <div style="font-size: 2.5rem; font-weight: 300; max-width: 12ch;">guilt as friction — remove both</div>
             <div style="color: var(--ash); border: 1px solid var(--iron); padding: 1.5rem; flex: 1; min-width: 240px;">No accounts, no scheduling, no calls. One photo, we appear. That’s the whole logic.</div>
         </div>
 
-        <!-- monolithic CTA block, distinct -->
+        <!-- monolithic CTA -->
         <div class="cta-monolith" id="actionPoint">
             <h3>CLEAR<br>IT TODAY</h3>
             <div class="cta-right">
@@ -479,7 +469,7 @@
             </div>
         </div>
 
-        <!-- extra: "why people" / minimal -->
+        <!-- "why people" block unchanged but fine -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin: 6rem 0;">
             <div style="border-top: 2px solid var(--iron); padding-top: 1rem;">
                 <span style="color: var(--ash);">Motive</span>
@@ -491,7 +481,7 @@
             </div>
         </div>
 
-        <!-- footer with broken grid -->
+        <!-- FOOTER — fully revised per feedback -->
         <footer>
             <div>
                 <div class="signature">(SF)</div>
@@ -501,12 +491,15 @@
             <div class="footer-links">
                 <a href="#">PRIVACY (minimal)</a>
                 <a href="#">TERMS OF REMOVAL</a>
-                <a href="#">LOCAL INDEX</a>
+                <!-- "LOCAL INDEX" removed, replaced with clearer "PICKUP MAP" -->
+                <a href="#">PICKUP MAP</a>
+                <!-- "100% recirculated" removed, replaced with honest message -->
+                <div style="color: #6b655f; margin-top: 0.8rem; text-transform: none;">we maximize circulation, not everything recirculates — but nothing goes to landfill.</div>
             </div>
             <div style="text-align: right;">
                 <div>electric fleet</div>
-                <div>no landfill · 100% recirculated</div>
-                <div style="margin-top: 2rem;">design: a / b / ordinary</div>
+                <!-- removed "100% recirculated" and "design: a/b/ordinary" completely -->
+                <div style="margin-top: 2rem; color: #4a4640;">every item finds a new owner locally</div>
             </div>
         </footer>
     </div>
@@ -527,11 +520,10 @@
 
             if (clearBtn) {
                 clearBtn.addEventListener('click', function() {
-                    alert('[demo] — in production, this opens a one‑step photo handoff. No forms.');
+                    alert('[demo] — one‑step photo handoff. No forms.');
                 });
             }
 
-            // optional micro interaction: dynamic hover effect on process
             const items = document.querySelectorAll('.process-item');
             items.forEach((item, idx) => {
                 item.addEventListener('mouseenter', () => {
@@ -543,7 +535,5 @@
             });
         })();
     </script>
-
-    <!-- no trace of previous conventional design — brutal, vertical, broken, superior -->
 </body>
 </html>
