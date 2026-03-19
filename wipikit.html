@@ -293,6 +293,113 @@
             color: #645d55;
         }
 
+        /* modal styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
+        }
+
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-card {
+            background: #f2efe9;
+            max-width: 480px;
+            width: 90%;
+            padding: 2.5rem;
+            border: 1px solid #cdc5bb;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.2);
+        }
+
+        .modal-card h3 {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 1.8rem;
+            border-bottom: 1px solid #d1c9bf;
+            padding-bottom: 1rem;
+        }
+
+        .field-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .field-group label {
+            display: block;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #8b847b;
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.5px;
+        }
+
+        .field-group input, .field-group textarea {
+            width: 100%;
+            background: transparent;
+            border: 1px solid #d3cbc1;
+            padding: 0.8rem 1rem;
+            font-family: 'Georgia', serif;
+            font-size: 1rem;
+            color: #1f1f1d;
+        }
+
+        .field-group textarea {
+            min-height: 70px;
+            resize: vertical;
+        }
+
+        .field-group input[type="file"] {
+            padding: 0.5rem 0;
+            border: none;
+        }
+
+        .hint {
+            font-size: 0.8rem;
+            color: #948e86;
+            margin-top: 0.3rem;
+            font-style: italic;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            background: transparent;
+            border: 1px solid #1f1f1d;
+            padding: 0.9rem 1rem;
+            font-family: 'Georgia', serif;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .modal-actions button.primary {
+            background: #1f1f1d;
+            color: #f2efe9;
+            border: 1px solid #1f1f1d;
+        }
+
+        .modal-actions button.primary:hover {
+            background: #3b3732;
+        }
+
+        .modal-actions button.secondary:hover {
+            background: #ddd6cd;
+        }
+
         footer {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -316,9 +423,15 @@
             gap: 0.3rem;
         }
 
+        .watermark {
+            font-size: 1.8rem;
+            color: #d7cfc5;
+            text-align: right;
+        }
+
         @media (max-width: 700px) {
             .field { grid-template-columns: 1fr; }
-            .field .field-meta { writing-mode: horizontal-tb; transform: none; }
+            .field .field-meta { writing-mode: horizontal-tb; transform: none; justify-self: start; }
             .exit-block { grid-template-columns: 1fr; }
             footer { grid-template-columns: 1fr; }
             .gather { grid-template-columns: 1fr; }
@@ -327,66 +440,145 @@
     </style>
 </head>
 <body>
-<div class="basin">
+    <div class="basin">
 
-<div class="sprinkle">
-    <div class="sprinkle-left">san francisco · drift</div>
-    <div class="sprinkle-right" id="moveDown">→</div>
-</div>
+        <div class="sprinkle">
+            <div class="sprinkle-left">san francisco · drift</div>
+            <div class="sprinkle-right" id="moveDown">→</div>
+        </div>
 
-<div class="vessel">
-    <h1>
-        some weight<br>lifts itself.
-        <i>what remains — you choose. the rest we carry.</i>
-    </h1>
-</div>
+        <div class="vessel">
+            <h1>
+                some weight<br>lifts itself.
+                <i>what remains — you choose. the rest we carry.</i>
+            </h1>
+        </div>
 
-<div class="drift-note">
-    <p>quiet removal of what no longer fits. clothes, bags, shoes, small things — leaving the way they came: without ceremony.</p>
-    <span>within a day · no account</span>
-</div>
+        <div class="drift-note">
+            <p>quiet removal of what no longer fits. clothes, bags, shoes, small things — leaving the way they came: without ceremony.</p>
+            <span>within a day · no account</span>
+        </div>
 
-<div class="streak"></div>
+        <div class="streak"></div>
 
-<div class="steps">
-    <div class="step-piece">
-        <div class="step-num">1</div>
-        <h4>gather</h4>
-        <p>what you no longer reach for. that’s all. no need to sort.</p>
+        <div class="field">
+            <div class="field-meta">01 — sort</div>
+            <div class="field-main">
+                <h2>what moves?</h2>
+                <p>things you held once. jackets that wait. a bag by the door. electronics that still work. small objects — not furniture, not large. the personal, the wearable.</p>
+                <div class="whisper"><span class="pebble"></span> no questions</div>
+            </div>
+        </div>
+
+        <!-- steps — 2 and 3 reworded beautifully -->
+        <div class="steps">
+            <div class="step-piece">
+                <div class="step-num">1</div>
+                <h4>gather</h4>
+                <p>what you no longer reach for. that’s all. no need to sort.</p>
+            </div>
+            <div class="step-piece key">
+                <div class="step-num">2</div>
+                <h4>set at the threshold</h4>
+                <p>the place where things arrive and depart — your building's common room, the alcove by the mail, the step inside. leave it there. one photo tells us the rest.</p>
+            </div>
+            <div class="step-piece key">
+                <div class="step-num">3</div>
+                <h4>we come by</h4>
+                <p>within a day we arrive. sometimes we ring, always we follow the note you left. by nightfall it's no longer yours to hold.</p>
+            </div>
+            <div class="step-piece">
+                <div class="step-num">4</div>
+                <h4>continue</h4>
+                <p>what leaves you finds another — repaired if needed, held by someone new.</p>
+            </div>
+        </div>
+
+        <div class="streak"></div>
+
+        <div class="field">
+            <div class="field-meta">02 — stay</div>
+            <div class="field-main">
+                <h2>stays here</h2>
+                <p>no trucks, no distance. we move by foot, by bike. everything stays inside the city — from your door to another’s.</p>
+                <p style="font-size: 1.2rem; margin-top: 1rem;">“still here. just not yours.”</p>
+            </div>
+        </div>
+
+        <div class="fragment">
+            <blockquote>
+                what’s idle can move again.
+                <cite>— drift log, 2026</cite>
+            </blockquote>
+        </div>
+
+        <div class="gather">
+            <div class="gather-item">
+                <div class="gather-label">hold</div>
+                <div class="gather-text">keeping what you don’t carry — that’s the weight.</div>
+            </div>
+            <div class="gather-item">
+                <div class="gather-label">release</div>
+                <div class="gather-text">one image. we come. nothing to schedule.</div>
+            </div>
+        </div>
+
+        <div class="exit-block" id="target">
+            <h3>clear a<br>corner</h3>
+            <div class="exit-right">
+                <div class="action" id="actionBtn">→ today</div>
+                <div class="action-note">no wait · sf only</div>
+            </div>
+        </div>
+
+        <!-- footer with legal name and address, removed "updates" -->
+        <footer>
+            <div>
+                <div style="font-size: 1.8rem; color: #d9d1c7;">(sf)</div>
+                <div>© 2026 drift urban recovery llc</div>
+                <div>2201 market street, san francisco, ca 94114</div>
+            </div>
+            <div class="footer-stack">
+                <a href="#">privacy</a>
+                <a href="#">terms</a>
+                <!-- updates removed -->
+                <div style="color:#a59e94; margin-top: 0.5rem;">local only — no export</div>
+            </div>
+            <div style="text-align: right;">
+                <div>electric · on foot</div>
+                <div style="margin-top: 1rem;">each thing meets a person</div>
+            </div>
+        </footer>
     </div>
 
-    <div class="step-piece key">
-        <div class="step-num">2</div>
-        <h4>set at the threshold</h4>
-        <p>
-            the place where things arrive and depart — your building’s common room, the alcove by the mail, the step just inside.<br><br>
-            leave it there.<br><br>
-            one photo, and a few words on how to reach it.<br>
-            we follow exactly what you leave for us.
-        </p>
+    <!-- modal overlay for submission -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <h3>start here</h3>
+            <div class="field-group">
+                <label>street address</label>
+                <input type="text" id="address" placeholder="e.g. 451 valencia st #3" autocomplete="off">
+                <div class="hint">where should we come?</div>
+            </div>
+            <div class="field-group">
+                <label>instruction</label>
+                <textarea id="instruction" placeholder="e.g. buzzer 7, left bag by the stairs"></textarea>
+                <div class="hint">how to enter, what to look for</div>
+            </div>
+            <div class="field-group">
+                <label>photo of the spot</label>
+                <input type="file" id="imageFile" accept="image/*">
+                <div class="hint">show us exactly where you left it</div>
+            </div>
+            <div class="modal-actions">
+                <button class="secondary" id="cancelModal">cancel</button>
+                <button class="primary" id="submitModal">submit</button>
+            </div>
+        </div>
     </div>
 
-    <div class="step-piece key">
-        <div class="step-num">3</div>
-        <h4>we come by</h4>
-        <p>
-            if we receive your note before noon,<br>
-            we pick up within a few hours.<br><br>
-            after that,<br>
-            within a day.<br><br>
-            never late at night.<br><br>
-            by nightfall,<br>
-            it’s no longer yours to hold.
-        </p>
-    </div>
-
-    <div class="step-piece">
-        <div class="step-num">4</div>
-        <h4>continue</h4>
-        <p>what leaves you finds another — repaired if needed, held by someone new.</p>
-    </div>
-</div>
-
-</div>
+    <!-- load the separate js files from /wipikit/ -->
+    <script src="/wipikit/app.js"></script>
+    <script src="/wipikit/submitHandler.js"></script>
 </body>
 </html>
