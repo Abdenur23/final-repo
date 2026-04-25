@@ -214,13 +214,11 @@ class StudioManager {
 
     processImages() {
         const files = [
-            document.getElementById('photo-upload-1').files[0],
-            document.getElementById('photo-upload-2').files[0],
-            document.getElementById('photo-upload-3').files[0]
+            document.getElementById('photo-upload-1').files[0]
         ];
 
         if (files.some(f => !f)) {
-            alert('Please upload exactly 3 photos.');
+            alert('Please upload photos.');
             return;
         }
 
